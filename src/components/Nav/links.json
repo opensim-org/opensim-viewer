@@ -1,0 +1,20 @@
+{
+    "links": [
+        {
+            "label": "Home",
+            "href": "/"
+        },
+        {
+            "label": "About",
+            "href": "/about"
+        },
+        {
+            "label": "Models",
+            "href": "/models"
+        },
+        {
+            "label": "Viewer",
+            "href": "/viewer"
+        }
+    ]
+}
