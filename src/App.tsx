@@ -7,21 +7,33 @@ import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import './App.css';
 import Nav from './components/Nav/Nav';
 
+import {
+  Button,
+  Paper,
+  ThemeProvider,
+  CssBaseline
+} from "@mui/material";
+import appTheme from './Theme';
+
 function App() { 
+
   return (
-      <BrowserRouter>
-      <div className="App">
-        <Nav />
-        <div>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/models" element={<ModelListPage />} />
-            <Route path="/viewer" element={<ModelViewPage />} />
-          </Routes>
+    <ThemeProvider theme={appTheme}>
+      <CssBaseline />
+        <BrowserRouter>
+        <div className="App">
+          <Nav />
+          <div>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/models" element={<ModelListPage />} />
+              <Route path="/viewer" element={<ModelViewPage />} />
+            </Routes>
+          </div>
         </div>
-      </div>
-    </BrowserRouter>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 
