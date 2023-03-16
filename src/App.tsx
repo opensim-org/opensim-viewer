@@ -14,6 +14,7 @@ import {
   CssBaseline
 } from "@mui/material";
 import appTheme from './Theme';
+import OpenSimAppBar from './components/Nav/OpenSimAppBar';
 
 function App() { 
 
@@ -22,7 +23,7 @@ function App() {
       <CssBaseline />
         <BrowserRouter>
         <div className="App">
-          <Nav />
+          <OpenSimAppBar />
           <div>
             <Routes>
               <Route path="/" element={<HomePage />} />
