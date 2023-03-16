@@ -15,7 +15,7 @@ const Links: React.FC<{ links: Link[] }> = ({ links }) => {
         <div className={styles['links-container']}>
             {links.map((link: Link) => {
                 return (
-                    <div key={link.href} className={styles['link']}>
+                    <div key={link.href} className={styles['link']} color="primary">
                         <a href={link.href}>
                             {link.label}
                         </a>

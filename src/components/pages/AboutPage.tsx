@@ -1,8 +1,11 @@
+
+import { Container, Typography } from "@mui/material";
+
 const AboutPage = () => {
     return (
-        <div>
-            <h1>This is the About page!</h1>
-        </div>
+        <Container>
+            <Typography variant="h2">This is the About page!</Typography>
+        </Container>
     );
 }
 

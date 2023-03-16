@@ -1,6 +1,8 @@
+import { Typography } from "@mui/material";
+
 const HomePage = () => {
     return (
-        <h1>This is the home page!</h1>
+        <Typography variant="h2">OpenSim Viewer home page!</Typography>
     );
 }
 

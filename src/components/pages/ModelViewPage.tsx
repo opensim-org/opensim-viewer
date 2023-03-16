@@ -1,8 +1,9 @@
 import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber'
-import { Suspense, useEffect } from 'react'
-import { useGLTF, OrbitControls, Stage, CameraShake, useAnimations } from '@react-three/drei'
-import { Camera } from 'three';
+import { useEffect } from 'react'
+import { useGLTF, OrbitControls, TrackballControls, GizmoHelper, GizmoViewport } from '@react-three/drei'
+import BottomBar from './BottomBar';
+import LeftDrawer from './LeftDrawer';
 
 function DefaultModel() {
   // useGLTF suspends the component, it literally stops processing
@@ -13,12 +14,19 @@ function DefaultModel() {
 const ModelViewPage = () => {
   return (
     <div id="canvas-container">
-      <Canvas style={{ width: "100vw", height: "100vh" }} camera={{ position: [1500, 1500, 1000], fov: 50, far: 10000 }}>
+      <Canvas style={{ width: "100vw", height: "80vh" }} 
+              camera={{ position: [1500, 2000, 1000], fov: 50, far: 10000}}>
         <color attach="background" args={['#151518']} />
         <directionalLight position={[10, 10, 0]} intensity={1.5} />
         <DefaultModel />
-        <OrbitControls  />
+        <TrackballControls />
+        <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
+          <GizmoViewport labelColor="white" axisHeadScale={1} />
+        </GizmoHelper>
+        <OrbitControls makeDefault />
       </Canvas>
+      <LeftDrawer/>
+      <BottomBar/>
     </div>
   );
 };
