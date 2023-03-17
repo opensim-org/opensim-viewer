@@ -1,6 +1,4 @@
-import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber'
-import { useEffect } from 'react'
 import { useGLTF, OrbitControls, TrackballControls, GizmoHelper, GizmoViewport, Bounds } from '@react-three/drei'
 import BottomBar from './BottomBar';
 import LeftDrawer from './LeftDrawer';

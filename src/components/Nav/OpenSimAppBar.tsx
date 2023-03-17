@@ -23,10 +23,9 @@ return (
                   src={logo}
                 />
             </Link>
-            <Button href="/">Home</Button>
-            <Button href="/about">About</Button>
-            <Button href="/models">Models</Button>
-            <Button href="/viewer">Viewer</Button>
+            <Button href="/viewer"><Typography variant="button">Viewer</Typography></Button>
+            <Button href="/models"><Typography variant="button">Models</Typography></Button>
+            <Button href="/about"><Typography variant="button">About</Typography></Button>
         </Toolbar>
     </AppBar>
 );
