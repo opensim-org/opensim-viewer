@@ -15,8 +15,7 @@ const ModelViewPage = () => {
       <Canvas style={{ width: "100vw", height: "80vh" }} 
               camera={{ position: [1500, 2000, 1000], fov: 50, far: 10000}}>
         <color attach="background" args={['#151518']} />
-        <ambientLight intensity={0.3} />
-        <directionalLight position={[10, 10, 0]} />
+        <ambientLight intensity={0.01} />
         <Bounds fit clip>
           <DefaultModel />
         </Bounds>

@@ -9,6 +9,8 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import Link from '@mui/material/Link';
 import logo from './logo.svg';
+import ShareTwoToneIcon from '@mui/icons-material/ShareTwoTone';
+import TwitterIcon from '@mui/icons-material/Twitter';
 
 function OpenSimAppBar() {
 
@@ -23,9 +25,15 @@ return (
                   src={logo}
                 />
             </Link>
-            <Button href="/viewer"><Typography variant="button">Viewer</Typography></Button>
+            <Button href="/viewer" sx={{marginLeft: "auto"}}><Typography variant="button">Viewer</Typography></Button>
             <Button href="/models"><Typography variant="button">Models</Typography></Button>
             <Button href="/about"><Typography variant="button">About</Typography></Button>
+            <IconButton>
+                <ShareTwoToneIcon/>
+            </IconButton>
+            <IconButton>
+                <TwitterIcon/>
+            </IconButton>
         </Toolbar>
     </AppBar>
 );
