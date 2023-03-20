@@ -5,7 +5,6 @@ import ModelListPage from './components/pages/ModelListPage';
 import ModelViewPage from './components/pages/ModelViewPage';
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import './App.css';
-import Nav from './components/Nav/Nav';
 
 import {
   Button,
@@ -14,6 +13,8 @@ import {
   CssBaseline
 } from "@mui/material";
 import appTheme from './Theme';
+import lightTheme from './LightTheme';
+import OpenSimAppBar from './components/Nav/OpenSimAppBar';
 
 function App() { 
 
@@ -22,7 +23,7 @@ function App() {
       <CssBaseline />
         <BrowserRouter>
         <div className="App">
-          <Nav />
+          <OpenSimAppBar />
           <div>
             <Routes>
               <Route path="/" element={<HomePage />} />
