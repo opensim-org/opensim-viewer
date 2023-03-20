@@ -1,7 +1,8 @@
 import { Canvas, useFrame } from '@react-three/fiber'
+
 import { useGLTF, OrbitControls, TrackballControls, GizmoHelper, GizmoViewport, Bounds } from '@react-three/drei'
 import BottomBar from './BottomBar';
-import LeftDrawer from './LeftDrawer';
+import SettingsDrawer from './SettingsDrawer';
 
 function DefaultModel() {
   // useGLTF suspends the component, it literally stops processing
@@ -9,13 +10,15 @@ function DefaultModel() {
   // By the time we're here the model is guaranteed to be available
   return <primitive object={scene} />
 }
+
 const ModelViewPage = () => {
   return (
     <div id="canvas-container">
-      <Canvas style={{ width: "100vw", height: "80vh" }} 
-              camera={{ position: [1500, 2000, 1000], fov: 50, far: 10000}}>
+      <Canvas shadows style={{ width: "100vw", height: "80vh" }} 
+               camera={{ position: [1500, 2000, 1000], fov: 75, far: 10000}}>
         <color attach="background" args={['#151518']} />
         <ambientLight intensity={0.01} />
+        <directionalLight position={[1500, 2000, 1000]} intensity={0.1} shadow-mapSize={128} castShadow />
         <Bounds fit clip>
           <DefaultModel />
         </Bounds>
@@ -23,9 +26,9 @@ const ModelViewPage = () => {
         <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
           <GizmoViewport labelColor="white" axisHeadScale={1} />
         </GizmoHelper>
-        <OrbitControls makeDefault />
+        <OrbitControls makeDefault autoRotateSpeed={1}/>
       </Canvas>
-      <LeftDrawer/>
+      <SettingsDrawer/>
       <BottomBar/>
     </div>
   );

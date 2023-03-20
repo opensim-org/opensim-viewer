@@ -1,36 +1,46 @@
 import { Stack, Container, IconButton } from "@mui/material";
-import BungalowTwoToneIcon from '@mui/icons-material/BungalowTwoTone';
+import ThreeSixtyTwoToneIcon from '@mui/icons-material/ThreeSixtyTwoTone';
 import ZoomInMapTwoToneIcon from '@mui/icons-material/ZoomInMapTwoTone';
 import ZoomInTwoToneIcon from '@mui/icons-material/ZoomInTwoTone';
 import StraightenTwoToneIcon from '@mui/icons-material/StraightenTwoTone';
 import ModeTwoToneIcon from '@mui/icons-material/ModeTwoTone';
-import LocalMoviesTwoToneIcon from '@mui/icons-material/LocalMoviesTwoTone';
-import LeaderboardTwoToneIcon from '@mui/icons-material/LeaderboardTwoTone';
+import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone';
+import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
+
+import { MouseEvent, useRef } from "react";
 
 const BottomBar = () => {
+    const camRef = useRef<THREE.Camera>(null);
+    
+    const handleZoom = (event:MouseEvent)=>{
+        console.log('Camera', camRef);
+    }
+    const handleRefit = ()=>{
+        console.log('Refit', camRef);
+    }
     return (
         <Container>
             <Stack direction="row" color="primary" justifyContent="center" >
-            <IconButton color="secondary">
-                    <BungalowTwoToneIcon/>
+            <IconButton color="primary">
+                    <ThreeSixtyTwoToneIcon/>
                 </IconButton>
-                <IconButton color="secondary">
+                <IconButton color="primary" onClick={handleRefit}>
                     <ZoomInMapTwoToneIcon/>
                 </IconButton>
-                <IconButton color="secondary">
+                <IconButton color="primary"  onClick={handleZoom}>
                     <ZoomInTwoToneIcon/>
                 </IconButton>
-                <IconButton color="secondary">
+                <IconButton color="primary">
                     <StraightenTwoToneIcon/>
                 </IconButton>
-                <IconButton color="secondary">
+                <IconButton color="primary">
                     <ModeTwoToneIcon/>
                 </IconButton>
-                <IconButton color="secondary">
-                    <LocalMoviesTwoToneIcon/>
+                <IconButton color="primary">
+                    <PhotoCameraTwoToneIcon/>
                 </IconButton>
-                <IconButton color="secondary">
-                    <LeaderboardTwoToneIcon/>
+                <IconButton color="primary">
+                    <VideoCameraFrontTwoToneIcon/>
                 </IconButton>
             </Stack>
         </Container>

@@ -5,7 +5,6 @@ import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
-import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import Link from '@mui/material/Link';
 import logo from './logo.svg';
@@ -25,9 +24,9 @@ return (
                   src={logo}
                 />
             </Link>
-            <Button href="/viewer" sx={{marginLeft: "auto"}}><Typography variant="button">Viewer</Typography></Button>
-            <Button href="/models"><Typography variant="button">Models</Typography></Button>
-            <Button href="/about"><Typography variant="button">About</Typography></Button>
+            <Button href="/viewer" sx={{marginLeft: "auto"}}><Typography variant="button" color="secondary">Viewer</Typography></Button>
+            <Button href="/models"><Typography variant="button" color="secondary">Models</Typography></Button>
+            <Button href="/about"><Typography variant="button" color="secondary">About</Typography></Button>
             <IconButton>
                 <ShareTwoToneIcon/>
             </IconButton>

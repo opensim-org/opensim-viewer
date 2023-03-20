@@ -13,6 +13,7 @@ import {
   CssBaseline
 } from "@mui/material";
 import appTheme from './Theme';
+import lightTheme from './LightTheme';
 import OpenSimAppBar from './components/Nav/OpenSimAppBar';
 
 function App() { 
