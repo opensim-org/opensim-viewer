@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import HomePage from './components/pages/HomePage';
 import AboutPage from './components/pages/AboutPage';
 import ModelListPage from './components/pages/ModelListPage';
@@ -7,8 +7,6 @@ import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import './App.css';
 
 import {
-  Button,
-  Paper,
   ThemeProvider,
   CssBaseline
 } from "@mui/material";
@@ -18,8 +16,14 @@ import OpenSimAppBar from './components/Nav/OpenSimAppBar';
 
 function App() { 
 
+  const [dark, setDark] = React.useState(true);
+  window.addEventListener("keyup", (event) => {
+    if (event.code==='KeyD'){ // P for print screen
+      setDark(!dark);
+    }
+  });
   return (
-    <ThemeProvider theme={appTheme}>
+    <ThemeProvider theme={dark?appTheme:lightTheme}>
       <CssBaseline />
         <BrowserRouter>
         <div className="App">
