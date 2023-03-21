@@ -7,8 +7,6 @@ import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import './App.css';
 
 import {
-  Button,
-  Paper,
   ThemeProvider,
   CssBaseline
 } from "@mui/material";
