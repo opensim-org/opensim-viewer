@@ -10,13 +10,12 @@ import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwo
 import { MouseEvent, useRef } from "react";
 
 const BottomBar = () => {
-    const camRef = useRef<THREE.Camera>(null);
     
     const handleZoom = (event:MouseEvent)=>{
-        console.log('Camera', camRef);
+        console.log('Camera Zoom');
     }
     const handleRefit = ()=>{
-        console.log('Refit', camRef);
+        console.log('Refit Scene');
     }
     return (
         <Container>
