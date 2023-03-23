@@ -1,21 +1,14 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useTheme } from '@mui/material'
-import { useGLTF, OrbitControls, TrackballControls, GizmoHelper, GizmoViewport, Bounds } from '@react-three/drei'
+import { useGLTF, GizmoHelper, GizmoViewport, Bounds, Environment } from '@react-three/drei'
 import BottomBar from './BottomBar';
 import SettingsDrawer from './SettingsDrawer';
-import { useRef } from 'react';
+import OpenSimControl from './OpenSimControl';
 
 function OpenSimModel() {
   
   const {
     gl, // WebGL renderer
-    camera, // Default camera
-    raycaster, // Default raycaster
-    size, // Bounds of the view (which stretches 100% and auto-adjusts)
-    viewport, // Bounds of the viewport in 3d units + factor (size/viewport)
-    mouse, // Current, centered, normalized 2D mouse coordinates
-    clock, // THREE.Clock (useful for useFrame deltas)
-    invalidate, // Invalidates a single frame (for <Canvas invalidateFrameloop />)
   } = useThree();
 
   window.addEventListener("keyup", (event) => {
@@ -29,10 +22,11 @@ function OpenSimModel() {
   });
   
   // useGLTF suspends the component, it literally stops processing
-  const { scene } = useGLTF('builtin/gait10dof.gltf' )
+  const { scene } = useGLTF('/builtin/gait10dof.gltf' )
   // By the time we're here the model is guaranteed to be available
   return <primitive object={scene} />
 }
+
 
 const ModelViewPage = () => {
   const theme = useTheme();
@@ -40,20 +34,19 @@ const ModelViewPage = () => {
   return (
     <div id="canvas-container">
       <Canvas gl={{ preserveDrawingBuffer: true }} shadows 
-          style={{ width: "100vw", height: "80vh" }}
+          style={{ width: "100vw", height: "85vh" }}
           camera={{ position: [1500, 2000, 1000], fov: 75, far: 10000}}>
         <color attach="background" 
-            args={(theme.palette.mode==='dark')?['#151518']:['#7d7d7d']} />
-        <ambientLight intensity={0.01} />
-        <directionalLight position={[1500, 2000, 1000]} intensity={0.1} shadow-mapSize={128} castShadow />
+            args={(theme.palette.mode==='dark')?['#151518']:['#cccccc']} />
+        <directionalLight position={[1500, 2000, 1000]} intensity={0.05} shadow-mapSize={128} castShadow />
         <Bounds fit clip>
           <OpenSimModel />
         </Bounds>
-        <TrackballControls />
+        <Environment preset='city' />
         <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
           <GizmoViewport labelColor="white" axisHeadScale={1} />
         </GizmoHelper>
-        <OrbitControls makeDefault />
+        <OpenSimControl />
       </Canvas>
       <SettingsDrawer/>
       <BottomBar/>
