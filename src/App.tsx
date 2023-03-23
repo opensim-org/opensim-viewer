@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import HomePage from './components/pages/HomePage';
 import AboutPage from './components/pages/AboutPage';
 import ModelListPage from './components/pages/ModelListPage';
@@ -13,6 +12,7 @@ import {
 import appTheme from './Theme';
 import lightTheme from './LightTheme';
 import OpenSimAppBar from './components/Nav/OpenSimAppBar';
+import React from 'react';
 
 function App() { 
 

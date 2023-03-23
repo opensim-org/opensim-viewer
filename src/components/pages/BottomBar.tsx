@@ -7,7 +7,7 @@ import ModeTwoToneIcon from '@mui/icons-material/ModeTwoTone';
 import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone';
 import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
 
-import { MouseEvent, useRef } from "react";
+import { MouseEvent } from "react";
 
 const BottomBar = () => {
     
