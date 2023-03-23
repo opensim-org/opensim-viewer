@@ -1,4 +1,4 @@
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { Canvas, useThree } from '@react-three/fiber'
 import { useTheme } from '@mui/material'
 import { useGLTF, GizmoHelper, GizmoViewport, Bounds, Environment } from '@react-three/drei'
 import BottomBar from './BottomBar';
