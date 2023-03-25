@@ -1,5 +1,5 @@
 {
-  "name": "opensim-viewer-frontend",
+  "name": "opensim-viewer",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -26,7 +26,7 @@
     "three": "^0.150.1",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4",
-    "homepage": "https://aymanhab.github.io/opensim-viewer-frontend"
+    "homepage": "https://opensim-org.github.io/opensim-viewer"
   },
   "scripts": {
     "start": "react-scripts start",
