@@ -9,6 +9,7 @@ import Link from '@mui/material/Link';
 import logo from './logo.svg';
 import ShareTwoToneIcon from '@mui/icons-material/ShareTwoTone';
 import TwitterIcon from '@mui/icons-material/Twitter';
+import InfoTwoToneIcon from '@mui/icons-material/InfoTwoTone';
 
 function OpenSimAppBar() {
 
@@ -25,7 +26,9 @@ return (
             </Link>
             <Button href="/viewer" sx={{marginLeft: "auto"}}><Typography variant="button" color="secondary">Viewer</Typography></Button>
             <Button href="/models"><Typography variant="button" color="secondary">Models</Typography></Button>
-            <Button href="/about"><Typography variant="button" color="secondary">About</Typography></Button>
+            <IconButton>
+                <InfoTwoToneIcon/>
+            </IconButton>
             <IconButton>
                 <ShareTwoToneIcon/>
             </IconButton>
