@@ -2,6 +2,8 @@
 
 This repository contains the codebase for the web based viewer of OpenSim files currently under development. This is work in progress.
 
+This project is tested with [BrowserStack](https://www.browserstack.com)
+
 ## Available Scripts
 
 In the project directory, you can run:
