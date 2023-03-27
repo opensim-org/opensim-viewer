@@ -22,7 +22,7 @@ function OpenSimModel() {
   });
   
   // useGLTF suspends the component, it literally stops processing
-  const { scene } = useGLTF('/builtin/gait10dof.gltf' )
+  const { scene } = useGLTF('/builtin/leg39_nomusc.gltf' )
   // By the time we're here the model is guaranteed to be available
   return <primitive object={scene} />
 }
