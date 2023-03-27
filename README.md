@@ -1,6 +1,6 @@
-# Getting Started with Create React App
+### OpenSim Viewer
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This repository contains the codebase for the web based viewer of OpenSim files currently under development. This is work in progress.
 
 ## Available Scripts
 
