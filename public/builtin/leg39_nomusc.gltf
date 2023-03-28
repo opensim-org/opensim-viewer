@@ -582,7 +582,7 @@
             0.47353149613845735,
             0.47353149613845735
           ],
-          "intensity": 1,
+          "intensity": 0.4,
           "type": "directional"
         },
         {
@@ -592,7 +592,7 @@
             1,
             1
           ],
-          "intensity": 0.25,
+          "intensity": 0.1,
           "type": "point"
         }
       ]

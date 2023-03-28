@@ -4,12 +4,15 @@ import { useGLTF, GizmoHelper, GizmoViewport, Bounds, Environment } from '@react
 import BottomBar from './BottomBar';
 import SettingsDrawer from './SettingsDrawer';
 import OpenSimControl from './OpenSimControl';
+import { Vector3 } from 'three/src/math/Vector3';
 
 function OpenSimModel() {
   
-  const {
+   const {
     gl, // WebGL renderer
+    camera
   } = useThree();
+
 
   window.addEventListener("keyup", (event) => {
     if (event.code==='KeyP'){ // P for print screen
@@ -18,7 +21,15 @@ function OpenSimModel() {
       link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
       link.click()
       event.preventDefault();
-    }
+    };
+    if (event.code==='KeyI'){ // I for camera zoom in
+      let v = new Vector3();
+      camera.position.lerp(v.set(1, 0, 0), 0.025);
+    };
+    if (event.code==='KeyO'){ // O for camera zoom out
+      let v = new Vector3();
+      camera.position.lerp(v.set(1, 0, 0), -0.025);
+    }    
   });
   
   // useGLTF suspends the component, it literally stops processing
