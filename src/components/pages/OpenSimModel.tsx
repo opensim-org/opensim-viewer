@@ -1,6 +1,6 @@
 import { useThree } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
-import { Vector3 } from '@react-three/fiber';
+import { Vector3 } from 'three';
 
 export function OpenSimModel() {
 
