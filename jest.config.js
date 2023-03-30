@@ -19,7 +19,7 @@ module.exports = {
   
     // Test spec file resolution pattern
     //filename should contain `test` or `spec`.
-    testRegex: "(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$",
+    testRegex: "(/.*|(\\.|/)(test|spec))\\.tsx?$",
   
     // Module file extensions for importing
     moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"]
