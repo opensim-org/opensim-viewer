@@ -7,9 +7,7 @@ import ModeTwoToneIcon from '@mui/icons-material/ModeTwoTone';
 import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone';
 import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
 
-import { MouseEvent } from "react";
 import React, { useState } from 'react';
-import { Camera } from "@react-three/fiber";
 
 interface BottomBarProps {
     rotating?: boolean;
@@ -17,7 +15,7 @@ interface BottomBarProps {
 const BottomBar = (props: BottomBarProps) => {
     const [toggle, setToggle] = useState(true);
 
-    const handleZoom = (event:MouseEvent)=>{
+    const handleZoom = ()=>{
         console.log('Camera Zoom');
     }
     const handleRefit = ()=>{
@@ -33,7 +31,7 @@ const BottomBar = (props: BottomBarProps) => {
                 <IconButton color="primary" onClick={handleRefit}>
                     <ZoomInMapTwoToneIcon/>
                 </IconButton>
-                <IconButton color="primary">
+                <IconButton color="primary" onClick={handleZoom}>
                     <ZoomInTwoToneIcon/>
                 </IconButton>
                 <IconButton color="primary">
