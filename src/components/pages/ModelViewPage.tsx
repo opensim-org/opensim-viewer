@@ -26,7 +26,7 @@ const ModelViewPage = () => {
         </GizmoHelper>
         <OpenSimControl  autoRotate={true} />
       </Canvas>
-      <SettingsDrawer/>
+      <SettingsDrawer placement='left'/>
       <BottomBar/>
     </div>
   );

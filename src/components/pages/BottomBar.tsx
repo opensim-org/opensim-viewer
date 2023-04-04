@@ -1,4 +1,4 @@
-import { Stack, Container, IconButton } from "@mui/material";
+import { Stack, Container, IconButton, ToggleButton } from "@mui/material";
 import ThreeSixtyTwoToneIcon from '@mui/icons-material/ThreeSixtyTwoTone';
 import ZoomInMapTwoToneIcon from '@mui/icons-material/ZoomInMapTwoTone';
 import ZoomInTwoToneIcon from '@mui/icons-material/ZoomInTwoTone';
@@ -8,9 +8,15 @@ import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone';
 import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
 
 import { MouseEvent } from "react";
+import React, { useState } from 'react';
+import { Camera } from "@react-three/fiber";
 
-const BottomBar = () => {
-    
+interface BottomBarProps {
+    rotating?: boolean;
+}
+const BottomBar = (props: BottomBarProps) => {
+    const [toggle, setToggle] = useState(true);
+
     const handleZoom = (event:MouseEvent)=>{
         console.log('Camera Zoom');
     }
@@ -20,13 +26,14 @@ const BottomBar = () => {
     return (
         <Container>
             <Stack direction="row" color="primary" justifyContent="center" >
-            <IconButton color="primary">
-                    <ThreeSixtyTwoToneIcon/>
-                </IconButton>
+                <ToggleButton color="primary" selected={toggle} value={"Rotate"} 
+                        onClick={()=>setToggle(!toggle)}>
+                    <ThreeSixtyTwoToneIcon />
+                </ToggleButton>
                 <IconButton color="primary" onClick={handleRefit}>
                     <ZoomInMapTwoToneIcon/>
                 </IconButton>
-                <IconButton color="primary"  onClick={handleZoom}>
+                <IconButton color="primary">
                     <ZoomInTwoToneIcon/>
                 </IconButton>
                 <IconButton color="primary">

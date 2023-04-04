@@ -6,10 +6,11 @@ interface ControlProps {
 
 };
 function OpenSimControl(props: ControlProps) {
+
     if (props.autoRotate)
-       return <OrbitControls autoRotate makeDefault />
+       return <OrbitControls autoRotate />
     else
-        return <OrbitControls makeDefault />
+        return <OrbitControls />
 }
 
 export default OpenSimControl;
