@@ -1,9 +1,15 @@
 
 import { OrbitControls } from '@react-three/drei';
 
-function OpenSimControl() {
+interface ControlProps {
+    autoRotate: boolean;
 
-    return <OrbitControls makeDefault />
+};
+function OpenSimControl(props: ControlProps) {
+    if (props.autoRotate)
+       return <OrbitControls autoRotate makeDefault />
+    else
+        return <OrbitControls makeDefault />
 }
 
 export default OpenSimControl;

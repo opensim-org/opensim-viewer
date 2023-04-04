@@ -24,7 +24,7 @@ const ModelViewPage = () => {
         <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
           <GizmoViewport labelColor="white" axisHeadScale={1} />
         </GizmoHelper>
-        <OpenSimControl />
+        <OpenSimControl  autoRotate={true} />
       </Canvas>
       <SettingsDrawer/>
       <BottomBar/>
