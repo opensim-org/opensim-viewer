@@ -6,7 +6,7 @@ import StackedLineChartTwoToneIcon from '@mui/icons-material/StackedLineChartTwo
 
 const SettingsDrawer = () => {
     return (
-    <Drawer anchor="right" variant="permanent" >
+    <Drawer anchor="right" variant="temporary" >
         <IconButton color="primary">
             <SettingsTwoToneIcon/>
         </IconButton>

@@ -10,12 +10,16 @@ import logo from './logo.svg';
 import ShareTwoToneIcon from '@mui/icons-material/ShareTwoTone';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import InfoTwoToneIcon from '@mui/icons-material/InfoTwoTone';
+import MenuTwoToneIcon from '@mui/icons-material/MenuTwoTone';
 
 function OpenSimAppBar() {
 
 return (
     <AppBar position="static">
         <Toolbar variant="dense">
+            <IconButton>
+                <MenuTwoToneIcon />
+            </IconButton>
             <Link href="/">
                 <Box
                   component ="img"
