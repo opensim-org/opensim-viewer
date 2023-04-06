@@ -5,7 +5,9 @@ import OpenSimAppBar from './OpenSimAppBar';
 // This just tests the AppBar, should check for Logo, logo-theme and routing
 // while testing individual choices is delegated to downstream Components
 test('renders opensim-viewer toolbar', () => {
-    render(<OpenSimAppBar />);
+    const [dark, setDark] = React.useState<boolean>(true);
+
+    render(<OpenSimAppBar dark={dark}/>);
     const viewerElement = screen.getByText(/Viewer/i);
     expect(viewerElement).toBeInTheDocument();
 
