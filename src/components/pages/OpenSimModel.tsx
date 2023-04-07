@@ -2,7 +2,11 @@ import { useThree } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import { Vector3 } from 'three';
 
-export function OpenSimModel() {
+interface OpenSimModelProps {
+  modelPath: string;
+}
+
+const OpenSimModel: React.FC<OpenSimModelProps> = ({ modelPath }) => {
 
   const {
     gl, // WebGL renderer
@@ -29,7 +33,9 @@ export function OpenSimModel() {
   });
 
   // useGLTF suspends the component, it literally stops processing
-  const { scene } = useGLTF('/builtin/leg39_nomusc.gltf');
+  const { scene } = useGLTF(modelPath);
   // By the time we're here the model is guaranteed to be available
   return <primitive object={scene} />;
 }
+
+export default OpenSimModel;

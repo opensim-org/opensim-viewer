@@ -4,9 +4,13 @@ import { GizmoHelper, GizmoViewport, Bounds, Environment } from '@react-three/dr
 import BottomBar from './BottomBar';
 import SettingsDrawer from './SettingsDrawer';
 import OpenSimControl from './OpenSimControl';
-import { OpenSimModel } from './OpenSimModel';
+import OpenSimModel from './OpenSimModel';
 
-const ModelViewPage = () => {
+interface ModelViewPageProps {
+  modelPath: string;
+}
+
+const ModelViewPage: React.FC<ModelViewPageProps> = ({ modelPath }) => {
   const theme = useTheme();
   console.log(theme.palette.mode);
   return (
@@ -18,7 +22,7 @@ const ModelViewPage = () => {
             args={(theme.palette.mode==='dark')?['#151518']:['#cccccc']} />
         <directionalLight position={[1500, 2000, 1000]} intensity={0.05} shadow-mapSize={128} castShadow />
         <Bounds fit clip>
-          <OpenSimModel />
+          <OpenSimModel modelPath={modelPath}/>
         </Bounds>
         <Environment preset='city' />
         <GizmoHelper alignment="bottom-right" margin={[100, 100]}>

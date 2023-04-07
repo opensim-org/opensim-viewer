@@ -1,6 +1,6 @@
 import HomePage from './components/pages/HomePage';
 import AboutPage from './components/pages/AboutPage';
-import ModelListPage from './components/pages/ModelListPage';
+import ModelListPage from './components/pages/ModelListPage/ModelListPage';
 import ModelViewPage from './components/pages/ModelViewPage';
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import './App.css';
@@ -16,6 +16,7 @@ import React, { useEffect } from 'react';
 
 function App() { 
 
+  const [modelPath, setModelPath] = React.useState('/builtin/leg39_nomusc.gltf');
   const [dark, setDark] = React.useState(true);
 
   useEffect(() => {
@@ -47,8 +48,8 @@ function App() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/about" element={<AboutPage />} />
-              <Route path="/models" element={<ModelListPage />} />
-              <Route path="/viewer" element={<ModelViewPage />} />
+              <Route path="/models" element={<ModelListPage modelPath={modelPath}/>} />
+              <Route path="/viewer" element={<ModelViewPage modelPath={modelPath}/>} />
             </Routes>
           </div>
         </div>
