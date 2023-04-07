@@ -16,7 +16,7 @@ import React, { useEffect } from 'react';
 
 function App() { 
 
-  const [modelPath, setModelPath] = React.useState('/builtin/leg39_nomusc.gltf');
+  const [modelPath] = React.useState('/builtin/leg39_nomusc.gltf');
   const [dark, setDark] = React.useState(true);
 
   useEffect(() => {
