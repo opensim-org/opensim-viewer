@@ -2,15 +2,17 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import OpenSimAppBar from './OpenSimAppBar';
 
-// This just tests the AppBar, should check for Logo, logo-theme and routing
-// while testing individual choices is delegated to downstream Components
+function TestComponent() {
+  const [dark, setDark] = React.useState<boolean>(true);
+
+  return <OpenSimAppBar dark={dark} />;
+}
+
 test('renders opensim-viewer toolbar', () => {
-    const [dark, setDark] = React.useState<boolean>(true);
+  render(<TestComponent />);
+  const viewerElement = screen.getByText(/Viewer/i);
+  expect(viewerElement).toBeInTheDocument();
 
-    render(<OpenSimAppBar dark={dark}/>);
-    const viewerElement = screen.getByText(/Viewer/i);
-    expect(viewerElement).toBeInTheDocument();
-
-    const modelsElement = screen.getByText(/models/i);
-    expect(modelsElement).toBeInTheDocument();
-  });
+  const modelsElement = screen.getByText(/models/i);
+  expect(modelsElement).toBeInTheDocument();
+});
