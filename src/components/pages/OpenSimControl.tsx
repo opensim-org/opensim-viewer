@@ -1,15 +1,11 @@
 
 import { OrbitControls } from '@react-three/drei';
+import { observer } from "mobx-react";
+import viewerState from '../../state/ViewerState'
 
-interface ControlProps {
-    autoRotate: boolean;
-
-};
-function OpenSimControl(props: ControlProps) {
-    if (props.autoRotate)
-       return <OrbitControls autoRotate makeDefault />
-    else
-        return <OrbitControls makeDefault />
+function OpenSimControl() {
+    //console.log(viewerState.rotating);
+    return <OrbitControls autoRotate autoRotateSpeed={viewerState.rotating?2:0.0} makeDefault />
 }
 
-export default OpenSimControl;
+export default observer(OpenSimControl);

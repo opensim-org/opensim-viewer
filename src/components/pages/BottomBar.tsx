@@ -6,32 +6,22 @@ import StraightenTwoToneIcon from '@mui/icons-material/StraightenTwoTone';
 import ModeTwoToneIcon from '@mui/icons-material/ModeTwoTone';
 import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone';
 import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
+import viewerState from '../../state/ViewerState'
+import React from 'react';
+import { observer } from "mobx-react";
 
-import React, { useState } from 'react';
-
-interface BottomBarProps {
-    rotating?: boolean;
-}
-const BottomBar = (props: BottomBarProps) => {
-    const [toggle, setToggle] = useState(true);
-
-    const handleZoom = ()=>{
-        console.log('Camera Zoom');
-    }
-    const handleRefit = ()=>{
-        console.log('Refit Scene');
-    }
+function BottomBar () {
     return (
         <Container>
             <Stack direction="row" color="primary" justifyContent="center" >
-                <ToggleButton color="primary" selected={toggle} value={"Rotate"} 
-                        onClick={()=>setToggle(!toggle)}>
+                <ToggleButton color="primary" selected={viewerState.rotating} value={"Rotate"} 
+                    onClick={()=>viewerState.setRotating(!viewerState.rotating)}>
                     <ThreeSixtyTwoToneIcon />
                 </ToggleButton>
-                <IconButton color="primary" onClick={handleRefit}>
+                <IconButton color="primary">
                     <ZoomInMapTwoToneIcon/>
                 </IconButton>
-                <IconButton color="primary" onClick={handleZoom}>
+                <IconButton color="primary">
                     <ZoomInTwoToneIcon/>
                 </IconButton>
                 <IconButton color="primary">
@@ -49,6 +39,6 @@ const BottomBar = (props: BottomBarProps) => {
             </Stack>
         </Container>
     );
-}
+};
 
-export default BottomBar;
+export default observer(BottomBar);

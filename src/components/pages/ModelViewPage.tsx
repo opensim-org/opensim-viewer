@@ -1,6 +1,6 @@
 import { Canvas } from '@react-three/fiber'
 import { useTheme } from '@mui/material'
-import { GizmoHelper, GizmoViewport, Bounds, Environment, Stage } from '@react-three/drei'
+import { GizmoHelper, GizmoViewport, Bounds, Environment} from '@react-three/drei'
 import BottomBar from './BottomBar';
 import SettingsDrawer from './SettingsDrawer';
 import OpenSimControl from './OpenSimControl';
@@ -25,11 +25,11 @@ const ModelViewPage = () => {
         <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
           <GizmoViewport labelColor="white" axisHeadScale={1} />
         </GizmoHelper>
-        <OpenSimControl autoRotate={true} />
+        <OpenSimControl />
       </Canvas>
       </Suspense>
       <SettingsDrawer placement='left'/>
-      <BottomBar/>
+      <BottomBar />
     </div>
   );
 };
