@@ -36,8 +36,6 @@ function App() {
     };
   }, []);
 
-  console.log("Rendering")
-
   return (
     <ThemeProvider theme={dark?appTheme:lightTheme}>
       <CssBaseline />
