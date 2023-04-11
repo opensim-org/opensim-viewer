@@ -2,6 +2,7 @@
   "name": "opensim-viewer",
   "version": "0.1.0",
   "private": true,
+  "homepage": ".",
   "dependencies": {
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
@@ -34,7 +35,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "test:watch": "jest --watch",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
@@ -56,6 +58,7 @@
   },
   "devDependencies": {
     "@types/react": "^18.0.28",
-    "@types/react-dom": "^18.0.11"
+    "@types/react-dom": "^18.0.11",
+    "gh-pages": "^5.0.0"
   }
 }
