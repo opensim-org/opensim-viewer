@@ -4,26 +4,21 @@ import ModelListPage from './components/pages/ModelListPage/ModelListPage';
 import ModelViewPage from './components/pages/ModelViewPage';
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import './App.css';
-
-import {
-  ThemeProvider,
-  CssBaseline
-} from "@mui/material";
+import { observer } from 'mobx-react';
+import { ThemeProvider, CssBaseline } from "@mui/material";
 import appTheme from './Theme';
 import lightTheme from './LightTheme';
 import OpenSimAppBar from './components/Nav/OpenSimAppBar';
 import React, { useEffect } from 'react';
+import viewerState from './state/ViewerState';
 
 function App() { 
-
-  const [modelPath] = React.useState('/builtin/leg39_nomusc.gltf');
-  const [dark, setDark] = React.useState(true);
 
   useEffect(() => {
     // Event that switches between dark and light mode when the letter D is pressed.
     const handleKeyDUp = (event: KeyboardEvent) => {
       if (event.code === "KeyD") {
-        setDark((dark) => !dark);
+        viewerState.setDark(!viewerState.dark);
       }
     };
 
@@ -37,17 +32,17 @@ function App() {
   }, []);
 
   return (
-    <ThemeProvider theme={dark?appTheme:lightTheme}>
+    <ThemeProvider theme={viewerState.dark?appTheme:lightTheme}>
       <CssBaseline />
         <BrowserRouter>
         <div className="App">
-          <OpenSimAppBar dark={dark}/>
+          <OpenSimAppBar dark={viewerState.dark}/>
           <div>
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/about" element={<AboutPage />} />
-              <Route path="/models" element={<ModelListPage modelPath={modelPath}/>} />
-              <Route path="/viewer" element={<ModelViewPage modelPath={modelPath}/>} />
+              <Route path="/models" element={<ModelListPage featuredModelsFilePath={viewerState.featuredModelsFilePath}/>} />
+              <Route path="/viewer" element={<ModelViewPage curentModelPath={viewerState.currentModelPath}/>} />
             </Routes>
           </div>
         </div>
@@ -56,4 +51,4 @@ function App() {
   );
 }
 
-export default App;
+export default observer(App);

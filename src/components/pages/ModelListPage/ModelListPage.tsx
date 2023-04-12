@@ -18,14 +18,14 @@ type ModelMetadataType = {
 }  
 
 interface ModelListPageProps {
-    modelPath: string;
+    featuredModelsFilePath: string;
 }
   
-const ModelListPage: React.FC<ModelListPageProps> = ({ modelPath }) => {
+const ModelListPage: React.FC<ModelListPageProps> = ({ featuredModelsFilePath }) => {
   const [models, setModels] = useState<ModelMetadataType[]>([]);
 
   useEffect(() => {
-    fetch('/builtin/featured-models.json')
+    fetch(featuredModelsFilePath)
     .then(response => response.json())
     .then(data => {
       // convert the models object to an array

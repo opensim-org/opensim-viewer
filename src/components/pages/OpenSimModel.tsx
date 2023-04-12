@@ -1,12 +1,13 @@
 import { useThree } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import { Vector3 } from 'three';
+import { useMemo } from 'react';
 
 interface OpenSimModelProps {
-  modelPath: string;
+  curentModelPath: string;
 }
 
-const OpenSimModel: React.FC<OpenSimModelProps> = ({ modelPath }) => {
+const OpenSimModel: React.FC<OpenSimModelProps> = ({ curentModelPath }) => {
 
   const {
     gl, // WebGL renderer
@@ -33,7 +34,15 @@ const OpenSimModel: React.FC<OpenSimModelProps> = ({ modelPath }) => {
   });
 
   // useGLTF suspends the component, it literally stops processing
-  const { scene } = useGLTF(modelPath);
+  const { scene } = useGLTF(curentModelPath);
+  useMemo(() => scene.traverse(obj => {
+    // traverse and mutate the scene here ...
+    if (obj.type === 'Mesh'){
+      obj.receiveShadow = true;
+      obj.castShadow = true;
+    }
+    console.log(obj);
+  }), [scene])
   // By the time we're here the model is guaranteed to be available
   return <primitive object={scene} />;
 }
