@@ -4,9 +4,12 @@ import SettingsTwoToneIcon from '@mui/icons-material/SettingsTwoTone';
 import LayersTwoToneIcon from '@mui/icons-material/LayersTwoTone';
 import StackedLineChartTwoToneIcon from '@mui/icons-material/StackedLineChartTwoTone';
 
-const SettingsDrawer = () => {
+interface SettingsProps {
+    placement: "left"|"right"|"top"|"bottom";
+}
+const SettingsDrawer = (props: SettingsProps) => {
     return (
-    <Drawer anchor="right" variant="permanent" >
+    <Drawer anchor={props.placement} variant="temporary" >
         <IconButton color="primary">
             <SettingsTwoToneIcon/>
         </IconButton>

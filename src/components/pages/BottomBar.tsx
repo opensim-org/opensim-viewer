@@ -1,4 +1,4 @@
-import { Stack, Container, IconButton } from "@mui/material";
+import { Stack, Container, IconButton, ToggleButton } from "@mui/material";
 import ThreeSixtyTwoToneIcon from '@mui/icons-material/ThreeSixtyTwoTone';
 import ZoomInMapTwoToneIcon from '@mui/icons-material/ZoomInMapTwoTone';
 import ZoomInTwoToneIcon from '@mui/icons-material/ZoomInTwoTone';
@@ -6,27 +6,22 @@ import StraightenTwoToneIcon from '@mui/icons-material/StraightenTwoTone';
 import ModeTwoToneIcon from '@mui/icons-material/ModeTwoTone';
 import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone';
 import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
+import viewerState from '../../state/ViewerState'
+import React from 'react';
+import { observer } from "mobx-react";
 
-import { MouseEvent } from "react";
-
-const BottomBar = () => {
-    
-    const handleZoom = (event:MouseEvent)=>{
-        console.log('Camera Zoom');
-    }
-    const handleRefit = ()=>{
-        console.log('Refit Scene');
-    }
+function BottomBar () {
     return (
         <Container>
             <Stack direction="row" color="primary" justifyContent="center" >
-            <IconButton color="primary">
-                    <ThreeSixtyTwoToneIcon/>
-                </IconButton>
-                <IconButton color="primary" onClick={handleRefit}>
+                <ToggleButton color="primary" selected={viewerState.rotating} value={"Rotate"} 
+                    onClick={()=>viewerState.setRotating(!viewerState.rotating)}>
+                    <ThreeSixtyTwoToneIcon />
+                </ToggleButton>
+                <IconButton color="primary">
                     <ZoomInMapTwoToneIcon/>
                 </IconButton>
-                <IconButton color="primary"  onClick={handleZoom}>
+                <IconButton color="primary">
                     <ZoomInTwoToneIcon/>
                 </IconButton>
                 <IconButton color="primary">
@@ -44,6 +39,6 @@ const BottomBar = () => {
             </Stack>
         </Container>
     );
-}
+};
 
-export default BottomBar;
+export default observer(BottomBar);
