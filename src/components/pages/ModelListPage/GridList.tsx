@@ -52,7 +52,7 @@ const GridList = ({ modelMetadata }: GridListProps) => {
               </CardContent>
               <CardActions sx={{ justifyContent: 'space-between' }}>
                 <Typography variant="subtitle2" sx={{textAlign: 'left', width: '60%', margin: "1em"}}><strong>By </strong>{element.author}</Typography>
-                <Link href="#" variant="subtitle2" sx={{textAlign: 'right', margin: "1em"}}>
+                <Link href={element.link} variant="subtitle2" sx={{textAlign: 'right', margin: "1em"}} target='_blank'>
                   More Info
                 </Link>
               </CardActions>
