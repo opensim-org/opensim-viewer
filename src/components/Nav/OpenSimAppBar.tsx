@@ -14,8 +14,9 @@ import InfoTwoToneIcon from '@mui/icons-material/InfoTwoTone';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import viewerState from '../../state/ViewerState';
+
 interface OpenSimAppBarProps {
-    dark: boolean;
+    dark: boolean
 }
 
 const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark }) => {
@@ -64,4 +65,4 @@ return (
 );
 }
 
-export default OpenSimAppBar;
+export default OpenSimAppBar

@@ -1,14 +1,14 @@
-import { createTheme, responsiveFontSizes } from "@mui/material";
+import { createTheme, responsiveFontSizes } from '@mui/material'
 
 const appTheme = createTheme({
     spacing: 15,
     palette: {
-      mode: "dark",
+        mode: 'dark',
         primary: {
-            main: "#E8F0FE"
+            main: '#E8F0FE',
         },
         secondary: {
-          main: '#2C579E'
+            main: '#2C579E',
         },
     },
     components: {
@@ -16,10 +16,10 @@ const appTheme = createTheme({
             styleOverrides: {
                 root: {
                     borderRadius: 10,
-                }
-            }
-        }
-    }
-  });
+                },
+            },
+        },
+    },
+})
 
-export default responsiveFontSizes(appTheme);
+export default responsiveFontSizes(appTheme)
