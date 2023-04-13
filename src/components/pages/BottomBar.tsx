@@ -1,4 +1,4 @@
-import { Stack, Container, IconButton, ToggleButton } from "@mui/material";
+import { Stack, IconButton, ToggleButton, Drawer } from "@mui/material";
 import ThreeSixtyTwoToneIcon from '@mui/icons-material/ThreeSixtyTwoTone';
 import ZoomInMapTwoToneIcon from '@mui/icons-material/ZoomInMapTwoTone';
 import ZoomInTwoToneIcon from '@mui/icons-material/ZoomInTwoTone';
@@ -11,7 +11,7 @@ import { observer } from "mobx-react";
 
 function BottomBar () {
     return (
-        <Container>
+        <Drawer open={true} anchor="bottom">
             <Stack direction="row" color="primary" justifyContent="center" >
                 <ToggleButton color="primary" selected={viewerState.rotating} value={"Rotate"} 
                     onClick={()=>viewerState.setRotating(!viewerState.rotating)}>
@@ -36,7 +36,7 @@ function BottomBar () {
                     <VideoCameraFrontTwoToneIcon/>
                 </IconButton>
             </Stack>
-        </Container>
+        </Drawer>
     );
 };
 
