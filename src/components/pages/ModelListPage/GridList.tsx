@@ -15,62 +15,75 @@ import viewerState from '../../../state/ViewerState'
 import { NavLink } from 'react-router-dom'
 
 interface GridListProps {
-  modelMetadata: ModelMetadataType[]
+    modelMetadata: ModelMetadataType[]
 }
 
 const GridList = ({ modelMetadata }: GridListProps) => {
-  const theme = useTheme()
-  return (
-    <Grid container spacing={2}>
-      {modelMetadata.map((element) => (
-        <Grid key={element.id} xs={12} md={4} component="div">
-          <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <div id="canvas-container">
-              <Canvas
-                gl={{ preserveDrawingBuffer: true }}
-                shadows
-                style={{ width: '100%', height: '40vh' }}
-                camera={{ position: [1500, 1500, 1000], fov: 75, far: 10000 }}
-              >
-                <color attach="background" args={theme.palette.mode === 'dark' ? ['#151518'] : ['#cccccc']} />
-                <directionalLight position={[1500, 2000, 1000]} intensity={0.05} shadow-mapSize={128} castShadow />
-                <Bounds fit clip>
-                  <OpenSimModel curentModelPath={element.path} />
-                </Bounds>
-                <Environment preset="city" />
-                <OpenSimControl />
-              </Canvas>
-            </div>
-            <CardContent sx={{ flexGrow: 1 }}>
-              <Typography gutterBottom variant="h5" component="h2">
-                <Link
-                  component={NavLink}
-                  onClick={() => {
-                    viewerState.setCurrentModelPath(element.path)
-                  }}
-                  to="/viewer/"
-                >
-                  {element.name}
-                </Link>
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'left' }}>
-                {element.description}
-              </Typography>
-            </CardContent>
-            <CardActions sx={{ justifyContent: 'space-between' }}>
-              <Typography variant="subtitle2" sx={{ textAlign: 'left', width: '60%', margin: '1em' }}>
-                <strong>By </strong>
-                {element.author}
-              </Typography>
-              <Link href={element.link} variant="subtitle2" sx={{ textAlign: 'right', margin: '1em' }} target="_blank">
-                More Info
-              </Link>
-            </CardActions>
-          </Card>
+    const theme = useTheme()
+    return (
+        <Grid container spacing={2}>
+            {modelMetadata.map((element) => (
+                <Grid key={element.id} xs={12} md={4} component="div">
+                    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                        <div id="canvas-container">
+                            <Canvas
+                                gl={{ preserveDrawingBuffer: true }}
+                                shadows
+                                style={{ width: '100%', height: '40vh' }}
+                                camera={{ position: [1500, 1500, 1000], fov: 75, far: 10000 }}
+                            >
+                                <color
+                                    attach="background"
+                                    args={theme.palette.mode === 'dark' ? ['#151518'] : ['#cccccc']}
+                                />
+                                <directionalLight
+                                    position={[1500, 2000, 1000]}
+                                    intensity={0.05}
+                                    shadow-mapSize={128}
+                                    castShadow
+                                />
+                                <Bounds fit clip>
+                                    <OpenSimModel curentModelPath={element.path} />
+                                </Bounds>
+                                <Environment preset="city" />
+                                <OpenSimControl />
+                            </Canvas>
+                        </div>
+                        <CardContent sx={{ flexGrow: 1 }}>
+                            <Typography gutterBottom variant="h5" component="h2">
+                                <Link
+                                    component={NavLink}
+                                    onClick={() => {
+                                        viewerState.setCurrentModelPath(element.path)
+                                    }}
+                                    to="/viewer/"
+                                >
+                                    {element.name}
+                                </Link>
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'left' }}>
+                                {element.description}
+                            </Typography>
+                        </CardContent>
+                        <CardActions sx={{ justifyContent: 'space-between' }}>
+                            <Typography variant="subtitle2" sx={{ textAlign: 'left', width: '60%', margin: '1em' }}>
+                                <strong>By </strong>
+                                {element.author}
+                            </Typography>
+                            <Link
+                                href={element.link}
+                                variant="subtitle2"
+                                sx={{ textAlign: 'right', margin: '1em' }}
+                                target="_blank"
+                            >
+                                More Info
+                            </Link>
+                        </CardActions>
+                    </Card>
+                </Grid>
+            ))}
         </Grid>
-      ))}
-    </Grid>
-  )
+    )
 }
 
 export default GridList

@@ -10,38 +10,38 @@ import viewerState from '../../state/ViewerState'
 import { observer } from 'mobx-react'
 
 function BottomBar() {
-  return (
-    <Container>
-      <Stack direction="row" color="primary" justifyContent="center">
-        <ToggleButton
-          color="primary"
-          selected={viewerState.rotating}
-          value={'Rotate'}
-          onClick={() => viewerState.setRotating(!viewerState.rotating)}
-        >
-          <ThreeSixtyTwoToneIcon />
-        </ToggleButton>
-        <IconButton color="primary">
-          <ZoomInMapTwoToneIcon />
-        </IconButton>
-        <IconButton color="primary">
-          <ZoomInTwoToneIcon />
-        </IconButton>
-        <IconButton color="primary">
-          <StraightenTwoToneIcon />
-        </IconButton>
-        <IconButton color="primary">
-          <ModeTwoToneIcon />
-        </IconButton>
-        <IconButton color="primary">
-          <PhotoCameraTwoToneIcon />
-        </IconButton>
-        <IconButton color="primary">
-          <VideoCameraFrontTwoToneIcon />
-        </IconButton>
-      </Stack>
-    </Container>
-  )
+    return (
+        <Container>
+            <Stack direction="row" color="primary" justifyContent="center">
+                <ToggleButton
+                    color="primary"
+                    selected={viewerState.rotating}
+                    value={'Rotate'}
+                    onClick={() => viewerState.setRotating(!viewerState.rotating)}
+                >
+                    <ThreeSixtyTwoToneIcon />
+                </ToggleButton>
+                <IconButton color="primary">
+                    <ZoomInMapTwoToneIcon />
+                </IconButton>
+                <IconButton color="primary">
+                    <ZoomInTwoToneIcon />
+                </IconButton>
+                <IconButton color="primary">
+                    <StraightenTwoToneIcon />
+                </IconButton>
+                <IconButton color="primary">
+                    <ModeTwoToneIcon />
+                </IconButton>
+                <IconButton color="primary">
+                    <PhotoCameraTwoToneIcon />
+                </IconButton>
+                <IconButton color="primary">
+                    <VideoCameraFrontTwoToneIcon />
+                </IconButton>
+            </Stack>
+        </Container>
+    )
 }
 
 export default observer(BottomBar)

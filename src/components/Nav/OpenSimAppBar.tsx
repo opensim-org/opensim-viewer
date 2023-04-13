@@ -13,38 +13,38 @@ import TwitterIcon from '@mui/icons-material/Twitter'
 import InfoTwoToneIcon from '@mui/icons-material/InfoTwoTone'
 
 interface OpenSimAppBarProps {
-  dark: boolean
+    dark: boolean
 }
 
 const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark }) => {
-  return (
-    <AppBar position="static">
-      <Toolbar variant="dense">
-        <Link href="/">
-          <Box component="img" sx={{ height: 60 }} alt="Logo" src={dark ? logo_dark : logo} />
-        </Link>
-        <Button href="/viewer" sx={{ marginLeft: 'auto' }}>
-          <Typography variant="button" color="secondary">
-            Viewer
-          </Typography>
-        </Button>
-        <Button href="/models">
-          <Typography variant="button" color="secondary">
-            Models
-          </Typography>
-        </Button>
-        <IconButton>
-          <InfoTwoToneIcon />
-        </IconButton>
-        <IconButton>
-          <ShareTwoToneIcon />
-        </IconButton>
-        <IconButton>
-          <TwitterIcon />
-        </IconButton>
-      </Toolbar>
-    </AppBar>
-  )
+    return (
+        <AppBar position="static">
+            <Toolbar variant="dense">
+                <Link href="/">
+                    <Box component="img" sx={{ height: 60 }} alt="Logo" src={dark ? logo_dark : logo} />
+                </Link>
+                <Button href="/viewer" sx={{ marginLeft: 'auto' }}>
+                    <Typography variant="button" color="secondary">
+                        Viewer
+                    </Typography>
+                </Button>
+                <Button href="/models">
+                    <Typography variant="button" color="secondary">
+                        Models
+                    </Typography>
+                </Button>
+                <IconButton>
+                    <InfoTwoToneIcon />
+                </IconButton>
+                <IconButton>
+                    <ShareTwoToneIcon />
+                </IconButton>
+                <IconButton>
+                    <TwitterIcon />
+                </IconButton>
+            </Toolbar>
+        </AppBar>
+    )
 }
 
 export default OpenSimAppBar

@@ -6,47 +6,47 @@ import ResponsiveContainer from '../../ResponsiveContainer/ResponsiveContainer'
 import GridList from './GridList'
 
 type ModelMetadataType = {
-  id: number
-  name: string
-  description: string
-  author: string
-  image: string
-  path: string
-  link: string
-  license: string
-  licenseLink: string
+    id: number
+    name: string
+    description: string
+    author: string
+    image: string
+    path: string
+    link: string
+    license: string
+    licenseLink: string
 }
 
 interface ModelListPageProps {
-  featuredModelsFilePath: string
+    featuredModelsFilePath: string
 }
 
 const ModelListPage: React.FC<ModelListPageProps> = ({ featuredModelsFilePath }) => {
-  const [models, setModels] = useState<ModelMetadataType[]>([])
+    const [models, setModels] = useState<ModelMetadataType[]>([])
 
-  useEffect(() => {
-    fetch(featuredModelsFilePath)
-      .then((response) => response.json())
-      .then((data) => {
-        // convert the models object to an array
-        const modelArray: ModelMetadataType[] = Object.values(data.models)
-        // update the state with the model array
-        setModels(modelArray)
-      })
-  })
+    useEffect(() => {
+        fetch(featuredModelsFilePath)
+            .then((response) => response.json())
+            .then((data) => {
+                // convert the models object to an array
+                const modelArray: ModelMetadataType[] = Object.values(data.models)
+                // update the state with the model array
+                setModels(modelArray)
+            })
+    })
 
-  return (
-    <>
-      <Typography variant="h3" style={{ marginTop: 100, marginBottom: 100 }}>
-        {' '}
-        Model Gallery{' '}
-      </Typography>
+    return (
+        <>
+            <Typography variant="h3" style={{ marginTop: 100, marginBottom: 100 }}>
+                {' '}
+                Model Gallery{' '}
+            </Typography>
 
-      <ResponsiveContainer>
-        <GridList modelMetadata={models} />
-      </ResponsiveContainer>
-    </>
-  )
+            <ResponsiveContainer>
+                <GridList modelMetadata={models} />
+            </ResponsiveContainer>
+        </>
+    )
 }
 export default ModelListPage
 export type { ModelMetadataType }
