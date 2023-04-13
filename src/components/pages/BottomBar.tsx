@@ -17,10 +17,12 @@ function BottomBar () {
                     onClick={()=>viewerState.setRotating(!viewerState.rotating)}>
                     <ThreeSixtyTwoToneIcon />
                 </ToggleButton>
-                <IconButton color="primary">
+                <IconButton color="primary" 
+                    onClick={()=>viewerState.setZooming(-1.1)}>
                     <ZoomInMapTwoToneIcon/>
                 </IconButton>
-                <IconButton color="primary">
+                <IconButton color="primary"
+                    onClick={()=>viewerState.setZooming(1.1)}>
                     <ZoomInTwoToneIcon/>
                 </IconButton>
                 <IconButton color="primary">

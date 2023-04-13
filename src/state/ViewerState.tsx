@@ -6,11 +6,15 @@ class ViewerState {
    rotating: boolean;
    dark: boolean;
 
+   zooming: boolean;
+   zoomFactor: number;
    constructor(currentModelPathState: string, featuredModelsFilePathState: string, rotatingState: boolean, darkState: boolean) {
       this.currentModelPath = currentModelPathState;
       this.featuredModelsFilePath = featuredModelsFilePathState;
       this.rotating = rotatingState;
       this.dark = darkState;
+      this.zooming =  false;
+      this.zoomFactor = 1.1; //>1 for zoom in, < 1 for zoom out
 
       makeObservable(this, {
         rotating: observable,
@@ -19,7 +23,9 @@ class ViewerState {
         dark: observable,
         setRotating: action,
         setCurrentModelPath: action,
-        setFeaturedModelsFilePath: action
+        setFeaturedModelsFilePath: action,
+        zooming: observable,
+        setZooming: action
       });
    }
 
@@ -34,6 +40,11 @@ class ViewerState {
    }
    setDark(newState: boolean){
     this.dark =  newState;
+   }
+
+   setZooming(newFactor: number){
+      this.zoomFactor = newFactor;
+      this.zooming = true;
    }
 }
 

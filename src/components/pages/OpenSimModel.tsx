@@ -1,4 +1,4 @@
-import { useThree } from '@react-three/fiber';
+import { useThree, useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import { Vector3 } from 'three';
 import { useMemo } from 'react';
@@ -14,25 +14,38 @@ const OpenSimModel: React.FC<OpenSimModelProps> = ({ curentModelPath }) => {
     camera
   } = useThree();
 
+  void function zoomin () {
+    let v = new Vector3();
+      camera.position.lerp(v.set(1, 0, 0), 0.05);
+  }
 
-  window.addEventListener("keyup", (event) => {
-    if (event.code === 'KeyP') { // P for print screen
+  void function zoomOut () {
+    let v = new Vector3();
+    camera.position.lerp(v.set(1, 0, 0), -0.05); 
+  }
+
+  void function snapshot () {
       const link = document.createElement('a');
       link.setAttribute('download', 'viewer_snapshot.png');
       link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'));
       link.click();
-      event.preventDefault();
-    };
-    if (event.code === 'KeyI') { // I for camera zoom in
+  }
+
+  useFrame(()=>{
+    if (viewerState.zooming){
+      if (viewerState.zoomFactor > 1.0){
       let v = new Vector3();
-      camera.position.lerp(v.set(1, 0, 0), 0.025);
-    };
-    if (event.code === 'KeyO') { // O for camera zoom out
+        camera.position.lerp(v.set(1, 0, 0), 0.02);
+        camera.updateProjectionMatrix();
+      }
+      else if (viewerState.zoomFactor < -1.0){
       let v = new Vector3();
-      camera.position.lerp(v.set(1, 0, 0), -0.025);
+        camera.position.lerp(v.set(1, 0, 0), -0.02);
+        camera.updateProjectionMatrix();
+    }
+      viewerState.zooming = false;
     }
   });
-
   // useGLTF suspends the component, it literally stops processing
   const { scene } = useGLTF(curentModelPath);
   useMemo(() => scene.traverse(obj => {
