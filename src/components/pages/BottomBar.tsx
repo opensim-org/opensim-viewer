@@ -1,43 +1,47 @@
-import { Stack, Container, IconButton, ToggleButton } from "@mui/material";
-import ThreeSixtyTwoToneIcon from '@mui/icons-material/ThreeSixtyTwoTone';
-import ZoomInMapTwoToneIcon from '@mui/icons-material/ZoomInMapTwoTone';
-import ZoomInTwoToneIcon from '@mui/icons-material/ZoomInTwoTone';
-import StraightenTwoToneIcon from '@mui/icons-material/StraightenTwoTone';
-import ModeTwoToneIcon from '@mui/icons-material/ModeTwoTone';
-import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone';
-import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
+import { Stack, Container, IconButton, ToggleButton } from '@mui/material'
+import ThreeSixtyTwoToneIcon from '@mui/icons-material/ThreeSixtyTwoTone'
+import ZoomInMapTwoToneIcon from '@mui/icons-material/ZoomInMapTwoTone'
+import ZoomInTwoToneIcon from '@mui/icons-material/ZoomInTwoTone'
+import StraightenTwoToneIcon from '@mui/icons-material/StraightenTwoTone'
+import ModeTwoToneIcon from '@mui/icons-material/ModeTwoTone'
+import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone'
+import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone'
 import viewerState from '../../state/ViewerState'
-import { observer } from "mobx-react";
+import { observer } from 'mobx-react'
 
-function BottomBar () {
+function BottomBar() {
     return (
         <Container>
-            <Stack direction="row" color="primary" justifyContent="center" >
-                <ToggleButton color="primary" selected={viewerState.rotating} value={"Rotate"} 
-                    onClick={()=>viewerState.setRotating(!viewerState.rotating)}>
+            <Stack direction="row" color="primary" justifyContent="center">
+                <ToggleButton
+                    color="primary"
+                    selected={viewerState.rotating}
+                    value={'Rotate'}
+                    onClick={() => viewerState.setRotating(!viewerState.rotating)}
+                >
                     <ThreeSixtyTwoToneIcon />
                 </ToggleButton>
                 <IconButton color="primary">
-                    <ZoomInMapTwoToneIcon/>
+                    <ZoomInMapTwoToneIcon />
                 </IconButton>
                 <IconButton color="primary">
-                    <ZoomInTwoToneIcon/>
+                    <ZoomInTwoToneIcon />
                 </IconButton>
                 <IconButton color="primary">
-                    <StraightenTwoToneIcon/>
+                    <StraightenTwoToneIcon />
                 </IconButton>
                 <IconButton color="primary">
-                    <ModeTwoToneIcon/>
+                    <ModeTwoToneIcon />
                 </IconButton>
                 <IconButton color="primary">
-                    <PhotoCameraTwoToneIcon/>
+                    <PhotoCameraTwoToneIcon />
                 </IconButton>
                 <IconButton color="primary">
-                    <VideoCameraFrontTwoToneIcon/>
+                    <VideoCameraFrontTwoToneIcon />
                 </IconButton>
             </Stack>
         </Container>
-    );
-};
+    )
+}
 
-export default observer(BottomBar);
+export default observer(BottomBar)
