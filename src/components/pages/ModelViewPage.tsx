@@ -20,7 +20,7 @@ const ModelViewPage: React.FC<ModelViewPageProps> = ({ curentModelPath }) => {
                 <Canvas
                     gl={{ preserveDrawingBuffer: true }}
                     shadows="soft"
-                    style={{ width: '100vw', height: 'calc(100vh - 67px - 55px)' }}
+                    style={{ width: '100vw', height: 'calc(100vh - 67px - 7vh)' }}
                     camera={{ position: [1500, 2000, 1000], fov: 75, far: 10000 }}
                 >
                     <color attach="background" args={theme.palette.mode === 'dark' ? ['#151518'] : ['#cccccc']} />
