@@ -11,7 +11,7 @@ import { observer } from 'mobx-react'
 
 function BottomBar() {
     return (
-        <Container>
+        <Container style={{height: '55px' }}>
             <Stack direction="row" color="primary" justifyContent="center">
                 <ToggleButton
                     color="primary"
