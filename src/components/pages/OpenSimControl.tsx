@@ -1,4 +1,3 @@
-
 import { OrbitControls } from '@react-three/drei';
 import { observer } from "mobx-react";
 import viewerState from '../../state/ViewerState'

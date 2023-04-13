@@ -3,7 +3,11 @@ import { useGLTF } from '@react-three/drei';
 import { Vector3 } from 'three';
 import { useMemo } from 'react';
 
-export function OpenSimModel() {
+interface OpenSimModelProps {
+  curentModelPath: string;
+}
+
+const OpenSimModel: React.FC<OpenSimModelProps> = ({ curentModelPath }) => {
 
   const {
     gl, // WebGL renderer
@@ -30,7 +34,7 @@ export function OpenSimModel() {
   });
 
   // useGLTF suspends the component, it literally stops processing
-  const { scene } = useGLTF('/builtin/leg39_nomusc.gltf');
+  const { scene } = useGLTF(curentModelPath);
   useMemo(() => scene.traverse(obj => {
     // traverse and mutate the scene here ...
     if (obj.type === 'Mesh'){
@@ -42,3 +46,5 @@ export function OpenSimModel() {
   // By the time we're here the model is guaranteed to be available
   return <primitive object={scene} />;
 }
+
+export default OpenSimModel;

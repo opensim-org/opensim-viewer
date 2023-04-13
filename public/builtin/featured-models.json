@@ -1,0 +1,43 @@
+{"models": [
+        {
+            "id": 1,
+            "name": "Arm26",
+            "description": "A right upper extremity model with 2 degrees of freedom and 6 muscles. This is a simplified model of the extremity, intended primarily for education and demonstrations.",
+            "author": "Jeff Reinbolt, Ajay Seth, Sam Hamner and Ayman Habib",
+            "path": "/builtin/arm26.gltf",
+            "link": "https://simtk-confluence.stanford.edu:8443/display/OpenSim/Musculoskeletal+Models",
+            "license": "CC BY 3.0",
+            "licenseLink": "https://creativecommons.org/licenses/by/3.0/"
+        },
+        {
+            "id": 2,
+            "name": "Gait10dof",
+            "description": "Trunk, pelvis and leg segments. 10 degrees of freedom, 18 muscles. This model is a simplified model focused on the lower extremity. It demonstrates the use of the new Millard muscles in OpenSim. It is intended for education, demonstration, and for initial prototyping of simulations when fast simulation times are needed.",
+            "author": "Ajay Seth, Darryl Thelen, Frank C. Anderson and Scott L. Delp",
+            "path": "/builtin/gait10dof.gltf",
+            "link": "https://simtk-confluence.stanford.edu:8443/display/OpenSim/Musculoskeletal+Models",
+            "license": "CC BY 3.0",
+            "licenseLink": "https://creativecommons.org/licenses/by/3.0/"
+        },
+        {
+            "id": 3,
+            "name": "Leg39_nomusc",
+            "description": "Pelvis and leg segments. 3 degrees of freedom, 9 muscles. This is a simplified model of the extremity, intended primarily for education and demonstrations.",
+            "author": "Delp S.L., Loan J.P., Hoy M.G., Zajac F.E., Topp E.L., Rosen J.M., Thelen D.G., Anderson F.C., Seth A., Reinbolt J.A.",
+            "path": "/builtin/leg39_nomusc.gltf",
+            "link": "https://github.com/opensim-org/opensim-models/tree/master/Models/Leg39",
+            "license": "CC BY 3.0",
+            "licenseLink": "https://creativecommons.org/licenses/by/3.0/"
+        },
+        {
+            "id": 4,
+            "name": "Pendulum",
+            "description": "A double pendulum, formed by two bodies, with two degrees of freedom.",
+            "author": "Ajay Seth",
+            "path": "/builtin/pendulum.gltf",
+            "link": "https://simtk-confluence.stanford.edu:8443/display/OpenSim/Musculoskeletal+Models",
+            "license": "CC BY 3.0",
+            "licenseLink": "https://creativecommons.org/licenses/by/3.0/"
+        }
+    ]
+}

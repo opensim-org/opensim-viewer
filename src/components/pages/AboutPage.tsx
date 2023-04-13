@@ -1,4 +1,3 @@
-
 import { Container, Typography } from "@mui/material";
 
 const AboutPage = () => {

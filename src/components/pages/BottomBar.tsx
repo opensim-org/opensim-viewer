@@ -7,7 +7,6 @@ import ModeTwoToneIcon from '@mui/icons-material/ModeTwoTone';
 import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone';
 import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
 import viewerState from '../../state/ViewerState'
-import React from 'react';
 import { observer } from "mobx-react";
 
 function BottomBar () {
