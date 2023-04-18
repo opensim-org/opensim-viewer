@@ -15,11 +15,7 @@ const OpenSimControl = () => {
     window.addEventListener('keyup', (event) => {
         if (event.code === 'KeyP') {
             // P for print screen
-            const link = document.createElement('a')
-            link.setAttribute('download', 'viewer_snapshot.png')
-            link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
-            link.click()
-            event.preventDefault()
+            
         }
     })
     useFrame(() => {
@@ -28,6 +24,13 @@ const OpenSimControl = () => {
             camera.zoom *= zoomFactor;
             camera.updateProjectionMatrix();
             viewerState.zooming = false;
+        }
+        else if (viewerState.takeSnapshot){
+            const link = document.createElement('a')
+            link.setAttribute('download', 'viewer_snapshot.png')
+            link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
+            link.click()
+            viewerState.takeSnapshot = false;
         }
       })
     //console.log(viewerState.rotating);

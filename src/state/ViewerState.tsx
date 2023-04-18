@@ -7,6 +7,7 @@ class ViewerState {
     dark: boolean
     zooming: boolean
     zoom_inOut: number
+    takeSnapshot: boolean
 
     constructor(
         currentModelPathState: string,
@@ -20,6 +21,7 @@ class ViewerState {
         this.dark = darkState
         this.zooming = false
         this.zoom_inOut = 0.0
+        this.takeSnapshot = false
 
         makeObservable(this, {
             rotating: observable,
@@ -51,6 +53,9 @@ class ViewerState {
     }
     setZoomFactor(inOut: number) {
         this.zoom_inOut = inOut
+    }
+    setTakeSnapshot() {
+        this.takeSnapshot = true
     }
 }
 

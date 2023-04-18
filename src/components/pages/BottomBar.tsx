@@ -37,7 +37,8 @@ function BottomBar() {
                 <IconButton color="primary">
                     <ModeTwoToneIcon />
                 </IconButton>
-                <IconButton color="primary">
+                <IconButton color="primary" onClick={() => {
+                    viewerState.setTakeSnapshot();}}>
                     <PhotoCameraTwoToneIcon />
                 </IconButton>
                 <IconButton color="primary">
