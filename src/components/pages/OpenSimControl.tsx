@@ -1,7 +1,6 @@
 import { OrbitControls, CameraControls } from '@react-three/drei'
 import { observer } from 'mobx-react'
 import viewerState from '../../state/ViewerState'
-import { Vector3 } from 'three'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Ref, useRef } from 'react'
 
