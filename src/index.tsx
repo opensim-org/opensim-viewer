@@ -13,11 +13,14 @@ const theme = createTheme({
 })
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 root.render(
+    <>
+    <meta name="viewport" content="width=device-width"/>
     <React.StrictMode>
         <ThemeProvider theme={theme}>
             <App />
         </ThemeProvider>
     </React.StrictMode>
+    </>
 )
 
 // If you want to start measuring performance in your app, pass a function
