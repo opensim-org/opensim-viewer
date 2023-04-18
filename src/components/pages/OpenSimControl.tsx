@@ -1,15 +1,18 @@
-import { OrbitControls } from '@react-three/drei'
+import { OrbitControls, CameraControls } from '@react-three/drei'
 import { observer } from 'mobx-react'
 import viewerState from '../../state/ViewerState'
 import { Vector3 } from 'three'
-import { useThree } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
+import { Ref, useRef } from 'react'
 
-function OpenSimControl() {
+const OpenSimControl = () => {
     const {
         gl, // WebGL renderer
         camera,
     } = useThree()
 
+    const ref = useRef<CameraControls>();
+    
     window.addEventListener('keyup', (event) => {
         if (event.code === 'KeyP') {
             // P for print screen
@@ -19,20 +22,20 @@ function OpenSimControl() {
             link.click()
             event.preventDefault()
         }
-        if (event.code === 'KeyI') {
-            // I for camera zoom in
-            let v = new Vector3()
-            camera.position.lerp(v.set(1, 0, 0), 0.025)
-        }
-        if (event.code === 'KeyO') {
-            // O for camera zoom out
-            let v = new Vector3()
-            camera.position.lerp(v.set(1, 0, 0), -0.025)
-        }
     })
-
+    useFrame(() => {
+        if (viewerState.zooming){
+            let zoomFactor = viewerState.zoom_inOut;
+            camera.zoom *= zoomFactor;
+            camera.updateProjectionMatrix();
+            viewerState.zooming = false;
+        }
+      })
     //console.log(viewerState.rotating);
-    return <OrbitControls autoRotate autoRotateSpeed={viewerState.rotating ? 2 : 0.0} makeDefault />
+    return <>
+        <OrbitControls autoRotate autoRotateSpeed={viewerState.rotating ? 2 : 0.0} makeDefault  />
+        <CameraControls enabled={false} ref={(ref as unknown) as Ref<CameraControls> | undefined}/>
+    </>
 }
 
 export default observer(OpenSimControl)
