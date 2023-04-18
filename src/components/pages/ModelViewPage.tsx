@@ -4,7 +4,7 @@ import { GizmoHelper, GizmoViewport, Bounds, Environment } from '@react-three/dr
 import BottomBar from './BottomBar'
 import SettingsDrawer from './SettingsDrawer'
 import OpenSimControl from './OpenSimControl'
-import OpenSimScene from './OpenSimModel'
+import OpenSimScene from './OpenSimScene'
 import { Suspense } from 'react'
 
 interface ModelViewPageProps {

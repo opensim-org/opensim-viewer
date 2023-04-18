@@ -11,15 +11,10 @@ const OpenSimControl = () => {
     } = useThree()
 
     const ref = useRef<CameraControls>();
-    
-    window.addEventListener('keyup', (event) => {
-        if (event.code === 'KeyP') {
-            // P for print screen
-            
-        }
-    })
-    useFrame(() => {
+
+    useFrame((_, delta) => {
         if (viewerState.zooming){
+            console.log(delta)
             let zoomFactor = viewerState.zoom_inOut;
             camera.zoom *= zoomFactor;
             camera.updateProjectionMatrix();
