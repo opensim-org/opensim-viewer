@@ -144,7 +144,7 @@
 	],
 	"materials":[
 		{
-			"alphaMode":"BLEND",
+			"alphaMode":"OPAQUE",
 			"doubleSided":true,
 			"name":"Material_2",
 			"pbrMetallicRoughness":{
@@ -152,7 +152,7 @@
 			}
 		},
 		{
-			"alphaMode":"BLEND",
+			"alphaMode":"OPAQUE",
 			"doubleSided":true,
 			"name":"Material_1",
 			"pbrMetallicRoughness":{
@@ -160,7 +160,7 @@
 			}
 		},
 		{
-			"alphaMode":"BLEND",
+			"alphaMode":"OPAQUE",
 			"doubleSided":true,
 			"name":"Material_4",
 			"pbrMetallicRoughness":{
@@ -168,7 +168,7 @@
 			}
 		},
 		{
-			"alphaMode":"BLEND",
+			"alphaMode":"OPAQUE",
 			"doubleSided":true,
 			"name":"Material_3",
 			"pbrMetallicRoughness":{
