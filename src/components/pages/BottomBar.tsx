@@ -1,6 +1,6 @@
 import { Stack, Container, IconButton, ToggleButton } from '@mui/material'
 import ThreeSixtyTwoToneIcon from '@mui/icons-material/ThreeSixtyTwoTone'
-import ZoomInMapTwoToneIcon from '@mui/icons-material/ZoomInMapTwoTone'
+import ZoomOutTwoToneIcon from '@mui/icons-material/ZoomOutTwoTone'
 import ZoomInTwoToneIcon from '@mui/icons-material/ZoomInTwoTone'
 import StraightenTwoToneIcon from '@mui/icons-material/StraightenTwoTone'
 import ModeTwoToneIcon from '@mui/icons-material/ModeTwoTone'
@@ -21,11 +21,15 @@ function BottomBar() {
                 >
                     <ThreeSixtyTwoToneIcon />
                 </ToggleButton>
-                <IconButton color="primary">
-                    <ZoomInMapTwoToneIcon />
-                </IconButton>
-                <IconButton color="primary">
+                <IconButton color="primary" onClick={() => {
+                    viewerState.setZoomFactor(1.1); 
+                    viewerState.setZooming(true)}}>
                     <ZoomInTwoToneIcon />
+                </IconButton>
+                <IconButton color="primary" onClick={() => {
+                    viewerState.setZoomFactor(0.9); 
+                    viewerState.setZooming(true)}}>
+                    <ZoomOutTwoToneIcon />
                 </IconButton>
                 <IconButton color="primary">
                     <StraightenTwoToneIcon />
@@ -33,7 +37,8 @@ function BottomBar() {
                 <IconButton color="primary">
                     <ModeTwoToneIcon />
                 </IconButton>
-                <IconButton color="primary">
+                <IconButton color="primary" onClick={() => {
+                    viewerState.setTakeSnapshot();}}>
                     <PhotoCameraTwoToneIcon />
                 </IconButton>
                 <IconButton color="primary">

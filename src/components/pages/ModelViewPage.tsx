@@ -4,7 +4,7 @@ import { GizmoHelper, GizmoViewport, Bounds, Environment } from '@react-three/dr
 import BottomBar from './BottomBar'
 import SettingsDrawer from './SettingsDrawer'
 import OpenSimControl from './OpenSimControl'
-import OpenSimModel from './OpenSimModel'
+import OpenSimScene from './OpenSimScene'
 import { Suspense } from 'react'
 
 interface ModelViewPageProps {
@@ -25,7 +25,7 @@ const ModelViewPage: React.FC<ModelViewPageProps> = ({ curentModelPath }) => {
                 >
                     <color attach="background" args={theme.palette.mode === 'dark' ? ['#151518'] : ['#cccccc']} />
                     <Bounds fit clip>
-                        <OpenSimModel curentModelPath={curentModelPath} />
+                        <OpenSimScene curentModelPath={curentModelPath} />
                     </Bounds>
                     <Environment preset="city" />
                     <GizmoHelper alignment="bottom-right" margin={[100, 100]}>

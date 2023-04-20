@@ -9,7 +9,7 @@ import { Bounds, Environment } from '@react-three/drei'
 import Typography from '@mui/material/Typography'
 
 import OpenSimControl from '../OpenSimControl'
-import OpenSimModel from '../OpenSimModel'
+import OpenSimScene from '../OpenSimScene'
 import { ModelMetadataType } from './ModelListPage'
 import viewerState from '../../../state/ViewerState'
 import { NavLink } from 'react-router-dom'
@@ -43,7 +43,7 @@ const GridList = ({ modelMetadata }: GridListProps) => {
                                     castShadow
                                 />
                                 <Bounds fit clip>
-                                    <OpenSimModel curentModelPath={element.path} />
+                                    <OpenSimScene curentModelPath={element.path} />
                                 </Bounds>
                                 <Environment preset="city" />
                                 <OpenSimControl />
