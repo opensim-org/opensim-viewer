@@ -35,10 +35,10 @@ return (
           src={dark ? logo_dark : logo}
         />
       </Link>
-      <IconButton href="/viewer" sx={{ marginLeft: "auto" }}>
+      <IconButton href="/viewer" sx={{ marginLeft: "auto" }} data-testid="viewer-icon">
         <PortraitTwoToneIcon />
       </IconButton>
-      <IconButton href="/models">
+      <IconButton href="/models" data-testid="gallery-icon">
         <GridViewTwoToneIcon/>
       </IconButton>
       <IconButton

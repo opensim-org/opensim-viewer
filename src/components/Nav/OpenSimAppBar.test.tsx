@@ -10,9 +10,8 @@ function TestComponent() {
 
 test('renders opensim-viewer toolbar', () => {
     render(<TestComponent />)
-    const viewerElement = screen.getByText(/Viewer/i)
-    expect(viewerElement).toBeInTheDocument()
+    expect(screen.getByTestId('viewer-icon')).toBeInTheDocument()
 
-    const modelsElement = screen.getByText(/models/i)
-    expect(modelsElement).toBeInTheDocument()
+    expect(screen.getByTestId('gallery-icon')).toBeInTheDocument()
+
 })
