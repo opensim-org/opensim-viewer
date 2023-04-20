@@ -8665,7 +8665,7 @@
         "metallicFactor": 0,
         "roughnessFactor": 1
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true
     },
     {
@@ -8673,7 +8673,7 @@
         "metallicFactor": 0,
         "roughnessFactor": 1
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true
     },
     {
@@ -8681,7 +8681,7 @@
         "metallicFactor": 0,
         "roughnessFactor": 1
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true
     },
     {
@@ -8695,7 +8695,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/hamstrings_r/geometrypathPathPt_Mat"
     },
@@ -8710,7 +8710,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/glut_max_r/geometrypathPathPt_Mat"
     },
@@ -8725,7 +8725,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/iliopsoas_r/geometrypathPathPt_Mat"
     },
@@ -8740,7 +8740,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/rect_fem_r/geometrypathPathPt_Mat"
     },
@@ -8755,7 +8755,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/hamstrings_l/geometrypathPathPt_Mat"
     },
@@ -8770,7 +8770,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/glut_max_l/geometrypathPathPt_Mat"
     },
@@ -8785,7 +8785,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/iliopsoas_l/geometrypathPathPt_Mat"
     },
@@ -8800,7 +8800,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/rect_fem_l/geometrypathPathPt_Mat"
     },
@@ -8809,7 +8809,7 @@
         "metallicFactor": 0,
         "roughnessFactor": 1
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true
     },
     {
@@ -8823,7 +8823,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/bifemsh_r/geometrypathPathPt_Mat"
     },
@@ -8838,7 +8838,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/vasti_r/geometrypathPathPt_Mat"
     },
@@ -8853,7 +8853,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/gastroc_r/geometrypathPathPt_Mat"
     },
@@ -8862,7 +8862,7 @@
         "metallicFactor": 0,
         "roughnessFactor": 1
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true
     },
     {
@@ -8870,7 +8870,7 @@
         "metallicFactor": 0,
         "roughnessFactor": 1
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true
     },
     {
@@ -8884,7 +8884,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/soleus_r/geometrypathPathPt_Mat"
     },
@@ -8899,7 +8899,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/tib_ant_r/geometrypathPathPt_Mat"
     },
@@ -8908,7 +8908,7 @@
         "metallicFactor": 0,
         "roughnessFactor": 1
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true
     },
     {
@@ -8916,7 +8916,7 @@
         "metallicFactor": 0,
         "roughnessFactor": 1
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true
     },
     {
@@ -8924,7 +8924,7 @@
         "metallicFactor": 0,
         "roughnessFactor": 1
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true
     },
     {
@@ -8932,7 +8932,7 @@
         "metallicFactor": 0,
         "roughnessFactor": 1
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true
     },
     {
@@ -8946,7 +8946,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/bifemsh_l/geometrypathPathPt_Mat"
     },
@@ -8961,7 +8961,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/vasti_l/geometrypathPathPt_Mat"
     },
@@ -8976,7 +8976,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/gastroc_l/geometrypathPathPt_Mat"
     },
@@ -8985,7 +8985,7 @@
         "metallicFactor": 0,
         "roughnessFactor": 1
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true
     },
     {
@@ -8993,7 +8993,7 @@
         "metallicFactor": 0,
         "roughnessFactor": 1
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true
     },
     {
@@ -9007,7 +9007,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/soleus_l/geometrypathPathPt_Mat"
     },
@@ -9022,7 +9022,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/tib_ant_l/geometrypathPathPt_Mat"
     },
@@ -9031,7 +9031,7 @@
         "metallicFactor": 0,
         "roughnessFactor": 1
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true
     },
     {
@@ -9039,7 +9039,7 @@
         "metallicFactor": 0,
         "roughnessFactor": 1
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true
     },
     {
@@ -9047,7 +9047,7 @@
         "metallicFactor": 0,
         "roughnessFactor": 1
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true
     },
     {
@@ -9055,7 +9055,7 @@
         "metallicFactor": 0,
         "roughnessFactor": 1
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true
     },
     {
@@ -9063,7 +9063,7 @@
         "metallicFactor": 0,
         "roughnessFactor": 1
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true
     },
     {
@@ -9071,7 +9071,7 @@
         "metallicFactor": 0,
         "roughnessFactor": 1
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true
     },
     {
@@ -9079,7 +9079,7 @@
         "metallicFactor": 0,
         "roughnessFactor": 1
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true
     },
     {
@@ -9093,7 +9093,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/hamstrings_r/geometrypathMat"
     },
@@ -9108,7 +9108,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/bifemsh_r/geometrypathMat"
     },
@@ -9123,7 +9123,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/glut_max_r/geometrypathMat"
     },
@@ -9138,7 +9138,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/iliopsoas_r/geometrypathMat"
     },
@@ -9153,7 +9153,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/rect_fem_r/geometrypathMat"
     },
@@ -9168,7 +9168,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/vasti_r/geometrypathMat"
     },
@@ -9183,7 +9183,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/gastroc_r/geometrypathMat"
     },
@@ -9198,7 +9198,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/soleus_r/geometrypathMat"
     },
@@ -9213,7 +9213,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/tib_ant_r/geometrypathMat"
     },
@@ -9228,7 +9228,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/hamstrings_l/geometrypathMat"
     },
@@ -9243,7 +9243,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/bifemsh_l/geometrypathMat"
     },
@@ -9258,7 +9258,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/glut_max_l/geometrypathMat"
     },
@@ -9273,7 +9273,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/iliopsoas_l/geometrypathMat"
     },
@@ -9288,7 +9288,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/rect_fem_l/geometrypathMat"
     },
@@ -9303,7 +9303,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/vasti_l/geometrypathMat"
     },
@@ -9318,7 +9318,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/gastroc_l/geometrypathMat"
     },
@@ -9333,7 +9333,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/soleus_l/geometrypathMat"
     },
@@ -9348,7 +9348,7 @@
         "metallicFactor": 0.5,
         "roughnessFactor": 0.5
       },
-      "alphaMode": "BLEND",
+      "alphaMode": "OPAQUE",
       "doubleSided": true,
       "name": "/forceset/tib_ant_l/geometrypathMat"
     }
