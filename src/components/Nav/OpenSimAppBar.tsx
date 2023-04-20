@@ -6,6 +6,8 @@ import IconButton from '@mui/material/IconButton';
 import Link from '@mui/material/Link';
 import logo_dark from './logo-dark.svg';
 import logo from './logo.svg';
+import logo_dark_small from './logo-dark-small.svg';
+import logo_small from './logo-small.svg';
 import ShareTwoToneIcon from '@mui/icons-material/ShareTwoTone';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import InfoTwoToneIcon from '@mui/icons-material/InfoTwoTone';
