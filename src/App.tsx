@@ -34,7 +34,7 @@ function App() {
         <ThemeProvider theme={viewerState.dark ? appTheme : lightTheme}>
             <CssBaseline />
             <BrowserRouter>
-                <div className="App">
+                <div className="App" style={{ width: '100%'}}>
                     <OpenSimAppBar dark={viewerState.dark} />
                     <div>
                         <Routes>

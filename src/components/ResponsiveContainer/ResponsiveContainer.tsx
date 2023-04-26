@@ -7,7 +7,7 @@ interface ResponsiveContainerProps {
 
 const ResponsiveContainer = ({ children }: ResponsiveContainerProps) => {
     return (
-        <Grid container spacing={2} justifyContent="center">
+        <Grid container justifyContent="center">
             <Grid xs={10} sm={10} md={8} lg={8} component="div">
                 {children}
             </Grid>
