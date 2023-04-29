@@ -8,10 +8,7 @@ import opensim as osim
 import pygltflib as pygltf
 import numpy as np
 from pathlib import Path
-from pygltflib.utils import (
-    add_primitive,
-    add_indexed_geometry,
-)
+
 # format is
 #
 # "scenes": [...], will populate 0 only
@@ -20,7 +17,12 @@ from pygltflib.utils import (
 # "animations" : [...],
         
     
-def convertTrc2Gltf(trcFilePath) :
+def convertTrc2Gltf(trcFilePath, shape) :
+    shape2Mesh = {
+        'brick' : 0,
+        'sphere' : 1,
+        'cube' : 2
+    }
     path = Path(trcFilePath)
     if not path.exists():
         raise NotADirectoryError("Unable to find file ", path.absolute())
@@ -31,24 +33,25 @@ def convertTrc2Gltf(trcFilePath) :
     firstDataFrame = table.getRowAtIndex(0)
     gltf = pygltf.GLTF2().load('basicShapes.gltf')
 
-    offset = 3
-    current_scene  = gltf.scenes[0]
-    
     # create node for the marker mesh, refer to it from all marker nodes
     topNode = pygltf.Node()
     topNode.name = 'MarkerData'
     gltf.nodes.clear()
     gltf.nodes.append(topNode)
- 
+    default_scene = gltf.scenes[0]
+    # make children exclusively be node 0
+    sceneNodes = default_scene.nodes
+    sceneNodes.clear()
+    sceneNodes.append(0) # MarkerData topNode
     for markerIndex in range(numMarkers):
       # Create node for the marker
       nextMarkerNode = pygltf.Node()
       nextMarkerNode.name = table.getColumnLabel(markerIndex)
       # 0 cube, 1 sphere, 2 brick
-      nextMarkerNode.mesh = 1
+      nextMarkerNode.mesh = shape2Mesh[shape] #sphere
       nextMarkerNode.translation = firstDataFrame.getElt(0, markerIndex).to_numpy().tolist()
       gltf.nodes.append(nextMarkerNode)
-      topNode.children.append(markerIndex+offset+1)
+      topNode.children.append(markerIndex+1)
       
     return gltf
 
@@ -71,7 +74,7 @@ def main():
                              "<trc_file_path>.gltf")
     # args = parser.parse_args()
     # print(args)
-    convertTrc2Gltf("arm26_elbow_flex.trc").save('converted.gltf')
+    convertTrc2Gltf("arm26_elbow_flex.trc", 'sphere').save('converted.gltf')
     
 
 main()
