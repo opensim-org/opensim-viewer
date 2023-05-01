@@ -30,6 +30,18 @@ def convertTrc2Gltf(trcFilePath, shape) :
     table = osim.TimeSeriesTableVec3(trcFilePath)
     numMarkers = table.getNumColumns()
     numDataFrames = table.getNumRows()
+    if numDataFrames==0:
+        raise IndexError("Input file has no data", table)
+    # Units
+    unitConversionToMeters = 1.0
+    scaleData = False
+    if (table.hasTableMetaDataKey("Units")) :
+        unitString = table.getTableMetaDataString("Units")
+        if (unitString=="mm"):
+            unitConversionToMeters = .001
+            scaleData = True
+    else:
+        print("File has no Units specifications, meters assumed.")
     firstDataFrame = table.getRowAtIndex(0)
     gltf = pygltf.GLTF2().load('basicShapes.gltf')
 
@@ -51,10 +63,18 @@ def convertTrc2Gltf(trcFilePath, shape) :
       desiredShape = shape2Mesh.get(shape)
       #Use cube if no shape is specified
       if (desiredShape==None):
-         nextMarkerNode.mesh =  0
+        nextMarkerNode.mesh =  0
       else:
-         nextMarkerNode.mesh = desiredShape 
-      nextMarkerNode.translation = firstDataFrame.getElt(0, markerIndex).to_numpy().tolist()
+        nextMarkerNode.mesh = desiredShape 
+
+      translation = firstDataFrame.getElt(0, markerIndex).to_numpy()
+
+      if (scaleData):
+        nextMarkerNode.translation = (translation * unitConversionToMeters).tolist()
+      else:
+        nextMarkerNode.translation = translation.tolist()
+
+      nextMarkerNode.scale = [.01, .01, .01]
       gltf.nodes.append(nextMarkerNode)
       topNode.children.append(markerIndex+1)
       

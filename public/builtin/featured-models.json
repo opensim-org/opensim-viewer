@@ -38,6 +38,16 @@
             "link": "https://simtk-confluence.stanford.edu:8443/display/OpenSim/Musculoskeletal+Models",
             "license": "CC BY 3.0",
             "licenseLink": "https://creativecommons.org/licenses/by/3.0/"
+        },
+        {
+            "id": 4,
+            "name": "MarkerData",
+            "description": "Sample marker data.",
+            "author": "",
+            "path": "/builtin/arm26_elbow_flex.gltf",
+            "link": "https://simtk-confluence.stanford.edu:8443/display/OpenSim/Musculoskeletal+Models",
+            "license": "CC BY 3.0",
+            "licenseLink": "https://creativecommons.org/licenses/by/3.0/"
         }
     ]
 }
