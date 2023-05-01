@@ -52,6 +52,8 @@ def convertTrc2Gltf(trcFilePath, shape) :
       #Use cube if no shape is specified
       if (desiredShape==None):
          nextMarkerNode.mesh =  0
+      else:
+         nextMarkerNode.mesh = desiredShape 
       nextMarkerNode.translation = firstDataFrame.getElt(0, markerIndex).to_numpy().tolist()
       gltf.nodes.append(nextMarkerNode)
       topNode.children.append(markerIndex+1)
