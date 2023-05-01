@@ -48,7 +48,10 @@ def convertTrc2Gltf(trcFilePath, shape) :
       nextMarkerNode = pygltf.Node()
       nextMarkerNode.name = table.getColumnLabel(markerIndex)
       # 0 cube, 1 sphere, 2 brick
-      nextMarkerNode.mesh = shape2Mesh[shape] #sphere
+      desiredShape = shape2Mesh.get(shape)
+      #Use cube if no shape is specified
+      if (desiredShape==None):
+         nextMarkerNode.mesh =  0
       nextMarkerNode.translation = firstDataFrame.getElt(0, markerIndex).to_numpy().tolist()
       gltf.nodes.append(nextMarkerNode)
       topNode.children.append(markerIndex+1)
@@ -72,9 +75,14 @@ def main():
                         help="Write the result to this filepath. "
                              "Default: the report is named "
                              "<trc_file_path>.gltf")
-    # args = parser.parse_args()
+    args = parser.parse_args()
     # print(args)
-    convertTrc2Gltf("arm26_elbow_flex.trc", 'sphere').save('converted.gltf')
+    infile = args.trc_file_path
+    if (args.output == None) :
+        outfile = infile.replace('.trc', '.gltf')
+    else:
+        outfile = args.output
+    convertTrc2Gltf(infile, 'sphere').save(outfile)
     
 
 main()
