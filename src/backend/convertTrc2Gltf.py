@@ -16,8 +16,8 @@ from pathlib import Path
 # "nodes" : [...],
 # "meshes" : [...],
 # "animations" : [...],
-        
-    
+
+
 def convertTrc2Gltf(trcFilePath, shape) :
     shape2Mesh = {
         'brick' : 0,
@@ -67,7 +67,7 @@ def convertTrc2Gltf(trcFilePath, shape) :
         nextMarkerNode.mesh =  0
       else:
         nextMarkerNode.mesh = desiredShape
-        
+
       # extras are place holder for application specific properties
       # for now we'll pass opensimType, may add layers, as needs arise....
       opensim_extras = {"opensimType": "experimental-marker"}
@@ -82,7 +82,7 @@ def convertTrc2Gltf(trcFilePath, shape) :
       nextMarkerNode.scale = [.01, .01, .01]
       gltf.nodes.append(nextMarkerNode)
       topNode.children.append(markerIndex+1)
-      
+
     return gltf
 
 def main():
@@ -109,7 +109,7 @@ def main():
         outfile = infile.replace('.trc', '.gltf')
     else:
         outfile = args.output
-    convertTrc2Gltf(infile, 'sphere').save(outfile)
-    
+    convertTrc2Gltf(infile, args.shape).save(outfile)
+
 
 main()
