@@ -7,6 +7,7 @@ Created on Mon Apr 24 14:37:54 2023
 import opensim as osim
 import pygltflib as pygltf
 import numpy as np
+import json
 from pathlib import Path
 
 # format is
@@ -61,12 +62,16 @@ def convertTrc2Gltf(trcFilePath, shape) :
       nextMarkerNode.name = table.getColumnLabel(markerIndex)
       # 0 cube, 1 sphere, 2 brick
       desiredShape = shape2Mesh.get(shape)
-      #Use cube if no shape is specified
+      # Use cube if no shape is specified
       if (desiredShape==None):
         nextMarkerNode.mesh =  0
       else:
-        nextMarkerNode.mesh = desiredShape 
-
+        nextMarkerNode.mesh = desiredShape
+        
+      # extras are place holder for application specific properties
+      # for now we'll pass opensimType, may add layers, as needs arise....
+      opensim_extras = {"opensimType": "experimental-marker"}
+      nextMarkerNode.extras = opensim_extras
       translation = firstDataFrame.getElt(0, markerIndex).to_numpy()
 
       if (scaleData):
