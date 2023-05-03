@@ -9,6 +9,7 @@ from pygltflib import *
 import numpy as np
 import json
 from pathlib import Path
+import base64
 
 # format is
 #
@@ -99,7 +100,7 @@ def convertTableDataToGltfAnimation(gltfTop, timeSeriesTableVec3) :
   # create buffer, bufferview and  accessor for timeframes
   timeColumn = timeSeriesTableVec3.getIndependentColumn()
   addTimeStampsAccessor(gltfTop, timeColumn)
-  for markerIndex in range(numMarkers): #do one marker only to start
+  for markerIndex in range(1): #do one marker only to start
     sampler = AnimationSampler()
     # sampler.input = ??
     sampler.interpolation = ANIM_LINEAR
@@ -114,15 +115,15 @@ def convertTableDataToGltfAnimation(gltfTop, timeSeriesTableVec3) :
     channel.target = target
     animation.channels.append(channel)
     # create accessor for data
-    addDataAccessor(gltfTop, timeSeriesTableVec3.getDependentColumnAtIndex(markerIndex))
+    addDataAccessor(gltfTop, timeSeriesTableVec3, markerIndex)
     # bind accessor to target
 
 def addTimeStampsAccessor(gltf, timesColumn):
   "Add buffer, bufferview and accessor for timestamps"
   # precompute offsets as cross references use index from file
-  startBufferNumberOffset = gltf.buffers.count()
-  startBufferViewNumberOffset = gltf.bufferViews.count()
-  startAccessorsOffset = gltf.accessors.count()
+  startBufferNumberOffset = len(gltf.buffers)
+  startBufferViewNumberOffset = len(gltf.bufferViews)
+  startAccessorsOffset = len(gltf.accessors)
 
   timeBuffer = Buffer()
   timeBufferView = BufferView()
@@ -135,21 +136,28 @@ def addTimeStampsAccessor(gltf, timesColumn):
   gltf.accessors.append(timeAccessor)
 
   gltf.buffers.append(timeBuffer)
-  gltf.bufferViews.append(timeBufferView)
+
   # Above this line is boiler plate bookkeeping regardless of actual data
   # the code below depends on actual data
   timeBuffer.byteLength = 4 * len(timesColumn)
-  timeBuffer.uri =""
+  times = np.array(list(timesColumn), dtype="float32")
+  encoded = base64.b64encode(times).decode("ascii")
+  timeBuffer.uri = f"data:application/octet-stream;base64,{encoded}"
   timeAccessor.max = [max(timesColumn)]
   timeAccessor.min = [min(timesColumn)]
 
+  timeBufferView.buffer = startBufferNumberOffset
+  timeBufferView.byteOffset = 0
+  timeBufferView.byteLength = timeBuffer.byteLength
+  gltf.bufferViews.append(timeBufferView)
 
-def addDataAccessor(gltf, dataColumn):
+
+def addDataAccessor(gltf, dataTable, colIndex):
   "Add buffer, bufferview and accessor for marker data column"
   # precompute offsets as cross references use index from file
-  startBufferNumberOffset = gltf.buffers.count()
-  startBufferViewNumberOffset = gltf.bufferViews.count()
-  startAccessorsOffset = gltf.accessors.count()
+  startBufferNumberOffset = len(gltf.buffers)
+  startBufferViewNumberOffset = len(gltf.bufferViews)
+  startAccessorsOffset = len(gltf.accessors)
 
   markerDataBuffer = Buffer()
   markerDataBufferView = BufferView()
@@ -165,11 +173,28 @@ def addDataAccessor(gltf, dataColumn):
   gltf.bufferViews.append(markerDataBufferView)
   # Above this line is boiler plate bookkeeping regardless of actual data
   # the code below depends on actual data
-  markerDataBuffer.byteLength = 4 * len(dataColumn)
-  markerDataBuffer.uri =""
-  markerDataAccessor.max = [max(dataColumn)]
-  markerDataAccessor.min = [min(dataColumn)]
+  markerDataBuffer.byteOffset = 0
+  markerDataBuffer.byteLength = 4 * 3 * dataTable.getNumRows()
+  markerData = np.zeros(3 * dataTable.getNumRows(), dtype="float32")
+  colData = dataTable.getDependentColumnAtIndex(colIndex)
 
+  for row in range(dataTable.getNumRows()):
+     rowI = colData[row]
+     markerData[ 3* row] = rowI[0]
+     markerData[ 3* row+1] = rowI[1]
+     markerData[ 3* row+2] = rowI[2]
+  encoded = base64.b64encode(markerData).decode("ascii")
+  markerDataBuffer.uri = f"data:application/octet-stream;base64,{encoded}"
+
+  maxValue = [-100000.0, -100000.0, -100000.0]
+  minValue = [100000.0, 100000.0, 100000.0]
+
+  markerDataAccessor.max = maxValue
+  markerDataAccessor.min = minValue
+
+  markerDataBufferView.buffer = startBufferNumberOffset
+  markerDataBufferView.byteOffset = 0
+  markerDataBufferView.byteLength = markerDataBuffer.byteLength
 
 
 def main():
