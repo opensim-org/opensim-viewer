@@ -100,11 +100,11 @@ def convertTableDataToGltfAnimation(gltfTop, timeSeriesTableVec3) :
   # create buffer, bufferview and  accessor for timeframes
   timeColumn = timeSeriesTableVec3.getIndependentColumn()
   addTimeStampsAccessor(gltfTop, timeColumn)
-  for markerIndex in range(1): #do one marker only to start
+  for markerIndex in range(numMarkers): #do one marker only to start
     sampler = AnimationSampler()
-    # sampler.input = ??
+    sampler.input = 12
+    sampler.output = 12+markerIndex+1
     sampler.interpolation = ANIM_LINEAR
-    sampler.output = markerIndex+1  #node number for markerIndex
     animation.samplers.append(sampler)
 
     channel = AnimationChannel()
@@ -131,7 +131,7 @@ def addTimeStampsAccessor(gltf, timesColumn):
   timeAccessor.bufferView = startBufferViewNumberOffset
   timeAccessor.byteOffset = 0
   timeAccessor.componentType = FLOAT
-  timeAccessor.count = 1
+  timeAccessor.count = len(timesColumn)
   timeAccessor.type = SCALAR
   gltf.accessors.append(timeAccessor)
 
@@ -149,6 +149,7 @@ def addTimeStampsAccessor(gltf, timesColumn):
   timeBufferView.buffer = startBufferNumberOffset
   timeBufferView.byteOffset = 0
   timeBufferView.byteLength = timeBuffer.byteLength
+  timeBufferView.target
   gltf.bufferViews.append(timeBufferView)
 
 
@@ -165,7 +166,7 @@ def addDataAccessor(gltf, dataTable, colIndex):
   markerDataAccessor.bufferView = startBufferViewNumberOffset
   markerDataAccessor.byteOffset = 0
   markerDataAccessor.componentType = FLOAT
-  markerDataAccessor.count = 3
+  markerDataAccessor.count = dataTable.getNumRows()
   markerDataAccessor.type = VEC3
   gltf.accessors.append(markerDataAccessor)
 
@@ -180,9 +181,9 @@ def addDataAccessor(gltf, dataTable, colIndex):
 
   for row in range(dataTable.getNumRows()):
      rowI = colData[row]
-     markerData[ 3* row] = rowI[0]
-     markerData[ 3* row+1] = rowI[1]
-     markerData[ 3* row+2] = rowI[2]
+     markerData[ 3* row] = rowI[0]*.001
+     markerData[ 3* row+1] = rowI[1]*.001
+     markerData[ 3* row+2] = rowI[2]*.001
   encoded = base64.b64encode(markerData).decode("ascii")
   markerDataBuffer.uri = f"data:application/octet-stream;base64,{encoded}"
 
