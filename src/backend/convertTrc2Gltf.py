@@ -87,10 +87,10 @@ def convertTrc2Gltf(trcFilePath, shape) :
       gltf.nodes.append(nextMarkerNode)
       topNode.children.append(markerIndex+1)
 
-    convertTableDataToGltfAnimation(gltf, table)
+    convertTableDataToGltfAnimation(gltf, table, unitConversionToMeters)
     return gltf
 
-def convertTableDataToGltfAnimation(gltfTop, timeSeriesTableVec3) :
+def convertTableDataToGltfAnimation(gltfTop, timeSeriesTableVec3, conversionToMeters) :
   "Take marker data and convert into animations in gltf format" 
   # Create an animations node under top level
   animation = Animation()
@@ -115,7 +115,7 @@ def convertTableDataToGltfAnimation(gltfTop, timeSeriesTableVec3) :
     channel.target = target
     animation.channels.append(channel)
     # create accessor for data
-    addDataAccessor(gltfTop, timeSeriesTableVec3, markerIndex)
+    addDataAccessor(gltfTop, timeSeriesTableVec3, markerIndex, conversionToMeters)
     # bind accessor to target
 
 def addTimeStampsAccessor(gltf, timesColumn):
@@ -153,7 +153,7 @@ def addTimeStampsAccessor(gltf, timesColumn):
   gltf.bufferViews.append(timeBufferView)
 
 
-def addDataAccessor(gltf, dataTable, colIndex):
+def addDataAccessor(gltf, dataTable, colIndex, conversionToMeters):
   "Add buffer, bufferview and accessor for marker data column"
   # precompute offsets as cross references use index from file
   startBufferNumberOffset = len(gltf.buffers)
@@ -179,16 +179,29 @@ def addDataAccessor(gltf, dataTable, colIndex):
   markerData = np.zeros(3 * dataTable.getNumRows(), dtype="float32")
   colData = dataTable.getDependentColumnAtIndex(colIndex)
 
-  for row in range(dataTable.getNumRows()):
-     rowI = colData[row]
-     markerData[ 3* row] = rowI[0]*.001
-     markerData[ 3* row+1] = rowI[1]*.001
-     markerData[ 3* row+2] = rowI[2]*.001
-  encoded = base64.b64encode(markerData).decode("ascii")
-  markerDataBuffer.uri = f"data:application/octet-stream;base64,{encoded}"
-
   maxValue = [-100000.0, -100000.0, -100000.0]
   minValue = [100000.0, 100000.0, 100000.0]
+  for row in range(dataTable.getNumRows()):
+    # this all can be optimized once done
+     rowI = colData[row]
+     rawRow = 3*row
+     markerData[ rawRow] = rowI[0]*conversionToMeters
+     markerData[ rawRow+1] = rowI[1]*conversionToMeters
+     markerData[ rawRow+2] = rowI[2]*conversionToMeters
+     # update bounds
+     maxValue[0] = max(maxValue[0], markerData[ rawRow])
+     maxValue[1] = max(maxValue[1], markerData[ rawRow+1])
+     maxValue[2] = max(maxValue[2], markerData[ rawRow+2])
+     minValue[0] = min(minValue[0], markerData[ rawRow])
+     minValue[1] = min(minValue[1], markerData[ rawRow+1])
+     minValue[2] = min(minValue[2], markerData[ rawRow+2])
+
+  for index in range(3):
+    maxValue[index] = maxValue[index].__float__()
+    minValue[index] = minValue[index].__float__()
+
+  encoded = base64.b64encode(markerData).decode("ascii")
+  markerDataBuffer.uri = f"data:application/octet-stream;base64,{encoded}"
 
   markerDataAccessor.max = maxValue
   markerDataAccessor.min = minValue
