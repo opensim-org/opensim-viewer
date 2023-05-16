@@ -19,27 +19,45 @@ import openSimData2Gltf as os2Gltf
 # "animations" : [...],
 
 
-def convertTrc2Gltf(trcFilePath, shape) :
-    path = Path(trcFilePath)
+def convertC3D2Gltf(c3dFilePath, shape) :
+    shape2Mesh = {
+        'brick' : 0,
+        'sphere' : 1,
+        'cube' : 2,
+        'arrow_in' : 3,
+        'arrow_out' : 4,
+    }
+    path = Path(c3dFilePath)
     if not path.exists():
         raise NotADirectoryError("Unable to find file ", path.absolute())
 
-    table = osim.TimeSeriesTableVec3(trcFilePath)
-    numMarkers = table.getNumColumns()
-    numDataFrames = table.getNumRows()
+    adapter = osim.C3DFileAdapter()
+    tables = adapter.read(c3dFilePath)
+    markerDataTable = adapter.getMarkersTable(tables)
+    markersFlat = markerDataTable.flatten()
+    osim.STOFileAdapter_write(markersFlat, 'markersOnly.sto')
+    forcesDataTable = adapter.getForcesTable(tables)
+    forcesFlat = forcesDataTable.flatten()
+    osim.STOFileAdapter_write(forcesFlat, 'forcesOnly.sto')
+    
+    numMarkers = markerDataTable.getNumColumns()
+    numDataFrames = markerDataTable.getNumRows()
     if numDataFrames==0:
-        raise IndexError("Input file has no data", table)
+        raise IndexError("Input file has no data", markerDataTable)
     # Units
     unitConversionToMeters = 1.0
     scaleData = False
-    if (table.hasTableMetaDataKey("Units")) :
-        unitString = table.getTableMetaDataString("Units")
+    if (markerDataTable.hasTableMetaDataKey("Units")) :
+        unitString = markerDataTable.getTableMetaDataString("Units")
         if (unitString=="mm"):
             unitConversionToMeters = .001
             scaleData = True
     else:
         print("File has no Units specifications, meters assumed.")
-    firstDataFrame = table.getRowAtIndex(0)
+    firstDataFrame = markerDataTable.getRowAtIndex(0)
+    # instead of creating the GLTF2 structure from scratch and programmatically adding basic
+    # shapes (Sphere, Cube, brick, axes, arrows etc.) instead we load a file with these meshes
+    # baked in and use these meshes as needed. 
     gltf = GLTF2().load('basicShapes.gltf')
 
     # create node for the marker mesh, refer to it from all marker nodes
@@ -56,9 +74,9 @@ def convertTrc2Gltf(trcFilePath, shape) :
     for markerIndex in range(numMarkers):
       # Create node for the marker
       nextMarkerNode = Node()
-      nextMarkerNode.name = table.getColumnLabel(markerIndex)
+      nextMarkerNode.name = markerDataTable.getColumnLabel(markerIndex)
       # 0 cube, 1 sphere, 2 brick
-      desiredShape = os2Gltf.mapShapeStringToMeshNumber(shape)
+      desiredShape = shape2Mesh.get(shape)
       # Use cube if no shape is specified
       if (desiredShape==None):
         nextMarkerNode.mesh =  0
@@ -69,7 +87,7 @@ def convertTrc2Gltf(trcFilePath, shape) :
       # for now we'll pass opensimType, may add layers, as needs arise....
       opensim_extras = {"opensimType": "ExperimentalMarker", 
                         "layer": "data", 
-                        "name": table.getColumnLabel(markerIndex)}
+                        "name": markerDataTable.getColumnLabel(markerIndex)}
       nextMarkerNode.extras = opensim_extras
       translation = firstDataFrame.getElt(0, markerIndex).to_numpy()
 
@@ -82,7 +100,7 @@ def convertTrc2Gltf(trcFilePath, shape) :
       gltf.nodes.append(nextMarkerNode)
       topNode.children.append(markerIndex+1)
 
-    convertTableDataToGltfAnimation(gltf, table, unitConversionToMeters)
+    convertTableDataToGltfAnimation(gltf, markerDataTable, unitConversionToMeters)
     return gltf
 
 def convertTableDataToGltfAnimation(gltfTop, timeSeriesTableVec3, conversionToMeters) :
@@ -95,11 +113,10 @@ def convertTableDataToGltfAnimation(gltfTop, timeSeriesTableVec3, conversionToMe
   # create buffer, bufferview and  accessor for timeframes
   timeColumn = timeSeriesTableVec3.getIndependentColumn()
   os2Gltf.addTimeStampsAccessor(gltfTop, timeColumn)
-  timeSamplerIndex = len(gltfTop.accessors)
   for markerIndex in range(numMarkers): #do one marker only to start
     sampler = AnimationSampler()
-    sampler.input = timeSamplerIndex-1 # time sampler is last accessor
-    sampler.output = timeSamplerIndex+markerIndex
+    sampler.input = 12
+    sampler.output = 12+markerIndex+1
     sampler.interpolation = ANIM_LINEAR
     animation.samplers.append(sampler)
 
@@ -121,26 +138,26 @@ def main():
     ## Input parsing.
     ## =============
     parser = argparse.ArgumentParser(
-        description="Generate a gltf file corresponding to the passed in trc file.")
+        description="Generate a gltf file corresponding to the passed in c3d file.")
     # Required arguments.
-    parser.add_argument('trc_file_path',
-                        metavar='trcfilepath', type=str,
-                        help="filename for trc file (including path).")
+    parser.add_argument('c3d_file_path',
+                        metavar='c3dfilepath', type=str,
+                        help="filename for c3d file (including path).")
     parser.add_argument('--shape', type=str,
                         help="Pick shape to use for displaying markers.")
     parser.add_argument('--output', type=str,
                         help="Write the result to this filepath. "
                              "Default: the report is named "
-                             "<trc_file_path>.gltf")
+                             "<c3d_file_path>.gltf")
     args = parser.parse_args()
     # print(args)
-    infile = args.trc_file_path
+    infile = args.c3d_file_path
     if (args.output == None) :
-        outfile = infile.replace('.trc', '.gltf')
+        outfile = infile.replace('.c3d', '.gltf')
     else:
         outfile = args.output
     
-    resultGltf = convertTrc2Gltf(infile, args.shape)
+    resultGltf = convertC3D2Gltf(infile, args.shape)
     resultGltf.save(outfile)
 
 main()
