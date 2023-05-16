@@ -8,7 +8,7 @@ shape2Mesh = {
     'brick' : 0,
     'sphere' : 1,
     'cube' : 2,
-    'arrow' : 4
+    'arrow' : 3
 }
 
 def mapShapeStringToMeshNumber(shape):
