@@ -26,12 +26,12 @@ def convertMotForce2Gltf(motFilePath, shape) :
 
     table = osim.TimeSeriesTable(motFilePath)
     timeSeriesTableVec3 = table.packVec3()
-    osim.STOFileAdapterVec3.write(timeSeriesTableVec3, 'packedForcesOnly.sto')
+    # osim.STOFileAdapterVec3.write(timeSeriesTableVec3, 'packedForcesOnly.sto')
     labels = timeSeriesTableVec3.getColumnLabels()
     # Based on column labels and assuming grouping was done properly by .pack call
     # Will add entry for force_point pair of columns with common prefix
     forcesDictionary = dict()
-    for l in range(len(labels)-1):
+    for l in range(2):   # len(labels)-1 first force only for now
       force_point_label_candidate = [labels[l], labels[l+1]]
       forceNameCandidate = pathmethods.commonprefix(force_point_label_candidate)
       if (len(forceNameCandidate)==len(labels[l])-1):
@@ -96,15 +96,18 @@ def convertMotForce2Gltf(motFilePath, shape) :
         nextForceNode.translation = posVec3.tolist()
 
       nextForceNode.scale = [.1, .1, .1]
+      nextForceNodeIndex = len(gltf.nodes)
       gltf.nodes.append(nextForceNode)
-      topNode.children.append(sceneNodeIndex)
-      sceneNodeIndex = sceneNodeIndex+1
+      topNode.children.append(nextForceNodeIndex)
+      
 
     convertTableDataToGltfAnimation(gltf, timeSeriesTableVec3, unitConversionToMeters, forcesDictionary)
     return gltf
 
 def convertTableDataToGltfAnimation(gltfTop, timeSeriesTableVec3, conversionToMeters, dict) :
-  "Take marker data and convert into animations in gltf format" 
+  "Take force data and convert into animations in gltf format" 
+  "last argument is a dictionary that maps a force to a column index"
+  "The code assumes the convention of a force_vec3 followed by force_pos3 next column"
   # Create an animations node under top level
   animation = Animation()
   gltfTop.animations.append(animation)
@@ -116,37 +119,52 @@ def convertTableDataToGltfAnimation(gltfTop, timeSeriesTableVec3, conversionToMe
   os2Gltf.addTimeStampsAccessor(gltfTop, timeColumn)
   forceIndex = 0
   for force in dict: #do one marker only to start
-    rotationSampler = AnimationSampler()
-    rotationSampler.input = timeSamplerIndex
-    rotationSampler.output = timeSamplerIndex+forceIndex+1
-    rotationSampler.interpolation = ANIM_LINEAR
-    animation.samplers.append(rotationSampler)
+    translationSampler = AnimationSampler()
+    translationSampler.input = timeSamplerIndex
+    translationSampler.output = timeSamplerIndex+ 3*forceIndex+1
+    translationSampler.interpolation = ANIM_LINEAR
+    animation.samplers.append(translationSampler)
 
-    rotationChannel = AnimationChannel()
-    rotationChannel.sampler = forceIndex
+    translationChannel = AnimationChannel()
+    translationChannel.sampler = forceIndex
     target = AnimationChannelTarget()
-    target.node = forceIndex
+    target.node = 1+forceIndex   # account for top level ForceData
     target.path = "translation"
-    rotationChannel.target = target
-    animation.channels.append(rotationChannel)
+    translationChannel.target = target
+    animation.channels.append(translationChannel)
     # create accessor for data
     os2Gltf.addTranslationAccessor(gltfTop, timeSeriesTableVec3, dict[force]+1, conversionToMeters)
     # Now rotations
+    # create sampler
     rotationSampler = AnimationSampler()
     rotationSampler.input = timeSamplerIndex
-    rotationSampler.output = timeSamplerIndex+forceIndex+1
+    rotationSampler.output = timeSamplerIndex+3*forceIndex+2
     rotationSampler.interpolation = ANIM_LINEAR
-    #animation.samplers.append(rotationSampler)
-
+    animation.samplers.append(rotationSampler)
+    # create channel to use the sampler
     rotationChannel = AnimationChannel()
-    rotationChannel.sampler = forceIndex
+    rotationChannel.sampler = len(animation.samplers)-1
     target = AnimationChannelTarget()
-    target.node = forceIndex
+    target.node = 1+forceIndex
     target.path = "rotation"
     rotationChannel.target = target
-    #animation.channels.append(rotationChannel)
+    animation.channels.append(rotationChannel)
+
+    # Repeat for scale
+    scaleSampler = AnimationSampler()
+    scaleSampler.input = timeSamplerIndex
+    scaleSampler.output = timeSamplerIndex+3*forceIndex+3
+    scaleSampler.interpolation = ANIM_LINEAR
+    animation.samplers.append(scaleSampler)
+    scaleChannel = AnimationChannel()
+    scaleChannel.sampler = len(animation.samplers)-1
+    target = AnimationChannelTarget()
+    target.node = 1+forceIndex
+    target.path = "scale"
+    scaleChannel.target = target
+    animation.channels.append(scaleChannel)
     # create accessor for rotation data
-    # os2Gltf.addRotationAccessor(gltfTop, timeSeriesTableVec3, dict[force], conversionToMeters)
+    os2Gltf.addRSAccessors(gltfTop, timeSeriesTableVec3, dict[force], dict[force]+1, conversionToMeters)
 
 
 
