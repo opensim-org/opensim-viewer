@@ -208,6 +208,8 @@ def convertForceVectorToRS(forceVector):
  angleZ = math.acos(normalized[1]) 
  # create rotation from angle+z-axis
  rotz  = osim.Quaternion(0, 0, 0, 1)#osim.Rotation().setRotationFromAngleAboutAxis(angleZ, osim.CoordinateAxis.getCoordinateAxis(2)).convertRotationToQuaternion()
- scales = np.array([.1, .1, .1])
+ # will only change the y component to represent vector length
+ mag = np.linalg.norm(forceVector.to_numpy())*.001
+ scales = np.array([.1, .1*mag, .1])
  return [rotz, scales] 
 
