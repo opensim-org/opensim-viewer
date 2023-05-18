@@ -52,6 +52,7 @@ def convertTrc2Gltf(trcFilePath, shape) :
     sceneNodes = default_scene.nodes
     sceneNodes.clear()
     sceneNodes.append(0) # MarkerData topNode
+    markerMeshScaleFactor = os2Gltf.getMarkerMeshScale()
     # Create nodes for the experimental markers, 1 node per marker
     for markerIndex in range(numMarkers):
       # Create node for the marker
@@ -78,7 +79,7 @@ def convertTrc2Gltf(trcFilePath, shape) :
       else:
         nextMarkerNode.translation = translation.tolist()
 
-      nextMarkerNode.scale = [.01, .01, .01]
+      nextMarkerNode.scale = [markerMeshScaleFactor, markerMeshScaleFactor, markerMeshScaleFactor]
       gltf.nodes.append(nextMarkerNode)
       topNode.children.append(markerIndex+1)
 

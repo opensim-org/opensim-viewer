@@ -12,6 +12,17 @@ shape2Mesh = {
     'arrow' : 3
 }
 
+# Return the raw scale factor to be applied to the mesh
+# maintained in basicShapes.gltf to represent a Marker
+def getMarkerMeshScale():
+  return .01
+
+def getForceMeshScale():
+  return 0.1
+
+def getForceNormalizationScale():
+  return .001
+
 def mapShapeStringToMeshNumber(shape):
   return shape2Mesh[shape]
 
@@ -191,9 +202,9 @@ def addRSAccessors(gltf, dataTable, colIndexT, colIndexV, conversionToMeters):
   rotationDataBufferView.byteOffset = 0
   rotationDataBufferView.byteLength = rotationDataBuffer.byteLength
 
-
-  scaleDataAccessor.max = [.1, .1, .1]
-  scaleDataAccessor.min = [.1, .1, .1]
+  defaultForceScale = getForceMeshScale()
+  scaleDataAccessor.max = [defaultForceScale, defaultForceScale, defaultForceScale]
+  scaleDataAccessor.min = [defaultForceScale, defaultForceScale, defaultForceScale]
 
   scaleDataBufferView.buffer = startBufferNumberOffset+1
   scaleDataBufferView.byteOffset = 0
@@ -209,7 +220,7 @@ def convertForceVectorToRS(forceVector):
  # create rotation from angle+z-axis
  rotz  = osim.Quaternion(0, 0, 0, 1)#osim.Rotation().setRotationFromAngleAboutAxis(angleZ, osim.CoordinateAxis.getCoordinateAxis(2)).convertRotationToQuaternion()
  # will only change the y component to represent vector length
- mag = np.linalg.norm(forceVector.to_numpy())*.001
- scales = np.array([.1, .1*mag, .1])
+ mag = np.linalg.norm(forceVector.to_numpy())* getForceNormalizationScale()
+ scales = np.array([getForceMeshScale(), getForceMeshScale()*mag, getForceMeshScale()])
  return [rotz, scales] 
 

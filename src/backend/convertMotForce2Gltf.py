@@ -52,6 +52,8 @@ def convertMotForce2Gltf(motFilePath, shape) :
             scaleData = True
     else:
         print("File has no Units specifications, NMS assumed.")
+
+    forceScale = os2Gltf.getForceMeshScale()
     firstDataFrame = timeSeriesTableVec3.getRowAtIndex(0)
     gltf = GLTF2().load('basicShapes.gltf')
 
@@ -95,7 +97,7 @@ def convertMotForce2Gltf(motFilePath, shape) :
       else:
         nextForceNode.translation = posVec3.tolist()
 
-      nextForceNode.scale = [.1, .1, .1]
+      nextForceNode.scale = [forceScale, forceScale, forceScale]
       nextForceNodeIndex = len(gltf.nodes)
       gltf.nodes.append(nextForceNode)
       topNode.children.append(nextForceNodeIndex)
