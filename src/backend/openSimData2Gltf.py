@@ -170,10 +170,10 @@ def addRSAccessors(gltf, dataTable, colIndexT, colIndexV, conversionToMeters):
      quat, scale = convertForceVectorToRS(colData[row])
      rawRow = 4*row
      rawRow3 = 3*row
-     rotationData[ rawRow] = quat.get(0)
-     rotationData[ rawRow+1] = quat.get(1)
-     rotationData[ rawRow+2] = quat.get(2)
-     rotationData[ rawRow+3] = quat.get(3)
+     rotationData[ rawRow] = quat[0]
+     rotationData[ rawRow+1] = quat[1]
+     rotationData[ rawRow+2] = quat[2]
+     rotationData[ rawRow+3] = quat[3]
      # update bounds
      maxValue[0] = max(maxValue[0], rotationData[ rawRow])
      maxValue[1] = max(maxValue[1], rotationData[ rawRow+1])
@@ -216,9 +216,9 @@ def addRSAccessors(gltf, dataTable, colIndexT, colIndexV, conversionToMeters):
 def convertForceVectorToRS(forceVector):
  "Convert non unit vector in ground frame into a quaternion and a scale vec3" 
  normalized = osim.UnitVec3(forceVector)
- angleZ = math.acos(normalized[1]) 
  # create rotation from angle+z-axis
- rotz  = osim.Quaternion(0, 0, 0, 1)#osim.Rotation().setRotationFromAngleAboutAxis(angleZ, osim.CoordinateAxis.getCoordinateAxis(2)).convertRotationToQuaternion()
+ rotzSimbodyNotation  = osim.Rotation(normalized, osim.CoordinateAxis.getCoordinateAxis(1)).convertRotationToQuaternion()
+ rotz = [rotzSimbodyNotation.get(3), rotzSimbodyNotation.get(0), rotzSimbodyNotation.get(1), rotzSimbodyNotation.get(2)]
  # will only change the y component to represent vector length
  mag = np.linalg.norm(forceVector.to_numpy())* getForceNormalizationScale()
  scales = np.array([getForceMeshScale(), getForceMeshScale()*mag, getForceMeshScale()])
