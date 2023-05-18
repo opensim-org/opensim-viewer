@@ -31,7 +31,7 @@ def convertMotForce2Gltf(motFilePath, shape) :
     # Based on column labels and assuming grouping was done properly by .pack call
     # Will add entry for force_point pair of columns with common prefix
     forcesDictionary = dict()
-    for l in range(2):   # len(labels)-1 first force only for now
+    for l in range(len(labels)-1):   # len(labels)-1 first force only for now
       force_point_label_candidate = [labels[l], labels[l+1]]
       forceNameCandidate = pathmethods.commonprefix(force_point_label_candidate)
       if (len(forceNameCandidate)==len(labels[l])-1):
@@ -126,7 +126,7 @@ def convertTableDataToGltfAnimation(gltfTop, timeSeriesTableVec3, conversionToMe
     animation.samplers.append(translationSampler)
 
     translationChannel = AnimationChannel()
-    translationChannel.sampler = forceIndex
+    translationChannel.sampler = len(animation.samplers)-1
     target = AnimationChannelTarget()
     target.node = 1+forceIndex   # account for top level ForceData
     target.path = "translation"
@@ -165,6 +165,9 @@ def convertTableDataToGltfAnimation(gltfTop, timeSeriesTableVec3, conversionToMe
     animation.channels.append(scaleChannel)
     # create accessor for rotation data
     os2Gltf.addRSAccessors(gltfTop, timeSeriesTableVec3, dict[force], dict[force]+1, conversionToMeters)
+    #
+    forceIndex = forceIndex+1
+
 
 
 
