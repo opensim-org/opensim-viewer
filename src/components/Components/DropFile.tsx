@@ -2,8 +2,11 @@ import React, { useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import { useLocalObservable } from 'mobx-react-lite';
 import { Paper, Typography, LinearProgress } from '@mui/material';
+import { useTranslation } from 'react-i18next'
 
 const FileDropArea = observer(() => {
+  const { t } = useTranslation();
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const acceptedTypes:string[] = ['.gltf']
@@ -26,7 +29,7 @@ const FileDropArea = observer(() => {
       });
 
       if (filteredFiles.length < files.length) {
-        setErrorMessage('One or more files have unsupported types. Accepted file types are: ' + acceptedTypesString);
+        setErrorMessage(t('dropFile.unsuportedTypes', { count: files.length, file_formats: acceptedTypesString}) + "");
       } else {
         setErrorMessage('');
         store.files = filteredFiles;
@@ -59,15 +62,18 @@ const FileDropArea = observer(() => {
     },
     async uploadFiles() {
       if (store.files.length === 0) return;
-    
+      
       store.isUploadComplete = false;
-    
+      
+      const fileCount = store.files.length;
+      let completedFiles = 0;
+      
       for (const file of store.files) {
         const formData = new FormData();
         formData.append('files', file);
-    
+      
         const xhr = new XMLHttpRequest();
-    
+      
         xhr.upload.addEventListener('progress', (event) => {
           if (event.lengthComputable) {
             const percent = Math.round((event.loaded / event.total) * 100);
@@ -76,23 +82,24 @@ const FileDropArea = observer(() => {
             store.uploadPercentage = percentage;
           }
         });
-    
+      
         xhr.onreadystatechange = () => {
           if (xhr.readyState === XMLHttpRequest.DONE) {
             // Handle completed upload for this file
-            if (store.files.length === 1) {
-              // Check if this was the last file being uploaded
+            completedFiles++;
+            if (completedFiles === fileCount) {
+              // Check if all files have been uploaded
               store.isUploadComplete = true;
               store.uploadProgress = 0;
               store.uploadPercentage = 0;
             }
           }
         };
-    
+      
         xhr.open('POST', '/upload');
         xhr.send(formData);
       }
-    },
+    }
   }));
 
   return (
@@ -119,21 +126,21 @@ const FileDropArea = observer(() => {
         accept={ acceptedTypesString }
       />
       {store.files.length === 0 ? (
-        <Typography>Drag and drop files here or click to select files</Typography>
+        <Typography>{t('dropFile.dragAndDropMessage')}</Typography>
       ) : (
         <>
           {store.files.map((file, index) => (
             <Typography key={index}>{file.name}</Typography>
           ))}
           {store.isUploadComplete ? (
-            <Typography>Upload Completed</Typography>
+            <Typography>{t('dropFile.uploadCompleted', { count: store.files.length})}</Typography>
           ) : (
             <>
               <LinearProgress variant="determinate" value={store.uploadPercentage * 100} />
-              <Typography>{Math.round(store.uploadPercentage * 100)}% Uploaded</Typography>
+              <Typography>{t('dropFile.progress', { percentage: Math.round(store.uploadPercentage * 100)})}</Typography>
             </>
           )}
-          <button onClick={store.clearFiles}>Remove Files</button>
+          <button onClick={store.clearFiles}>{t('dropFile.removeFiles', { count: store.files.length})}</button>
         </>
       )}
       {errorMessage && (

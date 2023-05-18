@@ -5,6 +5,8 @@ import Typography from '@mui/material/Typography'
 import ResponsiveContainer from '../../ResponsiveContainer/ResponsiveContainer'
 import GridList from './GridList'
 
+import { useTranslation } from 'react-i18next'
+
 type ModelMetadataType = {
     id: number
     name: string
@@ -22,6 +24,8 @@ interface ModelListPageProps {
 }
 
 const ModelListPage: React.FC<ModelListPageProps> = ({ featuredModelsFilePath }) => {
+    const { t } = useTranslation();
+
     const [models, setModels] = useState<ModelMetadataType[]>([])
 
     useEffect(() => {
@@ -39,7 +43,7 @@ const ModelListPage: React.FC<ModelListPageProps> = ({ featuredModelsFilePath })
         <>
             <Typography variant="h3" style={{ marginTop: 100, marginBottom: 100 }}>
                 {' '}
-                Model Gallery{' '}
+                {t('modelList.modelGalleryTitle')} {' '}
             </Typography>
 
             <ResponsiveContainer>
