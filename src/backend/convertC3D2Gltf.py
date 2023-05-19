@@ -20,13 +20,7 @@ import openSimData2Gltf as os2Gltf
 
 
 def convertC3D2Gltf(c3dFilePath, shape) :
-    shape2Mesh = {
-        'brick' : 0,
-        'sphere' : 1,
-        'cube' : 2,
-        'arrow_in' : 3,
-        'arrow_out' : 4,
-    }
+
     path = Path(c3dFilePath)
     if not path.exists():
         raise NotADirectoryError("Unable to find file ", path.absolute())
@@ -34,12 +28,18 @@ def convertC3D2Gltf(c3dFilePath, shape) :
     adapter = osim.C3DFileAdapter()
     tables = adapter.read(c3dFilePath)
     markerDataTable = adapter.getMarkersTable(tables)
-    markersFlat = markerDataTable.flatten()
-    osim.STOFileAdapter_write(markersFlat, 'markersOnly.sto')
+    hasMarkerData = markerDataTable.getNumRows()>0
+    if (hasMarkerData):
+      markersFlat = markerDataTable.flatten()
+      osim.STOFileAdapter_write(markersFlat, 'markersFlat.sto')
     forcesDataTable = adapter.getForcesTable(tables)
-    forcesFlat = forcesDataTable.flatten()
-    osim.STOFileAdapter_write(forcesFlat, 'forcesOnly.sto')
+    hasForceData = forcesDataTable.getNumRows()>0
+    if (hasForceData) :
+      forcesFlat = forcesDataTable.flatten()
+      osim.STOFileAdapter_write(forcesFlat, 'forcesOnly.sto')
     
+    #Underlying assumption here is that .c3d file always has marker data but may not
+    # have force data, need to verify this to be the case for OpenSim use cases
     numMarkers = markerDataTable.getNumColumns()
     numDataFrames = markerDataTable.getNumRows()
     if numDataFrames==0:
@@ -100,10 +100,10 @@ def convertC3D2Gltf(c3dFilePath, shape) :
       gltf.nodes.append(nextMarkerNode)
       topNode.children.append(markerIndex+1)
 
-    convertTableDataToGltfAnimation(gltf, markerDataTable, unitConversionToMeters)
+    convertPositionDataToGltfAnimation(gltf, markerDataTable, unitConversionToMeters)
     return gltf
 
-def convertTableDataToGltfAnimation(gltfTop, timeSeriesTableVec3, conversionToMeters) :
+def convertPositionDataToGltfAnimation(gltfTop, timeSeriesTableVec3, conversionToMeters) :
   "Take marker data and convert into animations in gltf format" 
   # Create an animations node under top level
   animation = Animation()

@@ -17,6 +17,7 @@ import openSimData2Gltf as os2Gltf
 # "nodes" : [...],
 # "meshes" : [...],
 # "animations" : [...],
+# "animations refer to channels and samplers"
 
 
 def convertTrc2Gltf(trcFilePath, shape) :
@@ -24,97 +25,10 @@ def convertTrc2Gltf(trcFilePath, shape) :
     if not path.exists():
         raise NotADirectoryError("Unable to find file ", path.absolute())
 
-    table = osim.TimeSeriesTableVec3(trcFilePath)
-    numMarkers = table.getNumColumns()
-    numDataFrames = table.getNumRows()
-    if numDataFrames==0:
-        raise IndexError("Input file has no data", table)
-    # Units
-    unitConversionToMeters = 1.0
-    scaleData = False
-    if (table.hasTableMetaDataKey("Units")) :
-        unitString = table.getTableMetaDataString("Units")
-        if (unitString=="mm"):
-            unitConversionToMeters = .001
-            scaleData = True
-    else:
-        print("File has no Units specifications, meters assumed.")
-    firstDataFrame = table.getRowAtIndex(0)
-    gltf = GLTF2().load('basicShapes.gltf')
-
-    # create node for the marker mesh, refer to it from all marker nodes
-    topNode = Node()
-    topNode.name = 'MarkerData'
-    gltf.nodes.clear()
-    gltf.nodes.append(topNode)
-    default_scene = gltf.scenes[0]
-    # make children exclusively be node 0
-    sceneNodes = default_scene.nodes
-    sceneNodes.clear()
-    sceneNodes.append(0) # MarkerData topNode
-    markerMeshScaleFactor = os2Gltf.getMarkerMeshScale()
-    # Create nodes for the experimental markers, 1 node per marker
-    for markerIndex in range(numMarkers):
-      # Create node for the marker
-      nextMarkerNode = Node()
-      nextMarkerNode.name = table.getColumnLabel(markerIndex)
-      # 0 cube, 1 sphere, 2 brick
-      desiredShape = os2Gltf.mapShapeStringToMeshNumber(shape)
-      # Use cube if no shape is specified
-      if (desiredShape==None):
-        nextMarkerNode.mesh =  0
-      else:
-        nextMarkerNode.mesh = desiredShape
-
-      # extras are place holder for application specific properties
-      # for now we'll pass opensimType, may add layers, as needs arise....
-      opensim_extras = {"opensimType": "ExperimentalMarker", 
-                        "layer": "data", 
-                        "name": table.getColumnLabel(markerIndex)}
-      nextMarkerNode.extras = opensim_extras
-      translation = firstDataFrame.getElt(0, markerIndex).to_numpy()
-
-      if (scaleData):
-        nextMarkerNode.translation = (translation * unitConversionToMeters).tolist()
-      else:
-        nextMarkerNode.translation = translation.tolist()
-
-      nextMarkerNode.scale = [markerMeshScaleFactor, markerMeshScaleFactor, markerMeshScaleFactor]
-      gltf.nodes.append(nextMarkerNode)
-      topNode.children.append(markerIndex+1)
-
-    convertTableDataToGltfAnimation(gltf, table, unitConversionToMeters)
-    return gltf
-
-def convertTableDataToGltfAnimation(gltfTop, timeSeriesTableVec3, conversionToMeters) :
-  "Take marker data and convert into animations in gltf format" 
-  # Create an animations node under top level
-  animation = Animation()
-  gltfTop.animations.append(animation)
-  # create two nodes one for samplers, the other for channel per Marker
-  numMarkers = timeSeriesTableVec3.getNumColumns()
-  # create buffer, bufferview and  accessor for timeframes
-  timeColumn = timeSeriesTableVec3.getIndependentColumn()
-  os2Gltf.addTimeStampsAccessor(gltfTop, timeColumn)
-  timeSamplerIndex = len(gltfTop.accessors)
-  for markerIndex in range(numMarkers): #do one marker only to start
-    sampler = AnimationSampler()
-    sampler.input = timeSamplerIndex-1 # time sampler is last accessor
-    sampler.output = timeSamplerIndex+markerIndex
-    sampler.interpolation = ANIM_LINEAR
-    animation.samplers.append(sampler)
-
-    channel = AnimationChannel()
-    channel.sampler = markerIndex
-    target = AnimationChannelTarget()
-    target.node = markerIndex
-    target.path = "translation"
-    channel.target = target
-    animation.channels.append(channel)
-    # create accessor for data
-    os2Gltf.addTranslationAccessor(gltfTop, timeSeriesTableVec3, markerIndex, conversionToMeters)
-    # bind accessor to target
-
+    gltfJson = os2Gltf.initGltf()
+    timeSeriesTableMarkers = osim.TimeSeriesTableVec3(trcFilePath)
+    os2Gltf.convertMarkersTimeSeries2Gltf(gltfJson, shape, timeSeriesTableMarkers)
+    return gltfJson
 
 def main():
     import argparse

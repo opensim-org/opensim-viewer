@@ -26,6 +26,16 @@ def getForceNormalizationScale():
 def mapShapeStringToMeshNumber(shape):
   return shape2Mesh[shape]
 
+def initGltf():
+    "Initialize Gltf json structure, seed it with basicShapes"
+    gltf = GLTF2().load('basicShapes.gltf')
+    gltf.nodes.clear()
+    default_scene = gltf.scenes[0]
+    # clear children of scene
+    sceneNodes = default_scene.nodes
+    sceneNodes.clear()
+    return gltf
+
 def addTimeStampsAccessor(gltf, timesColumn):
   "Add buffer, bufferview and accessor for timestamps"
   # precompute offsets as cross references use index from file
@@ -224,3 +234,96 @@ def convertForceVectorToRS(forceVector):
  scales = np.array([getForceMeshScale(), getForceMeshScale()*mag, getForceMeshScale()])
  return [rotz, scales] 
 
+
+def convertMarkersTimeSeries2Gltf(gltfJson, shape, timeSeriesTableMarkers):
+    "Convert timeSeriesTable of Marker data into gltf layout/structures"
+    "This function creates a top node named MarkerData under the scene node"
+    "This also creates a new animation entry."
+    numMarkers = timeSeriesTableMarkers.getNumColumns()
+    numDataFrames = timeSeriesTableMarkers.getNumRows()
+    if numDataFrames==0:
+        raise IndexError("Input file has no data", timeSeriesTableMarkers)
+    # Units
+    unitConversionToMeters = 1.0
+    scaleData = False
+    if (timeSeriesTableMarkers.hasTableMetaDataKey("Units")) :
+        unitString = timeSeriesTableMarkers.getTableMetaDataString("Units")
+        if (unitString=="mm"):
+            unitConversionToMeters = .001
+            scaleData = True
+    else:
+        print("File has no Units specifications, meters assumed.")
+    firstDataFrame = timeSeriesTableMarkers.getRowAtIndex(0)
+    
+    # create node for the marker mesh, refer to it from all marker nodes
+    topNode = Node( name='MarkerData')
+    gltfJson.nodes.append(topNode)
+    gltfJson.scenes[0].nodes.append(len(gltfJson.nodes)-1) # MarkerData topNode
+    markerMeshScaleFactor = getMarkerMeshScale()
+
+    if (shape == None): # if unspecified use cube for minimal overhead
+      shape = 'cube'
+
+    # Create nodes for the experimental markers, 1 node per marker
+    for markerIndex in range(numMarkers):
+      # Create node for the marker
+      nextMarkerNode = Node()
+      nextMarkerNode.name = timeSeriesTableMarkers.getColumnLabel(markerIndex)
+      # 0 cube, 1 sphere, 2 brick
+      desiredShape = mapShapeStringToMeshNumber(shape)
+      # Use cube if no shape is specified
+      if (desiredShape==None):
+        nextMarkerNode.mesh =  0
+      else:
+        nextMarkerNode.mesh = desiredShape
+
+      # extras are place holder for application specific properties
+      # for now we'll pass opensimType, may add layers, as needs arise....
+      opensim_extras = {"opensimType": "ExperimentalMarker", 
+                        "layer": "data", 
+                        "name": timeSeriesTableMarkers.getColumnLabel(markerIndex)}
+      nextMarkerNode.extras = opensim_extras
+      translation = firstDataFrame.getElt(0, markerIndex).to_numpy()
+
+      if (scaleData):
+        nextMarkerNode.translation = (translation * unitConversionToMeters).tolist()
+      else:
+        nextMarkerNode.translation = translation.tolist()
+
+      nextMarkerNode.scale = [markerMeshScaleFactor, markerMeshScaleFactor, markerMeshScaleFactor]
+      gltfJson.nodes.append(nextMarkerNode)
+      topNode.children.append(markerIndex+1)
+
+    convertPositionDataToGltfAnimation(gltfJson, timeSeriesTableMarkers, unitConversionToMeters)
+
+def convertPositionDataToGltfAnimation(gltfTop, timeSeriesTableVec3, conversionToMeters) :
+  "Take marker data trajectory and convert into animations in gltf format" 
+  # Create an animations node under top level
+  numAnimations = len(gltfTop.animations)
+  if (numAnimations==0) :
+    animation = Animation()
+    gltfTop.animations.append(animation)
+  else :
+    animation = gltfTop.animations[numAnimations-1]
+  # create two nodes one for samplers, the other for channel per Marker
+  numMarkers = timeSeriesTableVec3.getNumColumns()
+  # create buffer, bufferview and  accessor for timeframes
+  timeColumn = timeSeriesTableVec3.getIndependentColumn()
+  addTimeStampsAccessor(gltfTop, timeColumn)
+  timeSamplerIndex = len(gltfTop.accessors)
+  for markerIndex in range(numMarkers): #do one marker only to start
+    sampler = AnimationSampler()
+    sampler.input = timeSamplerIndex-1 # time sampler is last accessor
+    sampler.output = timeSamplerIndex+markerIndex
+    sampler.interpolation = ANIM_LINEAR
+    animation.samplers.append(sampler)
+
+    channel = AnimationChannel()
+    channel.sampler = markerIndex
+    target = AnimationChannelTarget()
+    target.node = markerIndex
+    target.path = "translation"
+    channel.target = target
+    animation.channels.append(channel)
+    # create accessor for data
+    addTranslationAccessor(gltfTop, timeSeriesTableVec3, markerIndex, conversionToMeters)

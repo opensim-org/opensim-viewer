@@ -31,14 +31,10 @@ def convertMotForce2Gltf(motFilePath, shape) :
     # Based on column labels and assuming grouping was done properly by .pack call
     # Will add entry for force_point pair of columns with common prefix
     forcesDictionary = dict()
-    for l in range(len(labels)-1):   # len(labels)-1 first force only for now
-      force_point_label_candidate = [labels[l], labels[l+1]]
-      forceNameCandidate = pathmethods.commonprefix(force_point_label_candidate)
-      if (len(forceNameCandidate)==len(labels[l])-1):
-         forcesDictionary[forceNameCandidate[:-1]] = l # Avoid trailing _ in most cases
-         l=l+1
-      # print (forcesDictionary)
+    createForceDictionary(labels, forcesDictionary)
 
+    if (len(forcesDictionary.keys())==0) :
+       raise  IndexError("Input file has no forces or labels not following OpenSim convention.", table)
     numDataFrames = timeSeriesTableVec3.getNumRows()
     if numDataFrames==0:
         raise IndexError("Input file has no data", table)
@@ -55,20 +51,20 @@ def convertMotForce2Gltf(motFilePath, shape) :
 
     forceScale = os2Gltf.getForceMeshScale()
     firstDataFrame = timeSeriesTableVec3.getRowAtIndex(0)
-    gltf = GLTF2().load('basicShapes.gltf')
+    gltf = os2Gltf.initGltf()
 
     # create node for the force mesh, refer to it from all force nodes
     topNode = Node()
     topNode.name = 'ForceData'
-    gltf.nodes.clear()
     gltf.nodes.append(topNode)
-    default_scene = gltf.scenes[0]
     # make children exclusively be node 0
-    sceneNodes = default_scene.nodes
-    sceneNodes.clear()
+    sceneNodes = gltf.scenes[0].nodes
     sceneNodes.append(0) # ForceData topNode
     sceneNodeIndex = len(sceneNodes)
-    # Create nodes for the experimental markers, 1 node per marker
+    if (shape == None): #if  unspecified forces default to arrow
+       shape = 'arrow'
+
+    # Create nodes for the experimental forces, 1 node per force
     for force in forcesDictionary:
       # Create node for the force
       nextForceNode = Node()
@@ -103,10 +99,18 @@ def convertMotForce2Gltf(motFilePath, shape) :
       topNode.children.append(nextForceNodeIndex)
       
 
-    convertTableDataToGltfAnimation(gltf, timeSeriesTableVec3, unitConversionToMeters, forcesDictionary)
+    convertForcesTableToGltfAnimation(gltf, timeSeriesTableVec3, unitConversionToMeters, forcesDictionary)
     return gltf
 
-def convertTableDataToGltfAnimation(gltfTop, timeSeriesTableVec3, conversionToMeters, dict) :
+def createForceDictionary(labels, forcesDictionary):
+    for l in range(len(labels)-1):   # len(labels)-1 first force only for now
+      force_point_label_candidate = [labels[l], labels[l+1]]
+      forceNameCandidate = pathmethods.commonprefix(force_point_label_candidate)
+      if (len(forceNameCandidate)==len(labels[l])-1):
+         forcesDictionary[forceNameCandidate[:-1]] = l # Avoid trailing _ in most cases
+         l=l+1
+
+def convertForcesTableToGltfAnimation(gltfTop, timeSeriesTableVec3, conversionToMeters, dict) :
   "Take force data and convert into animations in gltf format" 
   "last argument is a dictionary that maps a force to a column index"
   "The code assumes the convention of a force_vec3 followed by force_pos3 next column"
