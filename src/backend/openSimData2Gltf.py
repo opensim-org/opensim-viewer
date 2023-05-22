@@ -101,6 +101,9 @@ def addTranslationAccessor(gltf, dataTable, colIndex, conversionToMeters):
   for row in range(dataTable.getNumRows()):
     # this all can be optimized once done
      rowI = colData[row]
+     if (math.isnan(rowI[0])):
+       print ("Nan found at row ")
+    
      rawRow = 3*row
      markerData[ rawRow] = rowI[0]*conversionToMeters
      markerData[ rawRow+1] = rowI[1]*conversionToMeters
@@ -184,15 +187,10 @@ def addRSAccessors(gltf, dataTable, colIndexT, colIndexV, conversionToMeters):
      rotationData[ rawRow+1] = quat[1]
      rotationData[ rawRow+2] = quat[2]
      rotationData[ rawRow+3] = quat[3]
-     # update bounds
-     maxValue[0] = max(maxValue[0], rotationData[ rawRow])
-     maxValue[1] = max(maxValue[1], rotationData[ rawRow+1])
-     maxValue[2] = max(maxValue[2], rotationData[ rawRow+2])
-     maxValue[3] = max(maxValue[3], rotationData[ rawRow+3])
-     minValue[0] = min(minValue[0], rotationData[ rawRow])
-     minValue[1] = min(minValue[1], rotationData[ rawRow+1])
-     minValue[2] = min(minValue[2], rotationData[ rawRow+2])
-     minValue[3] = min(minValue[3], rotationData[ rawRow+3])
+     # update bounds for quaternion data
+     for coord in range(4):
+      maxValue[coord] = max(maxValue[coord], rotationData[ rawRow+coord])
+      minValue[coord] = min(minValue[coord], rotationData[ rawRow+coord])
 
      scaleData[ rawRow3] = scale[0].__float__()
      scaleData[ rawRow3+1] = scale[1].__float__()
@@ -281,9 +279,11 @@ def convertMarkersTimeSeries2Gltf(gltfJson, shape, timeSeriesTableMarkers):
       # for now we'll pass opensimType, may add layers, as needs arise....
       opensim_extras = {"opensimType": "ExperimentalMarker", 
                         "layer": "data", 
-                        "name": timeSeriesTableMarkers.getColumnLabel(markerIndex)}
+                        "name": nextMarkerNode.name}
       nextMarkerNode.extras = opensim_extras
       translation = firstDataFrame.getElt(0, markerIndex).to_numpy()
+
+      print (nextMarkerNode.name, translation)
 
       if (scaleData):
         nextMarkerNode.translation = (translation * unitConversionToMeters).tolist()
@@ -293,7 +293,7 @@ def convertMarkersTimeSeries2Gltf(gltfJson, shape, timeSeriesTableMarkers):
       nextMarkerNode.scale = [markerMeshScaleFactor, markerMeshScaleFactor, markerMeshScaleFactor]
       gltfJson.nodes.append(nextMarkerNode)
       topNode.children.append(markerIndex+1)
-
+    # now convert the trajectory to an animation
     convertPositionDataToGltfAnimation(gltfJson, timeSeriesTableMarkers, unitConversionToMeters)
 
 def convertPositionDataToGltfAnimation(gltfTop, timeSeriesTableVec3, conversionToMeters) :
