@@ -37,100 +37,21 @@ def convertC3D2Gltf(c3dFilePath, shape) :
     if (hasForceData) :
       forcesFlat = forcesDataTable.flatten()
       osim.STOFileAdapter_write(forcesFlat, 'forcesOnly.sto')
-    
+
     #Underlying assumption here is that .c3d file always has marker data but may not
     # have force data, need to verify this to be the case for OpenSim use cases
-    numMarkers = markerDataTable.getNumColumns()
     numDataFrames = markerDataTable.getNumRows()
     if numDataFrames==0:
         raise IndexError("Input file has no data", markerDataTable)
-    # Units
-    unitConversionToMeters = 1.0
-    scaleData = False
-    if (markerDataTable.hasTableMetaDataKey("Units")) :
-        unitString = markerDataTable.getTableMetaDataString("Units")
-        if (unitString=="mm"):
-            unitConversionToMeters = .001
-            scaleData = True
-    else:
-        print("File has no Units specifications, meters assumed.")
-    firstDataFrame = markerDataTable.getRowAtIndex(0)
     # instead of creating the GLTF2 structure from scratch and programmatically adding basic
     # shapes (Sphere, Cube, brick, axes, arrows etc.) instead we load a file with these meshes
     # baked in and use these meshes as needed. 
-    gltf = GLTF2().load('basicShapes.gltf')
+    gltf = os2Gltf.initGltf()
 
     # create node for the marker mesh, refer to it from all marker nodes
-    topNode = Node()
-    topNode.name = 'MarkerData'
-    gltf.nodes.clear()
-    gltf.nodes.append(topNode)
-    default_scene = gltf.scenes[0]
-    # make children exclusively be node 0
-    sceneNodes = default_scene.nodes
-    sceneNodes.clear()
-    sceneNodes.append(0) # MarkerData topNode
-    # Create nodes for the experimental markers, 1 node per marker
-    for markerIndex in range(numMarkers):
-      # Create node for the marker
-      nextMarkerNode = Node()
-      nextMarkerNode.name = markerDataTable.getColumnLabel(markerIndex)
-      # 0 cube, 1 sphere, 2 brick
-      desiredShape = shape2Mesh.get(shape)
-      # Use cube if no shape is specified
-      if (desiredShape==None):
-        nextMarkerNode.mesh =  0
-      else:
-        nextMarkerNode.mesh = desiredShape
+    os2Gltf.convertMarkersTimeSeries2Gltf(gltf, shape, markerDataTable)
 
-      # extras are place holder for application specific properties
-      # for now we'll pass opensimType, may add layers, as needs arise....
-      opensim_extras = {"opensimType": "ExperimentalMarker", 
-                        "layer": "data", 
-                        "name": markerDataTable.getColumnLabel(markerIndex)}
-      nextMarkerNode.extras = opensim_extras
-      translation = firstDataFrame.getElt(0, markerIndex).to_numpy()
-
-      if (scaleData):
-        nextMarkerNode.translation = (translation * unitConversionToMeters).tolist()
-      else:
-        nextMarkerNode.translation = translation.tolist()
-
-      nextMarkerNode.scale = [.01, .01, .01]
-      gltf.nodes.append(nextMarkerNode)
-      topNode.children.append(markerIndex+1)
-
-    convertPositionDataToGltfAnimation(gltf, markerDataTable, unitConversionToMeters)
     return gltf
-
-def convertPositionDataToGltfAnimation(gltfTop, timeSeriesTableVec3, conversionToMeters) :
-  "Take marker data and convert into animations in gltf format" 
-  # Create an animations node under top level
-  animation = Animation()
-  gltfTop.animations.append(animation)
-  # create two nodes one for samplers, the other for channel per Marker
-  numMarkers = timeSeriesTableVec3.getNumColumns()
-  # create buffer, bufferview and  accessor for timeframes
-  timeColumn = timeSeriesTableVec3.getIndependentColumn()
-  os2Gltf.addTimeStampsAccessor(gltfTop, timeColumn)
-  for markerIndex in range(numMarkers): #do one marker only to start
-    sampler = AnimationSampler()
-    sampler.input = 12
-    sampler.output = 12+markerIndex+1
-    sampler.interpolation = ANIM_LINEAR
-    animation.samplers.append(sampler)
-
-    channel = AnimationChannel()
-    channel.sampler = markerIndex
-    target = AnimationChannelTarget()
-    target.node = markerIndex
-    target.path = "translation"
-    channel.target = target
-    animation.channels.append(channel)
-    # create accessor for data
-    os2Gltf.addTranslationAccessor(gltfTop, timeSeriesTableVec3, markerIndex, conversionToMeters)
-    # bind accessor to target
-
 
 def main():
     import argparse

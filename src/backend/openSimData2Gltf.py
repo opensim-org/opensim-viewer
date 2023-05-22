@@ -67,7 +67,6 @@ def addTimeStampsAccessor(gltf, timesColumn):
   timeBufferView.buffer = startBufferNumberOffset
   timeBufferView.byteOffset = 0
   timeBufferView.byteLength = timeBuffer.byteLength
-  timeBufferView.target
   gltf.bufferViews.append(timeBufferView)
 
 
@@ -98,27 +97,31 @@ def addTranslationAccessor(gltf, dataTable, colIndex, conversionToMeters):
 
   maxValue = [-100000.0, -100000.0, -100000.0]
   minValue = [100000.0, 100000.0, 100000.0]
+  goodRows = 0
   for row in range(dataTable.getNumRows()):
     # this all can be optimized once done
-     rowI = colData[row]
-     if (math.isnan(rowI[0])):
-       print ("Nan found at row ")
+    rowI = colData[row]
+    if (math.isnan(rowI[0])):
+      # print ("Nan found at row ", row)
+      continue
     
-     rawRow = 3*row
-     markerData[ rawRow] = rowI[0]*conversionToMeters
-     markerData[ rawRow+1] = rowI[1]*conversionToMeters
-     markerData[ rawRow+2] = rowI[2]*conversionToMeters
-     # update bounds
-     maxValue[0] = max(maxValue[0], markerData[ rawRow])
-     maxValue[1] = max(maxValue[1], markerData[ rawRow+1])
-     maxValue[2] = max(maxValue[2], markerData[ rawRow+2])
-     minValue[0] = min(minValue[0], markerData[ rawRow])
-     minValue[1] = min(minValue[1], markerData[ rawRow+1])
-     minValue[2] = min(minValue[2], markerData[ rawRow+2])
+    rawGoodRow = 3*goodRows
+    for col in range(3):
+      markerData[ rawGoodRow+col] = rowI[col]*conversionToMeters
+
+    # update bounds
+    for col in range(3):
+     maxValue[col] = max(maxValue[col], markerData[ rawGoodRow+col])
+     minValue[col] = min(minValue[col], markerData[ rawGoodRow+col])
+
+    #update goodRows if we made it here
+    goodRows += 1
 
   for index in range(3):
     maxValue[index] = maxValue[index].__float__()
     minValue[index] = minValue[index].__float__()
+
+  # print("goodRows ", goodRows, "min-max", minValue, maxValue)
 
   encoded = base64.b64encode(markerData).decode("ascii")
   posDataBuffer.uri = f"data:application/octet-stream;base64,{encoded}"
@@ -282,8 +285,9 @@ def convertMarkersTimeSeries2Gltf(gltfJson, shape, timeSeriesTableMarkers):
                         "name": nextMarkerNode.name}
       nextMarkerNode.extras = opensim_extras
       translation = firstDataFrame.getElt(0, markerIndex).to_numpy()
-
-      print (nextMarkerNode.name, translation)
+      if (math.isnan(translation[0])):
+        translation = np.zeros(3)
+      # print (nextMarkerNode.name, translation)
 
       if (scaleData):
         nextMarkerNode.translation = (translation * unitConversionToMeters).tolist()
@@ -326,4 +330,5 @@ def convertPositionDataToGltfAnimation(gltfTop, timeSeriesTableVec3, conversionT
     channel.target = target
     animation.channels.append(channel)
     # create accessor for data
+    # print("addTranslationAccessor at index ", markerIndex, "name=", timeSeriesTableVec3.getColumnLabel(markerIndex))
     addTranslationAccessor(gltfTop, timeSeriesTableVec3, markerIndex, conversionToMeters)
