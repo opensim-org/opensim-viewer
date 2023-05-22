@@ -49,6 +49,7 @@ const FileDropArea = observer(() => {
       if (fileInputRef.current) {
         fileInputRef.current.value = ''; // Reset the input element's value
       }
+      setErrorMessage('');
     },
     openFileSelector() {
       if (fileInputRef.current) {
@@ -62,18 +63,29 @@ const FileDropArea = observer(() => {
     },
     async uploadFiles() {
       if (store.files.length === 0) return;
-      
+
       store.isUploadComplete = false;
-      
+
       const fileCount = store.files.length;
       let completedFiles = 0;
-      
+
+      const handleStateChange = (xhr:any, fileCount:number) => {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+          completedFiles++;
+          if (completedFiles === fileCount) {
+            store.isUploadComplete = true;
+            store.uploadProgress = 0;
+            store.uploadPercentage = 0;
+          }
+        }
+      };
+
       for (const file of store.files) {
         const formData = new FormData();
         formData.append('files', file);
-      
+
         const xhr = new XMLHttpRequest();
-      
+
         xhr.upload.addEventListener('progress', (event) => {
           if (event.lengthComputable) {
             const percent = Math.round((event.loaded / event.total) * 100);
@@ -82,24 +94,15 @@ const FileDropArea = observer(() => {
             store.uploadPercentage = percentage;
           }
         });
-      
+
         xhr.onreadystatechange = () => {
-          if (xhr.readyState === XMLHttpRequest.DONE) {
-            // Handle completed upload for this file
-            completedFiles++;
-            if (completedFiles === fileCount) {
-              // Check if all files have been uploaded
-              store.isUploadComplete = true;
-              store.uploadProgress = 0;
-              store.uploadPercentage = 0;
-            }
-          }
+          handleStateChange(xhr, fileCount);
         };
-      
+
         xhr.open('POST', '/upload');
         xhr.send(formData);
       }
-    }
+    }    
   }));
 
   return (
