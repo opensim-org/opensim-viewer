@@ -49,13 +49,14 @@ return (
         sx={{ ml: 1 }}
         onClick={() => {
           viewerState.setDark(!viewerState.dark);
-        }}
-      >
+        }} >
         {viewerState.dark ? <Brightness4Icon /> : <Brightness7Icon />}
       </IconButton>
-      <IconButton>
-        <InfoTwoToneIcon />
-      </IconButton>
+      <Link component={NavLink} to="/about">
+        <IconButton>
+          <InfoTwoToneIcon />
+        </IconButton>
+      </Link>
       <IconButton>
         <ShareTwoToneIcon />
       </IconButton>
