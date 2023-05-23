@@ -13,6 +13,7 @@ import React, { useEffect } from 'react'
 import viewerState from './state/ViewerState'
 
 function App() {
+
     useEffect(() => {
         // Event that switches between dark and light mode when the letter D is pressed.
         const handleKeyDUp = (event: KeyboardEvent) => {
