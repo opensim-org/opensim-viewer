@@ -1,15 +1,20 @@
 import React from 'react'
 import { render, screen } from '@testing-library/react'
 import OpenSimAppBar from './OpenSimAppBar'
+import { BrowserRouter as Router } from 'react-router-dom'
 
 function TestComponent() {
-    const [dark, setDark] = React.useState<boolean>(true)
+    const [dark, _] = React.useState<boolean>(true)
 
-    return <OpenSimAppBar dark={dark} />
+    return <OpenSimAppBar dark={true} />
 }
 
 test('renders opensim-viewer toolbar', () => {
-    render(<TestComponent />)
+    render(
+        <Router>
+            <TestComponent />
+        </Router>
+    )
     const viewerElement = screen.getByText(/Viewer/i)
     expect(viewerElement).toBeInTheDocument()
 
