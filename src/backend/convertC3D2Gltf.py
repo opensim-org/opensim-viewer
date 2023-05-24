@@ -71,8 +71,8 @@ def convertC3D2Gltf(c3dFilePath, shape) :
           else:
               print("File has no Units specifications, NMS assumed.")
 
-          os2Gltf.createForceNodes(shape, forcesDictionary, unitConversionToMeters, scaleData, forceScale, firstForceFrame, gltf, topForcesNode)
-          os2Gltf.convertForcesTableToGltfAnimation(gltf, forcesDataTable, unitConversionToMeters, forcesDictionary)
+          firstForceIndex = os2Gltf.createForceNodes(shape, forcesDictionary, unitConversionToMeters, scaleData, forceScale, firstForceFrame, gltf, topForcesNode)
+          os2Gltf.convertForcesTableToGltfAnimation(gltf, forcesDataTable, unitConversionToMeters, forcesDictionary, firstForceIndex)
 
     return gltf
 
