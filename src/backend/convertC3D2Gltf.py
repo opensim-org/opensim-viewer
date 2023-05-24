@@ -29,27 +29,50 @@ def convertC3D2Gltf(c3dFilePath, shape) :
     tables = adapter.read(c3dFilePath)
     markerDataTable = adapter.getMarkersTable(tables)
     hasMarkerData = markerDataTable.getNumRows()>0
-    if (hasMarkerData):
-      markersFlat = markerDataTable.flatten()
-      osim.STOFileAdapter_write(markersFlat, 'markersFlat.sto')
+
+      # osim.STOFileAdapter_write(markersFlat, 'markersFlat.sto')
     forcesDataTable = adapter.getForcesTable(tables)
     hasForceData = forcesDataTable.getNumRows()>0
-    if (hasForceData) :
-      forcesFlat = forcesDataTable.flatten()
-      osim.STOFileAdapter_write(forcesFlat, 'forcesOnly.sto')
-
+ 
     #Underlying assumption here is that .c3d file always has marker data but may not
     # have force data, need to verify this to be the case for OpenSim use cases
-    numDataFrames = markerDataTable.getNumRows()
-    if numDataFrames==0:
+    numMarkerFrames = markerDataTable.getNumRows()
+    if numMarkerFrames==0:
         raise IndexError("Input file has no data", markerDataTable)
     # instead of creating the GLTF2 structure from scratch and programmatically adding basic
     # shapes (Sphere, Cube, brick, axes, arrows etc.) instead we load a file with these meshes
     # baked in and use these meshes as needed. 
     gltf = os2Gltf.initGltf()
 
+    osim.STOFileAdapterVec3.write(markerDataTable, 'c3dMarkerData.sto')
     # create node for the marker mesh, refer to it from all marker nodes
     os2Gltf.convertMarkersTimeSeries2Gltf(gltf, shape, markerDataTable)
+
+    # now the forces
+    if (hasForceData):
+        forcesDictionary = dict()
+        labels = forcesDataTable.getColumnLabels()
+        os2Gltf.createForceDictionary(labels, forcesDictionary)
+        if (len(forcesDictionary.keys())>0) :
+          forceScale = os2Gltf.getForceMeshScale()
+          firstForceFrame = forcesDataTable.getRowAtIndex(0)
+          topForcesNode = Node()
+          topForcesNode.name = 'ForceData'
+          gltf.nodes.append(topForcesNode)
+          gltf.scenes[0].nodes.append(len(gltf.nodes)-1)
+          shape = 'arrow'
+          unitConversionToMeters = .001
+          scaleData = True
+          if (forcesDataTable.hasTableMetaDataKey("Units")) :
+              unitString = forcesDataTable.getTableMetaDataString("Units")
+              if (unitString=="mm"):
+                  unitConversionToMeters = .001
+                  scaleData = True
+          else:
+              print("File has no Units specifications, NMS assumed.")
+
+          os2Gltf.createForceNodes(shape, forcesDictionary, unitConversionToMeters, scaleData, forceScale, firstForceFrame, gltf, topForcesNode)
+          os2Gltf.convertForcesTableToGltfAnimation(gltf, forcesDataTable, unitConversionToMeters, forcesDictionary)
 
     return gltf
 

@@ -4,6 +4,7 @@ from pygltflib import *
 import numpy as np
 import base64
 import math
+import os.path as pathmethods
 
 shape2Mesh = {
     'brick' : 0,
@@ -35,6 +36,58 @@ def initGltf():
     sceneNodes = default_scene.nodes
     sceneNodes.clear()
     return gltf
+
+def createForceDictionary(labels, forcesDictionary):
+    for idx in range(len(labels)-1):   # len(labels)-1 first force only for now
+      force_point_label_candidate = [labels[idx], labels[idx+1]]
+      forceNameCandidate = pathmethods.commonprefix(force_point_label_candidate)
+      if (len(forceNameCandidate)==len(labels[idx])-1) and (len(forceNameCandidate)!=0):
+         forcesDictionary[forceNameCandidate[:-1]] = idx # Avoid trailing _ in most cases
+         idx += 1
+      else: # could be fx, px format
+        k = labels[idx].rfind("f")
+        if (k==-1):
+          continue
+        poslabelCandidate = labels[idx][:k] + "p" + labels[idx][k+1:]
+        if (labels[idx+1]==poslabelCandidate):
+          forcesDictionary[labels[idx]] = idx
+          idx += 1
+        
+def createForceNodes(shape, forcesDictionary, unitConversionToMeters, scaleData, forceScale, firstDataFrame, gltf, topNode):
+    firstForceNodeIndex = len(gltf.nodes)
+    for force in forcesDictionary:
+      # Create node for the force
+      nextForceNode = Node()
+      nextForceNode.name = force
+      # 0 cube, 1 sphere, 2 brick
+      desiredShape = mapShapeStringToMeshNumber(shape)
+      # Use cube if no shape is specified
+      if (desiredShape==None):
+        nextForceNode.mesh =  0
+      else:
+        nextForceNode.mesh = desiredShape
+
+      # extras are place holder for application specific properties
+      # for now we'll pass opensimType, may add layers, as needs arise....
+      opensim_extras = {"opensimType": "ExternalForce", 
+                        "layer": "data", 
+                        "name": force}
+      
+      nextForceNode.extras = opensim_extras
+      columnIndex = forcesDictionary[force]
+      forceVec3 = firstDataFrame.getElt(0, columnIndex).to_numpy()
+      posVec3 = firstDataFrame.getElt(0, columnIndex+1).to_numpy()
+
+      if (scaleData):
+        nextForceNode.translation = (posVec3 * unitConversionToMeters).tolist()
+      else:
+        nextForceNode.translation = posVec3.tolist()
+
+      nextForceNode.scale = [forceScale, forceScale, forceScale]
+      nextForceNodeIndex = len(gltf.nodes)
+      gltf.nodes.append(nextForceNode)
+      topNode.children.append(nextForceNodeIndex)
+    return firstForceNodeIndex
 
 def addTimeStampsAccessor(gltf, timesColumn):
   "Add buffer, bufferview and accessor for timestamps"
@@ -133,7 +186,7 @@ def addTranslationAccessor(gltf, dataTable, colIndex, conversionToMeters):
   posDataBufferView.byteOffset = 0
   posDataBufferView.byteLength = posDataBuffer.byteLength
 
-def addRSAccessors(gltf, dataTable, colIndexT, colIndexV, conversionToMeters):
+def addRSAccessors(gltf, dataTable, colIndexT, conversionToMeters):
   "Add buffer, bufferview and accessor for rotation, scale data columns"
   "Following grf.mot format, we have one column that is a vector with"
   "direction (R) that will be converted into quaternion for use in gltf and magnitude (S). The scaling"
@@ -199,6 +252,8 @@ def addRSAccessors(gltf, dataTable, colIndexT, colIndexV, conversionToMeters):
      scaleData[ rawRow3+1] = scale[1].__float__()
      scaleData[ rawRow3+2] = scale[2].__float__()
 
+  # print("colIndexT", colIndexT, "rotationData", rotationData)
+
   for index in range(4):
     maxValue[index] = maxValue[index].__float__()
     minValue[index] = minValue[index].__float__()
@@ -226,13 +281,19 @@ def addRSAccessors(gltf, dataTable, colIndexT, colIndexV, conversionToMeters):
 
 def convertForceVectorToRS(forceVector):
  "Convert non unit vector in ground frame into a quaternion and a scale vec3" 
+ mag = np.linalg.norm(forceVector.to_numpy())* getForceNormalizationScale()
+ scales = np.array([getForceMeshScale(), getForceMeshScale()*mag, getForceMeshScale()])
+
+ if (mag < 1e-10): #avoid nans, scale of 0, rot is arbitrary
+    rotz = [1., 0., 0., 0.]
+    return [rotz, scales]
+
  normalized = osim.UnitVec3(forceVector)
  # create rotation from angle+z-axis
  rotzSimbodyNotation  = osim.Rotation(normalized, osim.CoordinateAxis.getCoordinateAxis(1)).convertRotationToQuaternion()
  rotz = [rotzSimbodyNotation.get(3), rotzSimbodyNotation.get(0), rotzSimbodyNotation.get(1), rotzSimbodyNotation.get(2)]
  # will only change the y component to represent vector length
- mag = np.linalg.norm(forceVector.to_numpy())* getForceNormalizationScale()
- scales = np.array([getForceMeshScale(), getForceMeshScale()*mag, getForceMeshScale()])
+
  return [rotz, scales] 
 
 
@@ -261,10 +322,10 @@ def convertMarkersTimeSeries2Gltf(gltfJson, shape, timeSeriesTableMarkers):
     gltfJson.nodes.append(topNode)
     gltfJson.scenes[0].nodes.append(len(gltfJson.nodes)-1) # MarkerData topNode
     markerMeshScaleFactor = getMarkerMeshScale()
-
     if (shape == None): # if unspecified use cube for minimal overhead
       shape = 'cube'
 
+    firstMarkerNodeIndex = len(gltfJson.nodes)
     # Create nodes for the experimental markers, 1 node per marker
     for markerIndex in range(numMarkers):
       # Create node for the marker
@@ -298,9 +359,9 @@ def convertMarkersTimeSeries2Gltf(gltfJson, shape, timeSeriesTableMarkers):
       gltfJson.nodes.append(nextMarkerNode)
       topNode.children.append(markerIndex+1)
     # now convert the trajectory to an animation
-    convertPositionDataToGltfAnimation(gltfJson, timeSeriesTableMarkers, unitConversionToMeters)
+    convertPositionDataToGltfAnimation(gltfJson, timeSeriesTableMarkers, unitConversionToMeters, firstMarkerNodeIndex)
 
-def convertPositionDataToGltfAnimation(gltfTop, timeSeriesTableVec3, conversionToMeters) :
+def convertPositionDataToGltfAnimation(gltfTop, timeSeriesTableVec3, conversionToMeters, firstNodeIndex) :
   "Take marker data trajectory and convert into animations in gltf format" 
   # Create an animations node under top level
   numAnimations = len(gltfTop.animations)
@@ -325,10 +386,80 @@ def convertPositionDataToGltfAnimation(gltfTop, timeSeriesTableVec3, conversionT
     channel = AnimationChannel()
     channel.sampler = markerIndex
     target = AnimationChannelTarget()
-    target.node = markerIndex
+    target.node = firstNodeIndex+markerIndex
     target.path = "translation"
     channel.target = target
     animation.channels.append(channel)
     # create accessor for data
     # print("addTranslationAccessor at index ", markerIndex, "name=", timeSeriesTableVec3.getColumnLabel(markerIndex))
     addTranslationAccessor(gltfTop, timeSeriesTableVec3, markerIndex, conversionToMeters)
+
+def convertForcesTableToGltfAnimation(gltfTop, timeSeriesTableVec3, conversionToMeters, dict, firstForceNodeIndex) :
+  "Take force data and convert into animations in gltf format" 
+  "last argument is a dictionary that maps a force to a column index"
+  "The code assumes the convention of a force_vec3 followed by force_pos3 next column"
+  # Create an animations node under top level
+  numAnimations = len(gltfTop.animations)
+  if (numAnimations==0) :
+    animation = Animation()
+    gltfTop.animations.append(animation)
+  else :
+    animation = gltfTop.animations[numAnimations-1]
+
+  # create two nodes one for samplers, the other for channel per Force
+  numForces = len(dict.items())
+  # create buffer, bufferview and  accessor for timeframes
+  timeColumn = timeSeriesTableVec3.getIndependentColumn()
+  timeSamplerIndex = len(gltfTop.accessors)
+  addTimeStampsAccessor(gltfTop, timeColumn)
+  forceIndex = 0
+  for force in dict: #do one marker only to start
+    translationSampler = AnimationSampler()
+    translationSampler.input = timeSamplerIndex
+    translationSampler.output = timeSamplerIndex+ 3*forceIndex+1
+    translationSampler.interpolation = ANIM_LINEAR
+    animation.samplers.append(translationSampler)
+
+    translationChannel = AnimationChannel()
+    translationChannel.sampler = len(animation.samplers)-1
+    target = AnimationChannelTarget()
+    target.node = firstForceNodeIndex+forceIndex   # account for top level ForceData
+    target.path = "translation"
+    translationChannel.target = target
+    animation.channels.append(translationChannel)
+    # create accessor for data
+    addTranslationAccessor(gltfTop, timeSeriesTableVec3, dict[force]+1, conversionToMeters)
+    # Now rotations
+    # create sampler
+    rotationSampler = AnimationSampler()
+    rotationSampler.input = timeSamplerIndex
+    rotationSampler.output = timeSamplerIndex+3*forceIndex+2
+    rotationSampler.interpolation = ANIM_LINEAR
+    animation.samplers.append(rotationSampler)
+    # create channel to use the sampler
+    rotationChannel = AnimationChannel()
+    rotationChannel.sampler = len(animation.samplers)-1
+    target = AnimationChannelTarget()
+    target.node = firstForceNodeIndex+forceIndex
+    target.path = "rotation"
+    rotationChannel.target = target
+    animation.channels.append(rotationChannel)
+
+    # Repeat for scale
+    scaleSampler = AnimationSampler()
+    scaleSampler.input = timeSamplerIndex
+    scaleSampler.output = timeSamplerIndex+3*forceIndex+3
+    scaleSampler.interpolation = ANIM_LINEAR
+    animation.samplers.append(scaleSampler)
+    scaleChannel = AnimationChannel()
+    scaleChannel.sampler = len(animation.samplers)-1
+    target = AnimationChannelTarget()
+    target.node = firstForceNodeIndex+forceIndex
+    target.path = "scale"
+    scaleChannel.target = target
+    animation.channels.append(scaleChannel)
+    # create accessor for rotation data
+    addRSAccessors(gltfTop, timeSeriesTableVec3, dict[force], conversionToMeters)
+    #
+    forceIndex = forceIndex+1
+
