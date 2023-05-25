@@ -1,5 +1,7 @@
 import { useGLTF } from '@react-three/drei'
+import { useFrame } from '@react-three/fiber'
 import { useMemo } from 'react'
+import { AnimationMixer } from 'three'
 
 interface OpenSimSceneProps {
     curentModelPath: string
@@ -7,7 +9,19 @@ interface OpenSimSceneProps {
 
 const OpenSimScene: React.FC<OpenSimSceneProps> = ({ curentModelPath }) => {
     // useGLTF suspends the component, it literally stops processing
-    const { scene } = useGLTF(curentModelPath)
+    const { scene, animations } = useGLTF(curentModelPath)
+    let mixer: AnimationMixer
+    if (animations.length) {
+        mixer = new AnimationMixer(scene);
+        animations.forEach(clip => {
+            const action = mixer.clipAction(clip)
+            action.play();
+        });
+    }
+    useFrame((state, delta) => {
+        mixer?.update(delta)
+    })
+    
     useMemo(
         () =>
             scene.traverse((obj) => {
@@ -16,7 +30,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ curentModelPath }) => {
                     obj.receiveShadow = true
                     obj.castShadow = true
                 }
-                console.log(obj)
+                //console.log(obj)
             }),
         [scene]
     )
