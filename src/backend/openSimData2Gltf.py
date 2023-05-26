@@ -145,7 +145,7 @@ def addTranslationAccessor(gltf, dataTable, colIndex, conversionToMeters):
   # the code below depends on actual data
   posDataBuffer.byteOffset = 0
   posDataBuffer.byteLength = 4 * 3 * dataTable.getNumRows()
-  markerData = np.zeros(3 * dataTable.getNumRows(), dtype="float32")
+  positionData = np.zeros(3 * dataTable.getNumRows(), dtype="float32")
   colData = dataTable.getDependentColumnAtIndex(colIndex)
 
   maxValue = [-100000.0, -100000.0, -100000.0]
@@ -160,12 +160,12 @@ def addTranslationAccessor(gltf, dataTable, colIndex, conversionToMeters):
     
     rawGoodRow = 3*goodRows
     for col in range(3):
-      markerData[ rawGoodRow+col] = rowI[col]*conversionToMeters
+      positionData[ rawGoodRow+col] = rowI[col]*conversionToMeters
 
     # update bounds
     for col in range(3):
-     maxValue[col] = max(maxValue[col], markerData[ rawGoodRow+col])
-     minValue[col] = min(minValue[col], markerData[ rawGoodRow+col])
+     maxValue[col] = max(maxValue[col], positionData[ rawGoodRow+col])
+     minValue[col] = min(minValue[col], positionData[ rawGoodRow+col])
 
     #update goodRows if we made it here
     goodRows += 1
@@ -176,7 +176,7 @@ def addTranslationAccessor(gltf, dataTable, colIndex, conversionToMeters):
 
   # print("goodRows ", goodRows, "min-max", minValue, maxValue)
 
-  encoded = base64.b64encode(markerData).decode("ascii")
+  encoded = base64.b64encode(positionData).decode("ascii")
   posDataBuffer.uri = f"data:application/octet-stream;base64,{encoded}"
 
   posDataAccessor.max = maxValue
