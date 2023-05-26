@@ -13,12 +13,14 @@ import OpenSimScene from '../OpenSimScene'
 import { ModelMetadataType } from './ModelListPage'
 import viewerState from '../../../state/ViewerState'
 import { NavLink } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 interface GridListProps {
     modelMetadata: ModelMetadataType[]
 }
 
 const GridList = ({ modelMetadata }: GridListProps) => {
+    const { t } = useTranslation();
     const theme = useTheme()
     return (
         <Grid container spacing={2}>
@@ -67,7 +69,7 @@ const GridList = ({ modelMetadata }: GridListProps) => {
                         </CardContent>
                         <CardActions sx={{ justifyContent: 'space-between' }}>
                             <Typography variant="subtitle2" sx={{ textAlign: 'left', width: '60%', margin: '1em' }}>
-                                <strong>By </strong>
+                                <strong>{t('modelList.by')} </strong>
                                 {element.author}
                             </Typography>
                             <Link
@@ -76,7 +78,7 @@ const GridList = ({ modelMetadata }: GridListProps) => {
                                 sx={{ textAlign: 'right', margin: '1em' }}
                                 target="_blank"
                             >
-                                More Info
+                                {t('modelList.moreInfo')}
                             </Link>
                         </CardActions>
                     </Card>

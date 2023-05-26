@@ -14,14 +14,17 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import viewerState from '../../state/ViewerState';
 import { NavLink } from 'react-router-dom'
+import Tooltip from '@mui/material/Tooltip';
+import { useTranslation } from 'react-i18next'
 
 interface OpenSimAppBarProps {
     dark: boolean
 }
 
 const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark }) => {
+  const { t } = useTranslation();
 
-return (
+  return (
   <AppBar position="static">
     <Toolbar variant="dense" color="inherit">
       <Link component={NavLink} to="/">
@@ -35,16 +38,17 @@ return (
       
       <Link component={NavLink} to="/viewer" sx={{ marginLeft: "auto"}}>
         <Typography variant="button" color="secondary">
-          Viewer
+            {t('viewer')}
         </Typography>
       </Link>
 
       <Link component={NavLink} to="/models" sx={{ marginLeft: "1em"}}>
         <Typography variant="button" color="secondary">
-          Models
+            {t('models')}
         </Typography>
       </Link>
 
+        <Tooltip title={t('topBar.switchTheme')}>
       <IconButton
         sx={{ ml: 1 }}
         onClick={() => {
@@ -52,20 +56,27 @@ return (
         }} >
         {viewerState.dark ? <Brightness4Icon /> : <Brightness7Icon />}
       </IconButton>
+        </Tooltip>
+        <Tooltip title={t('topBar.info')}>
       <Link component={NavLink} to="/about">
-        <IconButton>
-          <InfoTwoToneIcon />
-        </IconButton>
+          <IconButton>
+            <InfoTwoToneIcon />
+          </IconButton>
       </Link>
+        </Tooltip>
+        <Tooltip title={t('topBar.share')}>
       <IconButton>
         <ShareTwoToneIcon />
       </IconButton>
+        </Tooltip>
+        <Tooltip title={t('topBar.shareOnTwitter')}>
       <IconButton>
         <TwitterIcon />
       </IconButton>
+        </Tooltip>
     </Toolbar>
   </AppBar>
-);
+  );
 }
 
 export default OpenSimAppBar
