@@ -1,0 +1,36 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-05-25 16:14-0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: .\tests.py:21 .\tests.py:39 .\views.py:43 .\views.py:49 .\views.py:86
+#: .\views.py:92
+msgid "problemCreatingObject"
+msgstr "Hubo un problema al crear el objeto `%(object_name)s`: %(error_message)s"
+
+#: .\tests.py:25 .\tests.py:43 .\views.py:138 .\views.py:160
+msgid "objectNotFound"
+msgstr "No se encontro el objeto `%(object_name)s`: %(error_message)s"
+
+#: .\tests.py:29 .\tests.py:47 .\views.py:145 .\views.py:152 .\views.py:173
+msgid "problemRetrievingObject"
+msgstr "Hubo un problema al obtener el objeto `%(object_name)s`: %(error_message)s"
+
+#: .\tests.py:33 .\tests.py:51 .\views.py:166
+msgid "problemWithObject"
+msgstr "Hubo un problema con el objeto `%(object_name)s`: %(error_message)s"
