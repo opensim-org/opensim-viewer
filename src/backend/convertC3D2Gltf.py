@@ -44,7 +44,6 @@ def convertC3D2Gltf(c3dFilePath, shape) :
     # baked in and use these meshes as needed. 
     gltf = os2Gltf.initGltf()
 
-    osim.STOFileAdapterVec3.write(markerDataTable, 'c3dMarkerData.sto')
     # create node for the marker mesh, refer to it from all marker nodes
     os2Gltf.convertMarkersTimeSeries2Gltf(gltf, shape, markerDataTable)
 
