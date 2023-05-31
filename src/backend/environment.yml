@@ -1,6 +1,7 @@
 name: opensim-viewer-bend
 channels:
   - opensim-org
+  - conda-forge
   - defaults
 dependencies:
   - blas=1.0
