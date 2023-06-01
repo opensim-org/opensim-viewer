@@ -15,10 +15,11 @@ This folder contains the backend server for OpenSim viewer.
    `conda activate opensim-viewer-bend`
 
 3. Start server:
-
+   
+   `cd backend`
    `python manage.py runserver`
 
-### Instructions for database migration
+### Instructions for database migration (required for first time local install)
 
    1. Create migration files:
 
