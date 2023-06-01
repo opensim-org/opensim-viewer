@@ -3,8 +3,8 @@ import { useTheme } from '@mui/material'
 import { GizmoHelper, GizmoViewport, Bounds, Environment } from '@react-three/drei'
 import BottomBar from './BottomBar'
 import SettingsDrawer from './SettingsDrawer'
-import OpenSimControl from './OpenSimControl'
-import OpenSimScene from './OpenSimScene'
+import OpenSimControl from '../Components/OpenSimControl'
+import OpenSimScene from '../Components/OpenSimScene'
 import { Suspense } from 'react'
 
 interface ModelViewPageProps {
@@ -34,7 +34,7 @@ const ModelViewPage: React.FC<ModelViewPageProps> = ({ curentModelPath }) => {
                     <OpenSimControl />
                 </Canvas>
             </Suspense>
-            <SettingsDrawer placement="left" />
+            <SettingsDrawer placement="right" />
             <BottomBar />
         </div>
     )

@@ -9,7 +9,7 @@ interface SettingsProps {
 }
 const SettingsDrawer = (props: SettingsProps) => {
     return (
-        <Drawer anchor={props.placement} variant="temporary">
+        <Drawer anchor={props.placement} variant="permanent" >
             <IconButton color="primary">
                 <SettingsTwoToneIcon />
             </IconButton>
