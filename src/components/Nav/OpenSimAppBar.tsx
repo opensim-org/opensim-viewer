@@ -36,13 +36,13 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark }) => {
         />
       </Link>
       
-      <Link component={NavLink} to="/viewer" sx={{ marginLeft: "auto"}}>
+      <Link component={NavLink} to="/viewer" sx={{ marginLeft: "auto", textDecoration: 'none',}}>
         <Typography variant="button" color="secondary">
             {t('viewer')}
         </Typography>
       </Link>
 
-      <Link component={NavLink} to="/models" sx={{ marginLeft: "1em"}}>
+      <Link component={NavLink} to="/models" sx={{ marginLeft: "1em", textDecoration: 'none',}}>
         <Typography variant="button" color="secondary">
             {t('models')}
         </Typography>
@@ -50,6 +50,7 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark }) => {
 
         <Tooltip title={t('topBar.switchTheme')}>
       <IconButton
+        color="secondary"
         sx={{ ml: 1 }}
         onClick={() => {
           viewerState.setDark(!viewerState.dark);
@@ -59,18 +60,18 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark }) => {
         </Tooltip>
         <Tooltip title={t('topBar.info')}>
       <Link component={NavLink} to="/about">
-          <IconButton>
+          <IconButton color="secondary">
             <InfoTwoToneIcon />
           </IconButton>
       </Link>
         </Tooltip>
         <Tooltip title={t('topBar.share')}>
-      <IconButton>
+      <IconButton color="secondary">
         <ShareTwoToneIcon />
       </IconButton>
         </Tooltip>
         <Tooltip title={t('topBar.shareOnTwitter')}>
-      <IconButton>
+      <IconButton color="secondary">
         <TwitterIcon />
       </IconButton>
         </Tooltip>

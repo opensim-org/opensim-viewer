@@ -8,7 +8,7 @@ const appTheme = createTheme({
             main: '#E8F0FE',
         },
         secondary: {
-            main: '#2C579E',
+            main: '#E8F0FE',
         },
     },
     components: {
