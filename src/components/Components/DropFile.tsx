@@ -2,10 +2,14 @@ import React, { useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import { useLocalObservable } from 'mobx-react-lite';
 import { Paper, Typography, LinearProgress } from '@mui/material';
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next';
+import viewerState from '../../state/ViewerState';
+import { useNavigate } from "react-router-dom";
+
 
 const FileDropArea = observer(() => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -99,8 +103,17 @@ const FileDropArea = observer(() => {
           handleStateChange(xhr, fileCount);
         };
 
-        xhr.open('POST', '/upload');
-        xhr.send(formData);
+        //xhr.open('POST', '/upload');
+        //xhr.send(formData);
+
+        // Create a URL from the file.
+        const fileURL = URL.createObjectURL(file);
+
+        // Set URL as current model path.
+        viewerState.setCurrentModelPath(fileURL)
+
+        // Navigate to viewer.
+        navigate('/viewer');
       }
     }    
   }));
