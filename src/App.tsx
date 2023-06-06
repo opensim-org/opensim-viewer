@@ -11,6 +11,7 @@ import lightTheme from './LightTheme'
 import OpenSimAppBar from './components/Nav/OpenSimAppBar'
 import React, { useEffect } from 'react'
 import viewerState from './state/ViewerState'
+import API_URL from 'constants'
 
 function App() {
 
