@@ -17,9 +17,9 @@ class Model(models.Model):
     owner = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE)
     authors = models.CharField(max_length=256, blank=False, null=False)
     model_gltf_file = models.FileField(upload_to='model_files')
-    link = models.CharField(max_length=256, blank=False, null=False)
-    license = models.CharField(max_length=256, blank=False, null=False)
-    license_link = models.CharField(max_length=256, blank=False, null=False)
+    link = models.CharField(max_length=256, blank=True, null=False)
+    license = models.CharField(max_length=256, blank=True, null=False)
+    license_link = models.CharField(max_length=256, blank=True, null=False)
 
     class Meta:
         unique_together = ['name', 'owner']  # There cannot be an owner with two elements with the same name.
