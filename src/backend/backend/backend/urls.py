@@ -5,7 +5,19 @@ from django.conf import settings
 from . import views
 
 app_name = 'opensim-viewer'
-
+# On file system we'll have a folder per model containing gltf, possibly .osim file, data files, display preferences
+# urls could be something like:
+# Eventually we need to distnguish retrieve and view so that the Desktop Application can retrieve
+# without necessarily viewing online
+#
+#/models/ show list personal models
+#/models/id/ = retrieve_model(id) specfic model
+#/models/upload = create_model
+#/ = homepage with upload and login options
+#/model_viewer/ show model gallery of personal models, or stock models if not logged-in
+#/model_viewer/id  show model id in 3D view
+#/viewer = redirect to model_viewer/DEFAULT_MODEL/ 
+#/ current hoe page of opensim-viewer
 urlpatterns = [
     # Get list of users.
     path("users/", views.UserViewSet.as_view({'get': 'list'}), name="UserViewSet"),
