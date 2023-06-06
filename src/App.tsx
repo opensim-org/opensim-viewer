@@ -11,7 +11,6 @@ import lightTheme from './LightTheme'
 import OpenSimAppBar from './components/Nav/OpenSimAppBar'
 import React, { useEffect } from 'react'
 import viewerState from './state/ViewerState'
-import API_URL from 'constants'
 
 function App() {
 
@@ -31,7 +30,19 @@ function App() {
             window.removeEventListener('keyup', handleKeyDUp)
         }
     }, [])
-
+    // On file system we'll have a folder per model containing cached/versioned gltf, possibly .osim file, data files, display 
+    // preferences
+    // urls could be something like:
+    // The Desktop Application can retrieve (an API operation)
+    // without necessarily viewing online
+    //
+    ///models/  # will show list personal models
+    ///models/id/ = retrieve_model(id) # retrieve specfic model
+    ///models/upload = create_model
+    ///viewer/ show model gallery of personal models, or stock models if not logged-in
+    ///viewer/id  show model id in 3D view
+    ///viewer = redirect to viewer/DEFAULT_MODEL/ 
+    // / current home page of opensim-viewer with upload and login options
     return (
         <ThemeProvider theme={viewerState.dark ? appTheme : lightTheme}>
             <CssBaseline />
