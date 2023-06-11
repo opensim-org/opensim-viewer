@@ -10,6 +10,8 @@ urlpatterns = [
     # Get list of users.
     path("users/", views.UserViewSet.as_view({'get': 'list'}), name="UserViewSet"),
     # Get list of models.
+    path("models/<int:id>/", views.ModelRetrieve.as_view({'get': 'retrieve_model_by_id'}), name="ModelRetrieveById"),
+    # Get list of models.
     path("models/", views.ModelViewSet.as_view({'get': 'list'}), name="ModelViewSet"),
     # Sign up by creating a user.
     path("sign_up/", views.UserCreate.as_view({'post': 'create_user'}), name="UserCreate"),

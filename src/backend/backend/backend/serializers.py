@@ -28,12 +28,13 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 
 class ModelCreateSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True)
     name = serializers.CharField(validators=[UniqueValidator(queryset=Model.objects.all())], allow_null=False,
                                  allow_blank=False)
     description = serializers.CharField(allow_null=False, allow_blank=False)
     owner = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), allow_null=False)
     authors = serializers.CharField(allow_null=False, allow_blank=False)
-    model_gltf_file = serializers.FileField(allow_null=False)
+    model_folder = serializers.FileField(allow_null=False)
     link = serializers.CharField(allow_null=False, allow_blank=False)
     license = serializers.CharField(allow_null=False, allow_blank=False)
     license_link = serializers.CharField(allow_null=False, allow_blank=False)
@@ -44,7 +45,7 @@ class ModelCreateSerializer(serializers.ModelSerializer):
             description=validated_data['description'],
             owner=validated_data['owner'],
             authors=validated_data['authors'],
-            model_gltf_file=validated_data['model_gltf_file'],
+            model_folder=validated_data['model_folder'],
             link=validated_data['link'],
             license=validated_data['license'],
             license_link=validated_data['license_link'],
@@ -53,7 +54,7 @@ class ModelCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Model
-        fields = ('id', 'name', 'description', 'owner', 'authors', 'model_gltf_file', 'link', 'license', 'license_link')
+        fields = ('id', 'name', 'description', 'owner', 'authors', 'model_folder', 'link', 'license', 'license_link')
 
 
 class ModelRetrieveSerializer(serializers.ModelSerializer):

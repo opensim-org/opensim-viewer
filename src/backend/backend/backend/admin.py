@@ -16,13 +16,15 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(Model)
 class ModelAdmin(admin.ModelAdmin):
+    readonly_fields = ('id',)
     list_filter = ('name', 'owner',)
     list_display = ('name', 'description', 'owner', 'license')
-    fields = ('name',
+    fields = ('id',
+              'name',
               'description',
               'owner',
               'authors',
-              'model_gltf_file',
+              'model_folder',
               'link',
               'license',
               'license_link')
