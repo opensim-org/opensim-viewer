@@ -19,7 +19,7 @@ class Model(models.Model):
     description = models.CharField(max_length=256, blank=False, null=False)
     owner = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE)
     authors = models.CharField(max_length=256, blank=False, null=False)
-    model_folder = models.FileField(upload_to=custom_upload_function)
+    model_gltf_file = models.FileField(upload_to=custom_upload_function)
     link = models.CharField(max_length=256, blank=True, null=False)
     license = models.CharField(max_length=256, blank=True, null=False)
     license_link = models.CharField(max_length=256, blank=True, null=False)

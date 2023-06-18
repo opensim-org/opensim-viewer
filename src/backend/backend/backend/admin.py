@@ -24,7 +24,7 @@ class ModelAdmin(admin.ModelAdmin):
               'description',
               'owner',
               'authors',
-              'model_folder',
+              'model_gltf_file',
               'link',
               'license',
               'license_link')

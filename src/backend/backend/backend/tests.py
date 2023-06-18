@@ -130,7 +130,7 @@ class ModelCreateTestCase(TestCase):
             'license_link': 'http://test_license_link.com',
         }
         file_data = {
-            'model_folder': SimpleUploadedFile('test_file.gltf', b'Test content'),
+            'model_gltf_file': SimpleUploadedFile('test_file.gltf', b'Test content'),
         }
         data.update(file_data)
         request = self.factory.post('/create_model/', data, format='multipart')
@@ -154,7 +154,7 @@ class ModelViewSetTestCase(TestCase):
             description='Test description',
             owner=self.user,
             authors='Test author',
-            model_folder='test_file.gltf',
+            model_gltf_file='test_file.gltf',
             link='http://test_link.com',
             license='Test license',
             license_link='http://test_license_link.com'
@@ -212,7 +212,7 @@ class ModelRetrieveTestCase(TestCase):
         self.assertEqual(response.data['model_description'], 'Test description')
         self.assertEqual(response.data['owner'], 'testuser')
         self.assertEqual(response.data['model_authors'], 'Test authors')
-        self.assertEqual(response.data['model_folder'], 'http://testserver/path/to/model.gltf')
+        self.assertEqual(response.data['model_gltf_file'], 'http://testserver/path/to/model.gltf')
         self.assertEqual(response.data['model_link'], 'https://example.com')
         self.assertEqual(response.data['model_license'], 'Test license')
         self.assertEqual(response.data['model_license_link'], 'https://example.com/license')
@@ -229,14 +229,14 @@ class ModelRetrieveTestCase(TestCase):
         self.assertEqual(response.data['model_description'], None)
         self.assertEqual(response.data['owner'], None)
         self.assertEqual(response.data['model_authors'], None)
-        self.assertEqual(response.data['model_folder'], None)
+        self.assertEqual(response.data['model_gltf_file'], None)
         self.assertEqual(response.data['model_link'], None)
         self.assertEqual(response.data['model_license'], None)
         self.assertEqual(response.data['model_license_link'], None)
 
     def test_retrieve_model_file_not_found(self):
         # Remove the model file to simulate a file not found error
-        self.model.model_folder.delete()
+        self.model.model_gltf_file.delete()
 
         url = reverse('ModelRetrieve')
         data = {'name': 1}
@@ -250,7 +250,7 @@ class ModelRetrieveTestCase(TestCase):
         self.assertEqual(response.data['model_description'], 'Test description')
         self.assertEqual(response.data['owner'], 'testuser')
         self.assertEqual(response.data['model_authors'], 'Test authors')
-        self.assertEqual(response.data['model_folder'], None)
+        self.assertEqual(response.data['model_gltf_file'], None)
         self.assertEqual(response.data['model_link'], None)
         self.assertEqual(response.data['model_license'], None)
         self.assertEqual(response.data['model_license_link'], None)

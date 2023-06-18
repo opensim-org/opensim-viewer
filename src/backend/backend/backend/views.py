@@ -151,7 +151,7 @@ class ModelRetrieve(viewsets.ModelViewSet):
         model_description = None
         model_owner_username = None
         model_authors = None
-        model_folder_link = None
+        model_file_link = None
         model_link = None
         model_license = None
         model_license_link = None
@@ -170,7 +170,7 @@ class ModelRetrieve(viewsets.ModelViewSet):
             model_description = model.description
             model_owner_username = model.owner.username
             model_authors = model.authors
-            model_folder_link = request.build_absolute_uri(model.model_folder.url)
+            model_file_link = request.build_absolute_uri(model.model_gltf_file.url)
             model_link = model.link
             model_license = model.license
             model_license_link = model.license_link
@@ -226,7 +226,7 @@ class ModelRetrieve(viewsets.ModelViewSet):
             'model_description': model_description,
             'owner': model_owner_username,
             'model_authors': model_authors,
-            'model_folder': model_folder_link,
+            'model_gltf_file': model_file_link,
             'model_link': model_link,
             'model_license': model_license,
             'model_license_link': model_license_link,
@@ -245,7 +245,7 @@ class ModelRetrieve(viewsets.ModelViewSet):
         model_description = None
         model_owner_username = None
         model_authors = None
-        model_folder_link = None
+        model_file_link = None
         model_link = None
         model_license = None
         model_license_link = None
@@ -264,7 +264,7 @@ class ModelRetrieve(viewsets.ModelViewSet):
             model_description = model.description
             model_owner_username = model.owner.username
             model_authors = model.authors
-            model_folder_link = request.build_absolute_uri(model.model_folder.url)
+            model_file_link = request.build_absolute_uri(model.model_gltf_file.url)
             model_link = model.link
             model_license = model.license
             model_license_link = model.license_link
@@ -320,7 +320,7 @@ class ModelRetrieve(viewsets.ModelViewSet):
             'model_description': model_description,
             'owner': model_owner_username,
             'model_authors': model_authors,
-            'model_folder': model_folder_link,
+            'model_gltf_file': model_file_link,
             'model_link': model_link,
             'model_license': model_license,
             'model_license_link': model_license_link,
