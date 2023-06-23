@@ -9,8 +9,10 @@ app_name = 'opensim-viewer'
 urlpatterns = [
     # Get list of users.
     path("users/", views.UserViewSet.as_view({'get': 'list'}), name="UserViewSet"),
-    # Get list of models.
+    # Get specific model record.
     path("models/<int:id>/", views.ModelRetrieve.as_view({'get': 'retrieve_model_by_id'}), name="ModelRetrieveById"),
+    # Get specific model only gltf file link.
+    path("models/viz-<int:id>/", views.ModelRetrieve.as_view({'get': 'retrieve_model_viz_by_id'}), name="ModelRetrieveById"),
     # Get list of models.
     path("models/", views.ModelViewSet.as_view({'get': 'list'}), name="ModelViewSet"),
     # Sign up by creating a user.

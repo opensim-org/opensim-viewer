@@ -4,7 +4,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 
 urlpatterns = [
-    path("", include("backend.urls")),
+    path('', include("backend.urls")),
     path('admin/doc/', include('django.contrib.admindocs.urls')),  # Must be before "admin/".
     path("admin/", admin.site.urls),
 ]
