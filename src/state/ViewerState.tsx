@@ -8,6 +8,7 @@ class ViewerState {
     zooming: boolean
     zoom_inOut: number
     takeSnapshot: boolean
+    showGlobalFrame: boolean
 
     constructor(
         currentModelPathState: string,
@@ -22,17 +23,19 @@ class ViewerState {
         this.zooming = false
         this.zoom_inOut = 0.0
         this.takeSnapshot = false
-
+        this.showGlobalFrame = true
         makeObservable(this, {
             rotating: observable,
             currentModelPath: observable,
             featuredModelsFilePath: observable,
             dark: observable,
             zooming: observable,
+            showGlobalFrame: observable,
             setRotating: action,
             setCurrentModelPath: action,
             setFeaturedModelsFilePath: action,
-            setZooming: action
+            setZooming: action,
+            setShowGlobalFrame: action
         })
     }
 
@@ -56,6 +59,9 @@ class ViewerState {
     }
     setTakeSnapshot() {
         this.takeSnapshot = true
+    }
+    setShowGlobalFrame(newState: boolean) {
+        this.showGlobalFrame = newState 
     }
 }
 
