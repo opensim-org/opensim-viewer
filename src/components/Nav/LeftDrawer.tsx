@@ -5,7 +5,6 @@ import Drawer from '@mui/material/Drawer';
 import CssBaseline from '@mui/material/CssBaseline';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
-import List from '@mui/material/List';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
@@ -21,17 +20,15 @@ import { Canvas } from '@react-three/fiber';
 import { Bounds, Environment, GizmoHelper, GizmoViewport } from '@react-three/drei';
 import viewerState from '../../state/ViewerState';
 import OpenSimControl from '../pages/OpenSimControl';
-import OpenSimScene from '../pages/OpenSimScene';
 import { Suspense } from 'react';
 import BottomBar from '../pages/BottomBar';
 import AccountTreeTwoToneIcon from '@mui/icons-material/AccountTreeTwoTone'
-import SettingsTwoToneIcon from '@mui/icons-material/SettingsTwoTone'
 import LayersTwoToneIcon from '@mui/icons-material/LayersTwoTone'
-import StackedLineChartTwoToneIcon from '@mui/icons-material/StackedLineChartTwoTone'
 
 import SceneTreeView from '../Components/SceneTreeView';
 import { Tab } from '@mui/material';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
+import OpenSimScene from '../pages/OpenSimScene';
 
 const drawerWidth = 240;
 
@@ -89,6 +86,7 @@ export default function PersistentDrawerLeft() {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
   const [tabValue, setTabValue] = React.useState('1');
+
   const handleDrawerOpen = () => {
     setOpen(true);
   };
@@ -156,12 +154,16 @@ export default function PersistentDrawerLeft() {
 
         <TabContext value={tabValue}>
         <TabList   
-            onChange={handleTabChange}  aria-label="basic tabs example">
+            onChange={handleTabChange}  aria-label="basic tabs example"
+            variant='scrollable' scrollButtons='auto'>
             <Tab  icon={<AccountTreeTwoToneIcon />} value='1' />
             <Tab  icon={<LayersTwoToneIcon />} value='2'/>
         </TabList>
-        <TabPanel value={tabValue} tabIndex={0}/>
-        <TabPanel value={tabValue} tabIndex={1}/>
+        <TabPanel value={tabValue} tabIndex={0}>
+            <SceneTreeView/>
+            </TabPanel>
+        <TabPanel value={tabValue} tabIndex={1}>
+            </TabPanel>
         </TabContext>
       </Drawer>
       <Main open={open}>
