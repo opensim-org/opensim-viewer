@@ -1,4 +1,5 @@
 import { makeObservable, observable, action } from 'mobx'
+import { SceneTreeModel } from '../helpers/SceneTreeModel'
 
 class ViewerState {
     currentModelPath: string
@@ -9,6 +10,7 @@ class ViewerState {
     zoom_inOut: number
     takeSnapshot: boolean
     showGlobalFrame: boolean
+    sceneTree: SceneTreeModel | null
 
     constructor(
         currentModelPathState: string,
@@ -24,6 +26,7 @@ class ViewerState {
         this.zoom_inOut = 0.0
         this.takeSnapshot = false
         this.showGlobalFrame = true
+        this.sceneTree = null
         makeObservable(this, {
             rotating: observable,
             currentModelPath: observable,
@@ -62,6 +65,9 @@ class ViewerState {
     }
     setShowGlobalFrame(newState: boolean) {
         this.showGlobalFrame = newState 
+    }
+    setSceneTree(newTree: SceneTreeModel) {
+        this.sceneTree = newTree
     }
 }
 

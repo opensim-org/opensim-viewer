@@ -1,7 +1,9 @@
 import { useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { AnimationMixer, Scene } from 'three'
+import { SceneTreeModel } from '../../helpers/SceneTreeModel'
+import viewerState from '../../state/ViewerState'
 
 interface OpenSimSceneProps {
     curentModelPath: string
@@ -24,6 +26,9 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ curentModelPath }) => {
         mixer?.update(delta)
     })
     
+    useEffect(() => {
+        viewerState.setSceneTree(new SceneTreeModel(sceneRef.current))
+      }, [scene])
     useMemo(
         () =>
             scene.traverse((obj) => {

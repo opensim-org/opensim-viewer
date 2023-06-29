@@ -3,21 +3,29 @@ import TreeView from '@mui/lab/TreeView';
 import TreeItem from "@mui/lab/TreeItem";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-
+import viewerState from "../../state/ViewerState";
+import { TreeNode } from "../../helpers/SceneTreeModel";
+import { ReactElement, JSXElementConstructor, ReactNode, ReactPortal } from "react";
 const SceneTreeView  = ()  => {
-
+    function createTreeItemForNode(anode: { name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; }, index: number) {
+        let computeId = (3+index);
+        return <TreeItem nodeId={computeId.toString()} label={anode.name} />
+    }
+    const sTree = viewerState.sceneTree
+    const meshesNode = sTree?.rootNode?.children[0]
+    const meshesArray = meshesNode?.children;
     return (
-    <Stack spacing={5} direction="row">
+    <Stack spacing={2} direction="row">
         <TreeView
             aria-label="file system navigator"
-            sx={{ flexGrow: 10, maxWidth: 400, overflowY: 'auto' }}
+            sx={{ flexGrow: 1, maxWidth: 400, overflowY: 'auto' }}
             defaultCollapseIcon={<ExpandMoreIcon />}
             defaultExpandIcon={<ChevronRightIcon />}
         >   
-            <TreeItem nodeId="1" label={"RootNode"}>
-                <TreeItem nodeId="2" label={"Camera"}/>
-                <TreeItem nodeId="3" label={"Lights"}/>
-                <TreeItem nodeId="4" label={"Model"}/>
+            <TreeItem nodeId="1" label={sTree?.rootNode?.name}>
+                <TreeItem nodeId="2" label={sTree?.rootNode?.children[0].name}>
+                    {meshesArray?.map(createTreeItemForNode)}
+                </TreeItem>
             </TreeItem>
         </TreeView>
     </Stack>
