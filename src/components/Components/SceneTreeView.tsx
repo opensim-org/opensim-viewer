@@ -4,7 +4,6 @@ import TreeItem from "@mui/lab/TreeItem";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import viewerState from "../../state/ViewerState";
-import { TreeNode } from "../../helpers/SceneTreeModel";
 import { ReactElement, JSXElementConstructor, ReactNode, ReactPortal } from "react";
 const SceneTreeView  = ()  => {
     function createTreeItemForNode(anode: { name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; }, index: number) {

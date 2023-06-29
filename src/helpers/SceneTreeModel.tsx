@@ -1,5 +1,4 @@
-import { Node } from "@react-three/fiber";
-import { Group, Object3D, Scene } from "three"; 
+import { Object3D, Scene } from "three"; 
 
 export class TreeNode 
 {
