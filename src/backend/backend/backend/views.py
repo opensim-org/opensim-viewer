@@ -329,20 +329,13 @@ class ModelRetrieve(viewsets.ModelViewSet):
 
     def retrieve_model_viz_by_id(self, request, id, format='json'):
         """
-        Given a model name, retrieves its corresponding visuals.
+        Given a model id, retrieves its corresponding visuals.
         :param request: The request object. Should include 'name'.
         :return: Response containing information about the requested model or an error message.
         @return:
         """
         error_message = ''
-        model_name = None
-        model_description = None
-        model_owner_username = None
-        model_authors = None
         model_file_link = None
-        model_link = None
-        model_license = None
-        model_license_link = None
 
         try:
             # Serialize data and validate.
@@ -354,14 +347,81 @@ class ModelRetrieve(viewsets.ModelViewSet):
             model = get_object_or_404(Model, id=id)
 
             # Extract model elements.
-            model_name = model.name
-            model_description = model.description
-            model_owner_username = model.owner.username
-            model_authors = model.authors
             model_file_link = request.build_absolute_uri(model.model_gltf_file.url)
-            model_link = model.link
-            model_license = model.license
-            model_license_link = model.license_link
+
+            # Default status if no errors occur.
+            status = htttp_status.HTTP_200_OK
+        except Http404 as e:
+            # Format error message.
+            error_message = _("objectNotFound") % {"object_name": "model", "error_message": str(e)}
+
+            # Status: Not found because the model could not be found.
+            status = htttp_status.HTTP_404_NOT_FOUND
+
+        except FileNotFoundError as e:
+            # Format error message.
+            error_message = _("problemRetrievingObject") % {"object_name": "gltf file", "error_message": str(e)}
+
+            # Status: Not found because the gltf file could not be found.
+            status = htttp_status.HTTP_404_NOT_FOUND
+
+        except ValueError as e:
+            # Format error message.
+            error_message = _("problemRetrievingObject") % {"object_name": "model", "error_message": str(e)}
+
+            # Status: There was an error in a value of an object. Maybe cause because a bad request.
+            status = htttp_status.HTTP_400_BAD_REQUEST
+
+        except ValidationError as e:
+            if "does_not_exist" in str(e):
+                # Format error message.
+                error_message = _("objectNotFound") % {"object_name": "model", "error_message": str(e)}
+
+                # Status: Not found because the gltf file could not be found.
+                status = htttp_status.HTTP_404_NOT_FOUND
+            else:
+                # Format error message.
+                error_message = _("problemWithObject") % {"object_name": "request", "error_message": str(e)}
+
+                # Status: Bad request because it was a problem while validating request values.
+                status = htttp_status.HTTP_400_BAD_REQUEST
+
+        except Exception as e:
+            # Format error message.
+            error_message = _("problemRetrievingObject") % {"object_name": "model", "error_message": str(e)}
+
+            # Status: Internal server error since it is a generic error, probably not identified.
+            # We should follow these since that could mean an unidentified bug.
+            status = htttp_status.HTTP_500_INTERNAL_SERVER_ERROR
+
+        return Response({
+            'status': status,
+            'model_gltf_file': model_file_link,
+            'error_message': error_message,
+        }, status=status)
+
+    def retrieve_default_model_gltf(self, request, format='json'):
+        """
+        Given a model name, retrieves its corresponding visuals.
+        :param request: The request object. Should include 'name'.
+        :return: Response containing information about the requested model or an error message.
+        @return:
+        """
+        error_message = ''
+        model_file_link = None
+        user = request.user
+        # Find first model for user
+        dModel = Model.objects.filter(owner=user).first()
+
+        try:
+            model = dModel
+            # Extract model by id.
+            #model_name = serializer.validated_data['name']
+            if (model==None):
+                model = get_object_or_404(Model, id=0)
+
+            # Extract model elements.
+            model_file_link = request.build_absolute_uri(model.model_gltf_file.url)
 
             # Default status if no errors occur.
             status = htttp_status.HTTP_200_OK

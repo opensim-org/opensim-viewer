@@ -13,6 +13,8 @@ urlpatterns = [
     path("models/<int:id>/", views.ModelRetrieve.as_view({'get': 'retrieve_model_by_id'}), name="ModelRetrieveById"),
     # Get specific model only gltf file link.
     path("models/viz-<int:id>/", views.ModelRetrieve.as_view({'get': 'retrieve_model_viz_by_id'}), name="ModelRetrieveById"),
+    # Get default model gltf file link.
+    path("models/viz-default/", views.ModelRetrieve.as_view({'get': 'retrieve_default_model_gltf'}), name="ModelRetrieveById"),
     # Get list of models.
     path("models/", views.ModelViewSet.as_view({'get': 'list'}), name="ModelViewSet"),
     # Sign up by creating a user.
