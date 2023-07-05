@@ -1,7 +1,9 @@
 import { useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { AnimationMixer } from 'three'
+import viewerState from '../../state/ViewerState'
+import axios from 'axios'
 
 interface OpenSimSceneProps {
     curentModelPath: string
@@ -34,6 +36,19 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ curentModelPath }) => {
             }),
         [scene]
     )
+    // Lifecycle methods
+    useEffect(() => {
+
+        const getModelGltf = async () => {
+            const result = await axios(
+          'http://localhost:8000/models/viz/default/',
+        );
+        //await console.log(result.data)
+        await viewerState.setCurrentModelPath(result.data.model_gltf_file);
+        }
+        getModelGltf()
+        // viewerState.setCurrentModelPath(result.data.model_gltf_file);
+      });
     // By the time we're here the model is guaranteed to be available
     return <primitive object={scene} />
 }

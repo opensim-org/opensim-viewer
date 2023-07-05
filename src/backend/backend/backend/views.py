@@ -410,8 +410,8 @@ class ModelRetrieve(viewsets.ModelViewSet):
         error_message = ''
         model_file_link = None
         user = request.user
-        # Find first model for user
-        dModel = Model.objects.filter(owner=user).first()
+        # Find first model for user (owner=user) once login/auth in place
+        dModel = Model.objects.all().first()
 
         try:
             model = dModel
@@ -425,6 +425,7 @@ class ModelRetrieve(viewsets.ModelViewSet):
 
             # Default status if no errors occur.
             status = htttp_status.HTTP_200_OK
+            
         except Http404 as e:
             # Format error message.
             error_message = _("objectNotFound") % {"object_name": "model", "error_message": str(e)}
