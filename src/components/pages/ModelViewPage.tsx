@@ -27,7 +27,6 @@ const ModelViewPage: React.FC<ModelViewPageProps> = ({ curentModelPath }) => {
                     <Bounds fit clip>
                         <OpenSimScene curentModelPath={curentModelPath} />
                     </Bounds>
-                    <Environment preset="city" />
                     <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
                         <GizmoViewport labelColor="white" axisHeadScale={1} />
                     </GizmoHelper>

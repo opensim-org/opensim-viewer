@@ -47,7 +47,6 @@ const GridList = ({ modelMetadata }: GridListProps) => {
                                 <Bounds fit clip>
                                     <OpenSimScene curentModelPath={element.path} />
                                 </Bounds>
-                                <Environment preset="city" />
                                 <OpenSimControl />
                             </Canvas>
                         </div>
