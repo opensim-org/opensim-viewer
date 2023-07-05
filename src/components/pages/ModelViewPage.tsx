@@ -1,6 +1,6 @@
 import { Canvas } from '@react-three/fiber'
 import { useTheme } from '@mui/material'
-import { GizmoHelper, GizmoViewport, Bounds, Environment } from '@react-three/drei'
+import { GizmoHelper, GizmoViewport, Bounds} from '@react-three/drei'
 import BottomBar from './BottomBar'
 import SettingsDrawer from './SettingsDrawer'
 import OpenSimControl from './OpenSimControl'
