@@ -28,7 +28,8 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ curentModelPath }) => {
     
     useEffect(() => {
         viewerState.setSceneTree(new SceneTreeModel(sceneRef.current))
-      }, [scene])
+        viewerState.setAnimationList(animations)
+      }, [scene, animations])
     useMemo(
         () =>
             scene.traverse((obj) => {

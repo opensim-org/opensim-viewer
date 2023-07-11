@@ -8,7 +8,7 @@ import { ReactElement, JSXElementConstructor, ReactNode, ReactPortal } from "rea
 const SceneTreeView  = ()  => {
     function createTreeItemForNode(anode: { name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; }, index: number) {
         let computeId = (3+index);
-        return <TreeItem nodeId={computeId.toString()} label={anode.name} />
+        return <TreeItem nodeId={computeId.toString()} label={anode.name} key={computeId}/>
     }
     const sTree = viewerState.sceneTree
     const meshesNode = sTree?.rootNode?.children[0]
@@ -21,8 +21,8 @@ const SceneTreeView  = ()  => {
             defaultCollapseIcon={<ExpandMoreIcon />}
             defaultExpandIcon={<ChevronRightIcon />}
         >   
-            <TreeItem nodeId="1" label={sTree?.rootNode?.name}>
-                <TreeItem nodeId="2" label={sTree?.rootNode?.children[0].name}>
+            <TreeItem nodeId="1" label={sTree?.rootNode?.name} key={1}>
+                <TreeItem nodeId="2" label={sTree?.rootNode?.children[0].name} key={2}>
                     {meshesArray?.map(createTreeItemForNode)}
                 </TreeItem>
             </TreeItem>

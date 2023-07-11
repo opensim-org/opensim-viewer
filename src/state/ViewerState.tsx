@@ -1,5 +1,6 @@
 import { makeObservable, observable, action } from 'mobx'
 import { SceneTreeModel } from '../helpers/SceneTreeModel'
+import { AnimationClip } from 'three/src/animation/AnimationClip'
 
 class ViewerState {
     currentModelPath: string
@@ -11,12 +12,14 @@ class ViewerState {
     takeSnapshot: boolean
     showGlobalFrame: boolean
     sceneTree: SceneTreeModel | null
+    animating: boolean
+    animations: AnimationClip[]
 
     constructor(
         currentModelPathState: string,
         featuredModelsFilePathState: string,
         rotatingState: boolean,
-        darkState: boolean
+        darkState: boolean,
     ) {
         this.currentModelPath = currentModelPathState
         this.featuredModelsFilePath = featuredModelsFilePathState
@@ -27,6 +30,8 @@ class ViewerState {
         this.takeSnapshot = false
         this.showGlobalFrame = true
         this.sceneTree = null
+        this.animating = false
+        this.animations = []
         makeObservable(this, {
             rotating: observable,
             currentModelPath: observable,
@@ -63,14 +68,21 @@ class ViewerState {
     setTakeSnapshot() {
         this.takeSnapshot = true
     }
+    setAnimating(newState: boolean){
+        this.animating = newState
+    }
     setShowGlobalFrame(newState: boolean) {
         this.showGlobalFrame = newState 
     }
     setSceneTree(newTree: SceneTreeModel) {
         this.sceneTree = newTree
     }
+    setAnimationList(animations: AnimationClip[]) {
+        this.animations=animations
+    }
+
 }
 
-const viewerState = new ViewerState('/builtin/leg39_nomusc.gltf', '/builtin/featured-models.json', true, true)
+const viewerState = new ViewerState('/builtin/arm26_elbow_flex.gltf', '/builtin/featured-models.json', false, true)
 
 export default viewerState

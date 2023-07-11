@@ -23,12 +23,14 @@ import OpenSimControl from '../pages/OpenSimControl';
 import { Suspense } from 'react';
 import BottomBar from '../pages/BottomBar';
 import AccountTreeTwoToneIcon from '@mui/icons-material/AccountTreeTwoTone'
-import LayersTwoToneIcon from '@mui/icons-material/LayersTwoTone'
+import VisibilityTwoToneIcon from '@mui/icons-material/VisibilityTwoTone';
 
 import SceneTreeView from '../Components/SceneTreeView';
 import { Tab } from '@mui/material';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import OpenSimScene from '../pages/OpenSimScene';
+import VisualizationControl from '../Components/VisualizationControl';
+
 
 const drawerWidth = 240;
 
@@ -85,7 +87,7 @@ export default function PersistentDrawerLeft() {
   const { t } = useTranslation();
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
-  const [tabValue, setTabValue] = React.useState('1');
+  const [tabValue, setTabValue] = React.useState('0');
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -156,14 +158,15 @@ export default function PersistentDrawerLeft() {
         <TabList   
             onChange={handleTabChange}  aria-label="basic tabs example"
             variant='scrollable' scrollButtons='auto'>
-            <Tab  icon={<AccountTreeTwoToneIcon />} value='1' />
-            <Tab  icon={<LayersTwoToneIcon />} value='2'/>
+            <Tab  icon={<AccountTreeTwoToneIcon />} value="0" />
+            <Tab  icon={<VisibilityTwoToneIcon />} value="1"/>
         </TabList>
-        <TabPanel value={tabValue} tabIndex={0}>
+        <TabPanel value="0" tabIndex={0}>
             <SceneTreeView/>
-            </TabPanel>
-        <TabPanel value={tabValue} tabIndex={1}>
-            </TabPanel>
+        </TabPanel>
+        <TabPanel value="1" tabIndex={1}>
+          <VisualizationControl animationPlaySpeed={1.0}/>
+          </TabPanel>
         </TabContext>
       </Drawer>
       <Main open={open}>
