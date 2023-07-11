@@ -83,6 +83,6 @@ class ViewerState {
 
 }
 
-const viewerState = new ViewerState('/builtin/arm26_elbow_flex.gltf', '/builtin/featured-models.json', false, true)
+const viewerState = new ViewerState('/builtin/arm26_elbow_flex.gltf', '/builtin/featured-models.json', true, true)
 
 export default viewerState
