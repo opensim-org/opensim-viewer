@@ -1,15 +1,16 @@
 import { useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { AnimationMixer, Scene } from 'three'
 import { SceneTreeModel } from '../../helpers/SceneTreeModel'
 import viewerState from '../../state/ViewerState'
 
 interface OpenSimSceneProps {
-    curentModelPath: string
+    curentModelPath: string,
+    supportControls:boolean
 }
 
-const OpenSimScene: React.FC<OpenSimSceneProps> = ({ curentModelPath }) => {
+const OpenSimScene: React.FC<OpenSimSceneProps> = ({ curentModelPath, supportControls }) => {
 
     const sceneRef = useRef<Scene>(null!)
     // useGLTF suspends the component, it literally stops processing
@@ -27,21 +28,12 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ curentModelPath }) => {
     })
     
     useEffect(() => {
-        viewerState.setSceneTree(new SceneTreeModel(sceneRef.current))
-        viewerState.setAnimationList(animations)
-      }, [scene, animations])
-    useMemo(
-        () =>
-            scene.traverse((obj) => {
-                // traverse and mutate the scene here ...
-                if (obj.type === 'Mesh') {
-                    obj.receiveShadow = true
-                    obj.castShadow = true
-                }
-                //console.log(obj)
-            }),
-        [scene]
-    )
+        if (supportControls) {
+            viewerState.setSceneTree(new SceneTreeModel(sceneRef.current))
+            viewerState.setAnimationList(animations)
+        }
+      }, [scene, animations, supportControls])
+
     // By the time we're here the model is guaranteed to be available
     return <primitive ref={sceneRef} object={scene} />
 }

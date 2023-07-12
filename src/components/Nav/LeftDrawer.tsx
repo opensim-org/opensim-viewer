@@ -180,7 +180,7 @@ export default function PersistentDrawerLeft() {
                 >
                     <color attach="background" args={theme.palette.mode === 'dark' ? ['#151518'] : ['#cccccc']} />
                     <Bounds fit clip>
-                        <OpenSimScene curentModelPath={viewerState.currentModelPath} />
+                        <OpenSimScene curentModelPath={viewerState.currentModelPath} supportControls={true}/>
                     </Bounds>
                     <Environment preset="city" />
                      <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
