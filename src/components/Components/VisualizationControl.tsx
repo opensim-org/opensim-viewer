@@ -9,7 +9,6 @@ import { useTranslation } from 'react-i18next';
 import { observer } from 'mobx-react'
 import { useState } from 'react';
 import InputLabel from '@mui/material/InputLabel';
-import { AnimationClip } from 'three/src/animation/AnimationClip';
 
 interface VisualizationControlProps {
     showWCS?: boolean;

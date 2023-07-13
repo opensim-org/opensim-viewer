@@ -6,17 +6,18 @@ import { SceneTreeModel } from '../../helpers/SceneTreeModel'
 import viewerState from '../../state/ViewerState'
 
 interface OpenSimSceneProps {
-    curentModelPath: string,
+    currentModelPath: string,
     supportControls:boolean
 }
 
-const OpenSimScene: React.FC<OpenSimSceneProps> = ({ curentModelPath, supportControls }) => {
+const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportControls }) => {
 
     const sceneRef = useRef<Scene>(null!)
     // useGLTF suspends the component, it literally stops processing
-    const { scene, animations } = useGLTF(curentModelPath)
+    const { scene, animations } = useGLTF(currentModelPath)
+    
     let mixer: AnimationMixer
-    if (animations.length) {
+    if (animations.length > 0) {
         mixer = new AnimationMixer(scene);
         animations.forEach(clip => {
             const action = mixer.clipAction(clip)
