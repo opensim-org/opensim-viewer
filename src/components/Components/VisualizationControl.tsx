@@ -4,16 +4,17 @@ import { Button, Checkbox, Container, FormControl, FormControlLabel, MenuItem, S
 import FormGroup from '@mui/material/FormGroup';
 import PauseCircleTwoToneIcon from '@mui/icons-material/PauseCircleTwoTone';
 import PlayCircleTwoToneIcon from '@mui/icons-material/PlayCircleTwoTone';
-import viewerState from '../../state/ViewerState';
 import { useTranslation } from 'react-i18next';
-import { observer } from 'mobx-react'
 import { useState } from 'react';
 import InputLabel from '@mui/material/InputLabel';
+import { modelUIState } from '../../state/ModelUIState';
+import { AnimationClip } from 'three';
 
 interface VisualizationControlProps {
+    animating?: boolean;
     showWCS?: boolean;
     showJoints?: boolean;
-    animationList?: string[];
+    animationList?: AnimationClip[];
     animationPlaySpeed?: number;
     animationBounds?: number[];
 }
@@ -22,9 +23,9 @@ const VisualizationControl : React.FC<VisualizationControlProps> = (props:Visual
     const [play, setPlay] = useState(true);
 
     function togglePlayAnimation() {
-        viewerState.setAnimating(!viewerState.animating);
+        modelUIState.setAnimating(!props.animating);
         setPlay(!play);
-        console.log(viewerState.animating);
+        console.log(modelUIState.animating);
 
     }
     return (
@@ -32,7 +33,8 @@ const VisualizationControl : React.FC<VisualizationControlProps> = (props:Visual
       <Container disableGutters>
         <FormGroup>
             <Typography variant="h6" align='left'>{t('Visibility')}</Typography>
-            <FormControlLabel control={<Checkbox />} label="WCS" />
+            <FormControlLabel control={<Checkbox />} label="WCS" 
+                    onClick={()=>modelUIState.setShowGlobalFrame(!modelUIState.showGlobalFrame)}/>
             <FormControlLabel control={<Checkbox />} label="Joints" />
             <FormControlLabel control={<Checkbox />} label="Bodies" />
             <FormControlLabel control={<Checkbox />} label="Markers" />
@@ -84,5 +86,5 @@ const VisualizationControl : React.FC<VisualizationControlProps> = (props:Visual
     )
 }
 
-export default observer(VisualizationControl)
+export default VisualizationControl
  

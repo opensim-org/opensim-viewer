@@ -1,6 +1,6 @@
 import { OrbitControls, CameraControls } from '@react-three/drei'
 import { observer } from 'mobx-react'
-import viewerState from '../../state/ViewerState'
+import { modelUIState } from '../../state/ModelUIState'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Ref, useRef } from 'react'
 
@@ -13,24 +13,24 @@ const OpenSimControl = () => {
     const ref = useRef<CameraControls>();
 
     useFrame((_, delta) => {
-        if (viewerState.zooming){
+        if (modelUIState.zooming){
             console.log(delta)
-            let zoomFactor = viewerState.zoom_inOut;
+            let zoomFactor = modelUIState.zoom_inOut;
             camera.zoom *= zoomFactor;
             camera.updateProjectionMatrix();
-            viewerState.zooming = false;
+            modelUIState.zooming = false;
         }
-        else if (viewerState.takeSnapshot){
+        else if (modelUIState.takeSnapshot){
             const link = document.createElement('a')
             link.setAttribute('download', 'viewer_snapshot.png')
             link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
             link.click()
-            viewerState.takeSnapshot = false;
+            modelUIState.takeSnapshot = false;
         }
       })
     //console.log(viewerState.rotating);
     return <>
-        <OrbitControls autoRotate autoRotateSpeed={viewerState.rotating ? 2 : 0.0} makeDefault  />
+        <OrbitControls autoRotate autoRotateSpeed={modelUIState.rotating ? 2 : 0.0} makeDefault  />
         <CameraControls enabled={false} ref={(ref as unknown) as Ref<CameraControls> | undefined}/>
     </>
 }

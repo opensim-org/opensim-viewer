@@ -3,14 +3,14 @@ import TreeView from '@mui/lab/TreeView';
 import TreeItem from "@mui/lab/TreeItem";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import viewerState from "../../state/ViewerState";
 import { ReactElement, JSXElementConstructor, ReactNode, ReactPortal } from "react";
+import { modelUIState } from "../../state/ModelUIState";
 const SceneTreeView  = ()  => {
     function createTreeItemForNode(anode: { name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; }, index: number) {
         let computeId = (3+index);
         return <TreeItem nodeId={computeId.toString()} label={anode.name} key={computeId}/>
     }
-    const sTree = viewerState.sceneTree
+    const sTree = modelUIState.sceneTree
     const meshesNode = sTree?.rootNode?.children[0]
     const meshesArray = meshesNode?.children;
     return (

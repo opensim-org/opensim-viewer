@@ -30,6 +30,8 @@ import { Tab } from '@mui/material';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import OpenSimScene from '../pages/OpenSimScene';
 import VisualizationControl from '../Components/VisualizationControl';
+import { modelUIState } from '../../state/ModelUIState';
+import { observer } from 'mobx-react';
 
 
 const drawerWidth = 240;
@@ -83,7 +85,7 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   justifyContent: 'flex-end',
 }));
 
-export default function PersistentDrawerLeft() {
+export function PersistentDrawerLeft() {
   const { t } = useTranslation();
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
@@ -165,7 +167,9 @@ export default function PersistentDrawerLeft() {
             <SceneTreeView/>
         </TabPanel>
         <TabPanel value="1" tabIndex={1}>
-          <VisualizationControl animationPlaySpeed={1.0}/>
+          <VisualizationControl animationPlaySpeed={1.0} 
+                                animating={modelUIState.animating}
+                                animationList={modelUIState.animations}/>
           </TabPanel>
         </TabContext>
       </Drawer>
@@ -187,7 +191,7 @@ export default function PersistentDrawerLeft() {
                         <GizmoViewport labelColor="white" axisHeadScale={1} />
                     </GizmoHelper>
                     <OpenSimControl />
-                    <axesHelper visible={viewerState.showGlobalFrame} args={[20]} />
+                    <axesHelper visible={modelUIState.showGlobalFrame} args={[20]} />
             </Canvas>
             </Suspense>
             <BottomBar />
@@ -196,3 +200,5 @@ export default function PersistentDrawerLeft() {
     </Box>
   );
 }
+
+export default observer(PersistentDrawerLeft)

@@ -19,7 +19,7 @@ export class TreeNode
   }
 }
 
-export class SceneTreeModel
+class SceneTreeModel
 {
     public rootNode: TreeNode|null;
     constructor(sceneTreeGroup: Scene)
@@ -36,5 +36,8 @@ export class SceneTreeModel
                 childNode.name = pathComponentsArray[pathComponentsArray.length-1];
             }
         })
+
     }
 }
+
+export default SceneTreeModel;

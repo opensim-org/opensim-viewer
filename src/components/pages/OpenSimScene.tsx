@@ -2,9 +2,8 @@ import { useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
 import { AnimationMixer, Scene } from 'three'
-import { SceneTreeModel } from '../../helpers/SceneTreeModel'
-import viewerState from '../../state/ViewerState'
-
+import SceneTreeModel from '../../helpers/SceneTreeModel'
+import { modelUIState } from '../../state/ModelUIState'
 interface OpenSimSceneProps {
     currentModelPath: string,
     supportControls:boolean
@@ -25,15 +24,18 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         });
     }
     useFrame((state, delta) => {
-        mixer?.update(delta)
+        if (supportControls && modelUIState.animating){
+            mixer?.update(delta)
+        }
     })
     
     useEffect(() => {
         if (supportControls) {
-            viewerState.setSceneTree(new SceneTreeModel(sceneRef.current))
-            viewerState.setAnimationList(animations)
+            modelUIState.setCurrentModelPath(currentModelPath)
+            modelUIState.setSceneTree(new SceneTreeModel(sceneRef.current))
+            modelUIState.setAnimationList(animations)
         }
-      }, [scene, animations, supportControls])
+      }, [scene, animations, supportControls, currentModelPath])
 
     // By the time we're here the model is guaranteed to be available
     return <primitive ref={sceneRef} object={scene} />

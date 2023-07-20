@@ -7,9 +7,9 @@ import ModeTwoToneIcon from '@mui/icons-material/ModeTwoTone'
 import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone'
 import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone'
 import Tooltip from '@mui/material/Tooltip';
-import viewerState from '../../state/ViewerState'
 import { observer } from 'mobx-react'
 import { useTranslation } from 'react-i18next'
+import { modelUIState } from '../../state/ModelUIState'
 
 function BottomBar() {
     const { t } = useTranslation();
@@ -20,23 +20,23 @@ function BottomBar() {
                 <Tooltip title={t('bottomBar.autoRotate')}>
                     <ToggleButton
                         color="primary"
-                        selected={viewerState.rotating}
+                        selected={modelUIState.rotating}
                         value={'Rotate'}
-                        onClick={() => viewerState.setRotating(!viewerState.rotating)}>
+                        onClick={() => modelUIState.setRotating(!modelUIState.rotating)}>
                         <ThreeSixtyTwoToneIcon />
                     </ToggleButton>
                 </Tooltip>
                 <Tooltip title={t('bottomBar.zoomIn')}>
                     <IconButton color="primary" onClick={() => {
-                        viewerState.setZoomFactor(1.1); 
-                        viewerState.setZooming(true)}}>
+                        modelUIState.setZoomFactor(1.1); 
+                        modelUIState.setZooming(true)}}>
                         <ZoomInTwoToneIcon />
                     </IconButton>
                 </Tooltip>
                 <Tooltip title={t('bottomBar.zoomOut')}>
                     <IconButton color="primary" onClick={() => {
-                        viewerState.setZoomFactor(0.9); 
-                        viewerState.setZooming(true)}}>
+                        modelUIState.setZoomFactor(0.9); 
+                        modelUIState.setZooming(true)}}>
                         <ZoomOutTwoToneIcon />
                     </IconButton>
                 </Tooltip>
@@ -52,7 +52,7 @@ function BottomBar() {
                 </Tooltip>
                 <Tooltip title={t('bottomBar.snapshoot')}>
                     <IconButton color="primary" onClick={() => {
-                        viewerState.setTakeSnapshot();}}>
+                        modelUIState.setTakeSnapshot();}}>
                         <PhotoCameraTwoToneIcon />
                     </IconButton>
                 </Tooltip>
