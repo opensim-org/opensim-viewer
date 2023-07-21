@@ -14,21 +14,18 @@ const SceneTreeView  = ()  => {
     const meshesNode = sTree?.rootNode?.children[0]
     const meshesArray = meshesNode?.children;
     return (
-    <Stack spacing={2} direction="row">
         <TreeView
             aria-label="file system navigator"
             sx={{ flexGrow: 1, maxWidth: 450, overflowY: 'auto' }}
             defaultCollapseIcon={<ExpandMoreIcon />}
             defaultExpandIcon={<ChevronRightIcon />}
-            expanded={["1", "2"]}
         >   
-            <TreeItem nodeId="1" label={sTree?.rootNode?.name} key={1}>
+            <TreeItem nodeId="1" label={sTree?.rootNode?.name} key={1} >
                 <TreeItem nodeId="2" label={sTree?.rootNode?.children[0].name} key={2}>
                     {meshesArray?.map(createTreeItemForNode)}
                 </TreeItem>
             </TreeItem>
         </TreeView>
-    </Stack>
     );
 }
 
