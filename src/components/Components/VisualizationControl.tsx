@@ -20,12 +20,11 @@ interface VisualizationControlProps {
 }
 const VisualizationControl : React.FC<VisualizationControlProps> = (props:VisualizationControlProps) => {
     const { t } = useTranslation();
-    const [play, setPlay] = useState(true);
-
+    const [play, setPlay] = useState(false);
+    console.log("Props", props);
     function togglePlayAnimation() {
-        modelUIState.setAnimating(!props.animating);
+        modelUIState.setAnimating(!modelUIState.animating);
         setPlay(!play);
-        console.log(modelUIState.animating);
 
     }
     return (
@@ -33,7 +32,7 @@ const VisualizationControl : React.FC<VisualizationControlProps> = (props:Visual
       <Container disableGutters>
         <FormGroup>
             <Typography variant="h6" align='left'>{t('Visibility')}</Typography>
-            <FormControlLabel control={<Checkbox />} label="WCS" 
+            <FormControlLabel control={<Checkbox checked={modelUIState.showGlobalFrame}/>} label="WCS" 
                     onClick={()=>modelUIState.setShowGlobalFrame(!modelUIState.showGlobalFrame)}/>
             <FormControlLabel control={<Checkbox />} label="Joints" />
             <FormControlLabel control={<Checkbox />} label="Bodies" />
@@ -51,7 +50,7 @@ const VisualizationControl : React.FC<VisualizationControlProps> = (props:Visual
                 label="Animation"
                 value={0.0}
                 >
-            <MenuItem value="0">
+            <MenuItem value="0" onClick={togglePlayAnimation}>
                 <em>None</em>
             </MenuItem>
             </Select>
