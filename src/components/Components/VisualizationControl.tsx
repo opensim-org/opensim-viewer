@@ -1,4 +1,3 @@
-import Slider from '@mui/material/Slider';
 import { Button, Checkbox, Container, FormControl, FormControlLabel, MenuItem, Select, SelectChangeEvent, Stack, Typography } from '@mui/material';
 import FormGroup from '@mui/material/FormGroup';
 import PauseCircleTwoToneIcon from '@mui/icons-material/PauseCircleTwoTone';
