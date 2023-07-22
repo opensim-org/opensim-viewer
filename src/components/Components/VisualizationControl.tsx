@@ -1,4 +1,3 @@
-import Divider from '@mui/material/Divider/Divider';
 import Slider from '@mui/material/Slider';
 import { Button, Checkbox, Container, FormControl, FormControlLabel, MenuItem, Select, SelectChangeEvent, Stack, Typography } from '@mui/material';
 import FormGroup from '@mui/material/FormGroup';
@@ -71,18 +70,11 @@ const VisualizationControl : React.FC<VisualizationControlProps> = (props:Visual
             <FormControlLabel control={<Checkbox />} label="Markers" />
         </FormGroup>
       </Container>
-      <Divider variant="fullWidth"/>
       <Container disableGutters>
         <FormControl variant="standard" sx={{ m: 1, minWidth: 150 }}>
             <InputLabel id="simple-select-standard-label">Animations</InputLabel>
             <AnimationsMenu {...props}/>
         </FormControl>
-        <Slider
-            aria-label="Always visible"
-            defaultValue={0}
-            step={10}
-            valueLabelDisplay="on"
-        />
           <Stack direction="row" color="primary">
           <Button 
                 color="primary"
@@ -91,6 +83,7 @@ const VisualizationControl : React.FC<VisualizationControlProps> = (props:Visual
                 {play?<PauseCircleTwoToneIcon/>:<PlayCircleTwoToneIcon/>}
             </Button>
             <FormControl>
+                <InputLabel id="simple-select-standard-label2">Speed</InputLabel>
                 <Select
                     labelId="demo-simple-select-label"
                     id="demo-simple-select"
