@@ -20,12 +20,12 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         mixer = new AnimationMixer(scene);
         animations.forEach(clip => {
             const action = mixer.clipAction(clip)
-            action.play();
+            action.play()
         });
     }
     useFrame((state, delta) => {
         if (supportControls && modelUIState.animating){
-            mixer?.update(delta)
+            mixer?.update(delta * modelUIState.animationSpeed)
         }
     })
     

@@ -11,6 +11,7 @@ export class ModelUIState {
     showGlobalFrame: boolean
     sceneTree: SceneTreeModel | null
     animating: boolean
+    animationSpeed: number
     animations: AnimationClip[]
 
     constructor(
@@ -25,6 +26,7 @@ export class ModelUIState {
         this.showGlobalFrame = false
         this.sceneTree = null
         this.animating = false
+        this.animationSpeed = 1.0
         this.animations = []
         makeObservable(this, {
             rotating: observable,
@@ -34,7 +36,9 @@ export class ModelUIState {
             setRotating: action,
             setCurrentModelPath: action,
             setZooming: action,
-            setShowGlobalFrame: action
+            setShowGlobalFrame: action,
+            animationSpeed: observable,
+            setAnimationSpeed: action
         })
     }
 
@@ -65,7 +69,9 @@ export class ModelUIState {
     setAnimationList(animations: AnimationClip[]) {
         this.animations=animations
     }
-
+    setAnimationSpeed(newSpeed: number) {
+        this.animationSpeed = newSpeed
+    }
 }
 
 export let modelUIState = new ModelUIState('', false);

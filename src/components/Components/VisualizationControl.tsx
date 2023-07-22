@@ -1,6 +1,6 @@
 import Divider from '@mui/material/Divider/Divider';
 import Slider from '@mui/material/Slider';
-import { Button, Checkbox, Container, FormControl, FormControlLabel, MenuItem, Select, Stack, Typography } from '@mui/material';
+import { Button, Checkbox, Container, FormControl, FormControlLabel, MenuItem, Select, SelectChangeEvent, Stack, Typography } from '@mui/material';
 import FormGroup from '@mui/material/FormGroup';
 import PauseCircleTwoToneIcon from '@mui/icons-material/PauseCircleTwoTone';
 import PlayCircleTwoToneIcon from '@mui/icons-material/PlayCircleTwoTone';
@@ -14,19 +14,51 @@ interface VisualizationControlProps {
     animating?: boolean;
     showWCS?: boolean;
     showJoints?: boolean;
-    animationList?: AnimationClip[];
+    animationList: AnimationClip[];
     animationPlaySpeed?: number;
     animationBounds?: number[];
+}
+
+function AnimationsMenu (props:VisualizationControlProps) {
+    const handleAnimationChange = (event: SelectChangeEvent) => {
+        if (event.target.value as string === ""){
+            modelUIState.setAnimating(false)
+        }
+        else {
+            modelUIState.setAnimating(true)
+        }
+        //setAge(event.target.value as string);
+    };
+    return (
+        <Select 
+            labelId="simple-select-standard-label"
+            value=""
+            label="Animate"
+            onChange={handleAnimationChange}
+            
+            >
+            {props.animationList.map(anim => (
+            <option key={anim.name} value={anim.name}>
+              {anim.name}
+            </option>
+          ))}
+        </Select>
+    )
 }
 const VisualizationControl : React.FC<VisualizationControlProps> = (props:VisualizationControlProps) => {
     const { t } = useTranslation();
     const [play, setPlay] = useState(false);
-    console.log("Props", props);
+    const [speed, setSpeed] = useState(1.0);
+    // console.log("Props", props);
     function togglePlayAnimation() {
         modelUIState.setAnimating(!modelUIState.animating);
         setPlay(!play);
 
     }
+    function handleSpeedChange(event: SelectChangeEvent) {
+         modelUIState.setAnimationSpeed(Number(event.target.value));
+         setSpeed(Number(event.target.value))
+   }
     return (
     <>
       <Container disableGutters>
@@ -41,44 +73,37 @@ const VisualizationControl : React.FC<VisualizationControlProps> = (props:Visual
       </Container>
       <Divider variant="fullWidth"/>
       <Container disableGutters>
-        <FormControl sx={{ m: 1, minWidth: 80 }}>
-            <InputLabel >Animations</InputLabel>
-                <Select
-                labelId="simple-select--label"
-                id="simple-select"
-                autoWidth
-                label="Animation"
-                value={0.0}
-                >
-            <MenuItem value="0" onClick={togglePlayAnimation}>
-                <em>None</em>
-            </MenuItem>
-            </Select>
+        <FormControl variant="standard" sx={{ m: 1, minWidth: 150 }}>
+            <InputLabel id="simple-select-standard-label">Animations</InputLabel>
+            <AnimationsMenu {...props}/>
         </FormControl>
         <Slider
             aria-label="Always visible"
             defaultValue={0}
             step={10}
-            valueLabelDisplay="off"
+            valueLabelDisplay="on"
         />
           <Stack direction="row" color="primary">
           <Button 
                 color="primary"
-                value={'Animate'} 
+                value={'Animation'} 
                 onClick={togglePlayAnimation}>
                 {play?<PauseCircleTwoToneIcon/>:<PlayCircleTwoToneIcon/>}
             </Button>
-            <Select
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
-                value={1.0}
-                label="Speed"
-            >
-                <MenuItem value={0.25}>1/4</MenuItem>
-                <MenuItem value={0.5}>1/2</MenuItem>
-                <MenuItem value={1.0}>1</MenuItem>
-                <MenuItem value={2.0}>2</MenuItem>
-            </Select>
+            <FormControl>
+                <Select
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    value={speed.toString()}
+                    label="Speed"
+                    onChange={handleSpeedChange}
+                >
+                    <MenuItem value={0.25}>0.25</MenuItem>
+                    <MenuItem value={0.5}>0.5</MenuItem>
+                    <MenuItem value={1.0}>1.0</MenuItem>
+                    <MenuItem value={2.0}>2.0</MenuItem>
+                </Select>
+            </FormControl>
             </Stack>
         </Container>
     </>
