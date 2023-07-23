@@ -1,4 +1,4 @@
-import { Button, Checkbox, Container, FormControl, FormControlLabel, MenuItem, Select, SelectChangeEvent, Stack, Typography } from '@mui/material';
+import { Checkbox, Container, FormControl, FormControlLabel, IconButton, MenuItem, Select, SelectChangeEvent, Stack, Typography } from '@mui/material';
 import FormGroup from '@mui/material/FormGroup';
 import PauseCircleTwoToneIcon from '@mui/icons-material/PauseCircleTwoTone';
 import PlayCircleTwoToneIcon from '@mui/icons-material/PlayCircleTwoTone';
@@ -27,13 +27,14 @@ function AnimationsMenu (props:VisualizationControlProps) {
         }
         //setAge(event.target.value as string);
     };
+    let selectedAnim=(props.animationList.length===0?"":props.animationList[0].name)
     return (
+
         <Select 
             labelId="simple-select-standard-label"
-            value=""
+            value={selectedAnim}
             label="Animate"
             onChange={handleAnimationChange}
-            
             >
             {props.animationList.map(anim => (
             <option key={anim.name} value={anim.name}>
@@ -75,12 +76,12 @@ const VisualizationControl : React.FC<VisualizationControlProps> = (props:Visual
             <AnimationsMenu {...props}/>
         </FormControl>
           <Stack direction="row" color="primary">
-          <Button 
+          <IconButton 
                 color="primary"
                 value={'Animation'} 
                 onClick={togglePlayAnimation}>
                 {play?<PauseCircleTwoToneIcon/>:<PlayCircleTwoToneIcon/>}
-            </Button>
+            </IconButton>
             <FormControl>
                 <InputLabel id="simple-select-standard-label2">Speed</InputLabel>
                 <Select
