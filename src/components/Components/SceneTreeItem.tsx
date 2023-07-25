@@ -33,6 +33,7 @@ const CustomContent = React.forwardRef(function CustomContent(
     } = useTreeItem(nodeId);
 
     const icon = iconProp || expansionIcon || displayIcon;
+    //const threeObject: Object3D|null;
 
     const handleMouseDown = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       preventSelection(event);
@@ -78,8 +79,8 @@ const CustomContent = React.forwardRef(function CustomContent(
   });
 
 
-function CustomTreeItem(props: TreeItemProps) {
+function SceneTreeItem(props: TreeItemProps) {
     return <TreeItem ContentComponent={CustomContent} {...props} />;
 }
 
-export default CustomTreeItem;
+export default SceneTreeItem;

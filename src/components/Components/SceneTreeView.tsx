@@ -1,7 +1,7 @@
 import TreeView from '@mui/lab/TreeView'; 
 import { modelUIState } from "../../state/ModelUIState";
 import SvgIcon, { SvgIconProps } from '@mui/material/SvgIcon';
-import CustomTreeItem from './SceneTreeItem';
+import SceneTreeItem from './SceneTreeItem';
 import { TreeNode } from '../../helpers/SceneTreeModel';
 
 function MinusSquare(props: SvgIconProps) {
@@ -41,7 +41,7 @@ const SceneTreeView  = ()  => {
         let computeId = (3+index);
         let threeObj = anode.threeObject;
         console.log(threeObj);
-        return <CustomTreeItem nodeId={computeId.toString()} label={anode.name} key={computeId} />
+        return <SceneTreeItem nodeId={computeId.toString()} label={anode.name} key={computeId} />
     }
     const sTree = modelUIState.sceneTree
     const meshesNode = sTree?.rootNode?.children[0]
@@ -54,11 +54,11 @@ const SceneTreeView  = ()  => {
             defaultExpandIcon={<PlusSquare />}
             defaultEndIcon={<CloseSquare />}
         >
-            <CustomTreeItem  nodeId="1" label={sTree?.rootNode?.name} key={1} >
-                <CustomTreeItem  nodeId="2" label={sTree?.rootNode?.children[0].name} key={2}>
+            <SceneTreeItem  nodeId="1" label={sTree?.rootNode?.name} key={1} >
+                <SceneTreeItem  nodeId="2" label={sTree?.rootNode?.children[0].name} key={2}>
                     {meshesArray?.map(createTreeItemForNode, meshesArray)}
-                </CustomTreeItem>
-            </CustomTreeItem>
+                </SceneTreeItem>
+            </SceneTreeItem>
         </TreeView>
     );
 }
