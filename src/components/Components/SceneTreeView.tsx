@@ -1,8 +1,8 @@
 import TreeView from '@mui/lab/TreeView'; 
-import { ReactElement, JSXElementConstructor, ReactNode, ReactPortal } from "react";
 import { modelUIState } from "../../state/ModelUIState";
 import SvgIcon, { SvgIconProps } from '@mui/material/SvgIcon';
 import CustomTreeItem from './SceneTreeItem';
+import { TreeNode } from '../../helpers/SceneTreeModel';
 
 function MinusSquare(props: SvgIconProps) {
     return (
@@ -37,9 +37,10 @@ function MinusSquare(props: SvgIconProps) {
   }
 
 const SceneTreeView  = ()  => {
-    function createTreeItemForNode(anode: { name: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; }, index: number) {
+    function createTreeItemForNode(anode: TreeNode, index: number) {
         let computeId = (3+index);
-        let threeObj = anode.threeObj;
+        let threeObj = anode.threeObject;
+        console.log(threeObj);
         return <CustomTreeItem nodeId={computeId.toString()} label={anode.name} key={computeId} />
     }
     const sTree = modelUIState.sceneTree
@@ -55,7 +56,7 @@ const SceneTreeView  = ()  => {
         >
             <CustomTreeItem  nodeId="1" label={sTree?.rootNode?.name} key={1} >
                 <CustomTreeItem  nodeId="2" label={sTree?.rootNode?.children[0].name} key={2}>
-                    {meshesArray?.map(createTreeItemForNode)}
+                    {meshesArray?.map(createTreeItemForNode, meshesArray)}
                 </CustomTreeItem>
             </CustomTreeItem>
         </TreeView>
