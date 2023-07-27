@@ -57,7 +57,7 @@ class ModelCreateSerializer(serializers.ModelSerializer):
 
 
 class ModelRetrieveSerializer(serializers.ModelSerializer):
-    name = serializers.PrimaryKeyRelatedField(queryset=Model.objects.all(), allow_null=False)
+    name = serializers.CharField(allow_null=False, allow_blank=False)
 
     class Meta:
         model = Model
