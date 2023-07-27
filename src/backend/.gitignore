@@ -138,6 +138,8 @@ GitHub.sublime-settings
 
 # Database sqlite
 *.sqlite3
+#temporary files
+testing/*
 
 # Files uploaded while testing
 opensim_viewer_backend/model_files

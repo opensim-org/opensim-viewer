@@ -28,6 +28,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 
 class ModelCreateSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True)
     name = serializers.CharField(validators=[UniqueValidator(queryset=Model.objects.all())], allow_null=False,
                                  allow_blank=False)
     description = serializers.CharField(allow_null=False, allow_blank=False)

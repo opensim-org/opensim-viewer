@@ -29,7 +29,7 @@ const GridList = ({ modelMetadata }: GridListProps) => {
                     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                         <div id="canvas-container">
                             <Canvas
-                                gl={{ preserveDrawingBuffer: true }}
+                                gl={{ preserveDrawingBuffer: false }}
                                 shadows
                                 style={{ width: '100%', height: '40vh' }}
                                 camera={{ position: [1500, 1500, 1000], fov: 75, far: 10000 }}
@@ -45,7 +45,7 @@ const GridList = ({ modelMetadata }: GridListProps) => {
                                     castShadow
                                 />
                                 <Bounds fit clip>
-                                    <OpenSimScene curentModelPath={element.path} />
+                                    <OpenSimScene currentModelPath={element.path} supportControls={false}/>
                                 </Bounds>
                                 <Environment preset="city" />
                                 <OpenSimControl />
