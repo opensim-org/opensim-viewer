@@ -11,3 +11,8 @@ urlpatterns = [
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Add a URL pattern to serve the 'model_files/' directory during testing
+# This is not for production use, only for testing purposes
+if settings.DEBUG:
+    urlpatterns += static(document_root=settings.MEDIA_ROOT)

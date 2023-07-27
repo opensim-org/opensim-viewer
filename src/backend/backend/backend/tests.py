@@ -1,14 +1,13 @@
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
-from django.urls import reverse
+from django.test import TestCase, Client
+from urllib.parse import urlparse
 from rest_framework import status
-from rest_framework.test import APIClient
 from rest_framework.test import APIRequestFactory, force_authenticate
 from django.utils.translation import gettext as _
 from django.utils.translation import override
 from .models import User, Model
-from .views import UserViewSet, UserCreate, ModelViewSet, ModelCreate
-
+from .views import UserViewSet, UserCreate, ModelViewSet, ModelCreate, ModelRetrieve
+from django.shortcuts import get_object_or_404
 
 class LocalizationTestCase(TestCase):
     """
@@ -184,73 +183,100 @@ class ModelRetrieveTestCase(TestCase):
     order = 6
 
     def setUp(self):
-        self.client = APIClient()
+        self.factory = APIRequestFactory()
+        self.view = ModelCreate.as_view({'post': 'create_model'})
+        self.user = User.objects.create_user(username='testuser', password='testpass')
 
-        # Create a test user
-        self.user = User.objects.create_user(username='testuser', password='testpassword')
-
-        # Create a test model
-        self.model = Model.objects.create(
-            name='Test Model',
-            description='Test description',
-            owner=self.user,
-            authors='Test authors',
-            model_folder='path/to/model.gltf',
-            link='https://example.com',
-            license='Test license',
-            license_link='https://example.com/license'
-        )
+        # Create a model
+        self.model = {
+            'name': 'Test Model',
+            'description': 'Test description',
+            'owner': self.user.pk,
+            'authors': 'Test author',
+            'link': 'http://test_link.com',
+            'license': 'Test license',
+            'license_link': 'http://test_license_link.com',
+        }
+        self.file_model = {
+            'model_gltf_file': SimpleUploadedFile('test_file.gltf', b'Test content'),
+        }
+        self.model.update(self.file_model)
+        request = self.factory.post('/create_model/', self.model, format='multipart')
+        force_authenticate(request, user=self.user)
+        response = self.view(request)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # Ensure model is created
+        self.assertEqual(Model.objects.count(), 1)
 
     def test_retrieve_model_success(self):
-        url = reverse('ModelRetrieve')
-        data = {'name': 1}
-        response = self.client.post(url, data)
+        # Create a request with 'name' parameter
+        request = self.factory.post('/retrieve_model/', {'name': 'Test Model'}, format='multipart')
 
+        # Create an instance of the view and call the retrieve_model method
+        view = ModelRetrieve.as_view({'post': 'retrieve_model'})
+        response = view(request)
+
+        # Check if the response status code is 200
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], status.HTTP_200_OK)
-        self.assertEqual(response.data['model_name'], 'Test Model')
-        self.assertEqual(response.data['model_description'], 'Test description')
-        self.assertEqual(response.data['owner'], 'testuser')
-        self.assertEqual(response.data['model_authors'], 'Test authors')
-        self.assertEqual(response.data['model_gltf_file'], 'http://testserver/path/to/model.gltf')
-        self.assertEqual(response.data['model_link'], 'https://example.com')
-        self.assertEqual(response.data['model_license'], 'Test license')
-        self.assertEqual(response.data['model_license_link'], 'https://example.com/license')
-        self.assertEqual(response.data['error_message'], '')
+
+        # Check if the response model matches the model in database
+        self.assertEqual(self.model['name'], response.data['model_name'])
+        self.assertEqual(self.model['description'], response.data['model_description'])
+        self.assertEqual(get_object_or_404(User, pk=self.model['owner']).username, response.data['owner'])
+        self.assertEqual(self.model['authors'], response.data['model_authors'])
+        self.assertEqual(self.model['link'], response.data['model_link'])
+        self.assertEqual(self.model['license'], response.data['model_license'])
+        self.assertEqual(self.model['license_link'], response.data['model_license_link'])
+        self.assertEqual("", response.data['error_message'])
+
+    def test_retrieve_model_file_success(self):
+        # Create a request with 'name' parameter
+        request = self.factory.post('/retrieve_model/', {'name': 'Test Model'}, format='multipart')
+
+        # Create an instance of the view and call the retrieve_model method
+        view = ModelRetrieve.as_view({'post': 'retrieve_model'})
+        response = view(request)
+
+        # Check if the response status code is 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Check if the response model matches the model in database
+        self.assertEqual(self.model['name'], response.data['model_name'])
+        self.assertEqual(self.model['description'], response.data['model_description'])
+        self.assertEqual(get_object_or_404(User, pk=self.model['owner']).username, response.data['owner'])
+        self.assertEqual(self.model['authors'], response.data['model_authors'])
+        self.assertEqual(self.model['link'], response.data['model_link'])
+        self.assertEqual(self.model['license'], response.data['model_license'])
+        self.assertEqual(self.model['license_link'], response.data['model_license_link'])
+        self.assertEqual("", response.data['error_message'])
+
+        # Download the file
+        file_url = response.data['model_gltf_file']
+        file_url = urlparse(file_url)
+        file_url = file_url.path.removeprefix("/")
+
+        # Check that file contents are the same as in 'test_file.gltf'
+        with open(file_url, 'rb') as f:
+            downloaded_content = f.read()
+        self.assertEqual(downloaded_content, b'Test content')
 
     def test_retrieve_model_not_found(self):
-        url = reverse('ModelRetrieve')
-        data = {'name': 2}  # A model that does not exit.
-        response = self.client.post(url, data)
+        # Create a request with 'name' parameter
+        request = self.factory.post('/retrieve_model/', {'name': 'Non Existing Model'}, format='multipart')
 
+
+        # Create an instance of the view and call the retrieve_model method
+        view = ModelRetrieve.as_view({'post': 'retrieve_model'})
+        response = view(request)
+
+        # Check if the response status code is 200
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(response.data['status'], status.HTTP_404_NOT_FOUND)
-        self.assertEqual(response.data['model_name'], None)
+        # Check if the response model matches the model in database
+        self.assertEqual(response.data['model_name'], 'Non Existing Model')
         self.assertEqual(response.data['model_description'], None)
         self.assertEqual(response.data['owner'], None)
         self.assertEqual(response.data['model_authors'], None)
-        self.assertEqual(response.data['model_gltf_file'], None)
         self.assertEqual(response.data['model_link'], None)
         self.assertEqual(response.data['model_license'], None)
         self.assertEqual(response.data['model_license_link'], None)
-
-    def test_retrieve_model_file_not_found(self):
-        # Remove the model file to simulate a file not found error
-        self.model.model_gltf_file.delete()
-
-        url = reverse('ModelRetrieve')
-        data = {'name': 1}
-        response = self.client.post(url, data)
-
-        # Name, description, authors and owner are properly processed before failing the file, so they have
-        # the correct values.
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['status'], status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['model_name'], 'Test Model')
-        self.assertEqual(response.data['model_description'], 'Test description')
-        self.assertEqual(response.data['owner'], 'testuser')
-        self.assertEqual(response.data['model_authors'], 'Test authors')
-        self.assertEqual(response.data['model_gltf_file'], None)
-        self.assertEqual(response.data['model_link'], None)
-        self.assertEqual(response.data['model_license'], None)
-        self.assertEqual(response.data['model_license_link'], None)
+        self.assertEqual(response.data['error_message'], _("objectNotFound") % {"object_name": "model", "error_message": "No Model matches the given query."})
