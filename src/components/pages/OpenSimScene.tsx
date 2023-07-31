@@ -3,8 +3,6 @@ import { useFrame } from '@react-three/fiber'
 
 import { useEffect, useMemo, useRef } from 'react'
 import { AnimationMixer, Scene } from 'three'
-import viewerState from '../../state/ViewerState'
-import axios from 'axios'
 
 import SceneTreeModel from '../../helpers/SceneTreeModel'
 import { modelUIState } from '../../state/ModelUIState'
