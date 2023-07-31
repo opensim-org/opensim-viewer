@@ -98,7 +98,7 @@
         0,
         1
       ],
-      "name": "/bodyset/pelvis/pelvis_geom_1",
+      "name": "pelvis_geom_1",
       "extras": "NonEditable",
       "mesh": 0
     },
@@ -121,7 +121,7 @@
         0,
         1
       ],
-      "name": "/bodyset/pelvis/pelvis_geom_2",
+      "name": "pelvis_geom_2",
       "extras": "NonEditable",
       "mesh": 1
     },
@@ -144,7 +144,7 @@
         0,
         1
       ],
-      "name": "/bodyset/pelvis/pelvis_geom_3",
+      "name": "pelvis_geom_3",
       "extras": "NonEditable",
       "mesh": 2
     },
@@ -167,7 +167,7 @@
         0,
         1
       ],
-      "name": "/bodyset/pelvis",
+      "name": "pelvis",
       "extras": "NonEditable",
       "children": [
         4,
@@ -194,7 +194,7 @@
         0,
         1
       ],
-      "name": "/bodyset/femur_r/femur_r_geom_1",
+      "name": "femur_r_geom_1",
       "extras": "NonEditable",
       "mesh": 3
     },
@@ -217,7 +217,7 @@
         87.3398,
         1
       ],
-      "name": "/bodyset/femur_r",
+      "name": "femur_r",
       "extras": "NonEditable",
       "children": [
         8
@@ -242,7 +242,7 @@
         0,
         1
       ],
-      "name": "/bodyset/tibia_r/tibia_r_geom_1",
+      "name": "tibia_r_geom_1",
       "extras": "NonEditable",
       "mesh": 4
     },
@@ -265,7 +265,7 @@
         0,
         1
       ],
-      "name": "/bodyset/tibia_r/tibia_r_geom_2",
+      "name": "tibia_r_geom_2",
       "extras": "NonEditable",
       "mesh": 5
     },
@@ -288,7 +288,7 @@
         87.3398,
         1
       ],
-      "name": "/bodyset/tibia_r",
+      "name": "tibia_r",
       "extras": "NonEditable",
       "children": [
         10,
@@ -314,7 +314,7 @@
         0,
         1
       ],
-      "name": "/bodyset/patella_r/patella_r_geom_1",
+      "name": "patella_r_geom_1",
       "extras": "NonEditable",
       "mesh": 6
     },
@@ -337,7 +337,7 @@
         87.3398,
         1
       ],
-      "name": "/bodyset/patella_r",
+      "name": "patella_r",
       "extras": "NonEditable",
       "children": [
         13
@@ -362,7 +362,7 @@
         0,
         1
       ],
-      "name": "/bodyset/talus_r/talus_r_geom_1",
+      "name": "talus_r_geom_1",
       "extras": "NonEditable",
       "mesh": 7
     },
@@ -385,7 +385,7 @@
         87.3398,
         1
       ],
-      "name": "/bodyset/talus_r",
+      "name": "talus_r",
       "extras": "NonEditable",
       "children": [
         15
@@ -410,7 +410,7 @@
         0,
         1
       ],
-      "name": "/bodyset/calcn_r/calcn_r_geom_1",
+      "name": "calcn_r_geom_1",
       "extras": "NonEditable",
       "mesh": 8
     },
@@ -433,7 +433,7 @@
         97.47049999999999,
         1
       ],
-      "name": "/bodyset/calcn_r",
+      "name": "calcn_r",
       "extras": "NonEditable",
       "children": [
         17
@@ -458,7 +458,7 @@
         0,
         1
       ],
-      "name": "/bodyset/toes_r/toes_r_geom_1",
+      "name": "toes_r_geom_1",
       "extras": "NonEditable",
       "mesh": 9
     },
@@ -481,7 +481,7 @@
         98.49741999999999,
         1
       ],
-      "name": "/bodyset/toes_r",
+      "name": "toes_r",
       "extras": "NonEditable",
       "children": [
         19

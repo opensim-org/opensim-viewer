@@ -1,11 +1,13 @@
-import { Canvas } from '@react-three/fiber'
 import { useTheme } from '@mui/material'
+
 import { GizmoHelper, GizmoViewport, Bounds} from '@react-three/drei'
 import BottomBar from './BottomBar'
 import SettingsDrawer from './SettingsDrawer'
 import OpenSimControl from './OpenSimControl'
 import OpenSimScene from './OpenSimScene'
 import { Suspense } from 'react'
+        
+import LeftDrawer from '../Nav/LeftDrawer'
 
 interface ModelViewPageProps {
     curentModelPath: string
@@ -14,6 +16,7 @@ interface ModelViewPageProps {
 const ModelViewPage: React.FC<ModelViewPageProps> = ({ curentModelPath }) => {
     const theme = useTheme()
     console.log(theme.palette.mode)
+
     return (
         <div id="canvas-container">
             <Suspense fallback={null}>
@@ -36,6 +39,7 @@ const ModelViewPage: React.FC<ModelViewPageProps> = ({ curentModelPath }) => {
             <SettingsDrawer placement="left" />
             <BottomBar />
         </div>
+        <LeftDrawer />
     )
 }
 

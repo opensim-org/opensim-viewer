@@ -1,27 +1,37 @@
 import { useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
-import { useEffect, useMemo } from 'react'
-import { AnimationMixer } from 'three'
+
+import { useEffect, useMemo, useRef } from 'react'
+import { AnimationMixer, Scene } from 'three'
 import viewerState from '../../state/ViewerState'
 import axios from 'axios'
 
+import SceneTreeModel from '../../helpers/SceneTreeModel'
+import { modelUIState } from '../../state/ModelUIState'
+
 interface OpenSimSceneProps {
-    curentModelPath: string
+    currentModelPath: string,
+    supportControls:boolean
 }
 
-const OpenSimScene: React.FC<OpenSimSceneProps> = ({ curentModelPath }) => {
+const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportControls }) => {
+
+    const sceneRef = useRef<Scene>(null!)
     // useGLTF suspends the component, it literally stops processing
-    const { scene, animations } = useGLTF(curentModelPath)
+    const { scene, animations } = useGLTF(currentModelPath)
+    
     let mixer: AnimationMixer
-    if (animations.length) {
+    if (animations.length > 0) {
         mixer = new AnimationMixer(scene);
         animations.forEach(clip => {
             const action = mixer.clipAction(clip)
-            action.play();
+            action.play()
         });
     }
     useFrame((state, delta) => {
-        mixer?.update(delta)
+        if (supportControls && modelUIState.animating){
+            mixer?.update(delta * modelUIState.animationSpeed)
+        }
     })
     
     useMemo(
@@ -48,9 +58,18 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ curentModelPath }) => {
         }
         getModelGltf()
         // viewerState.setCurrentModelPath(result.data.model_gltf_file);
-      });
+      }, []);
+        
+    useEffect(() => {
+        if (supportControls) {
+            modelUIState.setCurrentModelPath(currentModelPath)
+            modelUIState.setSceneTree(new SceneTreeModel(sceneRef.current))
+            modelUIState.setAnimationList(animations)
+        }
+      }, [scene, animations, supportControls, currentModelPath])
+
     // By the time we're here the model is guaranteed to be available
-    return <primitive object={scene} />
+    return <primitive ref={sceneRef} object={scene} />
 }
 
 export default OpenSimScene
