@@ -46,20 +46,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
             }),
         [scene]
     )
-    // Lifecycle methods
-    useEffect(() => {
 
-        const getModelGltf = async () => {
-            const result = await axios(
-          'http://localhost:8000/models/viz/default/',
-        );
-        //await console.log(result.data)
-        await viewerState.setCurrentModelPath(result.data.model_gltf_file);
-        }
-        getModelGltf()
-        // viewerState.setCurrentModelPath(result.data.model_gltf_file);
-      }, []);
-        
     useEffect(() => {
         if (supportControls) {
             modelUIState.setCurrentModelPath(currentModelPath)
