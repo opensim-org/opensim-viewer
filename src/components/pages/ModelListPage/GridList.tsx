@@ -5,7 +5,7 @@ import CardActions from '@mui/material/CardActions'
 import Link from '@mui/material/Link'
 import { Canvas } from '@react-three/fiber'
 import { useTheme } from '@mui/material'
-import { Bounds, Environment } from '@react-three/drei'
+import { Bounds } from '@react-three/drei'
 import Typography from '@mui/material/Typography'
 
 import OpenSimControl from '../OpenSimControl'
@@ -47,7 +47,6 @@ const GridList = ({ modelMetadata }: GridListProps) => {
                                 <Bounds fit clip>
                                     <OpenSimScene currentModelPath={element.path} supportControls={false}/>
                                 </Bounds>
-                                <Environment preset="city" />
                                 <OpenSimControl />
                             </Canvas>
                         </div>

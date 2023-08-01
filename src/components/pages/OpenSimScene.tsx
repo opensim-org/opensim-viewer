@@ -1,9 +1,12 @@
 import { useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
-import { useEffect, useRef } from 'react'
+
+import { useEffect, useMemo, useRef } from 'react'
 import { AnimationMixer, Scene } from 'three'
+
 import SceneTreeModel from '../../helpers/SceneTreeModel'
 import { modelUIState } from '../../state/ModelUIState'
+
 interface OpenSimSceneProps {
     currentModelPath: string,
     supportControls:boolean
@@ -29,6 +32,19 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         }
     })
     
+    useMemo(
+        () =>
+            scene.traverse((obj) => {
+                // traverse and mutate the scene here ...
+                if (obj.type === 'Mesh') {
+                    obj.receiveShadow = true
+                    obj.castShadow = true
+                }
+                //console.log(obj)
+            }),
+        [scene]
+    )
+
     useEffect(() => {
         if (supportControls) {
             modelUIState.setCurrentModelPath(currentModelPath)

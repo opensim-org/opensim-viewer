@@ -37,6 +37,7 @@ dependencies:
       - charset-normalizer==3.1.0
       - dataclasses-json==0.5.7
       - deprecated==1.2.13
+      - django-cors-headers==4.1.0
       - docopt==0.6.2
       - idna==3.4
       - marshmallow==3.19.0
