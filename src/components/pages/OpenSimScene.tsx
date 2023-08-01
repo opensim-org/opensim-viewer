@@ -1,7 +1,7 @@
 import { useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { AnimationMixer, BoxHelper, Object3D, Scene } from 'three'
 
 import SceneTreeModel from '../../helpers/SceneTreeModel'
@@ -16,13 +16,19 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
 
     const sceneRef = useRef<Scene>(null!)
     // useGLTF suspends the component, it literally stops processing
-    const { scene, animations } = useGLTF(currentModelPath)
-
+    const { scene, animations } = useGLTF(currentModelPath);
     // eslint-disable-next-line no-mixed-operators
     let uuid2ObjectMap = new Map<string, Object3D>();
+    let uuid2SelectionMap = new Map<string, BoxHelper>();
     if (supportControls) {
       scene.traverse((o) => {
           uuid2ObjectMap.set(o.uuid, o)
+          if (o.type === "Mesh") {
+            let helper : BoxHelper = new BoxHelper(o)
+            uuid2SelectionMap.set(o.uuid, helper);
+            helper.visible = false;
+            scene.add(helper);
+          }
          })
     }
     
@@ -39,7 +45,10 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         if (supportControls && modelUIState.selected !== "") {
           let selectedObject = uuid2ObjectMap.get(modelUIState.selected)!
           if (selectedObject !== undefined && selectedObject.type === "Mesh") {
-            sceneRef.current.add(new BoxHelper(selectedObject));
+            uuid2SelectionMap.get(modelUIState.selected)!.visible = true
+            let deselectedBox = uuid2SelectionMap.get(modelUIState.deSelected)
+            if (deselectedBox !== undefined)
+              deselectedBox.visible = false
           }
         }
         if (supportControls && modelUIState.animating){

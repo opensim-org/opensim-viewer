@@ -14,6 +14,7 @@ export class ModelUIState {
     animationSpeed: number
     animations: AnimationClip[]
     selected: string
+    deSelected: string
 
     constructor(
         currentModelPathState: string,
@@ -30,6 +31,7 @@ export class ModelUIState {
         this.animationSpeed = 1.0
         this.animations = []
         this.selected = ""
+        this.deSelected = ""
         makeObservable(this, {
             rotating: observable,
             currentModelPath: observable,
@@ -77,8 +79,10 @@ export class ModelUIState {
         this.animationSpeed = newSpeed
     }
     setSelected(uuid: string) {
+        this.deSelected = this.selected
         this.selected = uuid
     }
+
 }
 
 export let modelUIState = new ModelUIState('', false);
