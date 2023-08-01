@@ -40,8 +40,8 @@ const SceneTreeView  = ()  => {
     function createTreeItemForNode(anode: TreeNode, index: number) {
         let computeId = (3+index);
         let threeObj = anode.threeObject;
-        console.log(threeObj);
-        return <SceneTreeItem nodeId={computeId.toString()} label={anode.name} key={computeId} />
+        //console.log(threeObj);
+        return <SceneTreeItem nodeId={threeObj!.uuid} label={anode.name} key={computeId} />
     }
     const sTree = modelUIState.sceneTree
     const meshesNode = sTree?.rootNode?.children[0]
