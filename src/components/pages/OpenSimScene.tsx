@@ -42,13 +42,16 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     }
     useFrame((state, delta) => {
       if (modelUIState !== undefined) {
-        if (supportControls && modelUIState.selected !== "") {
+        if (supportControls ) {
+          if (modelUIState.deSelected!==""){
+            let deselectedBox = uuid2SelectionMap.get(modelUIState.deSelected)
+            if (deselectedBox !== undefined) {
+              deselectedBox.visible = false;
+            }
+          }
           let selectedObject = uuid2ObjectMap.get(modelUIState.selected)!
           if (selectedObject !== undefined && selectedObject.type === "Mesh") {
             uuid2SelectionMap.get(modelUIState.selected)!.visible = true
-            let deselectedBox = uuid2SelectionMap.get(modelUIState.deSelected)
-            if (deselectedBox !== undefined)
-              deselectedBox.visible = false
           }
         }
         if (supportControls && modelUIState.animating){
@@ -67,7 +70,8 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
 
     // By the time we're here the model is guaranteed to be available
     return <primitive ref={sceneRef} object={scene} 
-      onPointerDown={(e: any) => modelUIState.setSelected(e.object.uuid)}/>
+      onPointerDown={(e: any) => modelUIState.setSelected(e.object.uuid)}
+      onPointerMissed={() => modelUIState.setSelected("")}/>
 }
 
 export default OpenSimScene
