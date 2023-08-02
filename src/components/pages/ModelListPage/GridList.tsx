@@ -5,7 +5,7 @@ import CardActions from '@mui/material/CardActions'
 import Link from '@mui/material/Link'
 import { Canvas } from '@react-three/fiber'
 import { useTheme } from '@mui/material'
-import { Bounds } from '@react-three/drei'
+import { Bounds, Environment } from '@react-three/drei'
 import Typography from '@mui/material/Typography'
 
 import OpenSimControl from '../OpenSimControl'
@@ -36,14 +36,9 @@ const GridList = ({ modelMetadata }: GridListProps) => {
                             >
                                 <color
                                     attach="background"
-                                    args={theme.palette.mode === 'dark' ? ['#151518'] : ['#cccccc']}
+                                    args={theme.palette.mode === 'dark' ? ['#151518'] : ['#aaaaaa']}
                                 />
-                                <directionalLight
-                                    position={[1500, 2000, 1000]}
-                                    intensity={0.05}
-                                    shadow-mapSize={128}
-                                    castShadow
-                                />
+                                <Environment files="./builtin/potsdamer_platz_1k.hdr"/>
                                 <Bounds fit clip>
                                     <OpenSimScene currentModelPath={element.path} supportControls={false}/>
                                 </Bounds>
