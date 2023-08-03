@@ -186,7 +186,7 @@ export function PersistentDrawerLeft() {
                     <Bounds fit clip>
                         <OpenSimScene currentModelPath={viewerState.currentModelPath} supportControls={true}/>
                     </Bounds>
-                    <Environment preset="city" />
+                    <Environment  files="./builtin/potsdamer_platz_1k.hdr" />
                      <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
                         <GizmoViewport labelColor="white" axisHeadScale={1} />
                     </GizmoHelper>
