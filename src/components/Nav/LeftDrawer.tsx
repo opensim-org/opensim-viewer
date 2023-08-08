@@ -30,8 +30,10 @@ import { Tab } from '@mui/material';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import OpenSimScene from '../pages/OpenSimScene';
 import VisualizationControl from '../Components/VisualizationControl';
-import { modelUIState } from '../../state/ModelUIState';
+import { ModelUIState } from '../../state/ModelUIState';
 import { observer } from 'mobx-react';
+import { MyModelContext } from '../../state/ModelUIStateContext';
+import { useModelContext } from '../../state/ModelUIStateContext';
 
 
 const drawerWidth = 240;
@@ -90,6 +92,9 @@ export function PersistentDrawerLeft() {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
   const [tabValue, setTabValue] = React.useState('0');
+  const curState = useModelContext();
+  curState.setCurrentModelPath(viewerState.currentModelPath);
+  const [uiState, setUIState] = React.useState<ModelUIState>(curState);
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -104,6 +109,7 @@ export function PersistentDrawerLeft() {
   };
 
   return (
+    <MyModelContext.Provider value = {uiState}>
     <Box component="div" sx={{ display: 'flex' }}>
       <CssBaseline />
       <AppBar position="fixed" open={open}>
@@ -168,8 +174,8 @@ export function PersistentDrawerLeft() {
         </TabPanel>
         <TabPanel value="1" tabIndex={1}>
           <VisualizationControl animationPlaySpeed={1.0} 
-                                animating={modelUIState.animating}
-                                animationList={modelUIState.animations}/>
+                                animating={uiState.animating}
+                                animationList={uiState.animations}/>
           </TabPanel>
         </TabContext>
       </Drawer>
@@ -191,13 +197,14 @@ export function PersistentDrawerLeft() {
                         <GizmoViewport labelColor="white" axisHeadScale={1} />
                     </GizmoHelper>
                     <OpenSimControl />
-                    <axesHelper visible={modelUIState.showGlobalFrame} args={[20]} />
+                    <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
             </Canvas>
             </Suspense>
             <BottomBar />
             </div>
       </Main>
     </Box>
+    </MyModelContext.Provider>
   );
 }
 

@@ -1,9 +1,11 @@
 import { makeObservable, observable, action } from 'mobx'
 import SceneTreeModel from '../helpers/SceneTreeModel'
 import { AnimationClip } from 'three/src/animation/AnimationClip'
+import { Group } from 'three'
 
 export class ModelUIState {
     currentModelPath: string
+    scene: Group | null
     rotating: boolean
     zooming: boolean
     zoom_inOut: number
@@ -21,6 +23,7 @@ export class ModelUIState {
         rotatingState: boolean,
     ) {
         this.currentModelPath = currentModelPathState
+        this.scene = null
         this.rotating = rotatingState
         this.zooming = false
         this.zoom_inOut = 0.0
@@ -44,12 +47,19 @@ export class ModelUIState {
             animationSpeed: observable,
             setAnimationSpeed: action,
             selected: observable,
+            setSelected: action,
+            sceneTree: observable,
+            setSceneTree: action
         })
         console.log("Created ModelUIState instance ", currentModelPathState)
     }
 
     setCurrentModelPath(newState: string) {
-        this.currentModelPath = newState
+        let oldPath = this.currentModelPath
+        if (oldPath !== newState){
+            this.currentModelPath = newState
+            this.sceneTree = null;
+        }
     }
     setRotating(newState: boolean) {
         this.rotating = newState
@@ -84,5 +94,3 @@ export class ModelUIState {
     }
 
 }
-
-export let modelUIState = new ModelUIState('', false);
