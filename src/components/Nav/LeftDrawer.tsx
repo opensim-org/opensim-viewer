@@ -94,7 +94,7 @@ export function PersistentDrawerLeft() {
   const [tabValue, setTabValue] = React.useState('0');
   const curState = useModelContext();
   curState.setCurrentModelPath(viewerState.currentModelPath);
-  const [uiState, setUIState] = React.useState<ModelUIState>(curState);
+  const [uiState] = React.useState<ModelUIState>(curState);
 
   const handleDrawerOpen = () => {
     setOpen(true);
