@@ -26,7 +26,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
           uuid2ObjectMap.set(o.uuid, o)
           if (o.type === "Mesh") {
             let helper : BoxHelper = new BoxHelper(o)
-            console.log("add helper for ", o.name);
+            //console.log("add helper for ", o.name);
             uuid2SelectionMap.set(o.uuid, helper);
             helper.visible = false;
             scene.add(helper);
