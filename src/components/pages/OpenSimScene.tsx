@@ -1,7 +1,7 @@
 import { useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimationMixer, BoxHelper, Object3D } from 'three'
 
 import SceneTreeModel from '../../helpers/SceneTreeModel'
@@ -17,17 +17,18 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     // useGLTF suspends the component, it literally stops processing
     const { scene, animations } = useGLTF(currentModelPath);
     // eslint-disable-next-line no-mixed-operators
-    let uuid2ObjectMap = new Map<string, Object3D>();
-    let uuid2SelectionMap = new Map<string, BoxHelper>();
+    const [sceneObjectMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
+    const [sceneObjectSelectionMap] = useState<Map<string, BoxHelper>>(new Map<string, BoxHelper>());
+
     let curState = useModelContext();
     curState.scene = scene;
     if (supportControls) {
       scene.traverse((o) => {
-          uuid2ObjectMap.set(o.uuid, o)
+          sceneObjectMap.set(o.uuid, o)
           if (o.type === "Mesh") {
             let helper : BoxHelper = new BoxHelper(o)
             //console.log("add helper for ", o.name);
-            uuid2SelectionMap.set(o.uuid, helper);
+            sceneObjectSelectionMap.set(o.uuid, helper);
             helper.visible = false;
             scene.add(helper);
           }
@@ -46,14 +47,14 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
       if (curState !== undefined) {
         if (supportControls ) {
           if (curState.deSelected!==""){
-            let deselectedBox = uuid2SelectionMap.get(curState.deSelected)
+            let deselectedBox = sceneObjectSelectionMap.get(curState.deSelected)
             if (deselectedBox !== undefined) {
               deselectedBox.visible = false;
             }
           }
-          let selectedObject = uuid2ObjectMap.get(curState.selected)!
+          let selectedObject = sceneObjectMap.get(curState.selected)!
           if (selectedObject !== undefined && selectedObject.type === "Mesh") {
-            uuid2SelectionMap.get(curState.selected)!.visible = true
+            sceneObjectSelectionMap.get(curState.selected)!.visible = true
           }
         }
         if (supportControls && curState.animating){
@@ -68,8 +69,16 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
             curState.setSceneTree(new SceneTreeModel(scene))
             curState.setAnimationList(animations)
         }
-      }, [scene, animations, supportControls, currentModelPath, curState])
+        return () => {
+          sceneObjectSelectionMap.forEach((value)=>{
+            return value.removeFromParent();
+          });
+          sceneObjectSelectionMap.clear();
+          sceneObjectMap.clear();
+        };
+      }, [scene, animations, supportControls, currentModelPath, curState, sceneObjectMap, sceneObjectSelectionMap])
 
+    
     // By the time we're here the model is guaranteed to be available
     return <primitive object={scene} 
       onPointerDown={(e: any) => curState.setSelected(e.object.uuid)}
