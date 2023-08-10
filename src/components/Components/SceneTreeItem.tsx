@@ -7,7 +7,6 @@ import TreeItem, {
 } from '@mui/lab/TreeItem';
 import clsx from 'clsx';
 import Typography from '@mui/material/Typography';
-import { modelUIState } from '../../state/ModelUIState';
 
 const CustomContent = React.forwardRef(function CustomContent(
     props: TreeItemContentProps,
@@ -34,7 +33,6 @@ const CustomContent = React.forwardRef(function CustomContent(
     } = useTreeItem(nodeId);
 
     const icon = iconProp || expansionIcon || displayIcon;
-    const nodeUuid = nodeId;
 
     const handleMouseDown = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       preventSelection(event);
@@ -50,7 +48,6 @@ const CustomContent = React.forwardRef(function CustomContent(
       event: React.MouseEvent<HTMLDivElement, MouseEvent>,
     ) => {
       handleSelection(event);
-      modelUIState.setSelected(nodeUuid);
     };
 
     return (

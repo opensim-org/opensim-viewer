@@ -5,8 +5,8 @@ import PlayCircleTwoToneIcon from '@mui/icons-material/PlayCircleTwoTone';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import InputLabel from '@mui/material/InputLabel';
-import { modelUIState } from '../../state/ModelUIState';
 import { AnimationClip } from 'three';
+import { useModelContext } from '../../state/ModelUIStateContext';
 
 interface VisualizationControlProps {
     animating?: boolean;
@@ -18,12 +18,13 @@ interface VisualizationControlProps {
 }
 
 function AnimationsMenu (props:VisualizationControlProps) {
+    const curState = useModelContext();
     const handleAnimationChange = (event: SelectChangeEvent) => {
         if (event.target.value as string === ""){
-            modelUIState.setAnimating(false)
+            curState.setAnimating(false)
         }
         else {
-            modelUIState.setAnimating(true)
+            curState.setAnimating(true)
         }
         //setAge(event.target.value as string);
     };
@@ -48,14 +49,15 @@ const VisualizationControl : React.FC<VisualizationControlProps> = (props:Visual
     const { t } = useTranslation();
     const [play, setPlay] = useState(false);
     const [speed, setSpeed] = useState(1.0);
+    const curState = useModelContext();
     // console.log("Props", props);
     function togglePlayAnimation() {
-        modelUIState.setAnimating(!modelUIState.animating);
+        curState.setAnimating(!curState.animating);
         setPlay(!play);
 
     }
     function handleSpeedChange(event: SelectChangeEvent) {
-         modelUIState.setAnimationSpeed(Number(event.target.value));
+        curState.setAnimationSpeed(Number(event.target.value));
          setSpeed(Number(event.target.value))
    }
     return (
@@ -63,8 +65,8 @@ const VisualizationControl : React.FC<VisualizationControlProps> = (props:Visual
       <Container disableGutters>
         <FormGroup>
             <Typography variant="h6" align='left'>{t('Visibility')}</Typography>
-            <FormControlLabel control={<Checkbox checked={modelUIState.showGlobalFrame}/>} label="WCS" 
-                    onClick={()=>modelUIState.setShowGlobalFrame(!modelUIState.showGlobalFrame)}/>
+            <FormControlLabel control={<Checkbox checked={curState.showGlobalFrame}/>} label="WCS" 
+                    onClick={()=>curState.setShowGlobalFrame(!curState.showGlobalFrame)}/>
             <FormControlLabel control={<Checkbox />} label="Joints" />
             <FormControlLabel control={<Checkbox />} label="Bodies" />
             <FormControlLabel control={<Checkbox />} label="Markers" />

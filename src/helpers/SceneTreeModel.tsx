@@ -1,4 +1,4 @@
-import { Object3D, Scene } from "three"; 
+import { Object3D, Group } from "three"; 
 
 export class TreeNode 
 {
@@ -22,7 +22,7 @@ export class TreeNode
 class SceneTreeModel
 {
     public rootNode: TreeNode|null;
-    constructor(sceneTreeGroup: Scene)
+    constructor(sceneTreeGroup: Group)
     {
         this.rootNode = new TreeNode(null, sceneTreeGroup);
         this.rootNode.setName(sceneTreeGroup.name)

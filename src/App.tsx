@@ -59,7 +59,7 @@ function App() {
                             />
                             <Route
                                 path="/viewer"
-                                element={<ModelViewPage curentModelPath={viewerState.currentModelPath} />}
+                                element={<ModelViewPage />}
                             />
                         </Routes>
                     </div>

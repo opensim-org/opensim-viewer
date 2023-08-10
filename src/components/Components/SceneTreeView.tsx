@@ -1,8 +1,9 @@
 import TreeView from '@mui/lab/TreeView'; 
-import { modelUIState } from "../../state/ModelUIState";
 import SvgIcon, { SvgIconProps } from '@mui/material/SvgIcon';
 import SceneTreeItem from './SceneTreeItem';
-import { TreeNode } from '../../helpers/SceneTreeModel';
+import SceneTreeModel, { TreeNode } from '../../helpers/SceneTreeModel';
+import { observer } from 'mobx-react';
+import { useModelContext } from '../../state/ModelUIStateContext';
 
 function MinusSquare(props: SvgIconProps) {
     return (
@@ -37,15 +38,24 @@ function MinusSquare(props: SvgIconProps) {
   }
 
 const SceneTreeView  = ()  => {
+  const curState = useModelContext();
     function createTreeItemForNode(anode: TreeNode, index: number) {
         let computeId = (3+index);
         let threeObj = anode.threeObject;
         //console.log(threeObj);
         return <SceneTreeItem nodeId={threeObj!.uuid} label={anode.name} key={computeId} />
     }
-    const sTree = modelUIState.sceneTree
-    const meshesNode = sTree?.rootNode?.children[0]
-    const meshesArray = meshesNode?.children;
+    const handleSelect = async (event: any, node: any) => {
+      //console.log('nodeId: ', node)
+      curState.setSelected(node as string);
+    }
+    const sTree = curState.sceneTree
+    if (sTree === null && curState.scene !== null) {
+      // console.log(curState.scene);
+      curState.setSceneTree(new SceneTreeModel(curState.scene!));
+    }
+    const meshesNode = (sTree === null)? null: sTree.rootNode?.children[0]
+    const meshesArray = (sTree === null)? null: meshesNode?.children;
     return (
         <TreeView
             aria-label="file system navigator"
@@ -53,6 +63,8 @@ const SceneTreeView  = ()  => {
             defaultCollapseIcon={<MinusSquare />}
             defaultExpandIcon={<PlusSquare />}
             defaultEndIcon={<CloseSquare />}
+            onNodeSelect={handleSelect}
+            selected={curState.selected}
         >
             <SceneTreeItem  nodeId="1" label={sTree?.rootNode?.name} key={1} >
                 <SceneTreeItem  nodeId="2" label={sTree?.rootNode?.children[0].name} key={2}>
@@ -63,4 +75,4 @@ const SceneTreeView  = ()  => {
     );
 }
 
-export default SceneTreeView;
+export default observer(SceneTreeView);
