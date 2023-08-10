@@ -71,7 +71,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         }
         return () => {
           sceneObjectSelectionMap.forEach((value)=>{
-            return value.removeFromParent();
+            return scene.remove(value)
           });
           sceneObjectSelectionMap.clear();
           sceneObjectMap.clear();
