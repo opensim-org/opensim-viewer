@@ -50,12 +50,12 @@ const SceneTreeView  = ()  => {
       curState.setSelected(node as string);
     }
     const sTree = curState.sceneTree
-    if (sTree === null) {
+    if (sTree === null && curState.scene !== null) {
       // console.log(curState.scene);
       curState.setSceneTree(new SceneTreeModel(curState.scene!));
     }
-    const meshesNode = sTree?.rootNode?.children[0]
-    const meshesArray = meshesNode?.children;
+    const meshesNode = (sTree === null)? null: sTree.rootNode?.children[0]
+    const meshesArray = (sTree === null)? null: meshesNode?.children;
     return (
         <TreeView
             aria-label="file system navigator"
