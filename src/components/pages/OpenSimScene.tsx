@@ -18,23 +18,21 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     const { scene, animations } = useGLTF(currentModelPath);
     // eslint-disable-next-line no-mixed-operators
     const [sceneObjectMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
-    const [sceneObjectSelectionMap] = useState<Map<string, BoxHelper>>(new Map<string, BoxHelper>());
+    const [objectSelectionBox, setObjectSelectionBox] = useState<BoxHelper | null>(new BoxHelper(scene));
 
     let curState = useModelContext();
     curState.scene = scene;
+    
     if (supportControls) {
       scene.traverse((o) => {
           sceneObjectMap.set(o.uuid, o)
-          if (o.type === "Mesh") {
-            let helper : BoxHelper = new BoxHelper(o)
-            //console.log("add helper for ", o.name);
-            sceneObjectSelectionMap.set(o.uuid, helper);
-            helper.visible = false;
-            scene.add(helper);
           }
-         })
+      )
+      if (objectSelectionBox !== null)
+        objectSelectionBox.visible = false;
+        scene.add(objectSelectionBox!);
     }
-    
+
     let mixer: AnimationMixer
     if (animations.length > 0) {
         mixer = new AnimationMixer(scene);
@@ -46,15 +44,14 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     useFrame((state, delta) => {
       if (curState !== undefined) {
         if (supportControls ) {
-          if (curState.deSelected!==""){
-            let deselectedBox = sceneObjectSelectionMap.get(curState.deSelected)
-            if (deselectedBox !== undefined) {
-              deselectedBox.visible = false;
+          if (curState.selected === "") 
+            objectSelectionBox!.visible = false
+          else {
+            let selectedObject = sceneObjectMap.get(curState.selected)!
+            if (selectedObject !== undefined && selectedObject.type === "Mesh") {
+              objectSelectionBox?.setFromObject(selectedObject);
+              objectSelectionBox!.visible = true
             }
-          }
-          let selectedObject = sceneObjectMap.get(curState.selected)!
-          if (selectedObject !== undefined && selectedObject.type === "Mesh") {
-            sceneObjectSelectionMap.get(curState.selected)!.visible = true
           }
         }
         if (supportControls && curState.animating){
@@ -70,13 +67,14 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
             curState.setAnimationList(animations)
         }
         return () => {
-          sceneObjectSelectionMap.forEach((value)=>{
-            return scene.remove(value)
-          });
-          sceneObjectSelectionMap.clear();
+          if (objectSelectionBox !== null){
+            scene.remove(objectSelectionBox)
+            setObjectSelectionBox(null);
+            curState.setSelected("")
+          }
           sceneObjectMap.clear();
         };
-      }, [scene, animations, supportControls, currentModelPath, curState, sceneObjectMap, sceneObjectSelectionMap])
+      }, [scene, animations, supportControls, currentModelPath, curState, sceneObjectMap, objectSelectionBox])
 
     
     // By the time we're here the model is guaranteed to be available
