@@ -5,10 +5,15 @@ from rest_framework import viewsets, permissions
 from rest_framework import status as htttp_status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
-from .serializers import UserCreateSerializer, ModelCreateSerializer, ModelRetrieveSerializer
+from .serializers import UserCreateSerializer, ModelCreateSerializer, ModelRetrieveSerializer, LoginSerializer
 from .models import Model, User
 import json
-
+from django.contrib.auth import authenticate, login
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from django.contrib.auth import logout
+from rest_framework.authtoken.models import Token
 
 class UserViewSet(viewsets.ModelViewSet):
     """
@@ -33,9 +38,6 @@ class UserCreate(viewsets.ModelViewSet):
     """
     API endpoint to create users (sign up). Anyone can sign up.
     """
-    serializer_class = UserCreateSerializer
-    permission_classes = [permissions.AllowAny]
-
     def create_user(self, request):
         """
         Create a new user based on the provided request data.
@@ -44,29 +46,36 @@ class UserCreate(viewsets.ModelViewSet):
         :return: Response containing the result of the user creation or an error message.
         """
         error_message = ''
+        status = None
 
         serializer = UserCreateSerializer(data=request.data, context={'request': request})
 
         try:
             # Serialize data, validate and save.
             serializer.is_valid(raise_exception=True)
-            serializer.save()
 
-            # Status: Object created.
-            status = htttp_status.HTTP_201_CREATED
+            # Check if the username or email already exists
+            username = serializer.validated_data.get('username')
+            email = serializer.validated_data.get('email')
+            if User.objects.filter(username=username).exists():
+                error_message = _("Username already exists.")
+                status = htttp_status.HTTP_400_BAD_REQUEST
+            elif User.objects.filter(email=email).exists():
+                error_message = _("Email already exists.")
+                status = htttp_status.HTTP_400_BAD_REQUEST
+            else:
+                serializer.save()
+                status = htttp_status.HTTP_201_CREATED
 
         except ValidationError as e:
             # Format error message.
-            error_message = _("problemCreatingObject") % {"objectName": "user", "error_message": str(e)}
-
-            # Status: Bad request because it was a problem while validating request values.
+            error_message = _("problemCreatingObject") % {"object_name": "user", "error_message": str(e)}
             status = htttp_status.HTTP_400_BAD_REQUEST
+
         except Exception as e:
             # Format error message.
-            error_message = _("problemCreatingObject") % {"objectName": "user", "error_message": json.dumps(serializer.errors)}
-
-            # Status: Internal server error since it is a generic error, probably not identified.
-            # We should follow these since that could mean an unidentified bug.
+            error_message = _("problemCreatingObject") % {"object_name": "user",
+                                                          "error_message": json.dumps(serializer.errors)}
             status = htttp_status.HTTP_500_INTERNAL_SERVER_ERROR
 
         return Response(error_message, status=status)
@@ -117,13 +126,13 @@ class ModelCreate(viewsets.ModelViewSet):
             status = htttp_status.HTTP_201_CREATED
         except ValidationError as e:
             # Format error message.
-            error_message = _("problemCreatingObject") % {"objectName": "model", "error_message": json.dumps(serializer.errors)}
+            error_message = _("problemCreatingObject") % {"object_name": "model", "error_message": json.dumps(serializer.errors)}
 
             # Status: Bad request because it was a problem while validating request values.
             status = htttp_status.HTTP_400_BAD_REQUEST
         except Exception as e:
             # Format error message.
-            error_message = _("problemCreatingObject") % {"objectName": "model", "error_message": json.dumps(serializer.errors)}
+            error_message = _("problemCreatingObject") % {"object_name": "model", "error_message": json.dumps(serializer.errors)}
 
             # Status: Internal server error since it is a generic error, probably not identified.
             # We should follow these since that could mean an unidentified bug.
@@ -474,3 +483,41 @@ class ModelRetrieve(viewsets.ModelViewSet):
             'model_gltf_file': model_file_link,
             'error_message': error_message,
         }, status=status)
+
+class Login(viewsets.ModelViewSet):
+    """
+    API endpoint that allows users to log in.
+    """
+    permission_classes = [permissions.AllowAny]
+    serializer_class = LoginSerializer
+
+    @csrf_exempt
+    def login_view(self, request, format='json'):
+        if request.method == 'POST':
+            serializer = LoginSerializer(data=request.data)
+
+            if serializer.is_valid():
+                username = serializer.validated_data['username']
+                password = serializer.validated_data['password']
+
+                user = authenticate(request, username=username, password=password)
+
+                if user is not None:
+                    token, created = Token.objects.get_or_create(user=user)
+                    return Response({'token': token.key})
+                else:
+                    return Response({'detail': 'Invalid credentials'}, status=htttp_status.HTTP_401_UNAUTHORIZED)
+            else:
+                return Response(serializer.errors, status=htttp_status.HTTP_400_BAD_REQUEST)
+
+class Logout(viewsets.ModelViewSet):
+    """
+    API endpoint that allows users to log out.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    @csrf_exempt
+    def logout_view(self, request, format='json'):
+        user = request.user
+        Token.objects.filter(user=user).delete()
+        return Response({}, status=htttp_status.HTTP_200_OK)

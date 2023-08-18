@@ -34,6 +34,8 @@ i18next
                         info: "Info",
                         share: "Share",
                         shareOnTwitter: "Share on Twitter",
+                        logIn: "Log In",
+                        logOut: "Log Out"
                     },
                     bottomBar: {
                         autoRotate: "Auto-rotate",
@@ -43,6 +45,30 @@ i18next
                         annotate: "Annotate",
                         snapshoot: "Snapshoot",
                         record: "record",
+                    },
+                    login: {
+                        title: "Login",
+                        loginButton: "Login",
+                        username: "Username",
+                        password: "Password",
+                        loginError: 'An error occurred during login.',
+                        notSignedUp: 'Don\'t have an account? Register here.'
+                    },
+                    logout: {
+                        success: "You have successfully logged out.",
+                        mainPage: "Go back to main page.",
+                        logoutError: 'An error occurred during logout.',
+                    },
+                    register: {
+                        title: 'Sign Up',
+                        registerButton: "Sign Up",
+                        firstName: 'First Name',
+                        lastName: 'Last Name',
+                        email: 'Email',
+                        username: 'Username',
+                        password: 'Password',
+                        registerError: 'An error occurred during sign up.',
+                        alreadySignedUp: 'Already have an account? Go to Login.'
                     }
                 }
             },
@@ -70,6 +96,8 @@ i18next
                         info: "Info",
                         share: "Compartir",
                         shareOnTwitter: "Compartir en Twitter",
+                        logIn: "Log In",
+                        logOut: "Log Out"
                     },
                     bottomBar: {
                         autoRotate: "Auto-rotar",
@@ -79,6 +107,30 @@ i18next
                         annotate: "Anotar",
                         snapshoot: "Instantánea",
                         record: "Grabar",
+                    },
+                    login: {
+                        title: "Iniciar Sesión",
+                        loginButton: "Iniciar Sesión",
+                        username: "Nombre de Usuario",
+                        password: "Contraseña",
+                        loginError: 'Se produjo un error al iniciar sesión.',
+                        notSignedUp: '¿No tienes una cuenta? Registrate aquí.'
+                    },
+                    logout: {
+                        success: "Las sesión se cerró correctamente.",
+                        mainPage: "Volver a la página principal.",
+                        logoutError: 'Se produjo un error al cerrar sesión.'
+                    },
+                    register: {
+                        title: "Registrarse",
+                        registerButton: "Registrarse",
+                        firstName: 'Nombre',
+                        lastName: 'Apellido',
+                        email: 'Email',
+                        username: "Nombre de Usuario",
+                        password: "Contraseña",
+                        registerError: 'Se produjo un error al iniciar sesión.',
+                        alreadySignedUp: '¿Ya tienes una cuenta? Inicia sesión aquí.'
                     }
                 }
             }
