@@ -2,6 +2,9 @@ import HomePage from './components/pages/HomePage'
 import AboutPage from './components/pages/AboutPage'
 import ModelListPage from './components/pages/ModelListPage/ModelListPage'
 import ModelViewPage from './components/pages/ModelViewPage'
+import LoginPage from './components/pages/LoginPage'
+import LogoutPage from './components/pages/LogoutPage'
+import RegisterPage from './components/pages/RegisterPage'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './App.css'
 import { observer } from 'mobx-react'
@@ -48,7 +51,7 @@ function App() {
             <CssBaseline />
             <BrowserRouter>
                 <div className="App" style={{ width: '100%'}}>
-                    <OpenSimAppBar dark={viewerState.dark} />
+                    <OpenSimAppBar dark={viewerState.dark} isLoggedIn={viewerState.isLoggedIn} />
                     <div>
                         <Routes>
                             <Route path="/" element={<HomePage />} />
@@ -60,6 +63,18 @@ function App() {
                             <Route
                                 path="/viewer"
                                 element={<ModelViewPage />}
+                            />
+                            <Route
+                                path="/log_in"
+                                element={<LoginPage isLoggedIn={viewerState.isLoggedIn}/>}
+                            />
+                            <Route
+                                path="/log_out"
+                                element={<LogoutPage isLoggedIn={viewerState.isLoggedIn}/>}
+                            />
+                            <Route
+                                path="/register"
+                                element={<RegisterPage />}
                             />
                         </Routes>
                     </div>

@@ -7,7 +7,7 @@ import '../../internationalization/i18n'
 function TestComponent() {
     const [dark, _] = React.useState<boolean>(true)
 
-    return <OpenSimAppBar dark={true} />
+    return <OpenSimAppBar dark={true} isLoggedIn={true}/>
 }
 
 test('renders opensim-viewer toolbar', () => {

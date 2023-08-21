@@ -3,12 +3,16 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150)
+    password = serializers.CharField(write_only=True)
+
 class UserCreateSerializer(serializers.ModelSerializer):
     username = serializers.CharField(validators=[UniqueValidator(queryset=User.objects.all())], allow_null=False,
                                      allow_blank=False)
     email = serializers.EmailField(validators=[UniqueValidator(queryset=User.objects.all())], allow_null=False,
                                    allow_blank=False)
-    password = serializers.CharField(min_length=8, allow_null=False, allow_blank=False)
+    password = serializers.CharField(min_length=8, allow_null=False, allow_blank=False, style={'input_type': 'password'})
     first_name = serializers.CharField(allow_null=False, allow_blank=False)
     last_name = serializers.CharField(allow_null=False, allow_blank=False)
 

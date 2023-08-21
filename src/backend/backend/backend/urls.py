@@ -23,6 +23,11 @@ urlpatterns = [
     path("create_model/", views.ModelCreate.as_view({'post': 'create_model'}), name="ModelCreate"),
     # Retrieve information and file of an existing model.
     path("retrieve_model/", views.ModelRetrieve.as_view({'post': 'retrieve_model'}), name="ModelRetrieve"),
+    # Login with user and password.
+    path('login/', views.Login.as_view({'post': 'login_view'}), name='login'),
+    # Logout with user and password.
+    path('logout/', views.Logout.as_view({'post': 'logout_view'}), name='logout'),
+
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

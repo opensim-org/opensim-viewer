@@ -4,19 +4,23 @@ class ViewerState {
     currentModelPath: string
     featuredModelsFilePath: string
     dark: boolean
+    isLoggedIn: boolean
 
     constructor(
         currentModelPathState: string,
         featuredModelsFilePathState: string,
         darkState: boolean,
+        isLoggedInState: boolean
     ) {
         this.currentModelPath = currentModelPathState
         this.featuredModelsFilePath = featuredModelsFilePathState
         this.dark = darkState
+        this.isLoggedIn = isLoggedInState
         makeObservable(this, {
             currentModelPath: observable,
             featuredModelsFilePath: observable,
             dark: observable,
+            isLoggedIn: observable,
             setCurrentModelPath: action,
             setFeaturedModelsFilePath: action
         })
@@ -31,9 +35,12 @@ class ViewerState {
     setDark(newState: boolean) {
         this.dark = newState
     }
+    setIsLoggedIn(newState: boolean) {
+        this.isLoggedIn = newState
+    }
 
 }
 
-const viewerState = new ViewerState('/builtin/arm26_elbow_flex.gltf', '/builtin/featured-models.json', false)
+const viewerState = new ViewerState('/builtin/arm26_elbow_flex.gltf', '/builtin/featured-models.json', false, false)
 
 export default viewerState

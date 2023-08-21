@@ -143,3 +143,6 @@ testing/*
 
 # Files uploaded while testing
 opensim_viewer_backend/model_files
+
+# Jetbrains
+.idea/
