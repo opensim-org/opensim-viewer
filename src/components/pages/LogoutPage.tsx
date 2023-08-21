@@ -6,6 +6,7 @@ import viewerState from '../../state/ViewerState';
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { getBackendURL } from '../../helpers/urlHelpers'
 
 interface LogoutPageProps {
     isLoggedIn: boolean
@@ -23,7 +24,8 @@ const LogoutPage: React.FC<LogoutPageProps> = ({ isLoggedIn }) => {
         const handleLogout = async () => {
             try {
                 if (isLoggedIn) {
-                    await axios.post('http://localhost:8000/logout/', null, {
+                    console.log(getBackendURL('logout/'))
+                    await axios.post(getBackendURL('logout/'), null, {
                         headers: {
                           Authorization: `Token ${localStorage.getItem('token')}`,
                         },

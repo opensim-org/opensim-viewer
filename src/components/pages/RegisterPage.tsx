@@ -4,6 +4,7 @@ import { NavLink } from 'react-router-dom'
 import { Container, Typography, TextField, Button } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { getBackendURL } from '../../helpers/urlHelpers'
 
 import axios from 'axios';
 
@@ -20,7 +21,7 @@ const HomePage = () => {
 
     const handleRegister = async () => {
         try {
-            await axios.post('http://127.0.0.1:8000/sign_up/', {
+            await axios.post(getBackendURL('sign_up/'), {
                 username: username,
                 password: password,
                 email: email,

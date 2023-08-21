@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import viewerState from '../../state/ViewerState';
 import axios from 'axios';
+import { getBackendURL } from '../../helpers/urlHelpers'
 
 interface LoginPageProps {
     isLoggedIn: boolean
@@ -26,20 +27,22 @@ const LoginPage: React.FC<LoginPageProps> = ({ isLoggedIn }) => {
                 navigate('/');
 
             // If not logged in, log in using an axios call to the server.
-            let response = await axios.post('http://127.0.0.1:8000/login/', {
+            await axios.post(getBackendURL('login/'), {
                 username: username,
                 password: password
-            });
-            if (response.status === 200) {
-                // Set logged in to true.
-                viewerState.setIsLoggedIn(true)
-                // Save token to localStorage or Redux store
-                localStorage.setItem('token', response.data.token);
-                // Go to home.
-                navigate('/');
-            } else {
-                setErrorMessage(t('logout.logoutError'));
-            }
+            }).then(response => {
+                if (response.status === 200) {
+                    // Set logged in to true.
+                    viewerState.setIsLoggedIn(true)
+                    // Save token to localStorage or Redux store
+                    localStorage.setItem('token', response.data.token);
+                    // Go to home.
+                    navigate('/');
+                } else {
+                    setErrorMessage(t('logout.logoutError'));
+                }
+            });;
+
 
         } catch (error:any) {
             if (error.response) {
