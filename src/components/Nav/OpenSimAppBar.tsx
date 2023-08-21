@@ -21,10 +21,10 @@ import { useTranslation } from 'react-i18next'
 
 interface OpenSimAppBarProps {
     dark: boolean,
-    isLoggedin: boolean
+    isLoggedIn: boolean
 }
 
-const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedin }) => {
+const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn }) => {
   const { t } = useTranslation();
 
   return (
@@ -78,10 +78,10 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedin }) => {
             <TwitterIcon />
           </IconButton>
         </Tooltip>
-        <Tooltip title={isLoggedin ? t('topBar.logOut') : t('topBar.logIn')}>
-          <Link component={NavLink} to={isLoggedin ? "/log_out" : "/log_in"}>
+        <Tooltip title={isLoggedIn ? t('topBar.logOut') : t('topBar.logIn')}>
+          <Link component={NavLink} to={isLoggedIn ? "/log_out" : "/log_in"}>
               <IconButton color="secondary">
-                {isLoggedin ? <LogoutIcon /> : <LoginIcon />}
+                {isLoggedIn ? <LogoutIcon /> : <LoginIcon />}
               </IconButton>
           </Link>
         </Tooltip>

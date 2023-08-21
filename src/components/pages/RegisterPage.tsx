@@ -20,14 +20,15 @@ const HomePage = () => {
 
     const handleRegister = async () => {
         try {
-            const response = await axios.post('http://127.0.0.1:8000/sign_up/', {
+            await axios.post('http://127.0.0.1:8000/sign_up/', {
                 username: username,
                 password: password,
                 email: email,
                 first_name: firstName,
                 last_name: lastName
+            }).then(response => {
+                navigate('/log_in');
             });
-            navigate('/log_in');
 
         } catch (error:any) {
             if (error.response) {

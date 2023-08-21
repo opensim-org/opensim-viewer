@@ -8,45 +8,51 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 interface LogoutPageProps {
-    isLoggedin: boolean
+    isLoggedIn: boolean
 }
 
-const LogoutPage: React.FC<LogoutPageProps> = ({ isLoggedin }) => {
+const LogoutPage: React.FC<LogoutPageProps> = ({ isLoggedIn }) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
 
     const [errorMessage, setErrorMessage] = useState<string | null>('');
 
-    const handleLogout = async () => {
-        try {
-            if (isLoggedin) {
-                let response = await axios.post('http://localhost:8000/logout/', null, {
-                    headers: {
-                      Authorization: `Token ${localStorage.getItem('token')}`,
-                    },
-                });
-                if (response.status === 200) {
-                    viewerState.setIsLoggedin(false)
-                    // Clear the token from localStorage
-                    localStorage.removeItem('token');
+
+
+    useEffect(() => {
+        const handleLogout = async () => {
+            try {
+                if (isLoggedIn) {
+                    await axios.post('http://localhost:8000/logout/', null, {
+                        headers: {
+                          Authorization: `Token ${localStorage.getItem('token')}`,
+                        },
+                    }).then(response => {
+                        if (response.status === 200) {
+                            viewerState.setIsLoggedIn(false)
+                            // Clear the token from localStorage
+                            localStorage.removeItem('token');
+                        } else {
+                            setErrorMessage(t('logout.logoutError'));
+                        }
+                    });
+                } else {
+                    navigate('/log_in');
+                }
+            } catch (error:any) {
+                if (error.response) {
+                    setErrorMessage(error.response.data.detail);
                 } else {
                     setErrorMessage(t('logout.logoutError'));
                 }
-            } else {
-                navigate('/log_in');
             }
-        } catch (error:any) {
-            if (error.response) {
-                setErrorMessage(error.response.data.detail);
-            } else {
-                setErrorMessage(t('logout.logoutError'));
-            }
-        }
-    };
-
-    useEffect(() => {
+        };
         handleLogout();
-    }, [])
+    // The compiler complains about the isLoggedIn variable being used, but not being inside of the dependency array.
+    // If we add it to the dependency array, it will trigger unwanted renders, since we change it inside the useEffect,
+    // thus, to remove this warning, I add the following line:
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [navigate, t])
 
     return (
         <Container>

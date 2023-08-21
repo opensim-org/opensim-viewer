@@ -51,7 +51,7 @@ function App() {
             <CssBaseline />
             <BrowserRouter>
                 <div className="App" style={{ width: '100%'}}>
-                    <OpenSimAppBar dark={viewerState.dark} isLoggedin={viewerState.isLoggedin} />
+                    <OpenSimAppBar dark={viewerState.dark} isLoggedIn={viewerState.isLoggedIn} />
                     <div>
                         <Routes>
                             <Route path="/" element={<HomePage />} />
@@ -66,11 +66,11 @@ function App() {
                             />
                             <Route
                                 path="/log_in"
-                                element={<LoginPage isLoggedin={viewerState.isLoggedin}/>}
+                                element={<LoginPage isLoggedIn={viewerState.isLoggedIn}/>}
                             />
                             <Route
                                 path="/log_out"
-                                element={<LogoutPage isLoggedin={viewerState.isLoggedin}/>}
+                                element={<LogoutPage isLoggedIn={viewerState.isLoggedIn}/>}
                             />
                             <Route
                                 path="/register"

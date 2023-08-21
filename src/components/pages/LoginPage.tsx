@@ -8,10 +8,10 @@ import viewerState from '../../state/ViewerState';
 import axios from 'axios';
 
 interface LoginPageProps {
-    isLoggedin: boolean
+    isLoggedIn: boolean
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({ isLoggedin }) => {
+const LoginPage: React.FC<LoginPageProps> = ({ isLoggedIn }) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
 
@@ -22,7 +22,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ isLoggedin }) => {
     const handleLogin = async () => {
         try {
             // If logged in, go to home.
-            if (isLoggedin)
+            if (isLoggedIn)
                 navigate('/');
 
             // If not logged in, log in using an axios call to the server.
@@ -32,7 +32,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ isLoggedin }) => {
             });
             if (response.status === 200) {
                 // Set logged in to true.
-                viewerState.setIsLoggedin(true)
+                viewerState.setIsLoggedIn(true)
                 // Save token to localStorage or Redux store
                 localStorage.setItem('token', response.data.token);
                 // Go to home.

@@ -4,23 +4,23 @@ class ViewerState {
     currentModelPath: string
     featuredModelsFilePath: string
     dark: boolean
-    isLoggedin: boolean
+    isLoggedIn: boolean
 
     constructor(
         currentModelPathState: string,
         featuredModelsFilePathState: string,
         darkState: boolean,
-        isLoggedinState: boolean
+        isLoggedInState: boolean
     ) {
         this.currentModelPath = currentModelPathState
         this.featuredModelsFilePath = featuredModelsFilePathState
         this.dark = darkState
-        this.isLoggedin = isLoggedinState
+        this.isLoggedIn = isLoggedInState
         makeObservable(this, {
             currentModelPath: observable,
             featuredModelsFilePath: observable,
             dark: observable,
-            isLoggedin: observable,
+            isLoggedIn: observable,
             setCurrentModelPath: action,
             setFeaturedModelsFilePath: action
         })
@@ -35,8 +35,8 @@ class ViewerState {
     setDark(newState: boolean) {
         this.dark = newState
     }
-    setIsLoggedin(newState: boolean) {
-        this.isLoggedin = newState
+    setIsLoggedIn(newState: boolean) {
+        this.isLoggedIn = newState
     }
 
 }
