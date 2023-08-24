@@ -1,3 +1,6 @@
+import os
+import pathlib
+from urllib.parse import urlparse
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as _
@@ -5,6 +8,9 @@ from rest_framework import viewsets, permissions
 from rest_framework import status as htttp_status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
+import urllib3
+
+from opensim_viewer_backend import settings
 from .serializers import UserCreateSerializer, ModelCreateSerializer, ModelRetrieveSerializer, LoginSerializer
 from .models import Model, User
 import json
@@ -14,6 +20,9 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.contrib.auth import logout
 from rest_framework.authtoken.models import Token
+from .osimConverters import convertTrc2Gltf
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 
 class UserViewSet(viewsets.ModelViewSet):
     """
@@ -133,6 +142,48 @@ class ModelCreate(viewsets.ModelViewSet):
         except Exception as e:
             # Format error message.
             error_message = _("problemCreatingObject") % {"object_name": "model", "error_message": json.dumps(serializer.errors)}
+
+            # Status: Internal server error since it is a generic error, probably not identified.
+            # We should follow these since that could mean an unidentified bug.
+            status = htttp_status.HTTP_500_INTERNAL_SERVER_ERROR
+
+        return Response(error_message, status=status)
+
+    def upload_file(self, request):
+        """
+        Create a new model based on the provided request data.
+
+        :param request: The request object. Should include 'name', 'description', 'owner', 'authors', 'model_folder', 'link', 'license' and 'license_link'.
+        :return: Response containing the result of the user creation or an error message.
+        """
+        error_message = ''
+        filedata = request.data['files']
+        filename, file_extension = os.path.splitext(filedata.name)
+        validFile = file_extension in ['.trc', '.mot', '.c3d'] 
+        try:
+            if (validFile):
+                pathOnServer = os.path.join(settings.STATIC_ROOT, filedata.name)
+                savedFilePath = default_storage.save(pathOnServer, ContentFile(filedata.read()))
+
+                if (file_extension==".trc"):
+                #invoke converter on trc file, then generate url from path
+                    generatedFile = convertTrc2Gltf(savedFilePath, 'sphere')
+                # Serialize data, validate and save.
+                status = htttp_status.HTTP_200_OK
+                return Response({
+                    'status': status,
+                    'model_gltf_file': "http://localhost:8000/"+generatedFile,
+                    'error_message': error_message,
+                    }, status=status)
+        except ValidationError as e:
+            # Format error message.
+            error_message = _("problemCreatingObject") % {"object_name": "model", "error_message": "Error"}
+
+            # Status: Bad request because it was a problem while validating request values.
+            status = htttp_status.HTTP_400_BAD_REQUEST
+        except Exception as e:
+            # Format error message.
+            error_message = _("problemCreatingObject") % {"object_name": "model", "error_message": "Error"}
 
             # Status: Internal server error since it is a generic error, probably not identified.
             # We should follow these since that could mean an unidentified bug.

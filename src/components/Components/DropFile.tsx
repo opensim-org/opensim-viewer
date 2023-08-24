@@ -3,13 +3,17 @@ import { observer } from 'mobx-react';
 import { useLocalObservable } from 'mobx-react-lite';
 import { Paper, Typography, LinearProgress } from '@mui/material';
 import { useTranslation } from 'react-i18next'
-
+import axios from 'axios';
+import { getBackendURL } from '../../helpers/urlHelpers'
+import viewerState from '../../state/ViewerState';
+import { useNavigate } from 'react-router-dom';
 const FileDropArea = observer(() => {
   const { t } = useTranslation();
-
+  const navigate = useNavigate();
+  const appState = viewerState;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const acceptedTypes:string[] = ['.gltf']
+  const acceptedTypes:string[] = ['.gltf', '.trc']
   const acceptedTypesString:string = acceptedTypes.join(', ');
 
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -83,7 +87,7 @@ const FileDropArea = observer(() => {
       for (const file of store.files) {
         const formData = new FormData();
         formData.append('files', file);
-
+/*
         const xhr = new XMLHttpRequest();
 
         xhr.upload.addEventListener('progress', (event) => {
@@ -98,9 +102,19 @@ const FileDropArea = observer(() => {
         xhr.onreadystatechange = () => {
           handleStateChange(xhr, fileCount);
         };
+*/
 
-        xhr.open('POST', '/upload');
-        xhr.send(formData);
+await axios.post(getBackendURL('upload_file/'), formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          "Authorization " : "Token "+localStorage.getItem('token')
+        }
+      }).then(response => {
+        let url_gltf = response.data.model_gltf_file;
+        appState.setCurrentModelPath(url_gltf);
+        navigate('/viewer');
+        
+      })
       }
     }    
   }));
