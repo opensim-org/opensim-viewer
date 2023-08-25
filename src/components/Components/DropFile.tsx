@@ -110,7 +110,7 @@ await axios.post(getBackendURL('upload_file/'), formData, {
           "Authorization " : "Token "+localStorage.getItem('token')
         }
       }).then(response => {
-        let url_gltf = response.data.model_gltf_file;
+        let url_gltf = getBackendURL(response.data.model_gltf_file);
         appState.setCurrentModelPath(url_gltf);
         navigate('/viewer');
         

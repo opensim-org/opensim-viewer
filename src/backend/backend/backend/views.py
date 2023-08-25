@@ -179,7 +179,7 @@ class ModelCreate(viewsets.ModelViewSet):
                 status = htttp_status.HTTP_200_OK
                 return Response({
                     'status': status,
-                    'model_gltf_file': "http://localhost:8000/"+generatedFile,
+                    'model_gltf_file': generatedFile,
                     'error_message': error_message,
                     }, status=status)
         except ValidationError as e:
