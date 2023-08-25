@@ -70,51 +70,27 @@ const FileDropArea = observer(() => {
 
       store.isUploadComplete = false;
 
-      const fileCount = store.files.length;
-      let completedFiles = 0;
-
-      const handleStateChange = (xhr:any, fileCount:number) => {
-        if (xhr.readyState === XMLHttpRequest.DONE) {
-          completedFiles++;
-          if (completedFiles === fileCount) {
-            store.isUploadComplete = true;
-            store.uploadProgress = 0;
-            store.uploadPercentage = 0;
-          }
-        }
-      };
-
       for (const file of store.files) {
         const formData = new FormData();
         formData.append('files', file);
-/*
-        const xhr = new XMLHttpRequest();
 
-        xhr.upload.addEventListener('progress', (event) => {
-          if (event.lengthComputable) {
-            const percent = Math.round((event.loaded / event.total) * 100);
-            const percentage = percent / 100; // Convert to decimal value
-            store.uploadProgress = percent;
-            store.uploadPercentage = percentage;
-          }
-        });
-
-        xhr.onreadystatechange = () => {
-          handleStateChange(xhr, fileCount);
-        };
-*/
-
-await axios.post(getBackendURL('upload_file/'), formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          "Authorization " : "Token "+localStorage.getItem('token')
-        }
-      }).then(response => {
-        let url_gltf = getBackendURL(response.data.model_gltf_file);
-        appState.setCurrentModelPath(url_gltf);
-        navigate('/viewer');
+        await axios.post(getBackendURL('upload_file/'), formData, {
+              headers: {
+                "Content-Type": "multipart/form-data",
+                "Authorization " : "Token "+localStorage.getItem('token')
+              },
+              onUploadProgress: progressEvent =>{
+                const percent =progressEvent.loaded / progressEvent.total!
+                const percentage = percent / 100; // Convert to decimal value
+                store.uploadProgress = percent;
+                store.uploadPercentage = percentage;
+              }
+            }).then(response => {
+              let url_gltf = getBackendURL(response.data.model_gltf_file);
+              appState.setCurrentModelPath(url_gltf);
+              navigate('/viewer');
         
-      })
+            })
       }
     }    
   }));
