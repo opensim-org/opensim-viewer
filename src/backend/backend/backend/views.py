@@ -20,9 +20,11 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.contrib.auth import logout
 from rest_framework.authtoken.models import Token
-from .osimConverters import convertTrc2Gltf
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from .osimConverters import convertTrc2Gltf
+from .osimConverters import convertC3D2Gltf
+from .osimConverters import convertMotForce2Gltf
 
 class UserViewSet(viewsets.ModelViewSet):
     """
@@ -168,6 +170,11 @@ class ModelCreate(viewsets.ModelViewSet):
                 if (file_extension==".trc"):
                 #invoke converter on trc file, then generate url from path
                     generatedFile = convertTrc2Gltf(savedFilePath, 'sphere')
+                elif (file_extension==".c3d"):
+                    generatedFile = convertC3D2Gltf(savedFilePath, 'sphere')
+                elif (file_extension==".mot"):
+                   generatedFile = convertMotForce2Gltf(savedFilePath, 'arrow')
+
                 # Serialize data, validate and save.
                 status = htttp_status.HTTP_200_OK
                 return Response({

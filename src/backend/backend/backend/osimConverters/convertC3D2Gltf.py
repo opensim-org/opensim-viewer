@@ -9,8 +9,7 @@ from pygltflib import *
 import numpy as np
 import json
 from pathlib import Path
-import openSimData2Gltf as os2Gltf
-
+from .openSimData2Gltf import *
 # format is
 #
 # "scenes": [...], will populate 0 only
@@ -42,18 +41,18 @@ def convertC3D2Gltf(c3dFilePath, shape) :
     # instead of creating the GLTF2 structure from scratch and programmatically adding basic
     # shapes (Sphere, Cube, brick, axes, arrows etc.) instead we load a file with these meshes
     # baked in and use these meshes as needed. 
-    gltf = os2Gltf.initGltf()
+    gltf = initGltf()
 
     # create node for the marker mesh, refer to it from all marker nodes
-    os2Gltf.convertMarkersTimeSeries2Gltf(gltf, shape, markerDataTable)
+    convertMarkersTimeSeries2Gltf(gltf, shape, markerDataTable)
 
     # now the forces
     if (hasForceData):
         forcesDictionary = dict()
         labels = forcesDataTable.getColumnLabels()
-        os2Gltf.createForceDictionary(labels, forcesDictionary)
+        createForceDictionary(labels, forcesDictionary)
         if (len(forcesDictionary.keys())>0) :
-          forceScale = os2Gltf.getForceMeshScale()
+          forceScale = getForceMeshScale()
           firstForceFrame = forcesDataTable.getRowAtIndex(0)
           topForcesNode = Node()
           topForcesNode.name = 'ForceData'
@@ -70,37 +69,39 @@ def convertC3D2Gltf(c3dFilePath, shape) :
           else:
               print("File has no Units specifications, NMS assumed.")
 
-          firstForceIndex = os2Gltf.createForceNodes(shape, forcesDictionary, unitConversionToMeters, scaleData, forceScale, firstForceFrame, gltf, topForcesNode)
-          os2Gltf.convertForcesTableToGltfAnimation(gltf, forcesDataTable, unitConversionToMeters, forcesDictionary, firstForceIndex)
+          firstForceIndex = createForceNodes(shape, forcesDictionary, unitConversionToMeters, scaleData, forceScale, firstForceFrame, gltf, topForcesNode)
+          convertForcesTableToGltfAnimation(gltf, forcesDataTable, unitConversionToMeters, forcesDictionary, firstForceIndex)
 
-    return gltf
+    outfile = c3dFilePath.replace('.c3d', '.gltf')
+    gltf.save(outfile)
+    return outfile
 
-def main():
-    import argparse
+# def main():
+#     import argparse
 
-    ## Input parsing.
-    ## =============
-    parser = argparse.ArgumentParser(
-        description="Generate a gltf file corresponding to the passed in c3d file.")
-    # Required arguments.
-    parser.add_argument('c3d_file_path',
-                        metavar='c3dfilepath', type=str,
-                        help="filename for c3d file (including path).")
-    parser.add_argument('--shape', type=str,
-                        help="Pick shape to use for displaying markers.")
-    parser.add_argument('--output', type=str,
-                        help="Write the result to this filepath. "
-                             "Default: the report is named "
-                             "<c3d_file_path>.gltf")
-    args = parser.parse_args()
-    # print(args)
-    infile = args.c3d_file_path
-    if (args.output == None) :
-        outfile = infile.replace('.c3d', '.gltf')
-    else:
-        outfile = args.output
+#     ## Input parsing.
+#     ## =============
+#     parser = argparse.ArgumentParser(
+#         description="Generate a gltf file corresponding to the passed in c3d file.")
+#     # Required arguments.
+#     parser.add_argument('c3d_file_path',
+#                         metavar='c3dfilepath', type=str,
+#                         help="filename for c3d file (including path).")
+#     parser.add_argument('--shape', type=str,
+#                         help="Pick shape to use for displaying markers.")
+#     parser.add_argument('--output', type=str,
+#                         help="Write the result to this filepath. "
+#                              "Default: the report is named "
+#                              "<c3d_file_path>.gltf")
+#     args = parser.parse_args()
+#     # print(args)
+#     infile = args.c3d_file_path
+#     if (args.output == None) :
+#         outfile = infile.replace('.c3d', '.gltf')
+#     else:
+#         outfile = args.output
     
-    resultGltf = convertC3D2Gltf(infile, args.shape)
-    resultGltf.save(outfile)
+#     resultGltf = convertC3D2Gltf(infile, args.shape)
+#     resultGltf.save(outfile)
 
-main()
+# main()
