@@ -9,7 +9,7 @@ from pygltflib import *
 import numpy as np
 import json
 from pathlib import Path
-import openSimData2Gltf as os2Gltf
+from .openSimData2Gltf import *
 
 # format is
 #
@@ -25,13 +25,15 @@ def convertTrc2Gltf(trcFilePath, shape) :
     if not path.exists():
         raise NotADirectoryError("Unable to find file ", path.absolute())
 
-    gltfJson = os2Gltf.initGltf()
+    gltfJson = initGltf()
     timeSeriesTableMarkers = osim.TimeSeriesTableVec3(trcFilePath)
-    os2Gltf.convertMarkersTimeSeries2Gltf(gltfJson, shape, timeSeriesTableMarkers)
-    return gltfJson
+    convertMarkersTimeSeries2Gltf(gltfJson, shape, timeSeriesTableMarkers)
+    outfile = trcFilePath.replace('.trc', '.gltf')
+    gltfJson.save(outfile)
+    return outfile
 
-def main():
-    import argparse
+# def main():
+"""     import argparse
 
     ## Input parsing.
     ## =============
@@ -57,5 +59,5 @@ def main():
     
     resultGltf = convertTrc2Gltf(infile, args.shape)
     resultGltf.save(outfile)
-
-main()
+ """
+# main()

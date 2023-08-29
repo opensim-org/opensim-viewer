@@ -9,7 +9,7 @@ from pygltflib import *
 import numpy as np
 import json
 from pathlib import Path
-import openSimData2Gltf as os2Gltf
+from .openSimData2Gltf import *
 # format is
 #
 # "scenes": [...], will populate 0 only
@@ -30,7 +30,7 @@ def convertMotForce2Gltf(motFilePath, shape) :
     # Based on column labels and assuming grouping was done properly by .pack call
     # Will add entry for force_point pair of columns with common prefix
     forcesDictionary = dict()
-    os2Gltf.createForceDictionary(labels, forcesDictionary)
+    createForceDictionary(labels, forcesDictionary)
 
     if (len(forcesDictionary.keys())==0) :
        raise  IndexError("Input file has no forces or labels not following OpenSim convention.", table)
@@ -48,9 +48,9 @@ def convertMotForce2Gltf(motFilePath, shape) :
     else:
         print("File has no Units specifications, NMS assumed.")
 
-    forceScale = os2Gltf.getForceMeshScale()
+    forceScale = getForceMeshScale()
     firstDataFrame = timeSeriesTableVec3.getRowAtIndex(0)
-    gltf = os2Gltf.initGltf()
+    gltf = initGltf()
 
     # create node for the force mesh, refer to it from all force nodes
     topNode = Node()
@@ -64,37 +64,39 @@ def convertMotForce2Gltf(motFilePath, shape) :
        shape = 'arrow'
 
     # Create nodes for the experimental forces, 1 node per force
-    firstNodeIndex = os2Gltf.createForceNodes(shape, forcesDictionary, unitConversionToMeters, scaleData, forceScale, firstDataFrame, gltf, topNode)
-    os2Gltf.convertForcesTableToGltfAnimation(gltf, timeSeriesTableVec3, unitConversionToMeters, forcesDictionary, firstNodeIndex)
-    return gltf
+    firstNodeIndex = createForceNodes(shape, forcesDictionary, unitConversionToMeters, scaleData, forceScale, firstDataFrame, gltf, topNode)
+    convertForcesTableToGltfAnimation(gltf, timeSeriesTableVec3, unitConversionToMeters, forcesDictionary, firstNodeIndex)
+    outfile = motFilePath.replace('.mot', '.gltf')
+    gltf.save(outfile)
+    return outfile
 
 
-def main():
-    import argparse
+# def main():
+#     import argparse
 
-    ## Input parsing.
-    ## =============
-    parser = argparse.ArgumentParser(
-        description="Generate a gltf file corresponding to the passed in trc file.")
-    # Required arguments.
-    parser.add_argument('mot_file_path',
-                        metavar='motfilepath', type=str,
-                        help="filename for trc file (including path).")
-    parser.add_argument('--shape', type=str,
-                        help="Pick shape to use for displaying forces.")
-    parser.add_argument('--output', type=str,
-                        help="Write the result to this filepath. "
-                             "Default: the report is named "
-                             "<mot_file_path>.gltf")
-    args = parser.parse_args()
-    # print(args)
-    infile = args.mot_file_path
-    if (args.output == None) :
-        outfile = infile.replace('.mot', '.gltf')
-    else:
-        outfile = args.output
+#     ## Input parsing.
+#     ## =============
+#     parser = argparse.ArgumentParser(
+#         description="Generate a gltf file corresponding to the passed in trc file.")
+#     # Required arguments.
+#     parser.add_argument('mot_file_path',
+#                         metavar='motfilepath', type=str,
+#                         help="filename for trc file (including path).")
+#     parser.add_argument('--shape', type=str,
+#                         help="Pick shape to use for displaying forces.")
+#     parser.add_argument('--output', type=str,
+#                         help="Write the result to this filepath. "
+#                              "Default: the report is named "
+#                              "<mot_file_path>.gltf")
+#     args = parser.parse_args()
+#     # print(args)
+#     infile = args.mot_file_path
+#     if (args.output == None) :
+#         outfile = infile.replace('.mot', '.gltf')
+#     else:
+#         outfile = args.output
     
-    resultGltf = convertMotForce2Gltf(infile, args.shape)
-    resultGltf.save(outfile)
+#     resultGltf = convertMotForce2Gltf(infile, args.shape)
+#     resultGltf.save(outfile)
 
-main()
+# main()

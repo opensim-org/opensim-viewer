@@ -5,6 +5,7 @@ import numpy as np
 import base64
 import math
 import os.path as pathmethods
+import os
 
 shape2Mesh = {
     'brick' : 0,
@@ -29,6 +30,7 @@ def mapShapeStringToMeshNumber(shape):
 
 def initGltf():
     "Initialize Gltf json structure, seed it with basicShapes"
+    cwd = os.getcwd();
     gltf = GLTF2().load('basicShapes.gltf')
     gltf.nodes.clear()
     default_scene = gltf.scenes[0]
