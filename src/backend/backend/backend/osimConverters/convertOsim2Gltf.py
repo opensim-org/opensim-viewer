@@ -42,7 +42,8 @@ def convertOsim2Gltf(osimModelFilePath, geometrySearchPath) :
   for dg_index  in range(adg.size()):
     adg.at(dg_index).implementGeometry(decorativeGeometryImp)
   
-  decorativeGeometryImp.get_GLTF().save("D:/skeleton.gltf")
+  outfile = osimModelFilePath.replace('.osim', '.gltf')
+  decorativeGeometryImp.get_GLTF().save(outfile)
 
 
 

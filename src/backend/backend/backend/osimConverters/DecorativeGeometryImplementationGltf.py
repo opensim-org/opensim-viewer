@@ -1,5 +1,6 @@
 import opensim as osim
 from pygltflib import *
+import numpy as np
 import vtk 
 
 # Class to convert osim model file to a GLTF structure.
@@ -88,9 +89,9 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         reader.Update()
         polyDataOutput = reader.GetOutput()
         if (polyDataOutput.GetNumberOfCells() > 0):
-            # mesh = Mesh() # populate from polyDataOutput
-            # self.meshes.append(mesh)
-            meshId = 1 #len(self.meshes)
+            mesh = self.addMeshForPolyData(polyDataOutput) # populate from polyDataOutput
+            self.meshes.append(mesh)
+            meshId = len(self.meshes)-1
             meshNode = Node(name="Mesh:"+arg0.getMeshFile())
             meshNode.matrix = self.createMatrixFromTransform(arg0.getTransform(), arg0.getScaleFactors())
             t, r, s = self.createTRSFromTransform(arg0.getTransform(), arg0.getScaleFactors())
@@ -176,12 +177,71 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
             retTransform[12+i] = p.get(i)*self.unitConversion;
         return retTransform
 
-    def writeMesh(self, polyData: vtk.vtkPolyData):
+    def addMeshForPolyData(self, polyData: vtk.vtkPolyData):
         tris = vtk.vtkTriangleFilter()
         tris.SetInputData(polyData);
         tris.Update()
         triPolys = tris.GetOutput()
+
+        meshBufferIndex = len(self.buffers)
+        # This follows vtkGLTFExporter flow
         pointData = triPolys.GetPoints().GetData();
-        nt = pointData.GetNumberOfTuples()
-        nc = pointData.GetNumberOfComponents()
-        ne = pointData.GetElementComponentSize()
+        self.writeBufferAndView(pointData, ARRAY_BUFFER)
+        # create accessor
+        pointAccessor = Accessor()
+        pointAccessor.bufferView= len(self.bufferViews)-1
+        pointAccessor.byteOffset = 0
+        pointAccessor.type = VEC3
+        pointAccessor.componentType = FLOAT
+        pointAccessor.count = pointData.GetNumberOfTuples()
+        self.accessors.append(pointAccessor)
+        pointAccessorIndex = len(self.accessors)-1
+
+        # For now no normals
+        # now vertices
+        primitive = Primitive()
+        primitive.mode = 4
+        meshPolys = triPolys.GetPolys()
+        ia = vtk.vtkUnsignedIntArray()
+        cellData = meshPolys.GetData()
+        idList = vtk.vtkIdList()
+        while meshPolys.GetNextCell(idList):
+            # do something with the cell
+            for i in range(idList.GetNumberOfIds()):
+                pointId = idList.GetId(i)
+                ia.InsertNextValue(pointId)
+        self.writeBufferAndView(ia, ELEMENT_ARRAY_BUFFER)
+
+        indexAccessor = Accessor()
+        indexAccessor.bufferView = len(self.bufferViews) - 1;
+        indexAccessor.byteOffset = 0
+        indexAccessor.type = SCALAR
+        indexAccessor.componentType = UNSIGNED_INT
+        indexAccessor.count =  meshPolys.GetNumberOfCells() * 3;
+        primitive.indices = len(self.accessors)
+        self.accessors.append(indexAccessor);
+        primitive.attributes.POSITION= pointAccessorIndex
+
+        newMesh = Mesh()
+        newMesh.primitives.append(primitive)
+        return newMesh;
+
+    def writeBufferAndView(self, inData: vtk.vtkDataArray, bufferViewTarget: int):
+        nt = inData.GetNumberOfTuples()
+        nc = inData.GetNumberOfComponents()
+        ne = inData.GetElementComponentSize()
+        npArray_points = np.array(inData)
+        count = nt * nc;
+        byteLength = ne * count;
+        encoded_result = base64.b64encode(npArray_points).decode("ascii")
+        buffer = Buffer()
+        buffer.byteLength = byteLength;
+        buffer.uri = f"data:application/octet-stream;base64,{encoded_result}";
+        self.buffers.append(buffer);
+    
+        bufferView = BufferView()
+        bufferView.buffer = len(self.buffers)-1
+        bufferView.byteOffset = 0
+        bufferView.byteLength = byteLength
+        bufferView.target = bufferViewTarget
+        self.bufferViews.append(bufferView);
