@@ -5,8 +5,7 @@ import { BrowserRouter as Router } from 'react-router-dom'
 import '../../internationalization/i18n'
 
 function TestComponent() {
-    const [dark, setDark] = React.useState<boolean>()
-    setDark(true)
+    const [dark, setDark] = React.useState<boolean>(true)
 
     return <OpenSimAppBar dark={true} isLoggedIn={true}/>
 }
