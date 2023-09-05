@@ -18,6 +18,8 @@ interface VisualizationControlProps {
 }
 
 function AnimationsMenu (props:VisualizationControlProps) {
+    const { t } = useTranslation();
+
     const curState = useModelContext();
     const handleAnimationChange = (event: SelectChangeEvent) => {
         if (event.target.value as string === ""){
@@ -34,7 +36,7 @@ function AnimationsMenu (props:VisualizationControlProps) {
         <Select 
             labelId="simple-select-standard-label"
             value={selectedAnim}
-            label="Animate"
+            label={t('visualizationControl.animate')}
             onChange={handleAnimationChange}
             >
             {props.animationList.map(anim => (
@@ -64,12 +66,12 @@ const VisualizationControl : React.FC<VisualizationControlProps> = (props:Visual
     <>
       <Container disableGutters>
         <FormGroup>
-            <Typography variant="h6" align='left'>{t('Visibility')}</Typography>
-            <FormControlLabel control={<Checkbox checked={curState.showGlobalFrame}/>} label="WCS" 
+            <Typography variant="h6" align='left'>{t('visualizationControl.visibility')}</Typography>
+            <FormControlLabel control={<Checkbox checked={curState.showGlobalFrame}/>} label={t('visualizationControl.wcs')}
                     onClick={()=>curState.setShowGlobalFrame(!curState.showGlobalFrame)}/>
-            <FormControlLabel control={<Checkbox />} label="Joints" />
-            <FormControlLabel control={<Checkbox />} label="Bodies" />
-            <FormControlLabel control={<Checkbox />} label="Markers" />
+            <FormControlLabel control={<Checkbox />} label={t('visualizationControl.joints')} />
+            <FormControlLabel control={<Checkbox />} label={t('visualizationControl.bodies')} />
+            <FormControlLabel control={<Checkbox />} label={t('visualizationControl.markers')} />
         </FormGroup>
       </Container>
       <Container disableGutters>
@@ -90,7 +92,7 @@ const VisualizationControl : React.FC<VisualizationControlProps> = (props:Visual
                     labelId="demo-simple-select-label"
                     id="demo-simple-select"
                     value={speed.toString()}
-                    label="Speed"
+                    label={t('visualizationControl.speed')}
                     onChange={handleSpeedChange}
                 >
                     <MenuItem value={0.25}>0.25</MenuItem>

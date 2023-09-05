@@ -29,6 +29,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     // eslint-disable-next-line no-mixed-operators
     const [sceneObjectMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
     const [objectSelectionBox, setObjectSelectionBox] = useState<BoxHelper | null>(new BoxHelper(scene));
+    const [useEffectRunning, setUseEffectRunning] = useState<boolean>(false)
 
     let curState = useModelContext();
     curState.scene = scene;
@@ -52,25 +53,32 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         });
     }
     useFrame((state, delta) => {
-      if (curState !== undefined) {
-        if (supportControls ) {
-          if (curState.selected === "") 
-            objectSelectionBox!.visible = false
-          else {
-            let selectedObject = sceneObjectMap.get(curState.selected)!
-            if (selectedObject !== undefined && selectedObject.type === "Mesh") {
-              objectSelectionBox?.setFromObject(selectedObject);
-              objectSelectionBox!.visible = true
+      if (!useEffectRunning) {
+          if (curState !== undefined) {
+            if (supportControls ) {
+              if (curState.selected === "") {
+                if (objectSelectionBox !== null)
+                    objectSelectionBox!.visible = false
+              }
+              else {
+                let selectedObject = sceneObjectMap.get(curState.selected)!
+                if (selectedObject !== undefined && selectedObject.type === "Mesh") {
+                    if (objectSelectionBox !== null) {
+                      objectSelectionBox?.setFromObject(selectedObject);
+                      objectSelectionBox!.visible = true
+                    }
+                }
+              }
+            }
+            if (supportControls && curState.animating){
+                mixer?.update(delta * curState.animationSpeed)
             }
           }
-        }
-        if (supportControls && curState.animating){
-            mixer?.update(delta * curState.animationSpeed)
-        }
       }
     })
 
     useEffect(() => {
+        setUseEffectRunning(false)
         if (supportControls) {
             curState.setCurrentModelPath(currentModelPath)
             curState.setSceneTree(new SceneTreeModel(scene))
@@ -83,6 +91,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
             curState.setSelected("")
           }
           sceneObjectMap.clear();
+          setUseEffectRunning(true)
         };
       }, [scene, animations, supportControls, currentModelPath, curState, sceneObjectMap, objectSelectionBox])
 

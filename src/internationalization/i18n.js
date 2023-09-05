@@ -29,13 +29,19 @@ i18next
                         by: "By",
                         modelGalleryTitle: "Model Gallery"
                     },
+                    modelView: {
+                        file: "File",
+                        sceneTree: "Scene Tree View",
+                        visualizationControl: "Visualization Control",
+                        share: "Share"
+                    },
                     topBar: {
                         switchTheme: "Switch Theme",
                         info: "Info",
-                        share: "Share",
-                        shareOnTwitter: "Share on Twitter",
                         logIn: "Log In",
-                        logOut: "Log Out"
+                        logOut: "Log Out",
+                        viewer: "Viewer",
+                        models: "Models"
                     },
                     bottomBar: {
                         autoRotate: "Auto-rotate",
@@ -69,6 +75,26 @@ i18next
                         password: 'Password',
                         registerError: 'An error occurred during sign up.',
                         alreadySignedUp: 'Already have an account? Go to Login.'
+                    },
+                    fileView: {
+                        importFile: 'Import File',
+                        downloadGLTFFile: 'Download GLTF file',
+                    },
+                    visualizationControl: {
+                        animate: "Animate",
+                        visibility: "Visibility",
+                        wcs: "WCS",
+                        joints: "Joints",
+                        bodies: "Bodies",
+                        markers: "Markers",
+                        speed: "Speed"
+                    },
+                    shareView: {
+                        share: "Share",
+                        shareOnTwitter: "Share on Twitter",
+                        twitterShareText: "Check out my OpenSim model at: ",
+                        shareOnFacebook: "Share on Facebook",
+                        shareOnLinkedIn: "Share on LinkedIn"
                     }
                 }
             },
@@ -91,13 +117,19 @@ i18next
                         by: "Por",
                         modelGalleryTitle: "Galería de Modelos"
                     },
+                    modelView: {
+                        file: "Archivo",
+                        sceneTree: "Árbol de Escena",
+                        visualizationControl: "Control de Visualización",
+                        share: "Compartir"
+                    },
                     topBar: {
                         switchTheme: "Cambiar Tema",
                         info: "Info",
-                        share: "Compartir",
-                        shareOnTwitter: "Compartir en Twitter",
                         logIn: "Log In",
-                        logOut: "Log Out"
+                        logOut: "Log Out",
+                        viewer: "Visualizador",
+                        models: "Modelos"
                     },
                     bottomBar: {
                         autoRotate: "Auto-rotar",
@@ -131,6 +163,26 @@ i18next
                         password: "Contraseña",
                         registerError: 'Se produjo un error al iniciar sesión.',
                         alreadySignedUp: '¿Ya tienes una cuenta? Inicia sesión aquí.'
+                    },
+                    fileView: {
+                        importFile: 'Importar Archivo',
+                        downloadGLTFFile: 'Descargar Archivo GLTF'
+                    },
+                    visualizationControl: {
+                        animate: "Animar",
+                        visibility: "Visibilidad",
+                        wcs: "WCS",
+                        joints: "Articulaciones",
+                        bodies: "Cuerpos",
+                        markers: "Marcadores",
+                        speed: "Velocidad"
+                    },
+                    shareView: {
+                        share: "Compartir",
+                        shareOnTwitter: "Compartir en Twitter",
+                        twitterShareText: "Mira mi modelo de OpenSim!: ",
+                        shareOnFacebook: "Compartir en Facebook",
+                        shareOnLinkedIn: "Compartir en LinkedIn"
                     }
                 }
             }
