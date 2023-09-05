@@ -9,14 +9,16 @@ import vtk
 # for all geometry objects, wil create a node for the mesh as a child of the frame it lives on
 # the node for the frame will correspond to a bodyId, and relative transform
 class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplementation) :
-    unitConversion = 1.0
-    gltf = None
+    unitConversion = 1.0    #1.0 if model is in meters, else set to conversionToMeters factor
+    gltf = None             # resulting  GLTF object used to accumulate nodes, meshes, cameras etc.
+    currentComponent = None # Keep track of which OpenSim::Component being processed so correct annotation is associated
     mapMobilizedBodyIndexToNodes = {}
-    modelNodeIndex = None
-    modelNode = None
-    groundNode = None
-    modelState = None
-    accessors = None
+    modelNodeIndex = None   # index for root node of the model
+    modelNode = None        # reference to the root node representing the model
+    groundNode = None       # Node corresponding to Model::Ground
+    modelState = None       # reference to state object obtained by initSystem
+
+    accessors = None        # references to arrays within the gltf structure for convenience
     buffers = None
     bufferViews = None
     nodes = None
@@ -35,7 +37,8 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         self.nodes = self.gltf.nodes
         self.samplers = self.gltf.samplers
 
-
+    def setCurrentComponent(self, component):
+        self.currentComponent = component;
 
     def setState(self, modelState):
         self.modelState = modelState
@@ -58,7 +61,7 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         polyDataOutput = brickData.GetOutput();
         self.createGLTFMeshFromPolyData(arg0, "Brick:"+
                                         arg0.getBodyId()+"_"+arg0.getIndexOnBody(), polyDataOutput)
-        print("produce brick")
+        # print("produce brick")
         return 
     
     def implementCylinderGeometry(self, arg0):
@@ -68,7 +71,7 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         polyDataOutput = cylData.GetOutput();
         self.createGLTFMeshFromPolyData(arg0, "Cylinder:"+
                                         arg0.getBodyId()+"_"+arg0.getIndexOnBody(), polyDataOutput)
-        print("produce cylinder", arg0.getHalfHeight(), arg0.getRadius())
+        # print("produce cylinder", arg0.getHalfHeight(), arg0.getRadius())
         return
 
     def implementCircleGeometry(self, arg0):
@@ -80,14 +83,14 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         polyDataOutput = sphereSource.GetOutput()
         self.createGLTFMeshFromPolyData(arg0, "Sphere:"+
                                         arg0.getBodyId()+"_"+arg0.getIndexOnBody(), polyDataOutput)
-        print("produce sphere", arg0.getRadius())
+        # print("produce sphere", arg0.getRadius())
         return
 
     def implementEllipsoidGeometry(self, arg0):
         return _simbody.DecorativeGeometryImplementation_implementEllipsoidGeometry(self, arg0)
 
     def implementFrameGeometry(self, arg0):
-        print("produce frame", arg0.getAxisLength())
+        # print("produce frame", arg0.getAxisLength())
         return
 
     def implementTextGeometry(self, arg0):
@@ -123,7 +126,7 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
             # meshes[meshes.size() - 1]["primitives"][0]["material"] = materials.size();
             # WriteMaterial(materials, oldTextureCount, oldTextureCount != textures.size(), aPart);
         
-        print("produce mesh", arg0.getMeshFile())
+        # print("produce mesh", arg0.getMeshFile())
         return
 
     def createGLTFMeshFromPolyData(self, arg0, gltfName, polyDataOutput):
@@ -136,6 +139,7 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
             t, r, s = self.createTRSFromTransform(arg0.getTransform(), arg0.getScaleFactors())
             meshNode.mesh = meshId;
             nodeIndex = len(self.nodes)
+            self.createExtraAnnotations(meshNode)
             self.nodes.append(meshNode)
             self.mapMobilizedBodyIndexToNodes[arg0.getBodyId()].children.append(nodeIndex)
 
@@ -274,3 +278,8 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         bufferView.byteLength = byteLength
         bufferView.target = bufferViewTarget
         self.bufferViews.append(bufferView);
+
+    def createExtraAnnotations(self, gltfNode: Node):
+        gltfNode.extras["path"] = self.currentComponent.getAbsolutePathString()
+        gltfNode.extras["opensimType"] = self.currentComponent.getConcreteClassName()
+        

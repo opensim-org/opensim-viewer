@@ -36,14 +36,18 @@ def convertOsim2Gltf(osimModelFilePath, geometrySearchPath) :
   mcList = model.getComponentsList();
   adg = osim.ArrayDecorativeGeometry()
   for comp in mcList:
-    print(comp.getName())
+    sizeBefore = adg.size()
     comp.generateDecorations(True, mdh, state, adg);
-  
-  for dg_index  in range(adg.size()):
-    adg.at(dg_index).implementGeometry(decorativeGeometryImp)
+    sizeAfter = adg.size()
+    if (sizeAfter > sizeBefore):
+      decorativeGeometryImp.setCurrentComponent(comp)
+    for dg_index  in range(sizeBefore, sizeAfter):
+      adg.at(dg_index).implementGeometry(decorativeGeometryImp)
+
+  modelGltf = decorativeGeometryImp.get_GLTF()
   
   outfile = osimModelFilePath.replace('.osim', '.gltf')
-  decorativeGeometryImp.get_GLTF().save(outfile)
+  modelGltf.save(outfile)
 
 
 
