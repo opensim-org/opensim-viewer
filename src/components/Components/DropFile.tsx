@@ -6,10 +6,12 @@ import { useTranslation } from 'react-i18next'
 import axios from 'axios';
 import { getBackendURL } from '../../helpers/urlHelpers'
 import viewerState from '../../state/ViewerState';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation  } from 'react-router-dom';
+
 const FileDropArea = observer(() => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const appState = viewerState;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -80,15 +82,16 @@ const FileDropArea = observer(() => {
                 "Authorization " : "Token "+localStorage.getItem('token')
               },
               onUploadProgress: progressEvent =>{
-                const percent =progressEvent.loaded / progressEvent.total!
-                const percentage = percent / 100; // Convert to decimal value
+                const percent = progressEvent.loaded / progressEvent.total!
                 store.uploadProgress = percent;
-                store.uploadPercentage = percentage;
+                store.uploadPercentage = percent;
               }
             }).then(response => {
               let url_gltf = getBackendURL(response.data.model_gltf_file);
               appState.setCurrentModelPath(url_gltf);
-              navigate('/viewer');
+
+              if (location.pathname !== '/viewer')
+                navigate('/viewer');
         
             })
       }

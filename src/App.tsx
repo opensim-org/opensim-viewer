@@ -12,27 +12,10 @@ import { ThemeProvider, CssBaseline } from '@mui/material'
 import appTheme from './Theme'
 import lightTheme from './LightTheme'
 import OpenSimAppBar from './components/Nav/OpenSimAppBar'
-import React, { useEffect } from 'react'
 import viewerState from './state/ViewerState'
 
 function App() {
 
-    useEffect(() => {
-        // Event that switches between dark and light mode when the letter D is pressed.
-        const handleKeyDUp = (event: KeyboardEvent) => {
-            if (event.code === 'KeyD') {
-                viewerState.setDark(!viewerState.dark)
-            }
-        }
-
-        // Register the event to "keyup" when the element is mount
-        window.addEventListener('keyup', handleKeyDUp)
-
-        return () => {
-            // Unregister the event when the element is unmount.
-            window.removeEventListener('keyup', handleKeyDUp)
-        }
-    }, [])
     // On file system we'll have a folder per model containing cached/versioned gltf, possibly .osim file, data files, display 
     // preferences
     // urls could be something like:
