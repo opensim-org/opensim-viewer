@@ -51,13 +51,23 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
 
     def implementBrickGeometry(self, arg0):
         brickData = vtk.vtkCubeSource()
+        lengths = arg0.getHalfLengths();
+        brickData.SetXLength(lengths.get(0)*2*self.unitConversion)
+        brickData.SetYLength(lengths.get(1)*2*self.unitConversion)
+        brickData.SetZLength(lengths.get(2)*2*self.unitConversion)
+        polyDataOutput = brickData.GetOutput();
+        self.createGLTFMeshFromPolyData(arg0, "Brick:"+
+                                        arg0.getBodyId()+"_"+arg0.getIndexOnBody(), polyDataOutput)
         print("produce brick")
         return 
     
     def implementCylinderGeometry(self, arg0):
         cylData = vtk.vtkCylinderSource()
-        cylData.SetRadius(arg0.getRadius())
-        cylData.SetHeight(arg0.getHalfHeight())
+        cylData.SetRadius(arg0.getRadius()*self.unitConversion)
+        cylData.SetHeight(arg0.getHalfHeight()*self.unitConversion)
+        polyDataOutput = cylData.GetOutput();
+        self.createGLTFMeshFromPolyData(arg0, "Cylinder:"+
+                                        arg0.getBodyId()+"_"+arg0.getIndexOnBody(), polyDataOutput)
         print("produce cylinder", arg0.getHalfHeight(), arg0.getRadius())
         return
 
@@ -65,8 +75,11 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         return _simbody.DecorativeGeometryImplementation_implementCircleGeometry(self, arg0)
 
     def implementSphereGeometry(self, arg0):
-        sphereData = vtk.vtkSphereSource()
-        sphereData.SetRadius(arg0.getRadius())
+        sphereSource = vtk.vtkSphereSource()
+        sphereSource.SetRadius(arg0.getRadius()*self.unitConversion)
+        polyDataOutput = sphereSource.GetOutput()
+        self.createGLTFMeshFromPolyData(arg0, "Sphere:"+
+                                        arg0.getBodyId()+"_"+arg0.getIndexOnBody(), polyDataOutput)
         print("produce sphere", arg0.getRadius())
         return
 
@@ -84,21 +97,24 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         return _simbody.DecorativeGeometryImplementation_implementMeshGeometry(self, arg0)
 
     def implementMeshFileGeometry(self, arg0):
-        reader = vtk.vtkXMLPolyDataReader()
-        reader.SetFileName(arg0.getMeshFile())
-        reader.Update()
-        polyDataOutput = reader.GetOutput()
-        if (polyDataOutput.GetNumberOfCells() > 0):
-            mesh = self.addMeshForPolyData(polyDataOutput) # populate from polyDataOutput
-            self.meshes.append(mesh)
-            meshId = len(self.meshes)-1
-            meshNode = Node(name="Mesh:"+arg0.getMeshFile())
-            meshNode.matrix = self.createMatrixFromTransform(arg0.getTransform(), arg0.getScaleFactors())
-            t, r, s = self.createTRSFromTransform(arg0.getTransform(), arg0.getScaleFactors())
-            meshNode.mesh = meshId;
-            nodeIndex = len(self.nodes)
-            self.nodes.append(meshNode)
-            self.mapMobilizedBodyIndexToNodes[arg0.getBodyId()].children.append(nodeIndex)
+        if (arg0.getMeshFile().casefold().endswith(".vtp")):
+            reader = vtk.vtkXMLPolyDataReader()
+            reader.SetFileName(arg0.getMeshFile())
+            reader.Update()
+            polyDataOutput = reader.GetOutput()
+        elif (arg0.getMeshFile().casefold().endswith(".stl")):
+            reader = vtk.vtkSTLReader()
+            reader.SetFileName(arg0.getMeshFile())
+            reader.Update()
+            polyDataOutput = reader.GetOutput()
+        elif (arg0.getMeshFile().casefold().endswith(".obj")):
+            reader = vtk.vtkOBJReader()
+            reader.SetFileName(arg0.getMeshFile())
+            reader.Update()
+            polyDataOutput = reader.GetOutput()
+        else:
+            raise ValueError("Unsupported file extension")
+        self.createGLTFMeshFromPolyData(arg0, "Mesh"+arg0.getMeshFile(), polyDataOutput)
             #     InlineData, SaveNormal, SaveBatchId);
             # rendererNode["children"].emplace_back(nodes.size() - 1);
             # size_t oldTextureCount = textures.size();
@@ -109,6 +125,19 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         
         print("produce mesh", arg0.getMeshFile())
         return
+
+    def createGLTFMeshFromPolyData(self, arg0, gltfName, polyDataOutput):
+        if (polyDataOutput.GetNumberOfCells() > 0):
+            mesh = self.addMeshForPolyData(polyDataOutput) # populate from polyDataOutput
+            self.meshes.append(mesh)
+            meshId = len(self.meshes)-1
+            meshNode = Node(name=gltfName)
+            meshNode.matrix = self.createMatrixFromTransform(arg0.getTransform(), arg0.getScaleFactors())
+            t, r, s = self.createTRSFromTransform(arg0.getTransform(), arg0.getScaleFactors())
+            meshNode.mesh = meshId;
+            nodeIndex = len(self.nodes)
+            self.nodes.append(meshNode)
+            self.mapMobilizedBodyIndexToNodes[arg0.getBodyId()].children.append(nodeIndex)
 
     def implementTorusGeometry(self, arg0):
         return _simbody.DecorativeGeometryImplementation_implementTorusGeometry(self, arg0)
