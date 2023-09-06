@@ -71,9 +71,9 @@ def createForceNodes(shape, forcesDictionary, unitConversionToMeters, scaleData,
 
       # extras are place holder for application specific properties
       # for now we'll pass opensimType, may add layers, as needs arise....
-      opensim_extras = {"opensimType": "ExternalForce", 
+      opensim_extras = {"opensimType": "ExtForce", 
                         "layer": "data", 
-                        "name": force}
+                        "path": force}
       
       nextForceNode.extras = opensim_extras
       columnIndex = forcesDictionary[force]
@@ -343,9 +343,9 @@ def convertMarkersTimeSeries2Gltf(gltfJson, shape, timeSeriesTableMarkers):
 
       # extras are place holder for application specific properties
       # for now we'll pass opensimType, may add layers, as needs arise....
-      opensim_extras = {"opensimType": "ExperimentalMarker", 
+      opensim_extras = {"opensimType": "ExpMarker", 
                         "layer": "data", 
-                        "name": nextMarkerNode.name}
+                        "path": nextMarkerNode.name}
       nextMarkerNode.extras = opensim_extras
       translation = firstDataFrame.getElt(0, markerIndex).to_numpy()
       if (math.isnan(translation[0])):
