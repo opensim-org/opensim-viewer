@@ -39,9 +39,10 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
           sceneObjectMap.set(o.uuid, o)
           }
       )
-      if (objectSelectionBox !== null)
+      if (objectSelectionBox !== null) {
         objectSelectionBox.visible = false;
         scene.add(objectSelectionBox!);
+      }
     }
 
     let mixer: AnimationMixer
