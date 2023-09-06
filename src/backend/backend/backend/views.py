@@ -22,9 +22,7 @@ from django.contrib.auth import logout
 from rest_framework.authtoken.models import Token
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
-from .osimConverters import convertTrc2Gltf
-from .osimConverters import convertC3D2Gltf
-from .osimConverters import convertMotForce2Gltf
+from .osimConverters import *
 
 class UserViewSet(viewsets.ModelViewSet):
     """
@@ -161,7 +159,7 @@ class ModelCreate(viewsets.ModelViewSet):
         error_message = ''
         filedata = request.data['files']
         filename, file_extension = os.path.splitext(filedata.name)
-        validFile = file_extension in ['.trc', '.mot', '.c3d'] 
+        validFile = file_extension in ['.trc', '.mot', '.c3d', '.osim'] 
         try:
             if (validFile):
                 pathOnServer = os.path.join(settings.STATIC_ROOT, filedata.name)
@@ -174,7 +172,8 @@ class ModelCreate(viewsets.ModelViewSet):
                     generatedFile = convertC3D2Gltf(savedFilePath, 'sphere')
                 elif (file_extension==".mot"):
                    generatedFile = convertMotForce2Gltf(savedFilePath, 'arrow')
-
+                elif (file_extension==".osim"):
+                   generatedFile = convertOsim2Gltf(savedFilePath, 'Geometry')
                 # Serialize data, validate and save.
                 status = htttp_status.HTTP_200_OK
                 return Response({

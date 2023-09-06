@@ -1,17 +1,18 @@
 
 import opensim as osim
+from pygltflib import *
 import numpy as np
 import base64
 import math
-import os.path as pathmethods
+from pathlib import Path
 
-from openSimData2Gltf import *
-from DecorativeGeometryImplementationGltf import DecorativeGeometryImplementationGltf
+from .openSimData2Gltf import *
+from .DecorativeGeometryImplementationGltf import DecorativeGeometryImplementationGltf
 
 def convertOsim2Gltf(osimModelFilePath, geometrySearchPath) :
 
   path = Path(osimModelFilePath)
-
+  osim.ModelVisualizer.addDirToGeometrySearchPaths(geometrySearchPath)
   if not path.exists():
       raise NotADirectoryError("Unable to find file ", path.absolute())
 
@@ -48,37 +49,38 @@ def convertOsim2Gltf(osimModelFilePath, geometrySearchPath) :
   
   outfile = osimModelFilePath.replace('.osim', '.gltf')
   modelGltf.save(outfile)
+  return outfile
 
 
 
 
-def main():
-    import argparse
+# def main():
+#     import argparse
 
-    ## Input parsing.
-    ## =============
-    parser = argparse.ArgumentParser(
-        description="Generate a gltf file corresponding to the passed in osim file.")
-    # Required arguments.
-    parser.add_argument('osim_file_path',
-                        metavar='osimfilepath', type=str,
-                        help="filename for model file (including path).")
-    parser.add_argument('--output', type=str,
-                        help="Write the result to this filepath. "
-                             "Default: the report is named "
-                             "<osim_file_path>.gltf")
-    args = parser.parse_args()
-    # print(args)
-    infile = args.osim_file_path
-    if (args.output == None) :
-        outfile = infile.replace('.osim', '.gltf')
-    else:
-        outfile = args.output
+#     ## Input parsing.
+#     ## =============
+#     parser = argparse.ArgumentParser(
+#         description="Generate a gltf file corresponding to the passed in osim file.")
+#     # Required arguments.
+#     parser.add_argument('osim_file_path',
+#                         metavar='osimfilepath', type=str,
+#                         help="filename for model file (including path).")
+#     parser.add_argument('--output', type=str,
+#                         help="Write the result to this filepath. "
+#                              "Default: the report is named "
+#                              "<osim_file_path>.gltf")
+#     args = parser.parse_args()
+#     # print(args)
+#     infile = args.osim_file_path
+#     if (args.output == None) :
+#         outfile = infile.replace('.osim', '.gltf')
+#     else:
+#         outfile = args.output
     
-    resultGltf = convertOsim2Gltf(infile, "")
-    # resultGltf.save(outfile)
+#     resultGltf = convertOsim2Gltf(infile, "")
+#     # resultGltf.save(outfile)
 
-main()
+# main()
 
 
 
