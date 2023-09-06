@@ -58,9 +58,9 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         brickData.SetXLength(lengths.get(0)*2*self.unitConversion)
         brickData.SetYLength(lengths.get(1)*2*self.unitConversion)
         brickData.SetZLength(lengths.get(2)*2*self.unitConversion)
+        brickData.Update()
         polyDataOutput = brickData.GetOutput();
-        self.createGLTFMeshFromPolyData(arg0, "Brick:"+
-                                        arg0.getBodyId()+"_"+arg0.getIndexOnBody(), polyDataOutput)
+        self.createGLTFMeshFromPolyData(arg0, "Brick:", polyDataOutput)
         # print("produce brick")
         return 
     
@@ -68,9 +68,9 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         cylData = vtk.vtkCylinderSource()
         cylData.SetRadius(arg0.getRadius()*self.unitConversion)
         cylData.SetHeight(arg0.getHalfHeight()*self.unitConversion)
+        cylData.Update()
         polyDataOutput = cylData.GetOutput();
-        self.createGLTFMeshFromPolyData(arg0, "Cylinder:"+
-                                        arg0.getBodyId()+"_"+arg0.getIndexOnBody(), polyDataOutput)
+        self.createGLTFMeshFromPolyData(arg0, "Cylinder:", polyDataOutput)
         # print("produce cylinder", arg0.getHalfHeight(), arg0.getRadius())
         return
 
@@ -80,9 +80,9 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
     def implementSphereGeometry(self, arg0):
         sphereSource = vtk.vtkSphereSource()
         sphereSource.SetRadius(arg0.getRadius()*self.unitConversion)
+        sphereSource.Update()
         polyDataOutput = sphereSource.GetOutput()
-        self.createGLTFMeshFromPolyData(arg0, "Sphere:"+
-                                        arg0.getBodyId()+"_"+arg0.getIndexOnBody(), polyDataOutput)
+        self.createGLTFMeshFromPolyData(arg0, "Sphere:", polyDataOutput)
         # print("produce sphere", arg0.getRadius())
         return
 
