@@ -230,7 +230,22 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         self.accessors.append(pointAccessor)
         pointAccessorIndex = len(self.accessors)-1
 
-        # For now no normals
+        # Now the normals
+        normalsFilter = vtk.vtkPolyDataNormals();
+        normalsFilter.SetInputData(triPolys)
+        normalsFilter.ComputePointNormalsOn()
+        normalsFilter.Update()
+        normalsData = normalsFilter.GetOutput().GetPointData().GetNormals();
+        self.writeBufferAndView(normalsData, ARRAY_BUFFER)
+        normalsAccessor = Accessor()
+        normalsAccessor.bufferView= len(self.bufferViews)-1
+        normalsAccessor.byteOffset = 0
+        normalsAccessor.type = VEC3
+        normalsAccessor.componentType = FLOAT
+        normalsAccessor.count = pointData.GetNumberOfTuples()
+        self.accessors.append(normalsAccessor)
+        normalsAccessorIndex = len(self.accessors)-1
+
         # now vertices
         primitive = Primitive()
         primitive.mode = 4
@@ -254,7 +269,7 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         primitive.indices = len(self.accessors)
         self.accessors.append(indexAccessor);
         primitive.attributes.POSITION= pointAccessorIndex
-
+        primitive.attributes.NORMAL = normalsAccessorIndex
         newMesh = Mesh()
         newMesh.primitives.append(primitive)
         return newMesh;
