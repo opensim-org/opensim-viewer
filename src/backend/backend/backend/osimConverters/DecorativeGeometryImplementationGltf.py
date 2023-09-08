@@ -17,6 +17,7 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
     modelNode = None        # reference to the root node representing the model
     groundNode = None       # Node corresponding to Model::Ground
     modelState = None       # reference to state object obtained by initSystem
+    mapTypesToMaterialIndex = {}
 
     accessors = None        # references to arrays within the gltf structure for convenience
     buffers = None
@@ -36,6 +37,7 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         self.meshes = self.gltf.meshes
         self.nodes = self.gltf.nodes
         self.samplers = self.gltf.samplers
+        self.materials = self.gltf.materials
 
     def setCurrentComponent(self, component):
         self.currentComponent = component;
@@ -60,7 +62,7 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         brickData.SetZLength(lengths.get(2)*2*self.unitConversion)
         brickData.Update()
         polyDataOutput = brickData.GetOutput();
-        self.createGLTFMeshFromPolyData(arg0, "Brick:", polyDataOutput)
+        self.createGLTFMeshFromPolyData(arg0, "Brick:", polyDataOutput, self.getMaterialIndexByType())
         # print("produce brick")
         return 
     
@@ -70,7 +72,7 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         cylData.SetHeight(arg0.getHalfHeight()*self.unitConversion)
         cylData.Update()
         polyDataOutput = cylData.GetOutput();
-        self.createGLTFMeshFromPolyData(arg0, "Cylinder:", polyDataOutput)
+        self.createGLTFMeshFromPolyData(arg0, "Cylinder:", polyDataOutput, self.getMaterialIndexByType())
         # print("produce cylinder", arg0.getHalfHeight(), arg0.getRadius())
         return
 
@@ -82,7 +84,7 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         sphereSource.SetRadius(arg0.getRadius()*self.unitConversion)
         sphereSource.Update()
         polyDataOutput = sphereSource.GetOutput()
-        self.createGLTFMeshFromPolyData(arg0, "Sphere:", polyDataOutput)
+        self.createGLTFMeshFromPolyData(arg0, "Sphere:", polyDataOutput, self.getMaterialIndexByType())
         # print("produce sphere", arg0.getRadius())
         return
 
@@ -117,7 +119,7 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
             polyDataOutput = reader.GetOutput()
         else:
             raise ValueError("Unsupported file extension")
-        self.createGLTFMeshFromPolyData(arg0, "Mesh"+arg0.getMeshFile(), polyDataOutput)
+        self.createGLTFMeshFromPolyData(arg0, "Mesh"+arg0.getMeshFile(), polyDataOutput, self.getMaterialIndexByType())
             #     InlineData, SaveNormal, SaveBatchId);
             # rendererNode["children"].emplace_back(nodes.size() - 1);
             # size_t oldTextureCount = textures.size();
@@ -129,9 +131,9 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         # print("produce mesh", arg0.getMeshFile())
         return
 
-    def createGLTFMeshFromPolyData(self, arg0, gltfName, polyDataOutput):
+    def createGLTFMeshFromPolyData(self, arg0, gltfName, polyDataOutput, materialIndex):
         if (polyDataOutput.GetNumberOfCells() > 0):
-            mesh = self.addMeshForPolyData(polyDataOutput) # populate from polyDataOutput
+            mesh = self.addMeshForPolyData(polyDataOutput, materialIndex) # populate from polyDataOutput
             self.meshes.append(mesh)
             meshId = len(self.meshes)-1
             meshNode = Node(name=gltfName)
@@ -179,6 +181,40 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
             self.groundNode.children.append(nodeIndex)
             self.mapMobilizedBodyIndexToNodes[body.getMobilizedBodyIndex()]=bodyNode
 
+    def addDefaultMaterials(self):
+        # create the following materials:
+        # 0. default bone material for meshes
+        # 1 shiny cyan material for wrap objects and contact surfaces
+        # 2 shiny pink material for model markers
+        # 3 shiny green material for forces
+        # 4 shiny blue material for experimental markers
+        # 5 shiny orange material for IMUs
+        
+        self.mapTypesToMaterialIndex["Mesh"] = self.addMaterialToGltf("default", [.87, .78, .6, 1.0])
+        self.mapTypesToMaterialIndex["Wrapping"] = self.addMaterialToGltf("obstacle", [0, .9, .9, 1.0])
+        self.mapTypesToMaterialIndex["Marker"] = self.addMaterialToGltf("markerMat", [1.0, .6, .8, 1.0])
+        self.mapTypesToMaterialIndex["Force"] = self.addMaterialToGltf("forceMat", [0, .9, 0, 1.0])
+        self.mapTypesToMaterialIndex["ExpMarker"] = self.addMaterialToGltf("expMarkerMat", [0, 0, 0.9, 1.0])
+        self.mapTypesToMaterialIndex["IMU"] = self.addMaterialToGltf("imuMat", [.8, .8, .8, 1.0])
+        
+
+    def addMaterialToGltf(self, matName, color4):
+        newMaterial = Material()
+        newMaterial.name = matName
+        pbr = PbrMetallicRoughness()  # Use PbrMetallicRoughness
+        pbr.baseColorFactor =  color4 # solid red
+        newMaterial.pbrMetallicRoughness = pbr
+        self.materials.append(newMaterial)
+        return len(self.materials)-1
+
+    def getMaterialIndexByType(self):
+        componentType = self.currentComponent.getConcreteClassName()
+        mat = self.mapTypesToMaterialIndex.get(componentType)
+        if (mat is not None):
+            return mat
+        else:
+            return 1
+ 
     def setNodeTransformFromDecoration(self, node: Node, mesh: Mesh, decorativeGeometry: osim.DecorativeGeometry):
         bd = decorativeGeometry.getBodyId()
         bdNode = self.mapMobilizedBodyIndexToNodes[bd]
@@ -210,7 +246,7 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
             retTransform[12+i] = p.get(i)*self.unitConversion;
         return retTransform
 
-    def addMeshForPolyData(self, polyData: vtk.vtkPolyData):
+    def addMeshForPolyData(self, polyData: vtk.vtkPolyData, mat: int):
         tris = vtk.vtkTriangleFilter()
         tris.SetInputData(polyData);
         tris.Update()
@@ -249,6 +285,7 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         # now vertices
         primitive = Primitive()
         primitive.mode = 4
+        primitive.material = mat
         meshPolys = triPolys.GetPolys()
         ia = vtk.vtkUnsignedIntArray()
         cellData = meshPolys.GetData()
@@ -297,4 +334,6 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
     def createExtraAnnotations(self, gltfNode: Node):
         gltfNode.extras["path"] = self.currentComponent.getAbsolutePathString()
         gltfNode.extras["opensimType"] = self.currentComponent.getConcreteClassName()
+        
+
         

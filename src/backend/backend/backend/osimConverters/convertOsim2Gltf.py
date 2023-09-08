@@ -30,7 +30,7 @@ def convertOsim2Gltf(osimModelFilePath, geometrySearchPath) :
   decorativeGeometryImp.addModelNode(model); 
   decorativeGeometryImp.addGroundFrame(model.getGround()); 
   decorativeGeometryImp.addBodyFrames(model);
-
+  decorativeGeometryImp.addDefaultMaterials();
   # Now cycle through all frames and add attached geometry/artifacts by calling generateDecorations
   mdh = model.getDisplayHints();
   mdh.set_show_frames(True);
