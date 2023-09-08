@@ -189,11 +189,10 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         # 3 shiny green material for forces
         # 4 shiny blue material for experimental markers
         # 5 shiny orange material for IMUs
-        
         self.mapTypesToMaterialIndex["Mesh"] = self.addMaterialToGltf("default", [.87, .78, .6, 1.0])
-        self.mapTypesToMaterialIndex["Wrapping"] = self.addMaterialToGltf("obstacle", [0, .9, .9, 1.0])
+        self.mapTypesToMaterialIndex["Wrapping"] = self.addMaterialToGltf("obstacle", [0, .9, .9, 0.7])
         self.mapTypesToMaterialIndex["Marker"] = self.addMaterialToGltf("markerMat", [1.0, .6, .8, 1.0])
-        self.mapTypesToMaterialIndex["Force"] = self.addMaterialToGltf("forceMat", [0, .9, 0, 1.0])
+        self.mapTypesToMaterialIndex["Force"] = self.addMaterialToGltf("forceMat", [0, .9, 0, 0.7])
         self.mapTypesToMaterialIndex["ExpMarker"] = self.addMaterialToGltf("expMarkerMat", [0, 0, 0.9, 1.0])
         self.mapTypesToMaterialIndex["IMU"] = self.addMaterialToGltf("imuMat", [.8, .8, .8, 1.0])
         
@@ -203,6 +202,7 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         newMaterial.name = matName
         pbr = PbrMetallicRoughness()  # Use PbrMetallicRoughness
         pbr.baseColorFactor =  color4 # solid red
+        pbr.metallicFactor = 0.7
         newMaterial.pbrMetallicRoughness = pbr
         self.materials.append(newMaterial)
         return len(self.materials)-1
