@@ -22,9 +22,30 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
           if (o.name.endsWith("geometrypath")){
             o.frustumCulled = false;
           }
+          mapObjectToLayer(o)
+          
         })
       }
     };
+    const LayerMap = new Map([
+      ["Mesh", 1],
+      ["Force", 2],
+      ["World", 3],
+      ["Marker", 4], 
+      ["ExpMarker", 5],
+      ["expForce", 6]
+    ]);
+    
+    const mapObjectToLayer = (obj3d: Object3D)=>{
+      if (obj3d.userData !== null && obj3d.userData !== undefined &&
+          obj3d.userData.opensimType !== undefined) {
+        let layerNum = LayerMap.get(obj3d.userData.opensimType)
+        if (layerNum === undefined)
+          layerNum = 0
+        obj3d.layers.set(layerNum)
+        console.log(obj3d.name, layerNum)
+    }
+  }
     no_face_cull(scene);
     // eslint-disable-next-line no-mixed-operators
     const [sceneObjectMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
@@ -67,7 +88,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
                     if (objectSelectionBox !== null) {
                       objectSelectionBox?.setFromObject(selectedObject);
                       objectSelectionBox!.visible = true
-                    }
+                  }
                 }
               }
             }

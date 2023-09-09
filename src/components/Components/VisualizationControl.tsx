@@ -52,6 +52,8 @@ const VisualizationControl : React.FC<VisualizationControlProps> = (props:Visual
     const [play, setPlay] = useState(false);
     const [speed, setSpeed] = useState(1.0);
     const curState = useModelContext();
+    // This is just a hack to force updating checkboxes, otherwise they function but don't toggle! --Ayman 9/23
+    const [, setCameraLayerMask] = useState(curState.cameraLayersMask);
     // console.log("Props", props);
     function togglePlayAnimation() {
         curState.setAnimating(!curState.animating);
@@ -68,10 +70,12 @@ const VisualizationControl : React.FC<VisualizationControlProps> = (props:Visual
         <FormGroup>
             <Typography variant="h6" align='left'>{t('visualizationControl.visibility')}</Typography>
             <FormControlLabel control={<Checkbox checked={curState.showGlobalFrame}/>} label={t('visualizationControl.wcs')}
-                    onClick={()=>curState.setShowGlobalFrame(!curState.showGlobalFrame)}/>
+                    onChange={()=>curState.setShowGlobalFrame(!curState.showGlobalFrame)}/>
             <FormControlLabel control={<Checkbox />} label={t('visualizationControl.joints')} />
-            <FormControlLabel control={<Checkbox />} label={t('visualizationControl.bodies')} />
-            <FormControlLabel control={<Checkbox />} label={t('visualizationControl.markers')} />
+            <FormControlLabel control={<Checkbox checked={curState.getLayerVisibility(1)}/>} label={t('visualizationControl.bodies')}
+                    onChange={()=>{curState.toggleLayerVisibility(1); setCameraLayerMask(curState.cameraLayersMask)}} />
+            <FormControlLabel control={<Checkbox checked={curState.getLayerVisibility(4)}/>} label={t('visualizationControl.markers')} 
+                    onChange={()=>{curState.toggleLayerVisibility(4); setCameraLayerMask(curState.cameraLayersMask)}}/>
         </FormGroup>
       </Container>
       <Container disableGutters>
