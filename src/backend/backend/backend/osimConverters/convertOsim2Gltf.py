@@ -46,6 +46,34 @@ def convertOsim2Gltf(osimModelFilePath, geometrySearchPath) :
     for dg_index  in range(sizeBefore, sizeAfter):
       adg.at(dg_index).implementGeometry(decorativeGeometryImp)
 
+  #find first rotational coordinate, create  a motion file varying it along 
+  # its range and pass to decorativeGeometryImp to genrate corresponding animation
+  coords = model.getCoordinateSet()
+  timeVec = osim.Vector()
+  valueVec = osim.Vector() 
+  coordinateSliderTable = osim.TimeSeriesTable()
+  for  cIndex in range(coords.getSize()): 
+      coordObj = coords.get(cIndex)
+      moType = coordObj.getMotionType() # want Rotational = 1
+      coordMin = coordObj.getRangeMin()
+      coordMax = coordObj.getRangeMax()
+      if (moType == 1):
+        timeVec.resize(21)
+        valueVec.resize(21)
+        table_time = 2 # 2 sec animation
+        timeIndex=0
+        coordinateSliderTable.setColumnLabels([coordObj.getName()])
+        for sliderTime in np.arange(0, 2.1, 0.1):
+          coordValue = coordMin + sliderTime/table_time *(coordMax - coordMin)
+          timeVec.set(timeIndex, sliderTime)
+          valueVec.set(timeIndex, coordValue)
+          row = osim.RowVector([coordValue])
+          coordinateSliderTable.appendRow(sliderTime, row)
+          timeIndex = timeIndex + 1
+
+        break
+  decorativeGeometryImp.createAnimationForStateTimeSeries(coordinateSliderTable)
+
   modelGltf = decorativeGeometryImp.get_GLTF()
   
   outfile = osimModelFilePath.replace('.osim', '.gltf')

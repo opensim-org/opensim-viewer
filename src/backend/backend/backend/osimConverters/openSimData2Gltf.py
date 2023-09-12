@@ -124,6 +124,34 @@ def addTimeStampsAccessor(gltf, timesColumn):
   timeBufferView.byteLength = timeBuffer.byteLength
   gltf.bufferViews.append(timeBufferView)
 
+def createAccessor(gltf, data_nparray, mode):
+  "Add buffer, bufferview and accessor for data_nparray"
+  "mode: t for translation/position, r for rotation"
+  startBufferNumberOffset = len(gltf.buffers)
+  startBufferViewNumberOffset = len(gltf.bufferViews)
+
+  myDataBuffer = Buffer()
+  myDataBufferView = BufferView()
+  myDataAccessor = Accessor()
+  myDataAccessor.bufferView = startBufferViewNumberOffset
+  myDataAccessor.byteOffset = 0
+  myDataAccessor.componentType = FLOAT
+  myDataAccessor.count = len(data_nparray)
+  myDataAccessor.type = VEC3 if (mode == 't') else VEC4
+  gltf.accessors.append(myDataAccessor)
+  accessorIndex =  len(gltf.accessors)-1
+  gltf.buffers.append(myDataBuffer)
+  gltf.bufferViews.append(myDataBufferView)
+  myDataBuffer.byteOffset = 0
+  elementSize = 3 if (mode == 't') else 4
+  myDataBuffer.byteLength = 4 * elementSize * myDataAccessor.count
+  encoded = base64.b64encode(data_nparray).decode("ascii")
+  myDataBuffer.uri = f"data:application/octet-stream;base64,{encoded}"
+
+  myDataBufferView.buffer = startBufferNumberOffset
+  myDataBufferView.byteOffset = 0
+  myDataBufferView.byteLength = myDataBuffer.byteLength
+  return  accessorIndex
 
 def addTranslationAccessor(gltf, dataTable, colIndex, conversionToMeters):
   "Add buffer, bufferview and accessor for marker data column"
