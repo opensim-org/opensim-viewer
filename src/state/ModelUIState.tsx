@@ -17,6 +17,7 @@ export class ModelUIState {
     animations: AnimationClip[]
     selected: string
     deSelected: string
+    cameraLayersMask: number
 
     constructor(
         currentModelPathState: string,
@@ -35,6 +36,7 @@ export class ModelUIState {
         this.animations = []
         this.selected = ""
         this.deSelected = ""
+        this.cameraLayersMask = -1
         makeObservable(this, {
             rotating: observable,
             currentModelPath: observable,
@@ -49,7 +51,8 @@ export class ModelUIState {
             selected: observable,
             setSelected: action,
             sceneTree: observable,
-            setSceneTree: action
+            setSceneTree: action,
+            cameraLayersMask: observable
         })
         console.log("Created ModelUIState instance ", currentModelPathState)
     }
@@ -59,6 +62,7 @@ export class ModelUIState {
         if (oldPath !== newState){
             this.currentModelPath = newState
             this.sceneTree = null;
+            this.cameraLayersMask = -1
         }
     }
     setRotating(newState: boolean) {
@@ -92,5 +96,10 @@ export class ModelUIState {
         this.deSelected = this.selected
         this.selected = uuid
     }
-
+    getLayerVisibility(layerToTest: number) {
+        return ((this.cameraLayersMask & (1 << layerToTest)) !== 0)
+    }
+    toggleLayerVisibility(layerToToggle: number) {
+        this.cameraLayersMask = this.cameraLayersMask ^ (1 << layerToToggle)
+    }
 }

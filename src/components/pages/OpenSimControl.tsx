@@ -29,6 +29,15 @@ const OpenSimControl = () => {
             link.click()
             curState.takeSnapshot = false;
         }
+        else if (curState.cameraLayersMask !== camera.layers.mask) {
+            for (let layernumber =0; layernumber < 6; layernumber++){
+                let newState = curState.getLayerVisibility(layernumber)
+                if (newState)
+                    camera.layers.enable(layernumber)
+                else
+                    camera.layers.disable(layernumber)
+            }
+        }
       })
     //console.log(viewerState.rotating);
     return <>

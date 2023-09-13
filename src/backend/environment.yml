@@ -1,4 +1,4 @@
-name: opensim-viewer-bend
+name: opensim-viewer-bend-vtk
 channels:
   - opensim-org
   - conda-forge
@@ -30,6 +30,7 @@ dependencies:
   - tbb=2021.8.0
   - tzdata=2023c
   - vc=14.2
+  - vtk
   - vs2015_runtime=14.27.29016
   - wheel=0.38.4
   - pip:
@@ -52,4 +53,4 @@ dependencies:
       - urllib3==2.0.2
       - wrapt==1.15.0
       - yarg==0.1.9
-prefix: D:\anaconda3\envs\opensim-viewer-bend
+prefix: D:\anaconda3\envs\opensim-viewer-bend-vtk

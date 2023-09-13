@@ -32,8 +32,20 @@ class SceneTreeModel
         sceneTreeGroup.traverse((obj) =>{
             if (obj.type==='Mesh'){
                 let childNode = new TreeNode(meshesNode, obj);
-                let pathComponentsArray = obj.name.split('/');
-                childNode.name = pathComponentsArray[pathComponentsArray.length-1];
+                if (obj.userData !== null && obj.userData.path !== undefined){
+                  let pathArr = obj.userData.path.split('/')
+                  // Mesh is implicit in name, save screen real-state
+                  childNode.name = (obj.userData.opensimType==="Mesh")?pathArr[pathArr.length-1]:
+                      obj.userData.opensimType+":"+pathArr[pathArr.length-1];
+                }
+                else {
+                  if (obj.name !== null){
+                    let pathComponentsArray = obj.name.split('\\');
+                    childNode.name = pathComponentsArray[pathComponentsArray.length-1];
+                  }
+                  else
+                    childNode.name = obj.name
+                }
             }
         })
 
