@@ -343,39 +343,46 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         gltfNode.extras["opensimType"] = self.currentComponent.getConcreteClassName()
 
     def createAnimationForStateTimeSeries(self, 
-                                          timeSeriesTable: osim.TimeSeriesTable):
+                                          timeSeriesStorage: osim.Storage):
         # create a timeSeriesTableVec3 of translations one column per body and
         # another timeSeriesTableQuaternion of rotation one per body
-        timeColumn = timeSeriesTable.getIndependentColumn()
-        columnLabels = timeSeriesTable.getColumnLabels() #coordinates
+        times = osim.ArrayDouble()
+        timeSeriesStorage.getTimeColumn(times)
+        timeColumn = osim.Vector(times.getAsVector())
+        stateStorage = osim.Storage()
+        self.model.formStateStorage(timeSeriesStorage, stateStorage, False)
+        stateTraj = osim.StatesTrajectory.createFromStatesStorage(self.model, stateStorage)
+        rotation_arrays = []
+        translation_arrays = []
         bodySet = self.model.getBodySet()
-        rotation_nparray = np.zeros((21, 4), dtype="float32")
-        translation_nparray = np.zeros((21, 3), dtype="float32")
-        firstBody = bodySet.get(0)
-        for rowIndex in range(len(timeColumn)):
-            rowTime = timeColumn[rowIndex]
-            rowValues = timeSeriesTable.getRowAtIndex(rowIndex)
-
-            for coordIndex in range(len(columnLabels)):
-                coord = self.model.getCoordinateSet().get(columnLabels[coordIndex])
-                coord.setValue(self.modelState, rowValues.to_numpy()[coordIndex], True)
-            # for body get Transform then convert to translation and rotation
-            translation = firstBody.getPositionInGround(self.modelState)
-            rotationAsSimbodyRot = firstBody.getRotationInGround(self.modelState)
-            rotzSimbodyNotation = rotationAsSimbodyRot.convertRotationToQuaternion()
-            rotation = [rotzSimbodyNotation.get(3), rotzSimbodyNotation.get(0), rotzSimbodyNotation.get(1), rotzSimbodyNotation.get(2)]
+        for bodyIndex in range(bodySet.getSize()):
+            rotation_arrays.append(np.zeros((21, 4), dtype="float32"))
+            translation_arrays.append(np.zeros((21, 3), dtype="float32"))
         
-            rotation_nparray[rowIndex] = rotation
-            translation_nparray[rowIndex] = translation.to_numpy()
-            
+        for step in range(stateTraj.getSize()):
+            nextState = stateTraj.get(step)
+            self.model.realizePosition(nextState)
+            for bodyIndex in range(bodySet.getSize()):
+                nextBody = bodySet.get(bodyIndex)
+                translation = nextBody.getPositionInGround(nextState).to_numpy()
+                rotationAsSimbodyRot = nextBody.getRotationInGround(nextState)
+                rotzSimbodyNotation = rotationAsSimbodyRot.convertRotationToQuaternion()
+                rotation = [rotzSimbodyNotation.get(1), rotzSimbodyNotation.get(2), rotzSimbodyNotation.get(3), rotzSimbodyNotation.get(0)]
+                rowTime = timeColumn[step]
+                for idx in range(4):
+                    rotation_arrays[bodyIndex][step, idx] = rotation[idx]
+                for idx in range(3):
+                    translation_arrays[bodyIndex][step, idx] = translation[idx]
+
+
         # create an Animation Node
         animation = Animation()
-        animation.name = timeSeriesTable.getColumnLabel(0)+"_slider"
+        animation.name = timeSeriesStorage.getColumnLabels().get(1)+"_slider"
         self.animations.append(animation)
         animationIndex = len(self.animations)-1
         # create 2 channels per body one for rotation, other for translation
         # keep track of first samplers index then create 2 per body
-        addTimeStampsAccessor(self.gltf, timeColumn)
+        addTimeStampsAccessor(self.gltf, timeColumn.to_numpy())
         # this is the input to every  sampler's input
         timeAccessorIndex = len(self.gltf.accessors)-1
         # create time sampler
@@ -387,8 +394,8 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
             transSampler = AnimationSampler()
             rotSampler.input = timeAccessorIndex
             transSampler.input = timeAccessorIndex
-            rotSampler.output = createAccessor(self.gltf, rotation_nparray, 'r')
-            transSampler.output = createAccessor(self.gltf, translation_nparray, 't')
+            rotSampler.output = createAccessor(self.gltf, rotation_arrays[bodyIndex], 'r')
+            transSampler.output = createAccessor(self.gltf, translation_arrays[bodyIndex], 't')
             animation.samplers.append(rotSampler)
             animation.samplers.append(transSampler)
             # Create channels
@@ -401,9 +408,9 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
             animation.channels.append(transChannel) 
 
             # find target node           
-            body = bodySet.get(bodyIndex)
-            bodyIndex = body.getMobilizedBodyIndex()
-            bodyNodeIndex = self.mapMobilizedBodyIndexToNodeIndex[bodyIndex]
+            nextBody = bodySet.get(bodyIndex)
+            mobodyIndex = nextBody.getMobilizedBodyIndex()
+            bodyNodeIndex = self.mapMobilizedBodyIndexToNodeIndex[mobodyIndex]
 
             #Point channels back to samplers
             rtarget = AnimationChannelTarget()
@@ -417,5 +424,5 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
             ttarget.path = "translation"
             transChannel.target = ttarget
             transChannel.sampler = transSamplerIndex
-            # create Accessor for Rotations
+            
 
