@@ -51,6 +51,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     const [sceneObjectMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
     const [objectSelectionBox, setObjectSelectionBox] = useState<BoxHelper | null>(new BoxHelper(scene));
     const [useEffectRunning, setUseEffectRunning] = useState<boolean>(false)
+    const [recording, setRecording] = useState<boolean>(false)
 
     let curState = useModelContext();
     curState.scene = scene;
@@ -94,6 +95,14 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
             }
             if (supportControls && curState.animating){
                 mixer?.update(delta * curState.animationSpeed)
+            }
+            if (curState.recording && !recording){
+              // Start recording
+              setRecording(true)
+            }
+            else if (!curState.recording && recording){
+              // Stop recording
+              setRecording(true)
             }
           }
       }

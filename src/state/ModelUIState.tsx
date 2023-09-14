@@ -18,6 +18,7 @@ export class ModelUIState {
     selected: string
     deSelected: string
     cameraLayersMask: number
+    recording: boolean
 
     constructor(
         currentModelPathState: string,
@@ -37,6 +38,7 @@ export class ModelUIState {
         this.selected = ""
         this.deSelected = ""
         this.cameraLayersMask = -1
+        this.recording = false
         makeObservable(this, {
             rotating: observable,
             currentModelPath: observable,
@@ -101,5 +103,8 @@ export class ModelUIState {
     }
     toggleLayerVisibility(layerToToggle: number) {
         this.cameraLayersMask = this.cameraLayersMask ^ (1 << layerToToggle)
+    }
+    toggleRecording() {
+        this.recording = !this.recording
     }
 }

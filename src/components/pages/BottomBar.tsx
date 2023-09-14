@@ -59,7 +59,9 @@ function BottomBar() {
                     </IconButton>
                 </Tooltip>
                 <Tooltip title={t('bottomBar.record')}>
-                    <IconButton color="primary">
+                    <IconButton color="primary" onClick={
+                        ()=>curState.toggleRecording()
+                    }>
                         <VideoCameraFrontTwoToneIcon />
                     </IconButton>
                 </Tooltip>
