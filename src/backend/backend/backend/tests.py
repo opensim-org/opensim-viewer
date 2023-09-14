@@ -1,13 +1,15 @@
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, Client
+from django.test import TestCase
 from urllib.parse import urlparse
 from rest_framework import status
-from rest_framework.test import APIRequestFactory, force_authenticate
+from rest_framework.test import APIRequestFactory, APIClient, force_authenticate
+from rest_framework.authtoken.models import Token
 from django.utils.translation import gettext as _
 from django.utils.translation import override
 from .models import User, Model
 from .views import UserViewSet, UserCreate, ModelViewSet, ModelCreate, ModelRetrieve
 from django.shortcuts import get_object_or_404
+
 
 class LocalizationTestCase(TestCase):
     """
@@ -264,7 +266,6 @@ class ModelRetrieveTestCase(TestCase):
         # Create a request with 'name' parameter
         request = self.factory.post('/retrieve_model/', {'name': 'Non Existing Model'}, format='multipart')
 
-
         # Create an instance of the view and call the retrieve_model method
         view = ModelRetrieve.as_view({'post': 'retrieve_model'})
         response = view(request)
@@ -280,3 +281,45 @@ class ModelRetrieveTestCase(TestCase):
         self.assertEqual(response.data['model_license'], None)
         self.assertEqual(response.data['model_license_link'], None)
         self.assertEqual(response.data['error_message'], _("objectNotFound") % {"object_name": "model", "error_message": "No Model matches the given query."})
+
+
+class LoginLogoutTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username='username',
+            password='password'
+        )
+        self.login_url = '/login/'
+        self.logout_url = '/logout/'
+
+    def test_login_valid_user(self):
+        # Test logging in with valid user credentials.
+        data = {
+            'username': 'username',
+            'password': 'password'
+        }
+        response = self.client.post(self.login_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('token', response.data)
+
+    def test_login_invalid_user(self):
+        # Test logging in with invalid user credentials.
+        data = {
+            'username': 'invaliduser',
+            'password': 'invalidpassword'
+        }
+        response = self.client.post(self.login_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_logout_authenticated_user(self):
+        # Test logging out an authenticated user.
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(self.logout_url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(Token.objects.filter(user=self.user).exists())
+
+    def test_logout_unauthenticated_user(self):
+        # Test logging out an unauthenticated user.
+        response = self.client.post(self.logout_url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
