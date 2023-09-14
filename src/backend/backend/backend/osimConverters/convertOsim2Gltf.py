@@ -38,8 +38,10 @@ def convertOsim2Gltf(osimModelFilePath, geometrySearchPath) :
   adg = osim.ArrayDecorativeGeometry()
   for comp in mcList:
     sizeBefore = adg.size()
-    # print(comp.getAbsolutePathString())
+    print(comp.getAbsolutePathString())
     comp.generateDecorations(True, mdh, state, adg);
+    if (comp.getConcreteClassName()!= "GeometryPath"):
+      comp.generateDecorations(False, mdh, state, adg);
     sizeAfter = adg.size()
     if (sizeAfter > sizeBefore):
       decorativeGeometryImp.setCurrentComponent(comp)
