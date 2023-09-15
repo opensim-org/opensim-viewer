@@ -74,6 +74,10 @@ const VisualizationControl : React.FC<VisualizationControlProps> = (props:Visual
             <FormControlLabel control={<Checkbox />} label={t('visualizationControl.joints')} />
             <FormControlLabel control={<Checkbox checked={curState.getLayerVisibility(1)}/>} label={t('visualizationControl.bodies')}
                     onChange={()=>{curState.toggleLayerVisibility(1); setCameraLayerMask(curState.cameraLayersMask)}} />
+            <FormControlLabel control={<Checkbox checked={curState.getLayerVisibility(7)}/>} label={t('visualizationControl.wrapObjects')}
+                    onChange={()=>{curState.toggleLayerVisibility(7); setCameraLayerMask(curState.cameraLayersMask)}} />
+            <FormControlLabel control={<Checkbox checked={curState.getLayerVisibility(8)}/>} label={t('visualizationControl.contactObjects')}
+                    onChange={()=>{curState.toggleLayerVisibility(8); setCameraLayerMask(curState.cameraLayersMask)}} />
             <FormControlLabel control={<Checkbox checked={curState.getLayerVisibility(4)}/>} label={t('visualizationControl.markers')} 
                     onChange={()=>{curState.toggleLayerVisibility(4); setCameraLayerMask(curState.cameraLayersMask)}}/>
         </FormGroup>
