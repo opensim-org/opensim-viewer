@@ -18,7 +18,7 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
     groundNode = None       # Node corresponding to Model::Ground
     modelState = None       # reference to state object obtained by initSystem
     mapTypesToMaterialIndex = {}
-    typeGrouping = {}
+    MaterialGrouping = {}
     accessors = None        # references to arrays within the gltf structure for convenience
     buffers = None
     bufferViews = None
@@ -214,13 +214,13 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         # 3 shiny green material for forces
         # 4 shiny blue material for experimental markers
         # 5 shiny orange material for IMUs
-        self.typeGrouping["ContactHalfSpace"] = "Wrapping"
-        self.typeGrouping["ContactSphere"] = "Wrapping"
-        self.typeGrouping["ContactMesh"] = "Wrapping"
-        self.typeGrouping["WrapSphere"] = "Wrapping"
-        self.typeGrouping["WrapCylinder"] = "Wrapping"
-        self.typeGrouping["WrapEllipsoid"] = "Wrapping"
-        self.typeGrouping["WrapTorus"] = "Wrapping"
+        self.MaterialGrouping["ContactHalfSpace"] = "Wrapping"
+        self.MaterialGrouping["ContactSphere"] = "Wrapping"
+        self.MaterialGrouping["ContactMesh"] = "Wrapping"
+        self.MaterialGrouping["WrapSphere"] = "Wrapping"
+        self.MaterialGrouping["WrapCylinder"] = "Wrapping"
+        self.MaterialGrouping["WrapEllipsoid"] = "Wrapping"
+        self.MaterialGrouping["WrapTorus"] = "Wrapping"
         self.mapTypesToMaterialIndex["Mesh"] = self.addMaterialToGltf("default", [.87, .78, .6, 1.0])
         self.mapTypesToMaterialIndex["Wrapping"] = self.addMaterialToGltf("obstacle", [0, .9, .9, 0.7])
         self.mapTypesToMaterialIndex["Marker"] = self.addMaterialToGltf("markerMat", [1.0, .6, .8, 1.0])
@@ -241,7 +241,7 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
 
     def getMaterialIndexByType(self):
         componentType = self.currentComponent.getConcreteClassName()
-        materialGrouping = self.typeGrouping.get(componentType)
+        materialGrouping = self.MaterialGrouping.get(componentType)
         if (materialGrouping is not None):
             mat = self.mapTypesToMaterialIndex.get(materialGrouping)
         else:
