@@ -21,8 +21,9 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
     groundNode = None       # Node corresponding to Model::Ground
     modelState = None       # reference to state object obtained by initSystem
     mapTypesToMaterialIndex = {}
-
+    MaterialGrouping = {}
     model = None
+
     accessors = None        # references to arrays within the gltf structure for convenience
     buffers = None
     bufferViews = None
@@ -86,6 +87,8 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
     def implementSphereGeometry(self, arg0):
         sphereSource = vtk.vtkSphereSource()
         sphereSource.SetRadius(arg0.getRadius()*self.unitConversion)
+        sphereSource.SetPhiResolution(16)
+        sphereSource.SetThetaResolution(16)
         sphereSource.Update()
         polyDataOutput = sphereSource.GetOutput()
         self.createGLTFMeshFromPolyData(arg0, "Sphere:", polyDataOutput, self.getMaterialIndexByType())
@@ -93,7 +96,21 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         return
 
     def implementEllipsoidGeometry(self, arg0):
-        return _simbody.DecorativeGeometryImplementation_implementEllipsoidGeometry(self, arg0)
+        sphereSource = vtk.vtkSphereSource()
+        sphereSource.SetRadius(1.0*self.unitConversion)
+        sphereSource.SetPhiResolution(16)
+        sphereSource.SetThetaResolution(16)
+        # Make a stretching transform to take the sphere into an ellipsoid
+        stretch = vtk.vtkTransformPolyDataFilter();
+        stretchSphereToEllipsoid = vtk.vtkTransform();
+        radiiVec3 = arg0.getRadii()
+        stretchSphereToEllipsoid.Scale(radiiVec3[0], radiiVec3[1], radiiVec3[2]);
+        stretch.SetTransform(stretchSphereToEllipsoid);
+        stretch.SetInputConnection(sphereSource.GetOutputPort());
+        stretch.Update()
+        polyDataOutput = stretch.GetOutput()
+        self.createGLTFMeshFromPolyData(arg0, "Ellipsoid:", polyDataOutput, self.getMaterialIndexByType())
+        return
 
     def implementFrameGeometry(self, arg0):
         # print("produce frame", arg0.getAxisLength())
@@ -150,8 +167,17 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
             self.mapMobilizedBodyIndexToNodes[arg0.getBodyId()].children.append(nodeIndex)
 
     def implementTorusGeometry(self, arg0):
-        return _simbody.DecorativeGeometryImplementation_implementTorusGeometry(self, arg0)
-
+        torus=vtk.vtkParametricTorus();
+        torusSource = vtk.vtkParametricFunctionSource();
+        torusSource.SetParametricFunction(torus);
+        torusMapper=vtk.vtkPolyDataMapper();
+        torusMapper.SetInputConnection(torusSource.GetOutputPort());
+        torus.SetRingRadius(arg0.getTorusRadius()+arg0.getTubeRadius());
+        torus.SetCrossSectionRadius(arg0.getTubeRadius());
+        polyDataOutput = torusSource.GetOutput();
+        self.createGLTFMeshFromPolyData(arg0, "Torus:", polyDataOutput, self.getMaterialIndexByType())
+        return
+        
     def implementArrowGeometry(self, arg0):
         return _simbody.DecorativeGeometryImplementation_implementArrowGeometry(self, arg0)
 
@@ -196,6 +222,13 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         # 3 shiny green material for forces
         # 4 shiny blue material for experimental markers
         # 5 shiny orange material for IMUs
+        self.MaterialGrouping["ContactHalfSpace"] = "Wrapping"
+        self.MaterialGrouping["ContactSphere"] = "Wrapping"
+        self.MaterialGrouping["ContactMesh"] = "Wrapping"
+        self.MaterialGrouping["WrapSphere"] = "Wrapping"
+        self.MaterialGrouping["WrapCylinder"] = "Wrapping"
+        self.MaterialGrouping["WrapEllipsoid"] = "Wrapping"
+        self.MaterialGrouping["WrapTorus"] = "Wrapping"
         self.mapTypesToMaterialIndex["Mesh"] = self.addMaterialToGltf("default", [.87, .78, .6, 1.0])
         self.mapTypesToMaterialIndex["Wrapping"] = self.addMaterialToGltf("obstacle", [0, .9, .9, 0.7])
         self.mapTypesToMaterialIndex["Marker"] = self.addMaterialToGltf("markerMat", [1.0, .6, .8, 1.0])
@@ -216,7 +249,11 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
 
     def getMaterialIndexByType(self):
         componentType = self.currentComponent.getConcreteClassName()
-        mat = self.mapTypesToMaterialIndex.get(componentType)
+        materialGrouping = self.MaterialGrouping.get(componentType)
+        if (materialGrouping is not None):
+            mat = self.mapTypesToMaterialIndex.get(materialGrouping)
+        else:
+            mat = self.mapTypesToMaterialIndex.get(componentType)
         if (mat is not None):
             return mat
         else:
@@ -226,7 +263,6 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         bd = decorativeGeometry.getBodyId()
         bdNode = self.mapMobilizedBodyIndexToNodes[bd]
         nodeIndex = len(self.nodes)
-        meshIndex = len(self.meshes)
         self.meshes.append(mesh)
         bdNode.children.append(nodeIndex)
         nodeForDecoration = Node(name=""+bd.getName()+decorativeGeometry.getIndexOnBody())
@@ -259,10 +295,10 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         tris.Update()
         triPolys = tris.GetOutput()
 
-        meshBufferIndex = len(self.buffers)
         # This follows vtkGLTFExporter flow
         pointData = triPolys.GetPoints().GetData();
         self.writeBufferAndView(pointData, ARRAY_BUFFER)
+        bounds = triPolys.GetPoints().GetBounds()
         # create accessor
         pointAccessor = Accessor()
         pointAccessor.bufferView= len(self.bufferViews)-1
@@ -270,6 +306,10 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         pointAccessor.type = VEC3
         pointAccessor.componentType = FLOAT
         pointAccessor.count = pointData.GetNumberOfTuples()
+        maxValue = [bounds[1], bounds[3], bounds[5]]
+        minValue = [bounds[0], bounds[2], bounds[4]]
+        pointAccessor.min = minValue
+        pointAccessor.max = maxValue
         self.accessors.append(pointAccessor)
         pointAccessorIndex = len(self.accessors)-1
 
@@ -295,7 +335,6 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         primitive.material = mat
         meshPolys = triPolys.GetPolys()
         ia = vtk.vtkUnsignedIntArray()
-        cellData = meshPolys.GetData()
         idList = vtk.vtkIdList()
         while meshPolys.GetNextCell(idList):
             # do something with the cell

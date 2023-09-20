@@ -33,7 +33,15 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
       ["World", 3],
       ["Marker", 4], 
       ["ExpMarker", 5],
-      ["expForce", 6]
+      ["expForce", 6],
+      ["WrapSphere", 7],
+      ["WrapCylinder", 7],
+      ["WrapEllipsoid", 7],
+      ["WrapTorus", 7],
+      ["wrapObject", 7],
+      ["ContactSphere", 8],
+      ["ContactMesh", 8],
+      ["ContactHalfSpace", 8]
     ]);
     
     const mapObjectToLayer = (obj3d: Object3D)=>{

@@ -40,6 +40,9 @@ def convertOsim2Gltf(osimModelFilePath, geometrySearchPath) :
     sizeBefore = adg.size()
     # print(comp.getAbsolutePathString())
     comp.generateDecorations(True, mdh, state, adg);
+    # we don't know how to handle muscles for now so will leave off, verify everything else displays ok
+    if (comp.getConcreteClassName()!= "GeometryPath"):
+      comp.generateDecorations(False, mdh, state, adg);
     sizeAfter = adg.size()
     if (sizeAfter > sizeBefore):
       decorativeGeometryImp.setCurrentComponent(comp)
