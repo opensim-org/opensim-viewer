@@ -1,7 +1,7 @@
 FROM python:3.9
 
 # Allows docker to cache installed dependencies between builds
-COPY environment.yml environment.yml
+COPY environment_linux.yml environment_linux.yml
 
 # Install base utilities
 RUN apt-get update \
@@ -18,9 +18,15 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86
 # Put conda in path so we can use conda activate
 ENV PATH=$CONDA_DIR/bin:$PATH
 
-RUN conda env create -f environment.yml
+RUN conda update -n base -c defaults conda
 
-RUN conda activate opensim-viewer-bend-vtk
+RUN conda env create -f environment_linux.yml
+
+SHELL ["conda", "run", "-n", "osv_bend", "/bin/bash", "-c"]
+
+# Demonstrate the environment is activated:
+RUN echo "Make sure osim is installed:"
+RUN python -c "import opensim"
 
 # Mounts the application code to the image
 COPY . code
@@ -29,5 +35,5 @@ WORKDIR /code
 EXPOSE 8000
 
 # runs the production server
-ENTRYPOINT ["python", "mysite/manage.py"]
+ENTRYPOINT ["conda", "run", "-n", "osv_bend", "python", "backend/manage.py"]
 CMD ["runserver", "0.0.0.0:8000"]
