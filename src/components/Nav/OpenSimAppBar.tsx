@@ -107,6 +107,7 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn }) => {
       </Drawer>
 
       <AppBar position="relative" style={{zIndex: 3000}}>
+
         <Toolbar variant="dense" color="inherit">
           <Link component={NavLink} to="/">
             <Box
@@ -117,67 +118,67 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn }) => {
           </Link>
 
           <Hidden smUp>
-              <IconButton
-                color="secondary"
-                sx={{ ml: 'auto', display: { md: 'none' } }}
-                onClick={toggleDrawer}>
+            <IconButton
+              color="secondary"
+              sx={{ ml: 'auto', display: { md: 'none' } }}
+              onClick={toggleDrawer}>
                 <MenuIcon />
-              </IconButton>
+            </IconButton>
           </Hidden>
 
 
-          <Tooltip title={t('topBar.viewer')}>
-            <Hidden smDown>
-                <Link component={NavLink} to="/viewer" sx={{ marginLeft: 'auto' }}>
-                  <IconButton color="secondary">
-                    <ThreeDRotationIcon />
-                  </IconButton>
-                </Link>
-            </Hidden>
-          </Tooltip>
-
-          <Tooltip title={t('topBar.models')}>
-            <Hidden smDown>
-                <Link component={NavLink} to="/models">
-                  <IconButton color="secondary">
-                    <GridViewIcon />
-                  </IconButton>
-                </Link>
-            </Hidden>
-          </Tooltip>
-
-          <Tooltip title={t('topBar.switchTheme')}>
-            <Hidden smDown>
-                <IconButton
-                  color="secondary"
-                  sx={{ ml: 1 }}
-                  onClick={() => {
-                    viewerState.setDark(!viewerState.dark);
-                  }}>
-                  {viewerState.dark ? <Brightness4Icon /> : <Brightness7Icon />}
+          <Hidden smDown>
+            <Tooltip title={t('topBar.viewer')}>
+              <Link component={NavLink} to="/viewer" sx={{ marginLeft: 'auto' }}>
+                <IconButton color="secondary">
+                  <ThreeDRotationIcon />
                 </IconButton>
-            </Hidden>
-          </Tooltip>
+              </Link>
+            </Tooltip>
+          </Hidden>
 
-          <Tooltip title={t('topBar.info')}>
-            <Hidden smDown>
-                <Link component={NavLink} to="/about">
-                  <IconButton color="secondary">
-                    <InfoTwoToneIcon />
-                  </IconButton>
-                </Link>
-            </Hidden>
-          </Tooltip>
+          <Hidden smDown>
+            <Tooltip title={t('topBar.models')}>
+              <Link component={NavLink} to="/models">
+                <IconButton color="secondary">
+                  <GridViewIcon />
+                </IconButton>
+              </Link>
+            </Tooltip>
+          </Hidden>
 
-          <Tooltip title={isLoggedIn ? t('topBar.logOut') : t('topBar.logIn')}>
-            <Hidden smDown>
-                <Link component={NavLink} to={isLoggedIn ? '/log_out' : '/log_in'}>
-                  <IconButton color="secondary">
-                    {isLoggedIn ? <LogoutIcon /> : <LoginIcon />}
-                  </IconButton>
-                </Link>
-            </Hidden>
-          </Tooltip>
+          <Hidden smDown>
+            <Tooltip title={t('topBar.switchTheme')}>
+              <IconButton
+                color="secondary"
+                sx={{ ml: 1 }}
+                onClick={() => {
+                  viewerState.setDark(!viewerState.dark);
+                }}>
+                {viewerState.dark ? <Brightness4Icon /> : <Brightness7Icon />}
+              </IconButton>
+            </Tooltip>
+          </Hidden>
+
+          <Hidden smDown>
+            <Tooltip title={t('topBar.info')}>
+              <Link component={NavLink} to="/about">
+                <IconButton color="secondary">
+                  <InfoTwoToneIcon />
+                </IconButton>
+              </Link>
+            </Tooltip>
+          </Hidden>
+
+          <Hidden smDown>
+            <Tooltip title={isLoggedIn ? t('topBar.logOut') : t('topBar.logIn')}>
+              <Link component={NavLink} to={isLoggedIn ? '/log_out' : '/log_in'}>
+                <IconButton color="secondary">
+                  {isLoggedIn ? <LogoutIcon /> : <LoginIcon />}
+                </IconButton>
+              </Link>
+            </Tooltip>
+          </Hidden>
         </Toolbar>
       </AppBar>
 
