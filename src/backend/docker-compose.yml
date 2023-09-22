@@ -1,8 +1,8 @@
 version: '3'
 
 services:
-  viewer_project:
-    image: osv_bend_image
+  web:
+    build: .
     ports:
       - 8000:8000
-      
+  
