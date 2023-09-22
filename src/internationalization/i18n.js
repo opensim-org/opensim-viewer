@@ -86,6 +86,8 @@ i18next
                         wcs: "WCS",
                         joints: "Joints",
                         bodies: "Bodies",
+                        wrapObjects: "WrapObjects",
+                        contactObjects: "Contacts",
                         markers: "Markers",
                         speed: "Speed"
                     },
