@@ -38,6 +38,10 @@ WORKDIR /code
 
 EXPOSE 8000
 
+RUN python backend/manage.py makemigrations
+RUN python backend/manage.py migrate
+RUN echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('ayman12345', 'ahabib@stanford.edu', 'ayman12345')" | python backend/manage.py shell
+
 # runs the production server
 ENTRYPOINT ["conda", "run", "-n", "osv_bend", "python", "backend/manage.py"]
 CMD ["runserver", "0.0.0.0:8000"]
