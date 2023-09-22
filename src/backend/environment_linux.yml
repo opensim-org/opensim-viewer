@@ -1,6 +1,7 @@
 name: osv_bend
 channels:
   - opensim-org
+  - conda-forge
   - defaults
 dependencies:
   - _libgcc_mutex=0.1=main
@@ -113,6 +114,7 @@ dependencies:
       - django==4.2.5
       - django-extensions==3.2.3
       - djangorestframework==3.14.0
+      - django-cors-headers==4.1.0
       - marshmallow==3.20.1
       - mypy-extensions==1.0.0
       - packaging==23.1

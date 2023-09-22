@@ -7,6 +7,7 @@ COPY environment_linux.yml environment_linux.yml
 RUN apt-get update \
     && apt-get install -y build-essential \
     && apt-get install -y wget \
+    && apt-get install -y mesa-utils \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -25,8 +26,11 @@ RUN conda env create -f environment_linux.yml
 SHELL ["conda", "run", "-n", "osv_bend", "/bin/bash", "-c"]
 
 # Demonstrate the environment is activated:
-RUN echo "Make sure osim is installed:"
+RUN echo "Make sure osim, vtk, pygltflib and django are installed:"
 RUN python -c "import opensim"
+RUN python -c "import vtk"
+RUN python -c "import pygltflib"
+RUN python -c "import django"
 
 # Mounts the application code to the image
 COPY . code
