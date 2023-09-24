@@ -87,6 +87,11 @@ export function PersistentDrawerLeft() {
                     </GizmoHelper>
                     <OpenSimControl />
                     <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
+                    <mesh name='Floor' rotation-x={-Math.PI / 2} position-y={-.05} receiveShadow >
+                      <planeGeometry attach="geometry" args={[10, 10]} />
+                      <meshPhongMaterial attach="material" color="white"/>
+                    </mesh>
+
             </Canvas>
             </Suspense>
             </div>

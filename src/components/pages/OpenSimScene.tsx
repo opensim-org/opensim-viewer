@@ -1,8 +1,8 @@
 import { useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 
-import { useEffect, useState } from 'react'
-import { AnimationMixer, BoxHelper, Group, Object3D } from 'three'
+import { useEffect, useRef, useState } from 'react'
+import { AnimationMixer, BoxHelper, Group, Object3D, DirectionalLight } from 'three'
 
 import SceneTreeModel from '../../helpers/SceneTreeModel'
 import { useModelContext } from '../../state/ModelUIStateContext'
@@ -51,7 +51,8 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         if (layerNum === undefined)
           layerNum = 0
         obj3d.layers.set(layerNum)
-        console.log(obj3d.name, layerNum)
+        obj3d.castShadow = true
+        //console.log(obj3d.name, layerNum)
     }
   }
     no_face_cull(scene);
@@ -82,6 +83,9 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
             action.play()
         });
     }
+    const light = useRef<DirectionalLight>(null!);
+    //useHelper(light, DirectionalLightHelper, 0.2);
+    
     useFrame((state, delta) => {
       if (!useEffectRunning) {
           if (curState !== undefined) {
@@ -108,6 +112,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     })
 
     useEffect(() => {
+        //console.log("OpenSimScene.useEffect called ", curState.currentModelPath)
         setUseEffectRunning(false)
         if (supportControls) {
             curState.setCurrentModelPath(currentModelPath)
@@ -127,9 +132,18 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
 
     
     // By the time we're here the model is guaranteed to be available
-    return <primitive object={scene} 
+    return <>
+    <primitive object={scene} 
       onPointerDown={(e: any) => curState.setSelected(e.object.uuid)}
       onPointerMissed={() => curState.setSelected("")}/>
+      <directionalLight ref={light} position={[0.5, 1.5, -0.5]} intensity={.25} 
+        castShadow={true} 
+        shadow-camera-far={8}
+        shadow-camera-left={-2}
+        shadow-camera-right={2}
+        shadow-camera-top={2}
+        shadow-camera-bottom={-2}/>
+      </>
 }
 
 export default OpenSimScene
