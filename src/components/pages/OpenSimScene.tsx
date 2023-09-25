@@ -136,7 +136,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     <primitive object={scene} 
       onPointerDown={(e: any) => curState.setSelected(e.object.uuid)}
       onPointerMissed={() => curState.setSelected("")}/>
-      <directionalLight ref={light} position={[0.5, 1.5, -0.5]} intensity={.25} 
+      <directionalLight ref={light} position={[0.5, 1.5, -0.5]} intensity={.25} color={0xf0f0f0}
         castShadow={true} 
         shadow-camera-far={8}
         shadow-camera-left={-2}
