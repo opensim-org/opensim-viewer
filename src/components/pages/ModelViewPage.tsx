@@ -78,7 +78,7 @@ export function PersistentDrawerLeft() {
 
                 >
                     <color attach="background" args={theme.palette.mode === 'dark' ? ['#151518'] : ['#cccccc']} />
-                    <Bounds fit clip>
+                    <Bounds fit clip observe>
                         <OpenSimScene currentModelPath={viewerState.currentModelPath} supportControls={true}/>
                     </Bounds>
                     <Environment  files="./builtin/potsdamer_platz_1k.hdr" />
@@ -87,7 +87,7 @@ export function PersistentDrawerLeft() {
                     </GizmoHelper>
                     <OpenSimControl />
                     <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
-                    <mesh name='Floor' rotation-x={-Math.PI / 2} position-y={-.05} receiveShadow >
+                    <mesh name='Floor' rotation-x={-Math.PI / 2} position-y={-.01} receiveShadow >
                       <planeGeometry attach="geometry" args={[10, 10]} />
                       <meshPhongMaterial attach="material" color="white"/>
                     </mesh>
