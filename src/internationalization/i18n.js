@@ -32,7 +32,7 @@ i18next
                     modelView: {
                         file: "File",
                         sceneTree: "Scene Tree View",
-                        visualizationControl: "Visualization Control",
+                        visualizationControl: "Layers View",
                         share: "Share"
                     },
                     topBar: {
@@ -82,7 +82,7 @@ i18next
                     },
                     visualizationControl: {
                         animate: "Animate",
-                        visibility: "Visibility",
+                        visibility: "Visible Layers",
                         wcs: "WCS",
                         joints: "Joints",
                         bodies: "Bodies",

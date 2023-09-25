@@ -8,7 +8,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import TextSnippetIcon from '@mui/icons-material/TextSnippet';
 import { useTranslation } from 'react-i18next'
 import AccountTreeTwoToneIcon from '@mui/icons-material/AccountTreeTwoTone'
-import VisibilityTwoToneIcon from '@mui/icons-material/VisibilityTwoTone';
+import LayersTwoToneIcon from '@mui/icons-material/LayersTwoTone';
 
 import SceneTreeView from '../Components/SceneTreeView';
 import FileView from '../Components/FileView';
@@ -149,7 +149,7 @@ function DrawerMenu(props :DrawerMenuProps) {
             </Tooltip>
             <Tooltip title={t('modelView.visualizationControl')} placement="right">
                 <ListItem button onClick={() => props.toogleOpenMenu('VisualizationControl')}>
-                        <VisibilityTwoToneIcon />
+                        <LayersTwoToneIcon />
                 </ListItem>
             </Tooltip>
             <Tooltip title={t('modelView.share')} placement="right">
