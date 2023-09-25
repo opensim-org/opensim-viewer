@@ -84,6 +84,7 @@ i18next
                         animate: "Animate",
                         visibility: "Visible Layers",
                         wcs: "WCS",
+                        wcsTooltip: "World Coordinate System",
                         joints: "Joints",
                         bodies: "Bodies",
                         wrapObjects: "WrapObjects",
@@ -102,6 +103,7 @@ i18next
             },
             es: {
                 translation: {
+                    welcome_title: "OpenSim Online Viewer",
                     viewer: "Visor",
                     models: "Modelos",
                     dropFile: {
@@ -122,7 +124,7 @@ i18next
                     modelView: {
                         file: "Archivo",
                         sceneTree: "Árbol de Escena",
-                        visualizationControl: "Control de Visualización",
+                        visualizationControl: "Vista de Capas",
                         share: "Compartir"
                     },
                     topBar: {
@@ -172,10 +174,13 @@ i18next
                     },
                     visualizationControl: {
                         animate: "Animar",
-                        visibility: "Visibilidad",
-                        wcs: "WCS",
+                        visibility: "Capas Visibles",
+                        wcs: "SCM",
+                        wcsTooltip: "Sistema de Coordenadas de Mundo",
                         joints: "Articulaciones",
                         bodies: "Cuerpos",
+                        wrapObjects: "Envolturas",
+                        contactObjects: "Contactos",
                         markers: "Marcadores",
                         speed: "Velocidad"
                     },
