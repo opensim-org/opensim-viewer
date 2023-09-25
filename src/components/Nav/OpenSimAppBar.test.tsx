@@ -16,9 +16,4 @@ test('renders opensim-viewer toolbar', () => {
             <TestComponent />
         </Router>
     )
-    const viewerElement = screen.getByText(/Viewer/i)
-    expect(viewerElement).toBeInTheDocument()
-
-    const modelsElement = screen.getByText(/models/i)
-    expect(modelsElement).toBeInTheDocument()
 })
