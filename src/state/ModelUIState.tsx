@@ -63,6 +63,9 @@ export class ModelUIState {
             this.currentModelPath = newState
             this.sceneTree = null;
             this.cameraLayersMask = -1
+            this.animating = false
+            this.animationSpeed = 1
+			this.animations = []
         }
     }
     setRotating(newState: boolean) {
