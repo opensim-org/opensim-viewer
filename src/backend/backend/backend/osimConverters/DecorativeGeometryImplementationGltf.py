@@ -395,8 +395,8 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         translation_arrays = []
         bodySet = self.model.getBodySet()
         for bodyIndex in range(bodySet.getSize()):
-            rotation_arrays.append(np.zeros((21, 4), dtype="float32"))
-            translation_arrays.append(np.zeros((21, 3), dtype="float32"))
+            rotation_arrays.append(np.zeros((times.getSize(), 4), dtype="float32"))
+            translation_arrays.append(np.zeros((times.getSize(), 3), dtype="float32"))
         
         for step in range(stateTraj.getSize()):
             nextState = stateTraj.get(step)

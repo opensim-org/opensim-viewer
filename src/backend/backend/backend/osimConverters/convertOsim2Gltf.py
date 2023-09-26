@@ -9,7 +9,7 @@ from pathlib import Path
 from .openSimData2Gltf import *
 from .DecorativeGeometryImplementationGltf import DecorativeGeometryImplementationGltf
 
-def convertOsim2Gltf(osimModelFilePath, geometrySearchPath) :
+def convertOsim2Gltf(osimModelFilePath, geometrySearchPath, motionPaths=[]) :
 
   path = Path(osimModelFilePath)
   osim.ModelVisualizer.addDirToGeometrySearchPaths(geometrySearchPath)
@@ -49,6 +49,13 @@ def convertOsim2Gltf(osimModelFilePath, geometrySearchPath) :
     for dg_index  in range(sizeBefore, sizeAfter):
       adg.at(dg_index).implementGeometry(decorativeGeometryImp)
 
+  for motIndex in range(len(motionPaths)):
+    fileExists = Path(motionPaths[motIndex]).exists()
+    motStorage = osim.Storage(motionPaths[motIndex])
+    if (motStorage.isInDegrees()):
+      model.getSimbodyEngine().convertDegreesToRadians(motStorage)
+    decorativeGeometryImp.createAnimationForStateTimeSeries(motStorage)
+
   #find first rotational coordinate, create  a motion file varying it along 
   # its range and pass to decorativeGeometryImp to genrate corresponding animation
   coords = model.getCoordinateSet()
@@ -77,7 +84,7 @@ def convertOsim2Gltf(osimModelFilePath, geometrySearchPath) :
   
   outfile = osimModelFilePath.replace('.osim', '.gltf')
   modelGltf.save(outfile)
-  return outfile
+  return outfile, modelGltf
 
 
 
