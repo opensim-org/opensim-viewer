@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 
 import { Container, Button  } from '@mui/material'
 
-import ChartJSWrapper from 'chartjs-wrapper'
+import ChartJSWrapper from "chartjs-wrapper"
 
 // I provide this as an example, but we should adapt this to the real data and allow users to change some options
 // (like title, data shown, maybe colors and font properties...) in the GUI.
