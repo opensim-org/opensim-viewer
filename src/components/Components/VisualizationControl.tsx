@@ -7,6 +7,7 @@ import { useState } from 'react';
 import InputLabel from '@mui/material/InputLabel';
 import { AnimationClip } from 'three';
 import { useModelContext } from '../../state/ModelUIStateContext';
+import Tooltip from '@mui/material/Tooltip';
 
 interface VisualizationControlProps {
     animating?: boolean;
@@ -69,8 +70,10 @@ const VisualizationControl : React.FC<VisualizationControlProps> = (props:Visual
       <Container disableGutters>
         <FormGroup>
             <Typography variant="h6" align='left'>{t('visualizationControl.visibility')}</Typography>
-            <FormControlLabel control={<Checkbox checked={curState.showGlobalFrame}/>} label={t('visualizationControl.wcs')}
-                    onChange={()=>curState.setShowGlobalFrame(!curState.showGlobalFrame)}/>
+            <Tooltip title={t('visualizationControl.wcsTooltip')} placement="top">
+                <FormControlLabel control={<Checkbox checked={curState.showGlobalFrame}/>} label={t('visualizationControl.wcs')}
+                        onChange={()=>curState.setShowGlobalFrame(!curState.showGlobalFrame)}/>
+            </Tooltip>
             <FormControlLabel control={<Checkbox />} label={t('visualizationControl.joints')} />
             <FormControlLabel control={<Checkbox checked={curState.getLayerVisibility(1)}/>} label={t('visualizationControl.bodies')}
                     onChange={()=>{curState.toggleLayerVisibility(1); setCameraLayerMask(curState.cameraLayersMask)}} />
