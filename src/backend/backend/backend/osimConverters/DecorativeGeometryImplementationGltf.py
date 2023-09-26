@@ -382,7 +382,7 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         gltfNode.extras["opensimType"] = self.currentComponent.getConcreteClassName()
 
     def createAnimationForStateTimeSeries(self, 
-                                          timeSeriesStorage: osim.Storage):
+                                          timeSeriesStorage: osim.Storage, animationName=""):
         # create a timeSeriesTableVec3 of translations one column per body and
         # another timeSeriesTableQuaternion of rotation one per body
         times = osim.ArrayDouble()
@@ -416,7 +416,11 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
 
         # create an Animation Node
         animation = Animation()
-        animation.name = timeSeriesStorage.getColumnLabels().get(1)+"_slider"
+        if (animationName==""):
+            animName = "Animation_"+str(len(self.animations)+1)
+        else:
+            animName = animationName
+        animation.name = animName
         self.animations.append(animation)
         animationIndex = len(self.animations)-1
         # create 2 channels per body one for rotation, other for translation

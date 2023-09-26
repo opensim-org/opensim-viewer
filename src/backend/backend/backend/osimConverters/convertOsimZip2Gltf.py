@@ -46,8 +46,8 @@ def convertOsimZip2Gltf(osimzFilePath) :
             motions = mdlWithMotions['motionFiles']
             for motIndex in range(len(motions)):
                 motions[motIndex] = os.path.join(viewerSpecFolder, motions[motIndex])
-
-            gltfFile, gltfJson = convertOsim2Gltf(fullOsimPath, 'Geometry', motions)
+            geometryFolder = os.path.join(viewerSpecFolder, 'OpenSimData/Model/Geometry')
+            gltfFile, gltfJson = convertOsim2Gltf(fullOsimPath, geometryFolder, motions)
             
             outfile = osimzFilePath.replace('.osimz', '.gltf')
             gltfJson.save(outfile)
