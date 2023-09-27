@@ -74,7 +74,7 @@ export function PersistentDrawerLeft() {
       <DrawerMenu menuOpen={menuOpen} selectedTabName={selectedTabName} toogleOpenMenu={toogleOpenMenu} uiState={uiState} leftMenuWidth={leftMenuWidth} drawerContentWidth={drawerContentWidth}/>
 
         <div id="canvas-container">
-            <Suspense fallback={null}>
+              <Suspense fallback={<div>Loading...</div>}>
                 <Canvas
                     gl={{ preserveDrawingBuffer: true }}
                     shadows="soft"
@@ -83,7 +83,7 @@ export function PersistentDrawerLeft() {
                 >
                   <fog attach="fog" color="lightgray" near={1}  far={10} />
                     <color attach="background" args={theme.palette.mode === 'dark' ? ['#151518'] : ['#cccccc']} />
-                    <Bounds fit clip >
+                    <Bounds fit clip observe>
                         <OpenSimScene currentModelPath={viewerState.currentModelPath} supportControls={true}/>
                     </Bounds>
                     <Environment  files="./builtin/potsdamer_platz_1k.hdr" />
