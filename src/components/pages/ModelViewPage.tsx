@@ -83,7 +83,7 @@ export function PersistentDrawerLeft() {
                 >
                   <fog attach="fog" color="lightgray" near={1}  far={10} />
                     <color attach="background" args={theme.palette.mode === 'dark' ? ['#151518'] : ['#cccccc']} />
-                    <Bounds fit clip observe>
+                    <Bounds fit clip >
                         <OpenSimScene currentModelPath={viewerState.currentModelPath} supportControls={true}/>
                     </Bounds>
                     <Environment  files="./builtin/potsdamer_platz_1k.hdr" />
