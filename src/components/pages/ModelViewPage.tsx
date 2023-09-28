@@ -59,7 +59,7 @@ export function PersistentDrawerLeft() {
   // TODO: Move to a general styles file?
   const leftMenuWidth = 60;
   const drawerContentWidth = 250;
-  const floorTexture = useLoader(TextureLoader, 'tile.jpg');
+  const floorTexture = useLoader(TextureLoader, '/tile.jpg');
   floorTexture.wrapS = floorTexture.wrapT = RepeatWrapping;
   floorTexture.offset.set(0, 0);
   floorTexture.repeat.set(8, 8);
@@ -86,7 +86,7 @@ export function PersistentDrawerLeft() {
                     <Bounds fit clip observe>
                         <OpenSimScene currentModelPath={viewerState.currentModelPath} supportControls={true}/>
                     </Bounds>
-                    <Environment  files="./builtin/potsdamer_platz_1k.hdr" />
+                    <Environment  files="/builtin/potsdamer_platz_1k.hdr" />
                      <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
                         <GizmoViewport labelColor="white" axisHeadScale={1} />
                     </GizmoHelper>
