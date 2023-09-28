@@ -14,7 +14,7 @@
             "name": "Gait10dof",
             "description": "Trunk, pelvis and leg segments. 10 degrees of freedom, 18 muscles. This model is a simplified model focused on the lower extremity. It demonstrates the use of the new Millard muscles in OpenSim. It is intended for education, demonstration, and for initial prototyping of simulations when fast simulation times are needed.",
             "author": "Ajay Seth, Darryl Thelen, Frank C. Anderson and Scott L. Delp",
-            "path": "/builtin/gait10dof.gltf",
+            "path": "/builtin/gait10dof18musc.gltf",
             "link": "https://simtk-confluence.stanford.edu:8443/display/OpenSim/Musculoskeletal+Models",
             "license": "CC BY 3.0",
             "licenseLink": "https://creativecommons.org/licenses/by/3.0/"
@@ -24,7 +24,7 @@
             "name": "Leg39_nomusc",
             "description": "Pelvis and leg segments. 3 degrees of freedom, 9 muscles. This is a simplified model of the extremity, intended primarily for education and demonstrations.",
             "author": "Delp S.L., Loan J.P., Hoy M.G., Zajac F.E., Topp E.L., Rosen J.M., Thelen D.G., Anderson F.C., Seth A., Reinbolt J.A.",
-            "path": "/builtin/leg39_nomusc.gltf",
+            "path": "/builtin/leg39.gltf",
             "link": "https://github.com/opensim-org/opensim-models/tree/master/Models/Leg39",
             "license": "CC BY 3.0",
             "licenseLink": "https://creativecommons.org/licenses/by/3.0/"
@@ -34,7 +34,7 @@
             "name": "Pendulum",
             "description": "A double pendulum, formed by two bodies, with two degrees of freedom.",
             "author": "Ajay Seth",
-            "path": "/builtin/pendulum.gltf",
+            "path": "/builtin/double_pendulum.gltf",
             "link": "https://simtk-confluence.stanford.edu:8443/display/OpenSim/Musculoskeletal+Models",
             "license": "CC BY 3.0",
             "licenseLink": "https://creativecommons.org/licenses/by/3.0/"
@@ -43,8 +43,18 @@
             "id": 5,
             "name": "MarkerData",
             "description": "Sample marker data.",
-            "author": "",
+            "author": "Jeff Reinbolt, Ajay Seth, Sam Hamner and Ayman Habib",
             "path": "/builtin/arm26_elbow_flex.gltf",
+            "link": "https://simtk-confluence.stanford.edu:8443/display/OpenSim/Musculoskeletal+Models",
+            "license": "CC BY 3.0",
+            "licenseLink": "https://creativecommons.org/licenses/by/3.0/"
+        },
+        {
+            "id": 6,
+            "name": "Wrist",
+            "description": "This is a simplified model of the wrist, intended primarily for education and demonstrations.",
+            "author": "Robert Gonzalez, Thomas Buchanan, Scott Delp",
+            "path": "/builtin/wrist.gltf",
             "link": "https://simtk-confluence.stanford.edu:8443/display/OpenSim/Musculoskeletal+Models",
             "license": "CC BY 3.0",
             "licenseLink": "https://creativecommons.org/licenses/by/3.0/"

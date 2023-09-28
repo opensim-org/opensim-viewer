@@ -71,7 +71,8 @@ def convertOsim2Gltf(osimModelFilePath, geometrySearchPath) :
           coordinateSliderStorage.append(sliderTime, row)
 
         break
-  decorativeGeometryImp.createAnimationForStateTimeSeries(coordinateSliderStorage)
+
+  # decorativeGeometryImp.createAnimationForStateTimeSeries(coordinateSliderStorage)
 
   modelGltf = decorativeGeometryImp.get_GLTF()
   
