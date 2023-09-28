@@ -35,7 +35,7 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 type DrawerMenuProps = {
   menuOpen : boolean;
   selectedTabName: string;
-  toogleOpenMenu: Function;
+  toggleOpenMenu: Function;
   uiState: ModelUIState;
   leftMenuWidth: number;
   drawerContentWidth: number;
@@ -76,7 +76,7 @@ function DrawerMenu(props :DrawerMenuProps) {
             <div style={{ margin: '1em' }}>
               <DrawerHeader>
                 <h3>{t('modelView.file')}</h3>
-                <IconButton onClick={() => props.toogleOpenMenu()}>
+                <IconButton onClick={() => props.toggleOpenMenu()}>
                   {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
                 </IconButton>
               </DrawerHeader>
@@ -88,7 +88,7 @@ function DrawerMenu(props :DrawerMenuProps) {
             <div style={{ margin: '1em' }}>
               <DrawerHeader>
                 <h3>{t('modelView.sceneTree')}</h3>
-                <IconButton onClick={() => props.toogleOpenMenu()}>
+                <IconButton onClick={() => props.toggleOpenMenu()}>
                   {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
                 </IconButton>
               </DrawerHeader>
@@ -100,7 +100,7 @@ function DrawerMenu(props :DrawerMenuProps) {
             <div style={{ margin: '1em' }}>
               <DrawerHeader>
                 <h3>{t('modelView.visualizationControl')}</h3>
-                <IconButton onClick={() => props.toogleOpenMenu('')}>
+                <IconButton onClick={() => props.toggleOpenMenu('')}>
                   {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
                 </IconButton>
               </DrawerHeader>
@@ -116,7 +116,7 @@ function DrawerMenu(props :DrawerMenuProps) {
             <div style={{ margin: '1em' }}>
               <DrawerHeader>
                 <h3>{t('modelView.share')}</h3>
-                <IconButton onClick={() => props.toogleOpenMenu('')}>
+                <IconButton onClick={() => props.toggleOpenMenu('')}>
                   {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
                 </IconButton>
               </DrawerHeader>
@@ -138,22 +138,22 @@ function DrawerMenu(props :DrawerMenuProps) {
       >
           <List  color="inherit">
             <Tooltip title={t('modelView.file')} placement="right">
-                <ListItem button onClick={() => props.toogleOpenMenu('File')}>
+                <ListItem button onClick={() => props.toggleOpenMenu('File')}>
                     <TextSnippetIcon />
                 </ListItem>
             </Tooltip>
             <Tooltip title={t('modelView.sceneTree')} placement="right">
-                <ListItem button onClick={() => props.toogleOpenMenu('SceneTreeView')}>
+                <ListItem button onClick={() => props.toggleOpenMenu('SceneTreeView')}>
                         <AccountTreeTwoToneIcon />
                 </ListItem>
             </Tooltip>
             <Tooltip title={t('modelView.visualizationControl')} placement="right">
-                <ListItem button onClick={() => props.toogleOpenMenu('VisualizationControl')}>
+                <ListItem button onClick={() => props.toggleOpenMenu('VisualizationControl')}>
                         <LayersTwoToneIcon />
                 </ListItem>
             </Tooltip>
             <Tooltip title={t('modelView.share')} placement="right">
-                <ListItem button onClick={() => props.toogleOpenMenu('Share')}>
+                <ListItem button onClick={() => props.toggleOpenMenu('Share')}>
                         <ShareTwoToneIcon />
                 </ListItem>
             </Tooltip>

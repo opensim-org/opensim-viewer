@@ -6,7 +6,7 @@ import { Canvas, useLoader } from '@react-three/fiber';
 import { Bounds, Environment, GizmoHelper, GizmoViewport } from '@react-three/drei';
 import viewerState from '../../state/ViewerState';
 import OpenSimControl from '../pages/OpenSimControl';
-import { Suspense } from 'react';
+import { Suspense, startTransition  } from 'react';
 import BottomBar from '../pages/BottomBar';
 
 import DrawerMenu from '../Components/DrawerMenu';
@@ -45,7 +45,7 @@ export function PersistentDrawerLeft() {
   const [selectedTabName, setSelectedTabName] = React.useState<string>("File");
 
 
-  function toogleOpenMenu(name:string='') {
+  function toggleOpenMenu(name:string='') {
     // If same name, or empty just toggle.
     if (name === selectedTabName || name === '')
         setMenuOpen(!menuOpen)
@@ -71,7 +71,7 @@ export function PersistentDrawerLeft() {
 
       <Main>
 
-      <DrawerMenu menuOpen={menuOpen} selectedTabName={selectedTabName} toogleOpenMenu={toogleOpenMenu} uiState={uiState} leftMenuWidth={leftMenuWidth} drawerContentWidth={drawerContentWidth}/>
+      <DrawerMenu menuOpen={menuOpen} selectedTabName={selectedTabName} toggleOpenMenu={toggleOpenMenu} uiState={uiState} leftMenuWidth={leftMenuWidth} drawerContentWidth={drawerContentWidth}/>
 
         <div id="canvas-container">
             <Suspense fallback={null}>
