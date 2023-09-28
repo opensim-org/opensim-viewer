@@ -51,7 +51,6 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         if (layerNum === undefined)
           layerNum = 0
         obj3d.layers.set(layerNum)
-        console.log(obj3d.name, layerNum)
     }
   }
     no_face_cull(scene);
@@ -59,10 +58,11 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     const [sceneObjectMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
     const [objectSelectionBox, setObjectSelectionBox] = useState<BoxHelper | null>(new BoxHelper(scene));
     const [useEffectRunning, setUseEffectRunning] = useState<boolean>(false)
-
+    const [animationIndex, setAnimationIndex] = useState<number>(-1)
+    const [mixers, setMixers] = useState<AnimationMixer[]>([])
     let curState = useModelContext();
     curState.scene = scene;
-    
+
     if (supportControls) {
       scene.traverse((o) => {
           sceneObjectMap.set(o.uuid, o)
@@ -74,13 +74,13 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
       }
     }
 
-    let mixer: AnimationMixer
-    if (animations.length > 0) {
-        mixer = new AnimationMixer(scene);
-        animations.forEach(clip => {
-            const action = mixer.clipAction(clip)
-            action.play()
+    if (animations.length > 0 && mixers.length ===0) {
+        animations.forEach((clip, ndex) => {
+            const nextMixer = new AnimationMixer(scene)
+            nextMixer.clipAction(clip, scene)
+            mixers.push(nextMixer)
         });
+        //setMixers(mixers)
     }
     useFrame((state, delta) => {
       if (!useEffectRunning) {
@@ -101,7 +101,18 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
               }
             }
             if (supportControls && curState.animating){
-                mixer?.update(delta * curState.animationSpeed)
+
+              if (curState.currentAnimationIndex !== animationIndex) {
+                const newAnimationIndex = curState.currentAnimationIndex
+                const oldIndex  = animationIndex
+                // animation has changed
+                if (oldIndex !== -1){
+                  mixers[oldIndex].stopAllAction()
+                }
+                 setAnimationIndex(newAnimationIndex)
+                 mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).play()
+              }
+              mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
             }
           }
       }
