@@ -74,7 +74,7 @@ export function PersistentDrawerLeft() {
       <DrawerMenu menuOpen={menuOpen} selectedTabName={selectedTabName} toogleOpenMenu={toogleOpenMenu} uiState={uiState} leftMenuWidth={leftMenuWidth} drawerContentWidth={drawerContentWidth}/>
 
         <div id="canvas-container">
-              <Suspense fallback={<div>Loading...</div>}>
+              <Suspense fallback={null}>
                 <Canvas
                     gl={{ preserveDrawingBuffer: true }}
                     shadows="soft"
