@@ -59,7 +59,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     const [objectSelectionBox, setObjectSelectionBox] = useState<BoxHelper | null>(new BoxHelper(scene));
     const [useEffectRunning, setUseEffectRunning] = useState<boolean>(false)
     const [animationIndex, setAnimationIndex] = useState<number>(-1)
-    const [mixers, setMixers] = useState<AnimationMixer[]>([])
+    const [mixers, ] = useState<AnimationMixer[]>([])
     let curState = useModelContext();
     curState.scene = scene;
 
@@ -73,15 +73,16 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         scene.add(objectSelectionBox!);
       }
     }
-
-    if (animations.length > 0 && mixers.length ===0) {
-        animations.forEach((clip, ndex) => {
+    // This is a hack we need to make sure mixers match animations not just count
+    if (animations.length > 0 && mixers.length !==animations.length ) {
+        animations.forEach((clip) => {
             const nextMixer = new AnimationMixer(scene)
             nextMixer.clipAction(clip, scene)
             mixers.push(nextMixer)
         });
         //setMixers(mixers)
     }
+
     useFrame((state, delta) => {
       if (!useEffectRunning) {
           if (curState !== undefined) {
@@ -112,7 +113,8 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
                  setAnimationIndex(newAnimationIndex)
                  mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).play()
               }
-              mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
+              if (curState.currentAnimationIndex!==-1)
+                mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
             }
           }
       }
