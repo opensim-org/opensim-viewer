@@ -6,7 +6,7 @@ import { Canvas, useLoader } from '@react-three/fiber';
 import { Bounds, Environment, GizmoHelper, GizmoViewport } from '@react-three/drei';
 import viewerState from '../../state/ViewerState';
 import OpenSimControl from '../pages/OpenSimControl';
-import { Suspense, startTransition  } from 'react';
+import { Suspense  } from 'react';
 import BottomBar from '../pages/BottomBar';
 
 import DrawerMenu from '../Components/DrawerMenu';
@@ -59,6 +59,7 @@ export function PersistentDrawerLeft() {
   // TODO: Move to a general styles file?
   const leftMenuWidth = 60;
   const drawerContentWidth = 250;
+
   const floorTexture = useLoader(TextureLoader, '/tile.jpg');
   floorTexture.wrapS = floorTexture.wrapT = RepeatWrapping;
   floorTexture.offset.set(0, 0);
@@ -97,10 +98,10 @@ export function PersistentDrawerLeft() {
                       <meshPhongMaterial attach="material" color="white" map={floorTexture}/>
                     </mesh>
 
-            </Canvas>
+                </Canvas>
             </Suspense>
-            </div>
-            <BottomBar />
+          </div>
+        <BottomBar />
       </Main>
     </Box>
     </MyModelContext.Provider>
