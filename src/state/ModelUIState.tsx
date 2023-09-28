@@ -102,8 +102,10 @@ export class ModelUIState {
         this.animationSpeed = newSpeed
     }
     setSelected(uuid: string) {
-        this.deSelected = this.selected
-        this.selected = uuid
+        if (this.selected !== uuid) {
+            this.deSelected = this.selected
+            this.selected = uuid
+        }
     }
     getLayerVisibility(layerToTest: number) {
         return ((this.cameraLayersMask & (1 << layerToTest)) !== 0)

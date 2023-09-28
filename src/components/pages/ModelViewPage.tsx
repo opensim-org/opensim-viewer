@@ -2,7 +2,7 @@ import * as React from 'react';
 import { styled, useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useLoader } from '@react-three/fiber';
 import { Bounds, Environment, GizmoHelper, GizmoViewport } from '@react-three/drei';
 import viewerState from '../../state/ViewerState';
 import OpenSimControl from '../pages/OpenSimControl';
@@ -15,6 +15,7 @@ import { ModelUIState } from '../../state/ModelUIState';
 import { observer } from 'mobx-react';
 import { MyModelContext } from '../../state/ModelUIStateContext';
 import { useModelContext } from '../../state/ModelUIStateContext';
+import { RepeatWrapping, TextureLoader } from 'three';
 
 
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{
@@ -58,6 +59,10 @@ export function PersistentDrawerLeft() {
   // TODO: Move to a general styles file?
   const leftMenuWidth = 60;
   const drawerContentWidth = 250;
+  const floorTexture = useLoader(TextureLoader, 'tile.jpg');
+  floorTexture.wrapS = floorTexture.wrapT = RepeatWrapping;
+  floorTexture.offset.set(0, 0);
+  floorTexture.repeat.set(8, 8);
 
   return (
     <MyModelContext.Provider value = {uiState}>
@@ -75,10 +80,10 @@ export function PersistentDrawerLeft() {
                     shadows="soft"
                     style={{ width: 'calc(100vw - ' + (leftMenuWidth + (menuOpen ? drawerContentWidth : 0)) + 'px)', height: 'calc(100vh - 68px - 7vh)', left: leftMenuWidth + (menuOpen ? drawerContentWidth : 0), transition: 'left 0.1s ease'}}
                     camera={{ position: [1500, 2000, 1000], fov: 75, far: 10000 }}
-
                 >
+                  <fog attach="fog" color="lightgray" near={1}  far={10} />
                     <color attach="background" args={theme.palette.mode === 'dark' ? ['#151518'] : ['#cccccc']} />
-                    <Bounds fit clip>
+                    <Bounds fit clip observe>
                         <OpenSimScene currentModelPath={viewerState.currentModelPath} supportControls={true}/>
                     </Bounds>
                     <Environment  files="./builtin/potsdamer_platz_1k.hdr" />
@@ -87,6 +92,11 @@ export function PersistentDrawerLeft() {
                     </GizmoHelper>
                     <OpenSimControl />
                     <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
+                    <mesh name='Floor' rotation-x={-Math.PI / 2} position-y={-.01} receiveShadow >
+                      <planeGeometry attach="geometry" args={[20, 20]} />
+                      <meshPhongMaterial attach="material" color="white" map={floorTexture}/>
+                    </mesh>
+
             </Canvas>
             </Suspense>
             </div>
