@@ -84,6 +84,8 @@ const FileDropArea = observer(() => {
             if (location.pathname !== '/viewer')
                 navigate('/viewer');
 
+            store.uploadProgress = 1;
+            store.uploadPercentage = 1;
         } else {
             await axios.post(getBackendURL('upload_file/'), formData, {
                   headers: {
