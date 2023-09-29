@@ -29,29 +29,27 @@ def convertOsimZip2Gltf(osimzFilePath) :
     folderName = osimzFilePath.replace('.osimz', '/')
     with zipfile.ZipFile(osimzFilePath, 'r') as zip_ref:
         zip_ref.extractall(folderName)
-    rootFolder = locateFolderContainingFile(folderName, 'sessionMetadata.yaml')
-    if (rootFolder is not None):
-        # Assume OpenCap Layout
-        viewerSpecFolder = locateFolderContainingFile(rootFolder, 'opensim-viewer.json')
-        if (viewerSpecFolder is not None):
-            viewerSpecFile = os.path.join(viewerSpecFolder, 'opensim-viewer.json')
-            jsonPath = Path(viewerSpecFile)
-            with jsonPath.open() as f:
-                data = json.load(f)
-            sceneInfo = data['scene']
-            # cycle thru sceneInfo get models and motions
-            mdlWithMotions = sceneInfo[0]['model']
-            osimFile = mdlWithMotions['osimFile']
-            fullOsimPath = os.path.join(viewerSpecFolder, osimFile)
-            motions = mdlWithMotions['motionFiles']
-            for motIndex in range(len(motions)):
-                motions[motIndex] = os.path.join(viewerSpecFolder, motions[motIndex])
-            geometryFolder = os.path.join(viewerSpecFolder, 'OpenSimData/Model/Geometry')
-            gltfFile, gltfJson = convertOsim2Gltf(fullOsimPath, geometryFolder, motions)
-            
-            outfile = osimzFilePath.replace('.osimz', '.gltf')
-            gltfJson.save(outfile)
-            return outfile
+    viewerSpecFolder = locateFolderContainingFile(folderName, 'opensim-viewer.json')
+    # Assume OpenCap Layout
+    if (viewerSpecFolder is not None):
+        viewerSpecFile = os.path.join(viewerSpecFolder, 'opensim-viewer.json')
+        jsonPath = Path(viewerSpecFile)
+        with jsonPath.open() as f:
+            data = json.load(f)
+        sceneInfo = data['scene']
+        # cycle thru sceneInfo get models and motions
+        mdlWithMotions = sceneInfo[0]['model']
+        osimFile = mdlWithMotions['osimFile']
+        fullOsimPath = os.path.join(viewerSpecFolder, osimFile)
+        motions = mdlWithMotions['motionFiles']
+        for motIndex in range(len(motions)):
+            motions[motIndex] = os.path.join(viewerSpecFolder, motions[motIndex])
+        geometryFolder = os.path.join(viewerSpecFolder, 'OpenSimData/Model/Geometry')
+        gltfFile, gltfJson = convertOsim2Gltf(fullOsimPath, geometryFolder, motions)
+        
+        outfile = osimzFilePath.replace('.osimz', '.gltf')
+        gltfJson.save(outfile)
+        return outfile
 
 def locateFolderContainingFile(folderName, searchForFile):
     for dirpath, dirnames, filenames in os.walk(folderName):
