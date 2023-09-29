@@ -1,8 +1,8 @@
 import { useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 
-import { useEffect, useRef, useState } from 'react'
-import { AnimationMixer, BoxHelper, Group, Object3D, DirectionalLight } from 'three'
+import { useEffect, useState } from 'react'
+import { AnimationMixer, BoxHelper, Group, Object3D } from 'three'
 
 import SceneTreeModel from '../../helpers/SceneTreeModel'
 import { useModelContext } from '../../state/ModelUIStateContext'
@@ -60,10 +60,11 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     const [sceneObjectMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
     const [objectSelectionBox, setObjectSelectionBox] = useState<BoxHelper | null>(new BoxHelper(scene));
     const [useEffectRunning, setUseEffectRunning] = useState<boolean>(false)
-
+    const [animationIndex, setAnimationIndex] = useState<number>(-1)
+    const [mixers, ] = useState<AnimationMixer[]>([])
     let curState = useModelContext();
     curState.scene = scene;
-    
+
     if (supportControls) {
       scene.traverse((o) => {
           sceneObjectMap.set(o.uuid, o)
@@ -74,18 +75,16 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         scene.add(objectSelectionBox!);
       }
     }
-
-    let mixer: AnimationMixer
-    if (animations.length > 0) {
-        mixer = new AnimationMixer(scene);
-        animations.forEach(clip => {
-            const action = mixer.clipAction(clip)
-            action.play()
+    // This is a hack we need to make sure mixers match animations not just count
+    if (animations.length > 0 && mixers.length !==animations.length ) {
+        animations.forEach((clip) => {
+            const nextMixer = new AnimationMixer(scene)
+            nextMixer.clipAction(clip, scene)
+            mixers.push(nextMixer)
         });
+        //setMixers(mixers)
     }
-    const light = useRef<DirectionalLight>(null!);
-    //useHelper(light, DirectionalLightHelper, 0.2);
-    
+
     useFrame((state, delta) => {
       if (!useEffectRunning) {
           if (curState !== undefined) {
@@ -105,8 +104,20 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
               }
             }
             if (supportControls && curState.animating){
-                mixer?.update(delta * curState.animationSpeed)
+
+              if (curState.currentAnimationIndex !== animationIndex) {
+                const newAnimationIndex = curState.currentAnimationIndex
+                const oldIndex  = animationIndex
+                // animation has changed
+                if (oldIndex !== -1){
+                  mixers[oldIndex].stopAllAction()
             }
+                 setAnimationIndex(newAnimationIndex)
+                 mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).play()
+          }
+              if (curState.currentAnimationIndex!==-1)
+                mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
+      }
           }
       }
     })
@@ -136,7 +147,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     <primitive object={scene} 
       onPointerDown={(e: any) => curState.setSelected(e.object.uuid)}
       onPointerMissed={() => curState.setSelected("")}/>
-      <directionalLight ref={light} position={[0.5, 1.5, -0.5]} intensity={.25} color={0xf0f0f0}
+      <directionalLight position={[0.5, 1.5, -0.5]} intensity={.25} color={0xf0f0f0}
         castShadow={true} 
         shadow-camera-far={8}
         shadow-camera-left={-2}

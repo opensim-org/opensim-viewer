@@ -8,6 +8,7 @@ import InputLabel from '@mui/material/InputLabel';
 import { AnimationClip } from 'three';
 import { useModelContext } from '../../state/ModelUIStateContext';
 import Tooltip from '@mui/material/Tooltip';
+import React from 'react';
 
 interface VisualizationControlProps {
     animating?: boolean;
@@ -18,43 +19,15 @@ interface VisualizationControlProps {
     animationBounds?: number[];
 }
 
-function AnimationsMenu (props:VisualizationControlProps) {
-    const { t } = useTranslation();
-
-    const curState = useModelContext();
-    const handleAnimationChange = (event: SelectChangeEvent) => {
-        if (event.target.value as string === ""){
-            curState.setAnimating(false)
-        }
-        else {
-            curState.setAnimating(true)
-        }
-        //setAge(event.target.value as string);
-    };
-    let selectedAnim=(props.animationList.length===0?"":props.animationList[0].name)
-    return (
-
-        <Select 
-            labelId="simple-select-standard-label"
-            value={selectedAnim}
-            label={t('visualizationControl.animate')}
-            onChange={handleAnimationChange}
-            >
-            {props.animationList.map(anim => (
-            <option key={anim.name} value={anim.name}>
-              {anim.name}
-            </option>
-          ))}
-        </Select>
-    )
-}
 const VisualizationControl : React.FC<VisualizationControlProps> = (props:VisualizationControlProps) => {
     const { t } = useTranslation();
     const [play, setPlay] = useState(false);
     const [speed, setSpeed] = useState(1.0);
+    const [selectedAnim, setSelectedAnim] = useState<string | undefined>("");
     const curState = useModelContext();
     // This is just a hack to force updating checkboxes, otherwise they function but don't toggle! --Ayman 9/23
     const [, setCameraLayerMask] = useState(curState.cameraLayersMask);
+
     // console.log("Props", props);
     function togglePlayAnimation() {
         curState.setAnimating(!curState.animating);
@@ -65,7 +38,24 @@ const VisualizationControl : React.FC<VisualizationControlProps> = (props:Visual
         curState.setAnimationSpeed(Number(event.target.value));
          setSpeed(Number(event.target.value))
    }
-    return (
+
+   const handleAnimationChange = (event: SelectChangeEvent) => {
+    const targetName = event.target.value as string
+    setSelectedAnim(event.target.value as string);
+    if ( targetName === ""){
+        curState.setAnimating(false)
+    }
+    else {
+        const idx = curState.animations.findIndex((value: AnimationClip, index: number)=>{return (value.name === targetName)})
+        if (idx !== -1) {
+            curState.currentAnimationIndex = idx
+            curState.setAnimating(true)
+        }
+    }
+    setPlay(curState.animating)
+    //setAge(event.target.value as string);
+};
+return (
     <>
       <Container disableGutters>
         <FormGroup>
@@ -88,7 +78,18 @@ const VisualizationControl : React.FC<VisualizationControlProps> = (props:Visual
       <Container disableGutters>
         <FormControl variant="standard" sx={{ m: 1, minWidth: 150 }}>
             <InputLabel id="simple-select-standard-label">Animations</InputLabel>
-            <AnimationsMenu {...props}/>
+            <Select 
+            labelId="simple-select-standard-label"
+            label={t('visualizationControl.animate')}
+            value={selectedAnim}
+            onChange={handleAnimationChange}
+            >
+            {props.animationList.map(anim => (
+            <MenuItem key={anim.name} value={anim.name}>
+              {anim.name}
+            </MenuItem>
+          ))}
+        </Select>
         </FormControl>
           <Stack direction="row" color="primary">
           <IconButton 

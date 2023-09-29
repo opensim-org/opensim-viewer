@@ -15,7 +15,7 @@ const FileDropArea = observer(() => {
   const appState = viewerState;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const acceptedTypes:string[] = ['.osim', '.trc', '.mot', '.c3d', '.gltf']
+  const acceptedTypes:string[] = ['.osim', '.trc', '.mot', '.c3d', '.osimz', '.gltf']
   const acceptedTypesString:string = acceptedTypes.join(', ');
 
   const [errorMessage, setErrorMessage] = useState<string>('');

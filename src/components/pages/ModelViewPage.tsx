@@ -6,7 +6,7 @@ import { Canvas, useLoader } from '@react-three/fiber';
 import { Bounds, Environment, GizmoHelper, GizmoViewport } from '@react-three/drei';
 import viewerState from '../../state/ViewerState';
 import OpenSimControl from '../pages/OpenSimControl';
-import { Suspense, startTransition  } from 'react';
+import { Suspense } from 'react';
 import BottomBar from '../pages/BottomBar';
 
 import DrawerMenu from '../Components/DrawerMenu';
