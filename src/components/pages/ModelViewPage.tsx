@@ -59,10 +59,14 @@ export function PersistentDrawerLeft() {
   // TODO: Move to a general styles file?
   const leftMenuWidth = 60;
   const drawerContentWidth = 250;
-  const floorTexture = useLoader(TextureLoader, '/tile.jpg');
-  floorTexture.wrapS = floorTexture.wrapT = RepeatWrapping;
-  floorTexture.offset.set(0, 0);
-  floorTexture.repeat.set(8, 8);
+
+  // TODO: useLoader is causing a collision with the Suspense since it is synchronous, causing an error, commented
+  // and set to null for now.
+  const floorTexture = null
+  //const floorTexture = useLoader(TextureLoader, '/tile.jpg');
+  //floorTexture.wrapS = floorTexture.wrapT = RepeatWrapping;
+  //floorTexture.offset.set(0, 0);
+  //floorTexture.repeat.set(8, 8);
 
   return (
     <MyModelContext.Provider value = {uiState}>
