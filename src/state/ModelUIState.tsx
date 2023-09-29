@@ -15,6 +15,7 @@ export class ModelUIState {
     animating: boolean
     animationSpeed: number
     animations: AnimationClip[]
+    currentAnimationIndex: number
     selected: string
     deSelected: string
     cameraLayersMask: number
@@ -34,6 +35,7 @@ export class ModelUIState {
         this.animating = false
         this.animationSpeed = 1.0
         this.animations = []
+        this.currentAnimationIndex = -1
         this.selected = ""
         this.deSelected = ""
         this.cameraLayersMask = -1
@@ -63,6 +65,10 @@ export class ModelUIState {
             this.currentModelPath = newState
             this.sceneTree = null;
             this.cameraLayersMask = -1
+            this.animating = false
+            this.animationSpeed = 1
+			this.animations = []
+            this.currentAnimationIndex = -1
         }
     }
     setRotating(newState: boolean) {
@@ -80,6 +86,9 @@ export class ModelUIState {
     setAnimating(newState: boolean){
         this.animating = newState
     }
+    setCurrentAnimationIndex(newIndex: number) {
+        this.currentAnimationIndex = newIndex
+    }
     setShowGlobalFrame(newState: boolean) {
         this.showGlobalFrame = newState 
     }
@@ -93,8 +102,10 @@ export class ModelUIState {
         this.animationSpeed = newSpeed
     }
     setSelected(uuid: string) {
-        this.deSelected = this.selected
-        this.selected = uuid
+        if (this.selected !== uuid) {
+            this.deSelected = this.selected
+            this.selected = uuid
+        }
     }
     getLayerVisibility(layerToTest: number) {
         return ((this.cameraLayersMask & (1 << layerToTest)) !== 0)

@@ -9,10 +9,12 @@ from pathlib import Path
 from .openSimData2Gltf import *
 from .DecorativeGeometryImplementationGltf import DecorativeGeometryImplementationGltf
 
-def convertOsim2Gltf(osimModelFilePath, geometrySearchPath) :
+def convertOsim2Gltf(osimModelFilePath, geometrySearchPath, motionPaths=[]) :
 
   path = Path(osimModelFilePath)
   osim.ModelVisualizer.addDirToGeometrySearchPaths(geometrySearchPath)
+  # fallback to stock meshes
+  osim.ModelVisualizer.addDirToGeometrySearchPaths('model_files/../Geometry')
   if not path.exists():
       raise NotADirectoryError("Unable to find file ", path.absolute())
 
@@ -49,35 +51,44 @@ def convertOsim2Gltf(osimModelFilePath, geometrySearchPath) :
     for dg_index  in range(sizeBefore, sizeAfter):
       adg.at(dg_index).implementGeometry(decorativeGeometryImp)
 
+  for motIndex in range(len(motionPaths)):
+    fileExists = Path(motionPaths[motIndex]).exists()
+    motStorage = osim.Storage(motionPaths[motIndex])
+    if (motStorage.isInDegrees()):
+      model.getSimbodyEngine().convertDegreesToRadians(motStorage)
+    decorativeGeometryImp.createAnimationForStateTimeSeries(motStorage)
+
   #find first rotational coordinate, create  a motion file varying it along 
   # its range and pass to decorativeGeometryImp to genrate corresponding animation
-  coords = model.getCoordinateSet()
-  coordinateSliderStorage = osim.Storage()
-  coordinateSliderStorage.setInDegrees(False)
-  for  cIndex in range(coords.getSize()): 
-      coordObj = coords.get(cIndex)
-      moType = coordObj.getMotionType() # want Rotational = 1
-      coordMin = coordObj.getRangeMin()
-      coordMax = coordObj.getRangeMax()
-      if (moType == 1):
-        table_time = 2 # 2 sec animation
-        labels = osim.ArrayStr()
-        labels.append("time")
-        labels.append(coordObj.getStateVariableNames().get(0))
-        coordinateSliderStorage.setColumnLabels(labels)
-        for sliderTime in np.arange(0, 2.1, 0.1):
-          coordValue = coordMin + sliderTime/table_time *(coordMax - coordMin)
-          row = osim.Vector(1, coordValue)
-          coordinateSliderStorage.append(sliderTime, row)
+  # coords = model.getCoordinateSet()
+  # coordinateSliderStorage = osim.Storage()
+  # coordinateSliderStorage.setInDegrees(False)
+  # for  cIndex in range(coords.getSize()): 
+      # coordObj = coords.get(cIndex)
+      # moType = coordObj.getMotionType() # want Rotational = 1
+      # coordMin = coordObj.getRangeMin()
+      # coordMax = coordObj.getRangeMax()
+      # if (moType == 1):
+      #   table_time = 2 # 2 sec animation
+      #   labels = osim.ArrayStr()
+      #   labels.append("time")
+      #   labels.append(coordObj.getStateVariableNames().get(0))
+      #   coordinateSliderStorage.setColumnLabels(labels)
+      #   for sliderTime in np.arange(0, 2.1, 0.1):
+      #     coordValue = coordMin + sliderTime/table_time *(coordMax - coordMin)
+      #     row = osim.Vector(1, coordValue)
+      #     coordinateSliderStorage.append(sliderTime, row)
 
-        break
-  decorativeGeometryImp.createAnimationForStateTimeSeries(coordinateSliderStorage)
+      #  break
+  # decorativeGeometryImp.createAnimationForStateTimeSeries(coordinateSliderStorage)
+
+  # decorativeGeometryImp.createAnimationForStateTimeSeries(coordinateSliderStorage)
 
   modelGltf = decorativeGeometryImp.get_GLTF()
   
   outfile = osimModelFilePath.replace('.osim', '.gltf')
   modelGltf.save(outfile)
-  return outfile
+  return outfile, modelGltf
 
 
 

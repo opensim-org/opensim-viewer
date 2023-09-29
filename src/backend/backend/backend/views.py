@@ -159,7 +159,7 @@ class ModelCreate(viewsets.ModelViewSet):
         error_message = ''
         filedata = request.data['files']
         filename, file_extension = os.path.splitext(filedata.name)
-        validFile = file_extension in ['.trc', '.mot', '.c3d', '.osim'] 
+        validFile = file_extension in ['.trc', '.mot', '.c3d', '.osim', '.osimz', '.gltf'] 
         try:
             if (validFile):
                 pathOnServer = os.path.join(settings.STATIC_ROOT, filedata.name)
@@ -173,7 +173,11 @@ class ModelCreate(viewsets.ModelViewSet):
                 elif (file_extension==".mot"):
                    generatedFile = convertMotForce2Gltf(savedFilePath, 'arrow')
                 elif (file_extension==".osim"):
-                   generatedFile = convertOsim2Gltf(savedFilePath, 'Geometry')
+                   generatedFile, gltf = convertOsim2Gltf(savedFilePath, 'Geometry')
+                elif (file_extension==".osimz"):
+                   generatedFile = convertOsimZip2Gltf(savedFilePath)
+                elif (file_extension==".gltf"):
+                    generatedFile = savedFilePath
                 # Serialize data, validate and save.
                 status = htttp_status.HTTP_200_OK
                 return Response({

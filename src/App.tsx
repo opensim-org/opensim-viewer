@@ -5,6 +5,7 @@ import ModelViewPage from './components/pages/ModelViewPage'
 import LoginPage from './components/pages/LoginPage'
 import LogoutPage from './components/pages/LogoutPage'
 import RegisterPage from './components/pages/RegisterPage'
+import Chart from './components/pages/Chart'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './App.css'
 import { observer } from 'mobx-react'
@@ -58,6 +59,10 @@ function App() {
                             <Route
                                 path="/register"
                                 element={<RegisterPage />}
+                            />
+                            <Route
+                                path="/chart"
+                                element={<Chart />}
                             />
                         </Routes>
                     </div>

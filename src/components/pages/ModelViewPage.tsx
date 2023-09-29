@@ -44,7 +44,7 @@ export function PersistentDrawerLeft() {
   const [selectedTabName, setSelectedTabName] = React.useState<string>("File");
 
 
-  function toogleOpenMenu(name:string='') {
+  function toggleOpenMenu(name:string='') {
     // If same name, or empty just toggle.
     if (name === selectedTabName || name === '')
         setMenuOpen(!menuOpen)
@@ -59,6 +59,14 @@ export function PersistentDrawerLeft() {
   const leftMenuWidth = 60;
   const drawerContentWidth = 250;
 
+  // TODO: useLoader is causing a collision with the Suspense since it is synchronous, causing an error, commented
+  // and set to null for now.
+  const floorTexture = null
+  //const floorTexture = useLoader(TextureLoader, '/tile.jpg');
+  //floorTexture.wrapS = floorTexture.wrapT = RepeatWrapping;
+  //floorTexture.offset.set(0, 0);
+  //floorTexture.repeat.set(8, 8);
+
   return (
     <MyModelContext.Provider value = {uiState}>
     <Box component="div" sx={{ display: 'flex' }}>
@@ -66,7 +74,7 @@ export function PersistentDrawerLeft() {
 
       <Main>
 
-      <DrawerMenu menuOpen={menuOpen} selectedTabName={selectedTabName} toogleOpenMenu={toogleOpenMenu} uiState={uiState} leftMenuWidth={leftMenuWidth} drawerContentWidth={drawerContentWidth}/>
+      <DrawerMenu menuOpen={menuOpen} selectedTabName={selectedTabName} toggleOpenMenu={toggleOpenMenu} uiState={uiState} leftMenuWidth={leftMenuWidth} drawerContentWidth={drawerContentWidth}/>
 
         <div id="canvas-container">
             <Suspense fallback={null}>
@@ -75,18 +83,23 @@ export function PersistentDrawerLeft() {
                     shadows="soft"
                     style={{ width: 'calc(100vw - ' + (leftMenuWidth + (menuOpen ? drawerContentWidth : 0)) + 'px)', height: 'calc(100vh - 68px - 7vh)', left: leftMenuWidth + (menuOpen ? drawerContentWidth : 0), transition: 'left 0.1s ease'}}
                     camera={{ position: [1500, 2000, 1000], fov: 75, far: 10000 }}
-
                 >
+                  <fog attach="fog" color="lightgray" near={1}  far={10} />
                     <color attach="background" args={theme.palette.mode === 'dark' ? ['#151518'] : ['#cccccc']} />
-                    <Bounds fit clip>
+                    <Bounds fit clip observe>
                         <OpenSimScene currentModelPath={viewerState.currentModelPath} supportControls={true}/>
                     </Bounds>
-                    <Environment  files="./builtin/potsdamer_platz_1k.hdr" />
+                    <Environment  files="/builtin/potsdamer_platz_1k.hdr" />
                      <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
                         <GizmoViewport labelColor="white" axisHeadScale={1} />
                     </GizmoHelper>
                     <OpenSimControl />
                     <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
+                    <mesh name='Floor' rotation-x={-Math.PI / 2} position-y={-.01} receiveShadow >
+                      <planeGeometry attach="geometry" args={[20, 20]} />
+                      <meshPhongMaterial attach="material" color="white" map={floorTexture}/>
+                    </mesh>
+
             </Canvas>
             </Suspense>
             </div>

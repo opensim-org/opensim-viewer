@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - master
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -16,7 +17,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: "12"
+          node-version: "16"
 
       # Speed up subsequent runs with caching
       - name: Cache node modules

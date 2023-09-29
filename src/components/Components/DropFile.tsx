@@ -15,7 +15,7 @@ const FileDropArea = observer(() => {
   const appState = viewerState;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const acceptedTypes:string[] = ['.osim', '.trc', '.mot', '.c3d']
+  const acceptedTypes:string[] = ['.osim', '.trc', '.mot', '.c3d', '.osimz', '.gltf']
   const acceptedTypesString:string = acceptedTypes.join(', ');
 
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -76,25 +76,37 @@ const FileDropArea = observer(() => {
         const formData = new FormData();
         formData.append('files', file);
 
-        await axios.post(getBackendURL('upload_file/'), formData, {
-              headers: {
-                "Content-Type": "multipart/form-data",
-                "Authorization " : "Token "+localStorage.getItem('token')
-              },
-              onUploadProgress: progressEvent =>{
-                const percent = progressEvent.loaded / progressEvent.total!
-                store.uploadProgress = percent;
-                store.uploadPercentage = percent;
-              }
-            }).then(response => {
-              let url_gltf = getBackendURL(response.data.model_gltf_file);
-              appState.setCurrentModelPath(url_gltf);
+        let url_gltf = ""
+        if (file.name.endsWith(".gltf")) {
+            url_gltf = URL.createObjectURL(file);
+            appState.setCurrentModelPath(url_gltf);
 
-              if (location.pathname !== '/viewer')
+            if (location.pathname !== '/viewer')
                 navigate('/viewer');
-        
-            })
-      }
+
+            store.uploadProgress = 1;
+            store.uploadPercentage = 1;
+        } else {
+            await axios.post(getBackendURL('upload_file/'), formData, {
+                  headers: {
+                    "Content-Type": "multipart/form-data",
+                    "Authorization " : "Token "+localStorage.getItem('token')
+                  },
+                  onUploadProgress: progressEvent =>{
+                    const percent = progressEvent.loaded / progressEvent.total!
+                    store.uploadProgress = percent;
+                    store.uploadPercentage = percent;
+                  }
+                }).then(response => {
+                  url_gltf = getBackendURL(response.data.model_gltf_file);
+                  appState.setCurrentModelPath(url_gltf);
+
+                  if (location.pathname !== '/viewer')
+                    navigate('/viewer');
+
+                })
+          }
+        }
     }    
   }));
 
