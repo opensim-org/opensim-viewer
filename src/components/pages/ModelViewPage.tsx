@@ -2,7 +2,7 @@ import * as React from 'react';
 import { styled, useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
-import { Canvas, useLoader } from '@react-three/fiber';
+import { Canvas } from '@react-three/fiber';
 import { Bounds, Environment, GizmoHelper, GizmoViewport } from '@react-three/drei';
 import viewerState from '../../state/ViewerState';
 import OpenSimControl from '../pages/OpenSimControl';
@@ -15,7 +15,6 @@ import { ModelUIState } from '../../state/ModelUIState';
 import { observer } from 'mobx-react';
 import { MyModelContext } from '../../state/ModelUIStateContext';
 import { useModelContext } from '../../state/ModelUIStateContext';
-import { RepeatWrapping, TextureLoader } from 'three';
 
 
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{
