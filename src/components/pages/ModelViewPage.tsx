@@ -15,7 +15,7 @@ import { ModelUIState } from '../../state/ModelUIState';
 import { observer } from 'mobx-react';
 import { MyModelContext } from '../../state/ModelUIStateContext';
 import { useModelContext } from '../../state/ModelUIStateContext';
-
+import OpenSimFloor from './OpenSimFloor';
 
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{
   open?: boolean;
@@ -34,6 +34,7 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{
     marginLeft: 0,
   }),
 }));
+
 
 export function PersistentDrawerLeft() {
   const theme = useTheme();
@@ -61,11 +62,7 @@ export function PersistentDrawerLeft() {
 
   // TODO: useLoader is causing a collision with the Suspense since it is synchronous, causing an error, commented
   // and set to null for now.
-  const floorTexture = null
-  //const floorTexture = useLoader(TextureLoader, '/tile.jpg');
-  //floorTexture.wrapS = floorTexture.wrapT = RepeatWrapping;
-  //floorTexture.offset.set(0, 0);
-  //floorTexture.repeat.set(8, 8);
+
 
   return (
     <MyModelContext.Provider value = {uiState}>
@@ -95,11 +92,7 @@ export function PersistentDrawerLeft() {
                     </GizmoHelper>
                     <OpenSimControl />
                     <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
-                    <mesh name='Floor' rotation-x={-Math.PI / 2} position-y={-.01} receiveShadow >
-                      <planeGeometry attach="geometry" args={[20, 20]} />
-                      <meshPhongMaterial attach="material" color="white" map={floorTexture}/>
-                    </mesh>
-
+                <OpenSimFloor/>
             </Canvas>
             </Suspense>
             </div>
