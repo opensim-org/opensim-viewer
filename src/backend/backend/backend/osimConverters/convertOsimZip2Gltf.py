@@ -13,14 +13,6 @@ from .openSimData2Gltf import *
 from .convertOsim2Gltf import *
 import zipfile
 
-# format is
-#
-# "scenes": [...], will populate 0 only
-# "nodes" : [...],
-# "meshes" : [...],
-# "animations" : [...],
-# "animations refer to channels and samplers"
-
 
 def convertOsimZip2Gltf(osimzFilePath) :
     path = Path(osimzFilePath)
@@ -30,6 +22,12 @@ def convertOsimZip2Gltf(osimzFilePath) :
     with zipfile.ZipFile(osimzFilePath, 'r') as zip_ref:
         zip_ref.extractall(folderName)
     viewerSpecFolder = locateFolderContainingFile(folderName, 'opensim-viewer.json')
+    if (viewerSpecFolder is None):
+        # Try to locate the file sessionMetadata
+        sessionFolder = locateFolderContainingFile(folderName, 'sessionMetadata.yaml')
+        if (sessionFolder is not None):
+            # Create a default opensim-viewer.json
+            viewerSpecFolder = createOpenSimViewerJson4OpenCap(sessionFolder)
     # Assume OpenCap Layout
     if (viewerSpecFolder is not None):
         viewerSpecFile = os.path.join(viewerSpecFolder, 'opensim-viewer.json')
@@ -56,3 +54,22 @@ def locateFolderContainingFile(folderName, searchForFile):
         if (searchForFile in filenames):
             return dirpath
     return None
+
+
+def createOpenSimViewerJson4OpenCap(folderName):
+    # create dictionary to contain scene spec before writing
+    # opensim-viewer.json
+    dict = {}
+    dict['metadata'] = {'version': 0.1}
+    dict['scene'] = []
+    animationSpec = {}
+    # Not clear if other models are used  TODO make it more general
+    animationSpec['osimFile'] = 'OpenSimData/Model/LaiArnoldModified2017_poly_withArms_weldHand_scaled.osim'
+    animationSpec['motionFiles'] = [f'OpenSimData/Kinematics/{fil}' for fil in os.listdir(folderName+'/OpenSimData/Kinematics')]
+    modelMotionSpec = {}
+    modelMotionSpec['model'] = animationSpec
+    dict['scene'].append(modelMotionSpec)
+    viewerFile = os.path.join(folderName, 'opensim-viewer.json')
+    with open(viewerFile, 'w') as outfile:
+        json.dump(dict, outfile)
+    return folderName
