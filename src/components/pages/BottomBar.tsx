@@ -10,11 +10,18 @@ import Tooltip from '@mui/material/Tooltip';
 import { observer } from 'mobx-react'
 import { useTranslation } from 'react-i18next'
 import { useModelContext } from '../../state/ModelUIStateContext';
+import { useState } from "react"
 
+interface BottomBarProps {
+  recorder: any;
+}
 
-function BottomBar() {
+function BottomBar({ recorder }: BottomBarProps) {
     const { t } = useTranslation();
     const curState = useModelContext();
+    const [isRecording, setIsRecording] = useState(false);
+
+    console.log(recorder)
 
     return (
         <Container style={{height: '7vh' }}>
@@ -30,14 +37,14 @@ function BottomBar() {
                 </Tooltip>
                 <Tooltip title={t('bottomBar.zoomIn')}>
                     <IconButton color="primary" onClick={() => {
-                        curState.setZoomFactor(1.1); 
+                        curState.setZoomFactor(1.1);
                         curState.setZooming(true)}}>
                         <ZoomInTwoToneIcon />
                     </IconButton>
                 </Tooltip>
                 <Tooltip title={t('bottomBar.zoomOut')}>
                     <IconButton color="primary" onClick={() => {
-                        curState.setZoomFactor(0.9); 
+                        curState.setZoomFactor(0.9);
                         curState.setZooming(true)}}>
                         <ZoomOutTwoToneIcon />
                     </IconButton>
@@ -59,7 +66,14 @@ function BottomBar() {
                     </IconButton>
                 </Tooltip>
                 <Tooltip title={t('bottomBar.record')}>
-                    <IconButton color="primary">
+                    <IconButton color="primary"onClick={() => {
+                        if (!isRecording) {
+                            setIsRecording(true)
+                            recorder.current.startRecording();
+                        } else {
+                            recorder.current.stopRecording();
+                            setIsRecording(false)
+                        }}}>
                         <VideoCameraFrontTwoToneIcon />
                     </IconButton>
                 </Tooltip>
