@@ -390,7 +390,7 @@ class DecorativeGeometryImplementationGltf(osim.simbody.DecorativeGeometryImplem
         timeColumn = osim.Vector(times.getAsVector())
         stateStorage = osim.Storage()
         self.model.formStateStorage(timeSeriesStorage, stateStorage, False)
-        stateTraj = osim.StatesTrajectory.createFromStatesStorage(self.model, stateStorage)
+        stateTraj = osim.StatesTrajectory.createFromStatesStorage(self.model, stateStorage, True, True, True)
         rotation_arrays = []
         translation_arrays = []
         bodySet = self.model.getBodySet()
