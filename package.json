@@ -20,6 +20,7 @@
     "@types/react-icons": "^3.0.0",
     "@types/styled-components": "^5.1.26",
     "@types/three": "^0.149.0",
+    "aws-amplify": "^5.3.11",
     "axios": "^1.4.0",
     "chartjs-wrapper": "^1.0.50",
     "i18next": "^22.4.15",

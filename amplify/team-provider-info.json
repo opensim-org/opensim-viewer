@@ -1,0 +1,23 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-opensimviewer-dev-141155-authRole",
+      "UnauthRoleArn": "arn:aws:iam::660440363484:role/amplify-opensimviewer-dev-141155-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::660440363484:role/amplify-opensimviewer-dev-141155-authRole",
+      "Region": "us-west-2",
+      "DeploymentBucketName": "amplify-opensimviewer-dev-141155-deployment",
+      "UnauthRoleName": "amplify-opensimviewer-dev-141155-unauthRole",
+      "StackName": "amplify-opensimviewer-dev-141155",
+      "StackId": "arn:aws:cloudformation:us-west-2:660440363484:stack/amplify-opensimviewer-dev-141155/2450ac90-6a0d-11ee-832e-06d40edc71af",
+      "AmplifyAppId": "d3lb5dpr1gxtsi"
+    },
+    "categories": {
+      "auth": {
+        "opensimviewer56a7366d": {}
+      },
+      "hosting": {
+        "S3AndCloudFront": {}
+      }
+    }
+  }
+}
