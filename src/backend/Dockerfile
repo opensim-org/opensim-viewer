@@ -1,15 +1,14 @@
-FROM python:3.9
+FROM public.ecr.aws/lambda/python:3.9
 
 # Allows docker to cache installed dependencies between builds
-COPY environment_linux.yml environment_linux.yml
+COPY environment_aws.yml environment_aws.yml
 
 # Install base utilities
-RUN apt-get update \
-    && apt-get install -y build-essential \
-    && apt-get install -y wget \
-    && apt-get install -y mesa-utils \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+RUN yum update -y \
+    && yum install -y wget \
+    && yum install -y libX11 \
+    && yum -y install mesa-libGL \
+    && yum clean all
 
 # Install miniconda
 ENV CONDA_DIR /opt/conda
@@ -21,27 +20,29 @@ ENV PATH=$CONDA_DIR/bin:$PATH
 
 RUN conda update -n base -c defaults conda
 
-RUN conda env create -f environment_linux.yml
+RUN conda env create -f environment_aws.yml
+
 
 SHELL ["conda", "run", "-n", "osv_bend", "/bin/bash", "-c"]
 
 # Demonstrate the environment is activated:
-RUN echo "Make sure osim, vtk, pygltflib and django are installed:"
+RUN echo "Make sure osim, vtk, pygltflib are installed:"
 RUN python -c "import opensim"
 RUN python -c "import vtk"
 RUN python -c "import pygltflib"
-RUN python -c "import django"
+# RUN python -c "import app; app.test_lambda()"
 
 # Mounts the application code to the image
-COPY . code
-WORKDIR /code
+COPY . /
+COPY app.py /
+WORKDIR /
 
 EXPOSE 8000
 
-RUN python backend/manage.py makemigrations
-RUN python backend/manage.py migrate
-RUN echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('ayman12345', 'ahabib@stanford.edu', 'ayman12345')" | python backend/manage.py shell
+# RUN python backend/manage.py makemigrations
+# RUN python backend/manage.py migrate
+# RUN echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('ayman12345', 'ahabib@stanford.edu', 'ayman12345')" | python backend/manage.py shell
 
 # runs the production server
-ENTRYPOINT ["conda", "run", "-n", "osv_bend", "python", "backend/manage.py"]
-CMD ["runserver", "0.0.0.0:8000"]
+ENTRYPOINT ["conda", "run", "-n", "osv_bend", "python"]
+# CMD ["runserver", "0.0.0.0:8000"]
