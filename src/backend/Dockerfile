@@ -1,7 +1,5 @@
 FROM public.ecr.aws/lambda/python:3.9
 
-# Allows docker to cache installed dependencies between builds
-COPY environment_aws.yml environment_aws.yml
 
 # Install base utilities
 RUN yum update -y \
@@ -20,6 +18,10 @@ ENV PATH=$CONDA_DIR/bin:$PATH
 
 RUN conda update -n base -c defaults conda
 
+# Allows docker to cache installed dependencies between builds
+COPY environment_aws.yml ${LAMBDA_TASK_ROOT}
+WORKDIR ${LAMBDA_TASK_ROOT}
+
 RUN conda env create -f environment_aws.yml
 
 
@@ -30,19 +32,20 @@ RUN echo "Make sure osim, vtk, pygltflib are installed:"
 RUN python -c "import opensim"
 RUN python -c "import vtk"
 RUN python -c "import pygltflib"
-# RUN python -c "import app; app.test_lambda()"
 
 # Mounts the application code to the image
-COPY . /
-COPY app.py /
-WORKDIR /
+COPY osimConverters ${LAMBDA_TASK_ROOT}/osimConverters
+COPY lambda_function.py ${LAMBDA_TASK_ROOT}
+# RUN python -c "import lambda_function; lambda_function.handler()"
 
-EXPOSE 8000
+
+# EXPOSE 8000
 
 # RUN python backend/manage.py makemigrations
 # RUN python backend/manage.py migrate
 # RUN echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('ayman12345', 'ahabib@stanford.edu', 'ayman12345')" | python backend/manage.py shell
 
-# runs the production server
-ENTRYPOINT ["conda", "run", "-n", "osv_bend", "python"]
-# CMD ["runserver", "0.0.0.0:8000"]
+# run in conda env osv_bend
+WORKDIR ${LAMBDA_TASK_ROOT}
+ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "osv_bend", "python"]
+CMD ["lambda_function.py"]

@@ -45,11 +45,9 @@ def convertOsimZip2Gltf(osimzFilePath) :
         for motIndex in range(len(motions)):
             motions[motIndex] = os.path.join(viewerSpecFolder, motions[motIndex])
         geometryFolder = os.path.join(viewerSpecFolder, 'OpenSimData/Model/Geometry')
-        gltfFile, gltfJson = convertOsim2Gltf(fullOsimPath, geometryFolder, motions)
+        gltfJson = convertOsim2Gltf(fullOsimPath, geometryFolder, motions)
         
-        outfile = osimzFilePath.replace('.osimz', '.gltf')
-        gltfJson.save(outfile)
-        return outfile
+        return gltfJson
 
 def locateFolderContainingFile(folderName, searchForFile):
     for dirpath, dirnames, filenames in os.walk(folderName):

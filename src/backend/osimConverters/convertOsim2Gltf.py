@@ -86,9 +86,7 @@ def convertOsim2Gltf(osimModelFilePath, geometrySearchPath, motionPaths=[]) :
 
   modelGltf = decorativeGeometryImp.get_GLTF()
   
-  outfile = osimModelFilePath.replace('.osim', '.gltf')
-  modelGltf.save(outfile)
-  return outfile, modelGltf
+  return modelGltf
 
 
 
