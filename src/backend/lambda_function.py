@@ -18,23 +18,23 @@ def convertUserFileToGLTF(filePathOrURL):
         #invoke converter on trc file, then generate url from path
             gltfJson = convertTrc2Gltf(filePathOrURL, 'sphere')
             outfile = filePathOrURL.replace('.trc', '.gltf')
-            gltfJson.save(outfile)
+            # gltfJson.save(outfile)
         elif (file_extension==".c3d"):
             gltfJson = convertC3D2Gltf(filePathOrURL, 'sphere')
             outfile = filePathOrURL.replace('.c3d', '.gltf')
-            gltfJson.save(outfile)
+            # gltfJson.save(outfile)
         elif (file_extension==".mot"):
             gltfJson = convertMotForce2Gltf(filePathOrURL, 'arrow')
             outfile = filePathOrURL.replace('.mot', '.gltf')
-            gltfJson.save(outfile)
+            # gltfJson.save(outfile)
         elif (file_extension==".osim"):
             gltfJson = convertOsim2Gltf(filePathOrURL, 'Geometry')
             outfile = filePathOrURL.replace('.osim', '.gltf')
-            gltfJson.save(outfile)
+            # gltfJson.save(outfile)
         elif (file_extension==".osimz"):
             gltfJson = convertOsimZip2Gltf(filePathOrURL)
             outfile = filePathOrURL.replace('.osimz', '.gltf')
-            gltfJson.save(outfile)
+            # gltfJson.save(outfile)
          #elif (file_extension==".gltf"):
         #    generatedFile = filePathOrURL
         return gltfJson
