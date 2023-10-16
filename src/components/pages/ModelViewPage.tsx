@@ -14,7 +14,7 @@ import OpenSimControl from "../pages/OpenSimControl";
 import { Suspense, useEffect } from "react";
 import BottomBar from "../pages/BottomBar";
 
-import { useCallback, useRef } from 'react';
+import { useRef } from 'react';
 
 import { useThree } from '@react-three/fiber';
 
@@ -54,23 +54,7 @@ type RecorderRef = {
 
 function Recorder({ recorderRef }: { recorderRef: React.MutableRefObject<RecorderRef | null> }) {
   const { gl } = useThree();
-  const stream = gl.domElement.captureStream();
-  const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
   const ffmpegRef = useRef(new FFmpeg());
-
-  const startRecording = useCallback(() => {
-    recorder.start();
-  }, []);
-
-  const stopRecording = useCallback(async () => {
-    recorder.stop()
-    recorder.addEventListener('dataavailable', async (evt) => {
-      const url = URL.createObjectURL(evt.data);
-      await load();
-      const mp4Url = await transcode(url)
-      downloadVideo(mp4Url, "video.mp4")
-    });
-  }, []);
 
   const load = async () => {
     const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/umd/'
@@ -103,11 +87,29 @@ function Recorder({ recorderRef }: { recorderRef: React.MutableRefObject<Recorde
   }
 
   useEffect(() => {
+
+    const stream = gl.domElement.captureStream();
+    const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+
+    const startRecording = function() {
+      recorder.start();
+    };
+
+    const stopRecording = function() {
+      recorder.stop()
+      recorder.addEventListener('dataavailable', async (evt) => {
+        const url = URL.createObjectURL(evt.data);
+        await load();
+        const mp4Url = await transcode(url)
+        downloadVideo(mp4Url, "video.mp4")
+      });
+    };
+
     recorderRef.current = {
       startRecording,
       stopRecording,
     };
-  }, [recorderRef, startRecording, stopRecording]);
+  }, [recorderRef, gl.domElement]);
 
   return null;
 }
