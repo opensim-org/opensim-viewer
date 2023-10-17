@@ -52,7 +52,11 @@ type RecorderRef = {
   stopRecording: () => void;
 };
 
-function Recorder({ recorderRef }: { recorderRef: React.MutableRefObject<RecorderRef | null> }) {
+type RecorderViewProps = {
+  recorderRef: React.MutableRefObject<RecorderRef | null>;
+}
+
+function Recorder(props :RecorderViewProps) {
   const { gl } = useThree();
   const ffmpegRef = useRef(new FFmpeg());
 
@@ -68,13 +72,22 @@ function Recorder({ recorderRef }: { recorderRef: React.MutableRefObject<Recorde
     });
   }
 
-  const transcode = async (url:string) => {
+  const transcodeMp4 = async (url:string) => {
     const ffmpeg = ffmpegRef.current;
     await ffmpeg.writeFile('input.webm', await fetchFile(url));
-    await ffmpeg.exec(['-i', 'input.webm', '-r', '30', 'video.mp4']);
+    await ffmpeg.exec(['-i', 'input.webm', '-r', '60', "-vf", "scale=1860:502", 'video.mp4']);
     const data = await ffmpeg.readFile('video.mp4');
     const urlMp4 = URL.createObjectURL(new Blob([data], {type: 'video/mp4'}));
     return urlMp4;
+  }
+
+  const transcodeMov = async (url:string) => {
+    const ffmpeg = ffmpegRef.current;
+    await ffmpeg.writeFile('input.webm', await fetchFile(url));
+    await ffmpeg.exec(['-i', 'input.webm', '-r', '60', "-vf", "scale=1860:502", 'video.mov']);
+    const data = await ffmpeg.readFile('video.mov');
+    const urlMov = URL.createObjectURL(new Blob([data], {type: 'video/mov'}));
+    return urlMov;
   }
 
   function downloadVideo(url:any, fileName:string) {
@@ -99,17 +112,29 @@ function Recorder({ recorderRef }: { recorderRef: React.MutableRefObject<Recorde
       recorder.stop()
       recorder.addEventListener('dataavailable', async (evt) => {
         const url = URL.createObjectURL(evt.data);
-        await load();
-        const mp4Url = await transcode(url)
-        downloadVideo(mp4Url, "video.mp4")
+        // If not webm, convert to format.
+        if (viewerState.recordedVideoFormat === "webm") {
+          downloadVideo(url, viewerState.recordedVideoName + "." + viewerState.recordedVideoFormat )
+        } else {
+          await load()
+          if (viewerState.recordedVideoFormat === "mp4") {
+            const urlMp4 = await transcodeMp4(url)
+            downloadVideo(urlMp4, viewerState.recordedVideoName + "." + viewerState.recordedVideoFormat )
+          }
+          if (viewerState.recordedVideoFormat === "mov") {
+            await load()
+            const urlMov = await transcodeMov(url)
+            downloadVideo(urlMov, viewerState.recordedVideoName + "." + viewerState.recordedVideoFormat )
+          }
+        }
       });
     };
 
-    recorderRef.current = {
+    props.recorderRef.current = {
       startRecording,
       stopRecording,
     };
-  }, [recorderRef, gl.domElement]);
+  }, [props.recorderRef, gl.domElement]);
 
   return null;
 }
@@ -185,7 +210,7 @@ export function PersistentDrawerLeft() {
                 <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
                   <GizmoViewport labelColor="white" axisHeadScale={1} />
                 </GizmoHelper>
-                <OpenSimControl />
+                <OpenSimControl/>
                 <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
                 <OpenSimFloor />
                 <Recorder recorderRef={recorderRef}/>

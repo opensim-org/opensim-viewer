@@ -33,7 +33,8 @@ i18next
                         file: "File",
                         sceneTree: "Scene Tree View",
                         visualizationControl: "Layers View",
-                        share: "Share"
+                        share: "Share",
+                        record: "Record"
                     },
                     topBar: {
                         switchTheme: "Switch Theme",
@@ -98,6 +99,14 @@ i18next
                         twitterShareText: "Check out my OpenSim model at: ",
                         shareOnFacebook: "Share on Facebook",
                         shareOnLinkedIn: "Share on LinkedIn"
+                    },
+                    recordView: {
+                        output_format_video: "Video Format",
+                        output_format_image: "Image Format",
+                        video_name_label: "Video Name",
+                        image_name_label: "Image Name",
+                        video_default_name: "opensim-viewer-video",
+                        image_default_name: "opensim-viewer-snapshot"
                     }
                 }
             },
@@ -125,7 +134,8 @@ i18next
                         file: "Archivo",
                         sceneTree: "Árbol de Escena",
                         visualizationControl: "Vista de Capas",
-                        share: "Compartir"
+                        share: "Compartir",
+                        record: "Grabación"
                     },
                     topBar: {
                         switchTheme: "Cambiar Tema",
@@ -190,6 +200,14 @@ i18next
                         twitterShareText: "Mira mi modelo de OpenSim!: ",
                         shareOnFacebook: "Compartir en Facebook",
                         shareOnLinkedIn: "Compartir en LinkedIn"
+                    },
+                    recordView: {
+                        output_format_video: "Formato de Vídeo",
+                        output_format_image: "Formato de Imagen",
+                        video_name_label: "Nombre de Vídeo",
+                        image_name_label: "Nombre de Imagen",
+                        video_default_name: "opensim-viewer-video",
+                        image_default_name: "opensim-viewer-captura"
                     }
                 }
             }

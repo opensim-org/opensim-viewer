@@ -66,7 +66,7 @@ function BottomBar({ recorder }: BottomBarProps) {
                     </IconButton>
                 </Tooltip>
                 <Tooltip title={t('bottomBar.record')}>
-                    <IconButton color="primary"onClick={() => {
+                    <IconButton color={!isRecording ? "primary" : "error"} onClick={() => {
                         if (!isRecording) {
                             setIsRecording(true)
                             recorder.current.startRecording();

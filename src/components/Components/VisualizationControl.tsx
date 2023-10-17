@@ -98,7 +98,7 @@ return (
                 onClick={togglePlayAnimation}>
                 {play?<PauseCircleTwoToneIcon/>:<PlayCircleTwoToneIcon/>}
             </IconButton>
-            <FormControl>
+            <FormControl size="small">
                 <InputLabel id="simple-select-standard-label2">Speed</InputLabel>
                 <Select
                     labelId="demo-simple-select-label"
