@@ -1,0 +1,108 @@
+import * as React from "react";
+import { useEffect, useRef } from "react";
+
+import { observer } from "mobx-react";
+import viewerState from "../../state/ViewerState";
+
+import { useThree } from '@react-three/fiber';
+
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile } from '@ffmpeg/util';
+
+type VideoRecorderRef = {
+  startRecording: () => void;
+  stopRecording: () => void;
+};
+
+type VideoRecorderViewProps = {
+  videoRecorderRef: React.MutableRefObject<VideoRecorderRef | null>;
+}
+
+function VideoRecorder(props :VideoRecorderViewProps) {
+  const { gl } = useThree();
+  const ffmpegRef = useRef(new FFmpeg());
+
+  const load = async () => {
+    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/umd/'
+    const ffmpeg = ffmpegRef.current;
+    ffmpeg.on('log', ({ message }) => {
+      console.log(message);
+    });
+    await ffmpeg.load({
+      coreURL: `${baseURL}/ffmpeg-core.js`,
+      wasmURL: `${baseURL}/ffmpeg-core.wasm`,
+    });
+  }
+
+  const transcodeMp4 = async (url:string) => {
+    const ffmpeg = ffmpegRef.current;
+    await ffmpeg.writeFile('input.webm', await fetchFile(url));
+    await ffmpeg.exec(['-i', 'input.webm', '-r', '60', "-vf", "scale=1860:502", 'video.mp4']);
+    const data = await ffmpeg.readFile('video.mp4');
+    const urlMp4 = URL.createObjectURL(new Blob([data], {type: 'video/mp4'}));
+    return urlMp4;
+  }
+
+  const transcodeMov = async (url:string) => {
+    const ffmpeg = ffmpegRef.current;
+    await ffmpeg.writeFile('input.webm', await fetchFile(url));
+    await ffmpeg.exec(['-i', 'input.webm', '-r', '60', "-vf", "scale=1860:502", 'video.mov']);
+    const data = await ffmpeg.readFile('video.mov');
+    const urlMov = URL.createObjectURL(new Blob([data], {type: 'video/mov'}));
+    return urlMov;
+  }
+
+  function downloadVideo(url:any, fileName:string) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  useEffect(() => {
+
+    const stream = gl.domElement.captureStream();
+    const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+
+    const startRecording = function() {
+      viewerState.setIsRecordingVideo(true)
+      recorder.start();
+    };
+
+    const stopRecording = function() {
+      recorder.stop()
+      viewerState.setIsRecordingVideo(false)
+      recorder.addEventListener('dataavailable', async (evt) => {
+        const url = URL.createObjectURL(evt.data);
+        // If not webm, convert to format.
+        if (viewerState.recordedVideoFormat === "webm") {
+          downloadVideo(url, viewerState.recordedVideoName + "." + viewerState.recordedVideoFormat )
+        } else {
+          viewerState.setIsProcessingVideo(true)
+          await load()
+          if (viewerState.recordedVideoFormat === "mp4") {
+            const urlMp4 = await transcodeMp4(url)
+            downloadVideo(urlMp4, viewerState.recordedVideoName + "." + viewerState.recordedVideoFormat )
+          }
+          if (viewerState.recordedVideoFormat === "mov") {
+            await load()
+            const urlMov = await transcodeMov(url)
+            downloadVideo(urlMov, viewerState.recordedVideoName + "." + viewerState.recordedVideoFormat )
+          }
+        }
+        viewerState.setIsProcessingVideo(false)
+      });
+    };
+
+    props.videoRecorderRef.current = {
+      startRecording,
+      stopRecording,
+    };
+  }, [props.videoRecorderRef, gl.domElement]);
+
+  return null;
+}
+
+export default observer(VideoRecorder);

@@ -10,18 +10,15 @@ import Tooltip from '@mui/material/Tooltip';
 import { observer } from 'mobx-react'
 import { useTranslation } from 'react-i18next'
 import { useModelContext } from '../../state/ModelUIStateContext';
-import { useState } from "react"
+import viewerState from '../../state/ViewerState'
 
 interface BottomBarProps {
-  recorder: any;
+  videoRecorderRef: any;
 }
 
-function BottomBar({ recorder }: BottomBarProps) {
+function BottomBar({ videoRecorderRef }: BottomBarProps) {
     const { t } = useTranslation();
     const curState = useModelContext();
-    const [isRecording, setIsRecording] = useState(false);
-
-    console.log(recorder)
 
     return (
         <Container style={{height: '7vh' }}>
@@ -66,13 +63,11 @@ function BottomBar({ recorder }: BottomBarProps) {
                     </IconButton>
                 </Tooltip>
                 <Tooltip title={t('bottomBar.record')}>
-                    <IconButton color={!isRecording ? "primary" : "error"} onClick={() => {
-                        if (!isRecording) {
-                            setIsRecording(true)
-                            recorder.current.startRecording();
+                    <IconButton color={!viewerState.isRecordingVideo && !viewerState.isProcessingVideo ? "primary" : (viewerState.isProcessingVideo ? "warning" : "error")} onClick={() => {
+                        if (!viewerState.isRecordingVideo) {
+                            videoRecorderRef.current.startRecording();
                         } else {
-                            recorder.current.stopRecording();
-                            setIsRecording(false)
+                            videoRecorderRef.current.stopRecording();
                         }}}>
                         <VideoCameraFrontTwoToneIcon />
                     </IconButton>

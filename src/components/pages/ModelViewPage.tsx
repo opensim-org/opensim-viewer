@@ -11,15 +11,10 @@ import {
 } from "@react-three/drei";
 import viewerState from "../../state/ViewerState";
 import OpenSimControl from "../pages/OpenSimControl";
-import { Suspense, useEffect } from "react";
+import { Suspense } from "react";
 import BottomBar from "../pages/BottomBar";
 
 import { useRef } from 'react';
-
-import { useThree } from '@react-three/fiber';
-
-import { FFmpeg } from '@ffmpeg/ffmpeg';
-import { fetchFile } from '@ffmpeg/util';
 
 import DrawerMenu from "../Components/DrawerMenu";
 import OpenSimScene from "../pages/OpenSimScene";
@@ -28,6 +23,7 @@ import { observer } from "mobx-react";
 import { MyModelContext } from "../../state/ModelUIStateContext";
 import { useModelContext } from "../../state/ModelUIStateContext";
 import OpenSimFloor from "./OpenSimFloor";
+import VideoRecorder from "../Components/VideoRecorder"
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
@@ -47,99 +43,8 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   }),
 }));
 
-type RecorderRef = {
-  startRecording: () => void;
-  stopRecording: () => void;
-};
 
-type RecorderViewProps = {
-  recorderRef: React.MutableRefObject<RecorderRef | null>;
-}
-
-function Recorder(props :RecorderViewProps) {
-  const { gl } = useThree();
-  const ffmpegRef = useRef(new FFmpeg());
-
-  const load = async () => {
-    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/umd/'
-    const ffmpeg = ffmpegRef.current;
-    ffmpeg.on('log', ({ message }) => {
-      console.log(message);
-    });
-    await ffmpeg.load({
-      coreURL: `${baseURL}/ffmpeg-core.js`,
-      wasmURL: `${baseURL}/ffmpeg-core.wasm`,
-    });
-  }
-
-  const transcodeMp4 = async (url:string) => {
-    const ffmpeg = ffmpegRef.current;
-    await ffmpeg.writeFile('input.webm', await fetchFile(url));
-    await ffmpeg.exec(['-i', 'input.webm', '-r', '60', "-vf", "scale=1860:502", 'video.mp4']);
-    const data = await ffmpeg.readFile('video.mp4');
-    const urlMp4 = URL.createObjectURL(new Blob([data], {type: 'video/mp4'}));
-    return urlMp4;
-  }
-
-  const transcodeMov = async (url:string) => {
-    const ffmpeg = ffmpegRef.current;
-    await ffmpeg.writeFile('input.webm', await fetchFile(url));
-    await ffmpeg.exec(['-i', 'input.webm', '-r', '60', "-vf", "scale=1860:502", 'video.mov']);
-    const data = await ffmpeg.readFile('video.mov');
-    const urlMov = URL.createObjectURL(new Blob([data], {type: 'video/mov'}));
-    return urlMov;
-  }
-
-  function downloadVideo(url:any, fileName:string) {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-  }
-
-  useEffect(() => {
-
-    const stream = gl.domElement.captureStream();
-    const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
-
-    const startRecording = function() {
-      recorder.start();
-    };
-
-    const stopRecording = function() {
-      recorder.stop()
-      recorder.addEventListener('dataavailable', async (evt) => {
-        const url = URL.createObjectURL(evt.data);
-        // If not webm, convert to format.
-        if (viewerState.recordedVideoFormat === "webm") {
-          downloadVideo(url, viewerState.recordedVideoName + "." + viewerState.recordedVideoFormat )
-        } else {
-          await load()
-          if (viewerState.recordedVideoFormat === "mp4") {
-            const urlMp4 = await transcodeMp4(url)
-            downloadVideo(urlMp4, viewerState.recordedVideoName + "." + viewerState.recordedVideoFormat )
-          }
-          if (viewerState.recordedVideoFormat === "mov") {
-            await load()
-            const urlMov = await transcodeMov(url)
-            downloadVideo(urlMov, viewerState.recordedVideoName + "." + viewerState.recordedVideoFormat )
-          }
-        }
-      });
-    };
-
-    props.recorderRef.current = {
-      startRecording,
-      stopRecording,
-    };
-  }, [props.recorderRef, gl.domElement]);
-
-  return null;
-}
-
-export function PersistentDrawerLeft() {
+export function ModelViewPage() {
   const theme = useTheme();
   const curState = useModelContext();
   curState.setCurrentModelPath(viewerState.currentModelPath);
@@ -147,7 +52,7 @@ export function PersistentDrawerLeft() {
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [selectedTabName, setSelectedTabName] = React.useState<string>("File");
 
-  const recorderRef = useRef(null);
+  const videoRecorderRef = useRef(null);
 
   function toggleOpenMenu(name: string = "") {
     // If same name, or empty just toggle.
@@ -213,9 +118,9 @@ export function PersistentDrawerLeft() {
                 <OpenSimControl/>
                 <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
                 <OpenSimFloor />
-                <Recorder recorderRef={recorderRef}/>
+                <VideoRecorder videoRecorderRef={videoRecorderRef}/>
               </Canvas>
-              <BottomBar recorder={recorderRef}/>
+              <BottomBar videoRecorderRef={videoRecorderRef}/>
             </Suspense>
           </div>
         </Main>
@@ -224,4 +129,4 @@ export function PersistentDrawerLeft() {
   );
 }
 
-export default observer(PersistentDrawerLeft);
+export default observer(ModelViewPage);

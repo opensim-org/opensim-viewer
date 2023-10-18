@@ -9,6 +9,8 @@ class ViewerState {
     snapshotFormat: string
     recordedVideoName: string
     recordedVideoFormat: string
+    isRecordingVideo: boolean
+    isProcessingVideo: boolean
 
     constructor(
         currentModelPathState: string,
@@ -18,7 +20,9 @@ class ViewerState {
         snapshotName: string,
         snapshotFormat: string,
         recordedVideoName: string,
-        recordedVideoFormat: string
+        recordedVideoFormat: string,
+        isRecordingVideo: boolean,
+        isProcessingVideo: boolean
     ) {
         this.currentModelPath = currentModelPathState
         this.featuredModelsFilePath = featuredModelsFilePathState
@@ -28,6 +32,8 @@ class ViewerState {
         this.snapshotFormat = snapshotFormat
         this.recordedVideoName = recordedVideoName
         this.recordedVideoFormat = recordedVideoFormat
+        this.isRecordingVideo = isRecordingVideo
+        this.isProcessingVideo = isProcessingVideo
         makeObservable(this, {
             currentModelPath: observable,
             featuredModelsFilePath: observable,
@@ -42,7 +48,11 @@ class ViewerState {
             snapshotName: observable,
             snapshotFormat: observable,
             recordedVideoName: observable,
-            recordedVideoFormat: observable
+            recordedVideoFormat: observable,
+            isRecordingVideo: observable,
+            isProcessingVideo: observable,
+            setIsProcessingVideo: action,
+            setIsRecordingVideo: action,
         })
     }
 
@@ -70,9 +80,14 @@ class ViewerState {
     setRecordedVideoFormat(newState: string) {
         this.recordedVideoFormat = newState
     }
-
+    setIsProcessingVideo(newState: boolean) {
+        this.isProcessingVideo = newState
+    }
+    setIsRecordingVideo(newState: boolean) {
+        this.isRecordingVideo = newState
+    }
 }
 
-const viewerState = new ViewerState('/builtin/arm26_elbow_flex.gltf', '/builtin/featured-models.json', false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4')
+const viewerState = new ViewerState('/builtin/arm26_elbow_flex.gltf', '/builtin/featured-models.json', false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false)
 
 export default viewerState
