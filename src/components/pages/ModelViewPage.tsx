@@ -25,6 +25,7 @@ import { useModelContext } from "../../state/ModelUIStateContext";
 import OpenSimFloor from "./OpenSimFloor";
 import VideoRecorder from "../Components/VideoRecorder"
 
+
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
 }>(({ theme, open }) => ({
