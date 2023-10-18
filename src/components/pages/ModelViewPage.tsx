@@ -3,7 +3,6 @@ import { styled, useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import { Canvas } from "@react-three/fiber";
-
 import {
   Bounds,
   Environment,
