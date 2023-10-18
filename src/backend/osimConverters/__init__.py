@@ -6,7 +6,7 @@ from .convertOsim2Gltf import *
 from .convertOsimZip2Gltf import *
 
 def convertNativeFileToGLTF(inFilePathOrURL):
-        filename, file_extension = os.path.splitext(inFilePathOrURL.name)
+        filename, file_extension = os.path.splitext(inFilePathOrURL)
         if (file_extension==".trc"):
         #invoke converter on trc file, then generate url from path
             gltfJson = convertTrc2Gltf(inFilePathOrURL, 'sphere')

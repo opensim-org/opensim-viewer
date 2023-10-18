@@ -13,13 +13,18 @@ RUN apt-get update \
 
 RUN python3.8 -m pip install pygltflib
 RUN python3.8 -m pip install vtk
+RUN python3.8 -m pip install boto3
 
 RUN mkdir -p ${FUNCTION_DIR}
 
 # Allows docker to cache installed dependencies between builds
 COPY osimConverters  ${FUNCTION_DIR}/osimConverters
+COPY ./backend/Geometry ${FUNCTION_DIR}/osimConverters/Geometry
+COPY ./backend/basicShapes.gltf  ${FUNCTION_DIR}/osimConverters
+COPY ./backend/basicShapes.gltf  ${FUNCTION_DIR}
 COPY ./lambda_function.py  ${FUNCTION_DIR}/lambda_function.py
 COPY ./entrypoint  ${FUNCTION_DIR}/entrypoint
+# COPY ./files /tmp
 
 RUN python3.8 -m pip install awslambdaric
 
