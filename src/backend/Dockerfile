@@ -1,4 +1,4 @@
-FROM stanfordnmbl/opensim-python:4.3
+FROM stanfordnmbl/opensim-python:4.4
 
 ARG FUNCTION_DIR="/viewerFunction"
 
