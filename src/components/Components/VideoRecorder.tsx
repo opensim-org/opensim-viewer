@@ -9,6 +9,11 @@ import { useThree } from '@react-three/fiber';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile } from '@ffmpeg/util';
 
+import { useSnackbar } from 'notistack'
+
+import { useTranslation } from 'react-i18next'
+
+
 type VideoRecorderRef = {
   startRecording: () => void;
   stopRecording: () => void;
@@ -19,8 +24,10 @@ type VideoRecorderViewProps = {
 }
 
 function VideoRecorder(props :VideoRecorderViewProps) {
+  const { t } = useTranslation();
   const { gl } = useThree();
   const ffmpegRef = useRef(new FFmpeg());
+  const { enqueueSnackbar, closeSnackbar  } = useSnackbar();
 
   const load = async () => {
     const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/umd/'
@@ -62,17 +69,18 @@ function VideoRecorder(props :VideoRecorderViewProps) {
   }
 
   useEffect(() => {
-
     const stream = gl.domElement.captureStream();
     const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
 
     const startRecording = function() {
       viewerState.setIsRecordingVideo(true)
+      enqueueSnackbar(t('snackbars.recording_video'), {variant: 'info', anchorOrigin: { horizontal: "right", vertical: "bottom"}, persist: true})
       recorder.start();
     };
 
     const stopRecording = function() {
       recorder.stop()
+      closeSnackbar()
       viewerState.setIsRecordingVideo(false)
       recorder.addEventListener('dataavailable', async (evt) => {
         const url = URL.createObjectURL(evt.data);
@@ -80,6 +88,7 @@ function VideoRecorder(props :VideoRecorderViewProps) {
         if (viewerState.recordedVideoFormat === "webm") {
           downloadVideo(url, viewerState.recordedVideoName + "." + viewerState.recordedVideoFormat )
         } else {
+          enqueueSnackbar(t('snackbars.processing_video'), {variant: 'info', anchorOrigin: { horizontal: "right", vertical: "bottom" }, persist: true})
           viewerState.setIsProcessingVideo(true)
           await load()
           if (viewerState.recordedVideoFormat === "mp4") {
@@ -93,6 +102,7 @@ function VideoRecorder(props :VideoRecorderViewProps) {
           }
         }
         viewerState.setIsProcessingVideo(false)
+        closeSnackbar()
       });
     };
 
@@ -100,7 +110,7 @@ function VideoRecorder(props :VideoRecorderViewProps) {
       startRecording,
       stopRecording,
     };
-  }, [props.videoRecorderRef, gl.domElement]);
+  }, [props.videoRecorderRef, gl.domElement, enqueueSnackbar, closeSnackbar, t]);
 
   return null;
 }

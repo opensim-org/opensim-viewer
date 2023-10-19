@@ -63,7 +63,10 @@ function BottomBar({ videoRecorderRef }: BottomBarProps) {
                     </IconButton>
                 </Tooltip>
                 <Tooltip title={t('bottomBar.record')}>
-                    <IconButton color={!viewerState.isRecordingVideo && !viewerState.isProcessingVideo ? "primary" : (viewerState.isProcessingVideo ? "warning" : "error")} onClick={() => {
+                    <IconButton
+                      color={!viewerState.isRecordingVideo && !viewerState.isProcessingVideo ? "primary" : (viewerState.isProcessingVideo ? "warning" : "error")}
+                      disabled={viewerState.isProcessingVideo}
+                      onClick={() => {
                         if (!viewerState.isRecordingVideo) {
                             videoRecorderRef.current.startRecording();
                         } else {

@@ -107,6 +107,10 @@ i18next
                         image_name_label: "Image Name",
                         video_default_name: "opensim-viewer-video",
                         image_default_name: "opensim-viewer-snapshot"
+                    },
+                    snackbars: {
+                        recording_video: "Recording Video...",
+                        processing_video: "Processing video..."
                     }
                 }
             },
@@ -208,6 +212,10 @@ i18next
                         image_name_label: "Nombre de Imagen",
                         video_default_name: "opensim-viewer-video",
                         image_default_name: "opensim-viewer-captura"
+                    },
+                    snackbars: {
+                        recording_video: "Grabando Video...",
+                        processing_video: "Procesando video..."
                     }
                 }
             }
