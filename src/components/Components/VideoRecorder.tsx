@@ -37,7 +37,7 @@ function VideoRecorder(props :VideoRecorderViewProps) {
   const transcodeMp4 = async (url:string) => {
     const ffmpeg = ffmpegRef.current;
     await ffmpeg.writeFile('input.webm', await fetchFile(url));
-    await ffmpeg.exec(['-i', 'input.webm', '-r', '60', "-vf", "scale=1860:502", 'video.mp4']);
+    await ffmpeg.exec(['-i', 'input.webm', '-r', '60', "-c:v", "libx264", "-preset", "slow", "-profile:v", "high", "-pix_fmt", "yuv420p", "-crf", "17", "-vf", "pad=ceil(iw/2)*2:ceil(ih/2)*2", 'video.mp4']);
     const data = await ffmpeg.readFile('video.mp4');
     const urlMp4 = URL.createObjectURL(new Blob([data], {type: 'video/mp4'}));
     return urlMp4;
@@ -46,7 +46,7 @@ function VideoRecorder(props :VideoRecorderViewProps) {
   const transcodeMov = async (url:string) => {
     const ffmpeg = ffmpegRef.current;
     await ffmpeg.writeFile('input.webm', await fetchFile(url));
-    await ffmpeg.exec(['-i', 'input.webm', '-r', '60', "-vf", "scale=1860:502", 'video.mov']);
+    await ffmpeg.exec(['-i', 'input.webm', '-r', '60', "-c:v", "libx264", "-preset", "slow", "-profile:v", "high", "-pix_fmt", "yuv420p", "-crf", "17", "-vf", "pad=ceil(iw/2)*2:ceil(ih/2)*2", 'video.mov']);
     const data = await ffmpeg.readFile('video.mov');
     const urlMov = URL.createObjectURL(new Blob([data], {type: 'video/mov'}));
     return urlMov;
