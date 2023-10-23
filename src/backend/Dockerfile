@@ -1,47 +1,41 @@
-FROM python:3.9
+FROM stanfordnmbl/opensim-python:4.4
 
-# Allows docker to cache installed dependencies between builds
-COPY environment_linux.yml environment_linux.yml
+ARG FUNCTION_DIR="/viewerFunction"
 
 # Install base utilities
 RUN apt-get update \
-    && apt-get install -y build-essential \
-    && apt-get install -y wget \
-    && apt-get install -y mesa-utils \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y \
+    build-essential \
+    python3-dev \
+    unzip \
+    libcurl4-openssl-dev \
+    libxrender1
 
-# Install miniconda
-ENV CONDA_DIR /opt/conda
-RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
-    /bin/bash ~/miniconda.sh -b -p /opt/conda
+RUN python3.8 -m pip install pygltflib
+RUN python3.8 -m pip install vtk
+RUN python3.8 -m pip install boto3
 
-# Put conda in path so we can use conda activate
-ENV PATH=$CONDA_DIR/bin:$PATH
+RUN mkdir -p ${FUNCTION_DIR}
 
-RUN conda update -n base -c defaults conda
+# Allows docker to cache installed dependencies between builds
+COPY osimConverters  ${FUNCTION_DIR}/osimConverters
+COPY ./backend/Geometry ${FUNCTION_DIR}/osimConverters/Geometry
+COPY ./backend/basicShapes.gltf  ${FUNCTION_DIR}/osimConverters
+COPY ./backend/basicShapes.gltf  ${FUNCTION_DIR}
+COPY ./lambda_function.py  ${FUNCTION_DIR}/lambda_function.py
+COPY ./entrypoint  ${FUNCTION_DIR}/entrypoint
+# COPY ./files /tmp
 
-RUN conda env create -f environment_linux.yml
+RUN python3.8 -m pip install awslambdaric
 
-SHELL ["conda", "run", "-n", "osv_bend", "/bin/bash", "-c"]
+ADD https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/latest/download/aws-lambda-rie /usr/bin/aws-lambda-rie
+RUN chmod +x /usr/bin/aws-lambda-rie
 
-# Demonstrate the environment is activated:
-RUN echo "Make sure osim, vtk, pygltflib and django are installed:"
-RUN python -c "import opensim"
-RUN python -c "import vtk"
-RUN python -c "import pygltflib"
-RUN python -c "import django"
+RUN chmod +x ${FUNCTION_DIR}/entrypoint
 
-# Mounts the application code to the image
-COPY . code
-WORKDIR /code
+WORKDIR ${FUNCTION_DIR}
 
-EXPOSE 8000
+# local use ENTRYPOINT ["/usr/bin/aws-lambda-rie", "/usr/bin/python3.8", "-m", "awslambdaric"]
+ENTRYPOINT ["/usr/bin/python3.8", "-m", "awslambdaric"]
+CMD ["lambda_function.handler"]
 
-RUN python backend/manage.py makemigrations
-RUN python backend/manage.py migrate
-RUN echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('ayman12345', 'ahabib@stanford.edu', 'ayman12345')" | python backend/manage.py shell
-
-# runs the production server
-ENTRYPOINT ["conda", "run", "-n", "osv_bend", "python", "backend/manage.py"]
-CMD ["runserver", "0.0.0.0:8000"]

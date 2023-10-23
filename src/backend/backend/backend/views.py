@@ -164,25 +164,27 @@ class ModelCreate(viewsets.ModelViewSet):
             if (validFile):
                 pathOnServer = os.path.join(settings.STATIC_ROOT, filedata.name)
                 savedFilePath = default_storage.save(pathOnServer, ContentFile(filedata.read()))
-
+                targetFilePath = savedFilePath.replace(file_extension, '.gltf')
                 if (file_extension==".trc"):
                 #invoke converter on trc file, then generate url from path
-                    generatedFile = convertTrc2Gltf(savedFilePath, 'sphere')
+                    generatedGltf = convertTrc2Gltf(savedFilePath, 'sphere')
                 elif (file_extension==".c3d"):
-                    generatedFile = convertC3D2Gltf(savedFilePath, 'sphere')
+                    generatedGltf = convertC3D2Gltf(savedFilePath, 'sphere')
                 elif (file_extension==".mot"):
-                   generatedFile = convertMotForce2Gltf(savedFilePath, 'arrow')
+                   generatedGltf = convertMotForce2Gltf(savedFilePath, 'arrow')
                 elif (file_extension==".osim"):
-                   generatedFile, gltf = convertOsim2Gltf(savedFilePath, 'Geometry')
+                   generatedGltf = convertOsim2Gltf(savedFilePath, 'Geometry')
                 elif (file_extension==".osimz"):
-                   generatedFile = convertOsimZip2Gltf(savedFilePath)
+                   generatedGltf = convertOsimZip2Gltf(savedFilePath)
                 elif (file_extension==".gltf"):
-                    generatedFile = savedFilePath
+                    generatedGltf = savedFilePath
+                # save Gltf to a file
+                generatedGltf.save(targetFilePath)
                 # Serialize data, validate and save.
                 status = htttp_status.HTTP_200_OK
                 return Response({
                     'status': status,
-                    'model_gltf_file': generatedFile,
+                    'model_gltf_file': targetFilePath,
                     'error_message': error_message,
                     }, status=status)
         except ValidationError as e:
