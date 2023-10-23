@@ -1,0 +1,32 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-opensimviewer-dev-101047-authRole",
+      "UnauthRoleArn": "arn:aws:iam::660440363484:role/amplify-opensimviewer-dev-101047-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::660440363484:role/amplify-opensimviewer-dev-101047-authRole",
+      "Region": "us-west-2",
+      "DeploymentBucketName": "amplify-opensimviewer-dev-101047-deployment",
+      "UnauthRoleName": "amplify-opensimviewer-dev-101047-unauthRole",
+      "StackName": "amplify-opensimviewer-dev-101047",
+      "StackId": "arn:aws:cloudformation:us-west-2:660440363484:stack/amplify-opensimviewer-dev-101047/9df35da0-6f6b-11ee-a3d0-06fb26805acf",
+      "AmplifyAppId": "d7iaa9a9lxtm6"
+    },
+    "categories": {
+      "hosting": {
+        "S3AndCloudFront": {}
+      },
+      "auth": {
+        "opensimviewer423590f5": {}
+      },
+      "function": {
+        "S3Trigger7026b4bb": {
+          "deploymentBucketName": "amplify-opensimviewer-dev-101047-deployment",
+          "s3Key": "amplify-builds/S3Trigger7026b4bb-73437255387a58627372-build.zip"
+        }
+      },
+      "storage": {
+        "viewerStorageResouce": {}
+      }
+    }
+  }
+}

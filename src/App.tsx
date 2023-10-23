@@ -14,8 +14,15 @@ import appTheme from './Theme'
 import lightTheme from './LightTheme'
 import OpenSimAppBar from './components/Nav/OpenSimAppBar'
 import viewerState from './state/ViewerState'
+import { Amplify } from 'aws-amplify';
+import type { WithAuthenticatorProps } from '@aws-amplify/ui-react';
+import { withAuthenticator } from '@aws-amplify/ui-react';
+import '@aws-amplify/ui-react/styles.css';
 
-function App() {
+import awsconfig from './aws-exports';
+Amplify.configure(awsconfig);
+
+function App({ signOut, user }: WithAuthenticatorProps) {
 
     // On file system we'll have a folder per model containing cached/versioned gltf, possibly .osim file, data files, display 
     // preferences
@@ -72,4 +79,4 @@ function App() {
     )
 }
 
-export default observer(App)
+export default observer( withAuthenticator(App))

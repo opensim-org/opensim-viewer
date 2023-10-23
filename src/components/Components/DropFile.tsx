@@ -7,6 +7,7 @@ import axios from 'axios';
 import { getBackendURL } from '../../helpers/urlHelpers'
 import viewerState from '../../state/ViewerState';
 import { useNavigate, useLocation  } from 'react-router-dom';
+import { Storage } from "@aws-amplify/storage"
 
 const FileDropArea = observer(() => {
   const { t } = useTranslation();
@@ -87,6 +88,7 @@ const FileDropArea = observer(() => {
             store.uploadProgress = 1;
             store.uploadPercentage = 1;
         } else {
+          /*
             await axios.post(getBackendURL('upload_file/'), formData, {
                   headers: {
                     "Content-Type": "multipart/form-data",
@@ -104,7 +106,8 @@ const FileDropArea = observer(() => {
                   if (location.pathname !== '/viewer')
                     navigate('/viewer');
 
-                })
+                })*/
+            await Storage.put(file.name, file);
           }
         }
     }    
