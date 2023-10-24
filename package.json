@@ -5,6 +5,8 @@
   "proxy": "http://localhost:8000",
   "dependencies": {
     "@aws-amplify/ui-react": "^5.3.1",
+    "@aws-sdk/client-s3": "^3.433.0",
+    "@aws-sdk/s3-request-presigner": "^3.433.0",
     "@babel/plugin-proposal-private-property-in-object": "^7.21.0-placeholder-for-preset-env.2",
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
