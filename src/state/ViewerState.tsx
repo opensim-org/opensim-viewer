@@ -41,6 +41,6 @@ class ViewerState {
 
 }
 
-const viewerState = new ViewerState('/builtin/arm26_elbow_flex.gltf', '/builtin/featured-models.json', false, false)
+const viewerState = new ViewerState('https://opensim-viewer-public-download.s3.us-west-2.amazonaws.com/double_pendulum.gltf', '/builtin/featured-models.json', false, false)
 
 export default viewerState

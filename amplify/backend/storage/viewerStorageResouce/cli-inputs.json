@@ -11,6 +11,5 @@
     "CREATE_AND_UPDATE",
     "READ"
   ],
-  "triggerFunction": "S3Trigger7026b4bb",
   "groupAccess": {}
 }

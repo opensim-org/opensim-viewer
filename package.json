@@ -5,6 +5,7 @@
   "proxy": "http://localhost:8000",
   "dependencies": {
     "@aws-amplify/ui-react": "^5.3.1",
+    "@aws-sdk/client-lambda": "^3.436.0",
     "@aws-sdk/client-s3": "^3.433.0",
     "@aws-sdk/s3-request-presigner": "^3.433.0",
     "@babel/plugin-proposal-private-property-in-object": "^7.21.0-placeholder-for-preset-env.2",
@@ -18,6 +19,7 @@
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "@types/aws-lambda": "^8.10.125",
     "@types/jest": "^27.5.2",
     "@types/node": "^16.18.13",
     "@types/react-icons": "^3.0.0",

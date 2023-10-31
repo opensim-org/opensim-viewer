@@ -3,12 +3,16 @@ import { observer } from 'mobx-react';
 import { useLocalObservable } from 'mobx-react-lite';
 import { Paper, Typography, LinearProgress } from '@mui/material';
 import { useTranslation } from 'react-i18next'
-import axios from 'axios';
-import { getBackendURL } from '../../helpers/urlHelpers'
 import viewerState from '../../state/ViewerState';
 import { useNavigate, useLocation  } from 'react-router-dom';
 import { Storage } from "@aws-amplify/storage"
+import { S3Client } from "@aws-sdk/client-s3";
 
+const creds = {
+
+
+}
+const client = new S3Client({ region: "us-west-2", credentials: creds});
 const FileDropArea = observer(() => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -107,7 +111,14 @@ const FileDropArea = observer(() => {
                     navigate('/viewer');
 
                 })*/
-            await Storage.put(file.name, file);
+            await Storage.put(file.name, file).then(response => {
+                  setTimeout(function() {
+                    appState.setCurrentModelPath("https://opensim-viewer-public-download.s3.us-west-2.amazonaws.com/"+file.name.replace('.osim', '.gltf'));// function code goes here
+                }, 5000);
+                  
+                if (location.pathname !== '/viewer')
+                navigate('/viewer');
+                });
           }
         }
     }    

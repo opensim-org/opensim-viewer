@@ -18,12 +18,6 @@
       "auth": {
         "opensimviewer423590f5": {}
       },
-      "function": {
-        "S3Trigger7026b4bb": {
-          "deploymentBucketName": "amplify-opensimviewer-dev-101047-deployment",
-          "s3Key": "amplify-builds/S3Trigger7026b4bb-73437255387a58627372-build.zip"
-        }
-      },
       "storage": {
         "viewerStorageResouce": {}
       }
