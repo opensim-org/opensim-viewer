@@ -6,7 +6,7 @@ import { useState } from 'react';
 import InputLabel from '@mui/material/InputLabel';
 import { AnimationClip } from 'three';
 import { useModelContext } from '../../state/ModelUIStateContext';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { observer } from 'mobx-react';
 
 interface AnimationViewProps {
@@ -23,6 +23,12 @@ const AnimationView : React.FC<AnimationViewProps> = (props:AnimationViewProps) 
   const [play, setPlay] = useState(false);
   const [speed, setSpeed] = useState(1.0);
   const [selectedAnim, setSelectedAnim] = useState<string | undefined>("");
+
+    useEffect(() => {
+      if (props.animationList.length > 0)
+        setSelectedAnim(props.animationList[0].name)
+    }, [props.animationList]);
+
 
     // console.log("Props", props);
     function togglePlayAnimation() {
@@ -62,6 +68,7 @@ const AnimationView : React.FC<AnimationViewProps> = (props:AnimationViewProps) 
           label={t('visualizationControl.animate')}
           value={selectedAnim}
           onChange={handleAnimationChange}
+          disabled={props.animationList.length < 1}
           >
           {props.animationList.map(anim => (
           <MenuItem key={anim.name} value={anim.name}>
@@ -74,6 +81,7 @@ const AnimationView : React.FC<AnimationViewProps> = (props:AnimationViewProps) 
         <IconButton
               color="primary"
               value={'Animation'}
+              disabled={props.animationList.length < 1}
               onClick={togglePlayAnimation}>
               {play?<PauseCircleTwoToneIcon/>:<PlayCircleTwoToneIcon/>}
           </IconButton>
@@ -85,6 +93,7 @@ const AnimationView : React.FC<AnimationViewProps> = (props:AnimationViewProps) 
                   value={speed.toString()}
                   label={t('visualizationControl.speed')}
                   onChange={handleSpeedChange}
+                  disabled={props.animationList.length < 1}
               >
                   <MenuItem value={0.25}>0.25</MenuItem>
                   <MenuItem value={0.5}>0.5</MenuItem>
