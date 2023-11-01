@@ -6,7 +6,7 @@ import { useState } from 'react';
 import InputLabel from '@mui/material/InputLabel';
 import { AnimationClip } from 'three';
 import { useModelContext } from '../../state/ModelUIStateContext';
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react';
 
 interface AnimationViewProps {
@@ -24,30 +24,23 @@ const AnimationView : React.FC<AnimationViewProps> = (props:AnimationViewProps) 
   const [speed, setSpeed] = useState(1.0);
   const [selectedAnim, setSelectedAnim] = useState<string | undefined>("");
 
-    useEffect(() => {
-      if (props.animationList.length > 0)
-        setSelectedAnim(props.animationList[0].name)
-        handleAnimationChange(props.animationList[0].name, false)
-    }, [props.animationList]);
+  // console.log("Props", props);
+  function togglePlayAnimation() {
+      curState.setAnimating(!curState.animating);
+      setPlay(!play);
 
+  }
+  function handleSpeedChange(event: SelectChangeEvent) {
+      curState.setAnimationSpeed(Number(event.target.value));
+       setSpeed(Number(event.target.value))
+  }
 
-    // console.log("Props", props);
-    function togglePlayAnimation() {
-        curState.setAnimating(!curState.animating);
-        setPlay(!play);
-
-    }
-    function handleSpeedChange(event: SelectChangeEvent) {
-        curState.setAnimationSpeed(Number(event.target.value));
-         setSpeed(Number(event.target.value))
-   }
-
-   const handleAnimationChangeEvent = (event: SelectChangeEvent) => {
+  const handleAnimationChangeEvent = (event: SelectChangeEvent) => {
     const targetName = event.target.value as string
     handleAnimationChange(targetName, true)
   };
 
-   const handleAnimationChange = (animationName: string, animate: boolean) => {
+  const handleAnimationChange = useCallback((animationName: string, animate: boolean) => {
     const targetName = animationName
     setSelectedAnim(animationName);
     if ( targetName === ""){
@@ -63,7 +56,14 @@ const AnimationView : React.FC<AnimationViewProps> = (props:AnimationViewProps) 
     if (animate)
       setPlay(curState.animating)
     //setAge(event.target.value as string);
-  };
+  }, [curState]);
+
+  useEffect(() => {
+    if (props.animationList.length > 0)
+      setSelectedAnim(props.animationList[0].name)
+      handleAnimationChange(props.animationList[0].name, false)
+  }, [props.animationList, handleAnimationChange]);
+
 
   return (
   <>
