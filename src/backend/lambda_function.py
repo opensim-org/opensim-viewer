@@ -21,14 +21,18 @@ def handler(event, context):
         source_url = event["url"]
         url_path = urlparse(source_url).path
         filename = os.path.basename(url_path)
+        print("filename =", filename)
         # download the file from url into local tmp folder
         response = requests.get(source_url)
+        print("response.status_code=", response.status_code)
         if response.status_code == 200:
             file_name = os.path.join('/tmp', filename)
+            print("file_name =", file_name)
             # Open the file in write mode
             with open(file_name, 'wb') as file:
                 # Write the contents of the response to the file
                 file.write(response.content)
+            print("wrote contents to ", file_name)
     else: #invoked using s3 upload directly
         source_bucket = event['Records'][0]['s3']['bucket']['name']
         object_key = event['Records'][0]['s3']['object']['key']
@@ -36,6 +40,7 @@ def handler(event, context):
         print("Attempting to download")
         s3.download_file(source_bucket, object_key, file_name)
 
+    print("setup conversion function")
     target_bucket = 'opensim-viewer-public-download'
     print("file_name", file_name)
     osim.Logger.setLevelString('Off')
