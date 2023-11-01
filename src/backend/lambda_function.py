@@ -33,7 +33,13 @@ def handler(event, context):
                 # Write the contents of the response to the file
                 file.write(response.content)
             print("wrote contents to ", file_name)
-    else: #invoked using s3 upload directly
+    elif ("s3" in event):
+        source_bucket = event["s3"]
+        object_key = event["key"]
+        file_name = '/tmp/' + object_key.split('/')[-1]
+        print("Attempting to download")
+        s3.download_file(source_bucket, object_key, file_name)
+    else : #invoked using s3 upload directly
         source_bucket = event['Records'][0]['s3']['bucket']['name']
         object_key = event['Records'][0]['s3']['object']['key']
         file_name = '/tmp/' + object_key.split('/')[-1]

@@ -6,13 +6,7 @@ import { useTranslation } from 'react-i18next'
 import viewerState from '../../state/ViewerState';
 import { useNavigate, useLocation  } from 'react-router-dom';
 import { Storage } from "@aws-amplify/storage"
-import { S3Client } from "@aws-sdk/client-s3";
 
-const creds = {
-
-
-}
-const client = new S3Client({ region: "us-west-2", credentials: creds});
 const FileDropArea = observer(() => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -113,8 +107,8 @@ const FileDropArea = observer(() => {
                 })*/
             await Storage.put(file.name, file).then(response => {
                   setTimeout(function() {
-                    appState.setCurrentModelPath("https://opensim-viewer-public-download.s3.us-west-2.amazonaws.com/"+file.name.replace('.osim', '.gltf'));// function code goes here
-                }, 5000);
+                    appState.setCurrentModelPath("https://opensim-viewer-public-download.s3.us-west-2.amazonaws.com/"+file.name.replace(/\.\w+$/, '.gltf'));// function code goes here
+                }, 7000);
                   
                 if (location.pathname !== '/viewer')
                 navigate('/viewer');
