@@ -33,7 +33,8 @@ i18next
                         file: "File",
                         sceneTree: "Scene Tree View",
                         visualizationControl: "Layers View",
-                        share: "Share"
+                        share: "Share",
+                        animation: "Animation"
                     },
                     topBar: {
                         switchTheme: "Switch Theme",
