@@ -27,6 +27,7 @@ const AnimationView : React.FC<AnimationViewProps> = (props:AnimationViewProps) 
     useEffect(() => {
       if (props.animationList.length > 0)
         setSelectedAnim(props.animationList[0].name)
+        handleAnimationChange(props.animationList[0].name, false)
     }, [props.animationList]);
 
 
@@ -41,9 +42,14 @@ const AnimationView : React.FC<AnimationViewProps> = (props:AnimationViewProps) 
          setSpeed(Number(event.target.value))
    }
 
-   const handleAnimationChange = (event: SelectChangeEvent) => {
+   const handleAnimationChangeEvent = (event: SelectChangeEvent) => {
     const targetName = event.target.value as string
-    setSelectedAnim(event.target.value as string);
+    handleAnimationChange(targetName, true)
+  };
+
+   const handleAnimationChange = (animationName: string, animate: boolean) => {
+    const targetName = animationName
+    setSelectedAnim(animationName);
     if ( targetName === ""){
         curState.setAnimating(false)
     }
@@ -51,10 +57,11 @@ const AnimationView : React.FC<AnimationViewProps> = (props:AnimationViewProps) 
         const idx = curState.animations.findIndex((value: AnimationClip, index: number)=>{return (value.name === targetName)})
         if (idx !== -1) {
             curState.currentAnimationIndex = idx
-            curState.setAnimating(true)
+            curState.setAnimating(animate)
         }
     }
-    setPlay(curState.animating)
+    if (animate)
+      setPlay(curState.animating)
     //setAge(event.target.value as string);
   };
 
@@ -67,7 +74,7 @@ const AnimationView : React.FC<AnimationViewProps> = (props:AnimationViewProps) 
           labelId="simple-select-standard-label"
           label={t('visualizationControl.animate')}
           value={selectedAnim}
-          onChange={handleAnimationChange}
+          onChange={handleAnimationChangeEvent}
           disabled={props.animationList.length < 1}
           >
           {props.animationList.map(anim => (
