@@ -106,11 +106,7 @@ function DrawerMenu(props :DrawerMenuProps) {
                   {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
                 </IconButton>
               </DrawerHeader>
-              <VisualizationControl
-                animationPlaySpeed={1.0}
-                animating={props.uiState.animating}
-                animationList={props.uiState.animations}
-              />
+              <VisualizationControl />
             </div>
           )}
 
@@ -122,7 +118,10 @@ function DrawerMenu(props :DrawerMenuProps) {
                   {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
                 </IconButton>
               </DrawerHeader>
-              <AnimationView />
+              <AnimationView
+                animationPlaySpeed={1.0}
+                animating={props.uiState.animating}
+                animationList={props.uiState.animations}/>
             </div>
           )}
 
