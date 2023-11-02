@@ -1,60 +1,22 @@
-import { Checkbox, Container, FormControl, FormControlLabel, IconButton, MenuItem, Select, SelectChangeEvent, Stack, Typography } from '@mui/material';
+import { Checkbox, Container, FormControlLabel, Typography } from '@mui/material';
 import FormGroup from '@mui/material/FormGroup';
-import PauseCircleTwoToneIcon from '@mui/icons-material/PauseCircleTwoTone';
-import PlayCircleTwoToneIcon from '@mui/icons-material/PlayCircleTwoTone';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
-import InputLabel from '@mui/material/InputLabel';
-import { AnimationClip } from 'three';
 import { useModelContext } from '../../state/ModelUIStateContext';
 import Tooltip from '@mui/material/Tooltip';
 import React from 'react';
 
 interface VisualizationControlProps {
-    animating?: boolean;
     showWCS?: boolean;
     showJoints?: boolean;
-    animationList: AnimationClip[];
-    animationPlaySpeed?: number;
-    animationBounds?: number[];
 }
 
 const VisualizationControl : React.FC<VisualizationControlProps> = (props:VisualizationControlProps) => {
     const { t } = useTranslation();
-    const [play, setPlay] = useState(false);
-    const [speed, setSpeed] = useState(1.0);
-    const [selectedAnim, setSelectedAnim] = useState<string | undefined>("");
     const curState = useModelContext();
     // This is just a hack to force updating checkboxes, otherwise they function but don't toggle! --Ayman 9/23
     const [, setCameraLayerMask] = useState(curState.cameraLayersMask);
 
-    // console.log("Props", props);
-    function togglePlayAnimation() {
-        curState.setAnimating(!curState.animating);
-        setPlay(!play);
-
-    }
-    function handleSpeedChange(event: SelectChangeEvent) {
-        curState.setAnimationSpeed(Number(event.target.value));
-         setSpeed(Number(event.target.value))
-   }
-
-   const handleAnimationChange = (event: SelectChangeEvent) => {
-    const targetName = event.target.value as string
-    setSelectedAnim(event.target.value as string);
-    if ( targetName === ""){
-        curState.setAnimating(false)
-    }
-    else {
-        const idx = curState.animations.findIndex((value: AnimationClip, index: number)=>{return (value.name === targetName)})
-        if (idx !== -1) {
-            curState.currentAnimationIndex = idx
-            curState.setAnimating(true)
-        }
-    }
-    setPlay(curState.animating)
-    //setAge(event.target.value as string);
-};
 return (
     <>
       <Container disableGutters>

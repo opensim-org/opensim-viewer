@@ -35,6 +35,7 @@ i18next
                         visualizationControl: "Layers View",
                         share: "Share",
                         record: "Record"
+                        animation: "Animation"
                     },
                     topBar: {
                         switchTheme: "Switch Theme",

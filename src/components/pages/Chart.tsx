@@ -4,6 +4,9 @@ import { Container, Button  } from '@mui/material'
 
 import ChartJSWrapper from "chartjs-wrapper"
 
+import { ThemeProvider, CssBaseline } from '@mui/material'
+import lightTheme from '../../LightTheme'
+
 // I provide this as an example, but we should adapt this to the real data and allow users to change some options
 // (like title, data shown, maybe colors and font properties...) in the GUI.
 const Chart = () => {
@@ -201,13 +204,16 @@ const Chart = () => {
     // elements mentioned above to set chart configuration and data.
     return (
         <Container>
+          <ThemeProvider theme={lightTheme}>
+            <CssBaseline />
             <ChartJSWrapper ref={chartRef} type='line' data={data} options={options} style={style}/>
-            <Button variant="contained" onClick={toggleAnimation}>
-                {isAnimationRunning ? 'Stop' : 'Start'}
-            </Button>
-            <Button variant="contained" onClick={resetZoom}>
-                Reset Zoom
-            </Button>
+          </ThemeProvider>
+          <Button variant="contained" onClick={toggleAnimation}>
+              {isAnimationRunning ? 'Stop' : 'Start'}
+          </Button>
+          <Button variant="contained" onClick={resetZoom}>
+              Reset Zoom
+          </Button>
         </Container>
     )
 }

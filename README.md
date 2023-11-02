@@ -4,6 +4,8 @@ This repository contains the codebase for the web based viewer of OpenSim files 
 
 Latest build is available here https://comforting-speculoos-d9e100.netlify.app/
 
+Latest deployed website https://master.d38m6crwj74ueg.amplifyapp.com/
+
 This project is tested with [BrowserStack](https://www.browserstack.com)
 
 Latest production build of the viewer is available [here](https://comforting-speculoos-d9e100.netlify.app/viewer)
