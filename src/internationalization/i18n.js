@@ -34,7 +34,7 @@ i18next
                         sceneTree: "Scene Tree View",
                         visualizationControl: "Layers View",
                         share: "Share",
-                        record: "Record"
+                        record: "Record",
                         animation: "Animation"
                     },
                     topBar: {
