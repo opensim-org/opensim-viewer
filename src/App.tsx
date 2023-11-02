@@ -14,6 +14,7 @@ import appTheme from './Theme'
 import lightTheme from './LightTheme'
 import OpenSimAppBar from './components/Nav/OpenSimAppBar'
 import viewerState from './state/ViewerState'
+import { SnackbarProvider } from 'notistack'
 
 function App() {
 
@@ -32,6 +33,7 @@ function App() {
     // / current home page of opensim-viewer with upload and login options
     return (
         <ThemeProvider theme={viewerState.dark ? appTheme : lightTheme}>
+          <SnackbarProvider>
             <CssBaseline />
             <BrowserRouter>
                 <div className="App" style={{ width: '100%'}}>
@@ -68,6 +70,7 @@ function App() {
                     </div>
                 </div>
             </BrowserRouter>
+          </SnackbarProvider>
         </ThemeProvider>
     )
 }
