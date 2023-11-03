@@ -10,9 +10,13 @@ import Tooltip from '@mui/material/Tooltip';
 import { observer } from 'mobx-react'
 import { useTranslation } from 'react-i18next'
 import { useModelContext } from '../../state/ModelUIStateContext';
+import viewerState from '../../state/ViewerState'
 
+interface BottomBarProps {
+  videoRecorderRef: any;
+}
 
-function BottomBar() {
+function BottomBar({ videoRecorderRef }: BottomBarProps) {
     const { t } = useTranslation();
     const curState = useModelContext();
 
@@ -30,14 +34,14 @@ function BottomBar() {
                 </Tooltip>
                 <Tooltip title={t('bottomBar.zoomIn')}>
                     <IconButton color="primary" onClick={() => {
-                        curState.setZoomFactor(1.1); 
+                        curState.setZoomFactor(1.1);
                         curState.setZooming(true)}}>
                         <ZoomInTwoToneIcon />
                     </IconButton>
                 </Tooltip>
                 <Tooltip title={t('bottomBar.zoomOut')}>
                     <IconButton color="primary" onClick={() => {
-                        curState.setZoomFactor(0.9); 
+                        curState.setZoomFactor(0.9);
                         curState.setZooming(true)}}>
                         <ZoomOutTwoToneIcon />
                     </IconButton>
@@ -59,7 +63,15 @@ function BottomBar() {
                     </IconButton>
                 </Tooltip>
                 <Tooltip title={t('bottomBar.record')}>
-                    <IconButton color="primary">
+                    <IconButton
+                      color={!viewerState.isRecordingVideo && !viewerState.isProcessingVideo ? "primary" : (viewerState.isProcessingVideo ? "warning" : "error")}
+                      disabled={viewerState.isProcessingVideo}
+                      onClick={() => {
+                        if (!viewerState.isRecordingVideo) {
+                            videoRecorderRef.current.startRecording();
+                        } else {
+                            videoRecorderRef.current.stopRecording();
+                        }}}>
                         <VideoCameraFrontTwoToneIcon />
                     </IconButton>
                 </Tooltip>

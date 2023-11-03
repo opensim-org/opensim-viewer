@@ -14,6 +14,7 @@ import appTheme from './Theme'
 import lightTheme from './LightTheme'
 import OpenSimAppBar from './components/Nav/OpenSimAppBar'
 import viewerState from './state/ViewerState'
+import { SnackbarProvider } from 'notistack'
 import { Amplify } from 'aws-amplify';
 import type { WithAuthenticatorProps } from '@aws-amplify/ui-react';
 import { withAuthenticator } from '@aws-amplify/ui-react';
@@ -39,6 +40,7 @@ function App({ signOut, user }: WithAuthenticatorProps) {
     // / current home page of opensim-viewer with upload and login options
     return (
         <ThemeProvider theme={viewerState.dark ? appTheme : lightTheme}>
+          <SnackbarProvider>
             <CssBaseline />
             <BrowserRouter>
                 <div className="App" style={{ width: '100%'}}>
@@ -75,6 +77,7 @@ function App({ signOut, user }: WithAuthenticatorProps) {
                     </div>
                 </div>
             </BrowserRouter>
+          </SnackbarProvider>
         </ThemeProvider>
     )
 }
