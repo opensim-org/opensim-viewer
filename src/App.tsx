@@ -47,7 +47,7 @@ function App() {
                                 element={<ModelListPage featuredModelsFilePath={viewerState.featuredModelsFilePath} />}
                             />
                             <Route
-                                path="/viewer"
+                                path="/viewer/:urlParam?"
                                 element={<ModelViewPage />}
                             />
                             <Route

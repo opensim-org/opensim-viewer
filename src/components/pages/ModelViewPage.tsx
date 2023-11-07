@@ -22,6 +22,8 @@ import { ModelUIState } from "../../state/ModelUIState";
 import { observer } from "mobx-react";
 import { MyModelContext } from "../../state/ModelUIStateContext";
 import { useModelContext } from "../../state/ModelUIStateContext";
+import { useParams } from 'react-router-dom';
+
 import OpenSimFloor from "./OpenSimFloor";
 import VideoRecorder from "../Components/VideoRecorder"
 
@@ -48,7 +50,16 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
 export function ModelViewPage() {
   const theme = useTheme();
   const curState = useModelContext();
-  curState.setCurrentModelPath(viewerState.currentModelPath);
+  let { urlParam } = useParams();
+
+  //console.log(urlParam);
+  if (urlParam!== undefined) {
+    var decodedUrl = decodeURIComponent(urlParam);
+    viewerState.setCurrentModelPath(decodedUrl);
+    curState.setCurrentModelPath(viewerState.currentModelPath);
+  }
+  else
+    curState.setCurrentModelPath(viewerState.currentModelPath);
   const [uiState] = React.useState<ModelUIState>(curState);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [selectedTabName, setSelectedTabName] = React.useState<string>("File");
