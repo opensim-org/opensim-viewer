@@ -46,8 +46,13 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   }),
 }));
 
+interface ViewerProps {
+  url?: string;
+  showControls?: boolean;
+  embedded?: boolean;
+}
 
-export function ModelViewPage() {
+export function ModelViewPage({url, showControls, embedded}:ViewerProps) {
   const theme = useTheme();
   const curState = useModelContext();
   let { urlParam } = useParams();
@@ -85,15 +90,15 @@ export function ModelViewPage() {
         <CssBaseline />
 
         <Main>
-          <DrawerMenu
+          {showControls && <DrawerMenu
             menuOpen={menuOpen}
             selectedTabName={selectedTabName}
             toggleOpenMenu={toggleOpenMenu}
             uiState={uiState}
             leftMenuWidth={leftMenuWidth}
-            drawerContentWidth={drawerContentWidth}
+            drawerContentWidth={showControls?drawerContentWidth:0}
           />
-
+          }
           <div id="canvas-container">
             <Suspense fallback={null}>
               <Canvas
@@ -130,9 +135,9 @@ export function ModelViewPage() {
                 <OpenSimControl/>
                 <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
                 <OpenSimFloor />
-                <VideoRecorder videoRecorderRef={videoRecorderRef}/>
+                {showControls && <VideoRecorder videoRecorderRef={videoRecorderRef}/>}
               </Canvas>
-              <BottomBar videoRecorderRef={videoRecorderRef}/>
+              {showControls && <BottomBar videoRecorderRef={videoRecorderRef}/>}
             </Suspense>
           </div>
         </Main>
