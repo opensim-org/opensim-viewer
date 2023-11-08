@@ -48,9 +48,32 @@ def convertOsimZip2Gltf(osimzFilePath) :
         gltfJson = convertOsim2Gltf(fullOsimPath, geometryFolder, motions)
         
         return gltfJson
+    else: #Assume OpenCap layout, 1 model, separate kinemtics mot files, no other data
+        rootFolder = locateFolderContainingFile(folderName, 'sessionMetadata.yaml')
+        modelFile = locateOsimFile(rootFolder)
+        motionFiles = locateFiles(rootFolder, '.mot')
+        # trcFiles = locateFiles(rootFolder, '.trc')
+        gltfJson = convertOsim2Gltf(modelFile, 'Geometry', motionFiles)
+
+        return gltfJson
 
 def locateFolderContainingFile(folderName, searchForFile):
     for dirpath, dirnames, filenames in os.walk(folderName):
         if (searchForFile in filenames):
             return dirpath
     return None
+
+def locateOsimFile(folderName):
+    for dirpath, dirnames, filenames in os.walk(folderName):
+        for fileSpec in filenames:
+            if (fileSpec.endswith('.osim')):
+                return os.path.join(dirpath, fileSpec)
+    return None
+
+def locateFiles(folderName, extension):
+    foundFiles = []
+    for dirpath, dirnames, filenames in os.walk(folderName):
+        for fileSpec in filenames:
+            if (fileSpec.endswith(extension)):
+                foundFiles.append(os.path.join(dirpath, fileSpec))
+    return foundFiles
