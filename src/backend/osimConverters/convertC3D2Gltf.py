@@ -72,9 +72,7 @@ def convertC3D2Gltf(c3dFilePath, shape) :
           firstForceIndex = createForceNodes(shape, forcesDictionary, unitConversionToMeters, scaleData, forceScale, firstForceFrame, gltf, topForcesNode)
           convertForcesTableToGltfAnimation(gltf, forcesDataTable, unitConversionToMeters, forcesDictionary, firstForceIndex)
 
-    outfile = c3dFilePath.replace('.c3d', '.gltf')
-    gltf.save(outfile)
-    return outfile
+    return gltf
 
 # def main():
 #     import argparse

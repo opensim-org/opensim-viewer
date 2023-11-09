@@ -14,7 +14,9 @@ def convertOsim2Gltf(osimModelFilePath, geometrySearchPath, motionPaths=[]) :
   path = Path(osimModelFilePath)
   osim.ModelVisualizer.addDirToGeometrySearchPaths(geometrySearchPath)
   # fallback to stock meshes
-  osim.ModelVisualizer.addDirToGeometrySearchPaths('model_files/../Geometry')
+  osim.ModelVisualizer.addDirToGeometrySearchPaths('Geometry')
+  osim.ModelVisualizer.addDirToGeometrySearchPaths('osimConverters/Geometry')
+
   if not path.exists():
       raise NotADirectoryError("Unable to find file ", path.absolute())
 
@@ -86,9 +88,7 @@ def convertOsim2Gltf(osimModelFilePath, geometrySearchPath, motionPaths=[]) :
 
   modelGltf = decorativeGeometryImp.get_GLTF()
   
-  outfile = osimModelFilePath.replace('.osim', '.gltf')
-  modelGltf.save(outfile)
-  return outfile, modelGltf
+  return modelGltf
 
 
 

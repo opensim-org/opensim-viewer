@@ -28,9 +28,7 @@ def convertTrc2Gltf(trcFilePath, shape) :
     gltfJson = initGltf()
     timeSeriesTableMarkers = osim.TimeSeriesTableVec3(trcFilePath)
     convertMarkersTimeSeries2Gltf(gltfJson, shape, timeSeriesTableMarkers)
-    outfile = trcFilePath.replace('.trc', '.gltf')
-    gltfJson.save(outfile)
-    return outfile
+    return gltfJson
 
 # def main():
 """     import argparse

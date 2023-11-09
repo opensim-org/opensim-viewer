@@ -70,7 +70,7 @@ class ViewerState {
     }
     setSnapshotName(newState: string) {
         this.snapshotName = newState
-    }
+}
     setSnapshotFormat(newState: string) {
         this.snapshotFormat = newState
     }

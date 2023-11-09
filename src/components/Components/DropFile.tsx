@@ -3,10 +3,22 @@ import { observer } from 'mobx-react';
 import { useLocalObservable } from 'mobx-react-lite';
 import { Paper, Typography, LinearProgress } from '@mui/material';
 import { useTranslation } from 'react-i18next'
-import axios from 'axios';
-import { getBackendURL } from '../../helpers/urlHelpers'
 import viewerState from '../../state/ViewerState';
 import { useNavigate, useLocation  } from 'react-router-dom';
+import { Storage } from "@aws-amplify/storage"
+import * as AWS from 'aws-sdk';
+import axios from 'axios';
+
+
+AWS.config.update({
+  accessKeyId: '', // replace with own credentials to test
+  secretAccessKey: '',
+  region: 'us-west-2' // replace with your region
+});
+
+const lambda = new AWS.Lambda({
+  region: 'us-west-2', // replace with your region
+});
 
 const FileDropArea = observer(() => {
   const { t } = useTranslation();
@@ -87,24 +99,35 @@ const FileDropArea = observer(() => {
             store.uploadProgress = 1;
             store.uploadPercentage = 1;
         } else {
-            await axios.post(getBackendURL('upload_file/'), formData, {
-                  headers: {
-                    "Content-Type": "multipart/form-data",
-                    "Authorization " : "Token "+localStorage.getItem('token')
-                  },
-                  onUploadProgress: progressEvent =>{
-                    const percent = progressEvent.loaded / progressEvent.total!
-                    store.uploadProgress = percent;
-                    store.uploadPercentage = percent;
-                  }
-                }).then(response => {
-                  url_gltf = getBackendURL(response.data.model_gltf_file);
-                  appState.setCurrentModelPath(url_gltf);
-
-                  if (location.pathname !== '/viewer')
-                    navigate('/viewer');
-
+            Storage.put(file.name, file).then(()=>{
+              /*
+                const api_url = 'https://eudfxg3a9l.execute-api.us-west-2.amazonaws.com/dev/'
+                axios.post(api_url, data).then(response => {
+                  const gltf_url = response.data['url']; .replace(/\.\w+$/, '.gltf')
+                  appState.setCurrentModelPath(gltf_url); */
+              const params: AWS.Lambda.InvocationRequest = {
+                FunctionName: 'opensim-viewer-func', // replace with your Lambda function's name
+                Payload: JSON.stringify({
+                    s3: 'opensimviewer-input-bucket101047-dev',
+                    key: 'public/'+file.name
                 })
+              };
+              lambda.invoke(params, (err: any, data: any) => {
+                    if (err) {
+                        console.error(err);
+                    } else {
+                      const key = file.name.replace(/\.\w+$/, '.gltf')
+                      const gltf_url = "https://s3.us-west-2.amazonaws.com/opensim-viewer-public-download/"+key
+                      appState.setCurrentModelPath(gltf_url);
+                      console.log('Lambda function invoked successfully:', data);
+                    }
+                });
+                if (location.pathname !== '/viewer')
+                    navigate('/viewer');
+              })
+              .catch(error => {
+                  console.error('Error:', error);
+              });
           }
         }
     }    
