@@ -7,13 +7,12 @@ import viewerState from '../../state/ViewerState';
 import { useNavigate, useLocation  } from 'react-router-dom';
 import { Storage } from "@aws-amplify/storage"
 import * as AWS from 'aws-sdk';
-import axios from 'axios';
 import { useSnackbar } from 'notistack'
 
 
 AWS.config.update({
-  accessKeyId: '', // replace with own credentials to test
-  secretAccessKey: '',
+  accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID, // replace with own credentials to test
+  secretAccessKey: process.env.REACT_APP_AWS_SECRET_KEY_ID,
   region: 'us-west-2' // replace with your region
 });
 
