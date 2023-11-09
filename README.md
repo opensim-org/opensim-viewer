@@ -6,7 +6,7 @@ Latest build is available here https://comforting-speculoos-d9e100.netlify.app/
 
 Latest deployed website https://master.d38m6crwj74ueg.amplifyapp.com/
 
-<iframe src="http://localhost:3000/mini-viewer/%2Fbuiltin%2Farm26.gltf" width="800" height="600">
+<iframe src="https://master.d7iaa9a9lxtm6.amplifyapp.com/viewer" width="800" height="600">
     </iframe>
 
 Latest production build of the viewer is available [here](https://comforting-speculoos-d9e100.netlify.app/viewer)
