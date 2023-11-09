@@ -22,7 +22,8 @@ i18next
                         uploadCompleted_other: "Files Uploaded.",
                         progress: "Progress: {{percentage}}%",
                         removeFiles_one: "Remove File",
-                        removeFiles_other: "Remove Files"
+                        removeFiles_other: "Remove Files",
+                        uploading_files: "Uploading Files...",
                     },
                     modelList: {
                         moreInfo: "More Info",
@@ -128,7 +129,8 @@ i18next
                         uploadCompleted_other: "Archivos Subidos.",
                         progress: "Progreso: {{percentage}}%",
                         removeFiles_one: "Eliminar Archivo",
-                        removeFiles_other: "Eliminar Archivos"
+                        removeFiles_other: "Eliminar Archivos",
+                        uploading_files: "Subiendo Archivos..."
                     },
                     modelList: {
                         moreInfo: "Mas Información",
