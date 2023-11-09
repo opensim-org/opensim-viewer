@@ -8,6 +8,7 @@ import { useNavigate, useLocation  } from 'react-router-dom';
 import { Storage } from "@aws-amplify/storage"
 import * as AWS from 'aws-sdk';
 import axios from 'axios';
+import { useSnackbar } from 'notistack'
 
 
 AWS.config.update({
@@ -26,6 +27,7 @@ const FileDropArea = observer(() => {
   const location = useLocation();
   const appState = viewerState;
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { enqueueSnackbar, closeSnackbar  } = useSnackbar();
 
   const acceptedTypes:string[] = ['.osim', '.trc', '.mot', '.c3d', '.osimz', '.gltf']
   const acceptedTypesString:string = acceptedTypes.join(', ');
@@ -75,11 +77,13 @@ const FileDropArea = observer(() => {
       }
     },
     handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+      closeSnackbar()
       const files = Array.from(e.target.files as FileList);
       store.files = files;
       store.uploadFiles();
     },
     async uploadFiles() {
+      enqueueSnackbar(t('dropFile.uploading_files'), {variant: 'info', anchorOrigin: { horizontal: "right", vertical: "bottom"}, persist: true})
       if (store.files.length === 0) return;
 
       store.isUploadComplete = false;
@@ -92,9 +96,11 @@ const FileDropArea = observer(() => {
         if (file.name.endsWith(".gltf")) {
             url_gltf = URL.createObjectURL(file);
             appState.setCurrentModelPath(url_gltf);
+            closeSnackbar()
 
-            if (location.pathname !== '/viewer')
+            if (location.pathname !== '/viewer') {
                 navigate('/viewer');
+            }
 
             store.uploadProgress = 1;
             store.uploadPercentage = 1;
@@ -120,6 +126,7 @@ const FileDropArea = observer(() => {
                       const gltf_url = "https://s3.us-west-2.amazonaws.com/opensim-viewer-public-download/"+key
                       appState.setCurrentModelPath(gltf_url);
                       console.log('Lambda function invoked successfully:', data);
+                      closeSnackbar()
                     }
                 });
                 if (location.pathname !== '/viewer')
