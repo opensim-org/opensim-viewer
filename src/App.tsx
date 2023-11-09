@@ -57,8 +57,8 @@ function App({ signOut, user }: WithAuthenticatorProps) {
                                 element={<ModelViewPage />}
                             />
                             <Route
-                                path="/mini-viewer/:urlParam?"
-                                element={<ModelViewPage showControls={false} embedded={true}/>}
+                                path="/embed-viewer/:urlParam?"
+                                element={<ModelViewPage embedded={true} noFloor={true} />}
                             />
                             <Route
                                 path="/log_in"

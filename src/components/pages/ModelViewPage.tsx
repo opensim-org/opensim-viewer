@@ -48,11 +48,11 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
 
 interface ViewerProps {
   url?: string;
-  showControls?: boolean;
   embedded?: boolean;
+  noFloor?:boolean
 }
 
-export function ModelViewPage({url, showControls, embedded}:ViewerProps) {
+export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const theme = useTheme();
   const curState = useModelContext();
   let { urlParam } = useParams();
@@ -90,15 +90,14 @@ export function ModelViewPage({url, showControls, embedded}:ViewerProps) {
         <CssBaseline />
 
         <Main>
-          {showControls && <DrawerMenu
+          <DrawerMenu
             menuOpen={menuOpen}
             selectedTabName={selectedTabName}
             toggleOpenMenu={toggleOpenMenu}
             uiState={uiState}
             leftMenuWidth={leftMenuWidth}
-            drawerContentWidth={showControls?drawerContentWidth:0}
+            drawerContentWidth={drawerContentWidth}
           />
-          }
           <div id="canvas-container">
             <Suspense fallback={null}>
               <Canvas
@@ -134,10 +133,10 @@ export function ModelViewPage({url, showControls, embedded}:ViewerProps) {
                 </GizmoHelper>
                 <OpenSimControl/>
                 <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
-                <OpenSimFloor />
-                {showControls && <VideoRecorder videoRecorderRef={videoRecorderRef}/>}
+                {!noFloor && <OpenSimFloor />}
+                <VideoRecorder videoRecorderRef={videoRecorderRef}/>
               </Canvas>
-              {showControls && <BottomBar videoRecorderRef={videoRecorderRef}/>}
+              <BottomBar videoRecorderRef={videoRecorderRef}/>
             </Suspense>
           </div>
         </Main>

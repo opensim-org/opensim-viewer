@@ -49,6 +49,7 @@ export class ModelUIState {
             setZooming: action,
             setShowGlobalFrame: action,
             animationSpeed: observable,
+            setAnimationList: observable,
             setAnimationSpeed: action,
             selected: observable,
             setSelected: action,

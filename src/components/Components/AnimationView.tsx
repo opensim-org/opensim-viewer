@@ -59,10 +59,11 @@ const AnimationView : React.FC<AnimationViewProps> = (props:AnimationViewProps) 
   }, [curState]);
 
   useEffect(() => {
-    if (props.animationList.length > 0)
-      setSelectedAnim(props.animationList[0].name)
-      handleAnimationChange(props.animationList[0].name, false)
-  }, [props.animationList, handleAnimationChange]);
+    if (curState.animations.length > 0) {
+      setSelectedAnim(curState.animations[0].name)
+      handleAnimationChange(curState.animations[0].name, false)
+    }
+  }, [curState.animations, handleAnimationChange]);
 
 
   return (
@@ -75,9 +76,9 @@ const AnimationView : React.FC<AnimationViewProps> = (props:AnimationViewProps) 
           label={t('visualizationControl.animate')}
           value={selectedAnim}
           onChange={handleAnimationChangeEvent}
-          disabled={props.animationList.length < 1}
+          disabled={curState.animations.length < 1}
           >
-          {props.animationList.map(anim => (
+          {curState.animations.map(anim => (
           <MenuItem key={anim.name} value={anim.name}>
             {anim.name}
           </MenuItem>
@@ -88,7 +89,7 @@ const AnimationView : React.FC<AnimationViewProps> = (props:AnimationViewProps) 
         <IconButton
               color="primary"
               value={'Animation'}
-              disabled={props.animationList.length < 1}
+              disabled={curState.animations.length < 1}
               onClick={togglePlayAnimation}>
               {play?<PauseCircleTwoToneIcon/>:<PlayCircleTwoToneIcon/>}
           </IconButton>
@@ -100,7 +101,7 @@ const AnimationView : React.FC<AnimationViewProps> = (props:AnimationViewProps) 
                   value={speed.toString()}
                   label={t('visualizationControl.speed')}
                   onChange={handleSpeedChange}
-                  disabled={props.animationList.length < 1}
+                  disabled={curState.animations.length < 1}
               >
                   <MenuItem value={0.25}>0.25</MenuItem>
                   <MenuItem value={0.5}>0.5</MenuItem>
