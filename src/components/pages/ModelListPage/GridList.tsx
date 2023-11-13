@@ -11,7 +11,6 @@ import Typography from '@mui/material/Typography'
 import OpenSimControl from '../OpenSimControl'
 import OpenSimScene from '../OpenSimScene'
 import { ModelMetadataType } from './ModelListPage'
-import viewerState from '../../../state/ViewerState'
 import { NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
@@ -49,9 +48,6 @@ const GridList = ({ modelMetadata }: GridListProps) => {
                             <Typography gutterBottom variant="h5" component="h2">
                                 <Link
                                     component={NavLink}
-                                    onClick={() => {
-                                        viewerState.setCurrentModelPath(element.path)
-                                    }}
                                     to={"/viewer/"+encodeURIComponent(element.path)}
                                 >
                                     {element.name}
