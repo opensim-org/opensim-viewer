@@ -52,7 +52,7 @@ const GridList = ({ modelMetadata }: GridListProps) => {
                                     onClick={() => {
                                         viewerState.setCurrentModelPath(element.path)
                                     }}
-                                    to="/viewer/"
+                                    to={"/viewer/"+encodeURIComponent(element.path)}
                                 >
                                     {element.name}
                                 </Link>
