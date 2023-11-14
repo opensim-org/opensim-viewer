@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import Grid from '@mui/material/Grid';
+import ShareModal from './ShareModal';
 
 function FileView() {
   const { t } = useTranslation();
@@ -93,6 +94,8 @@ function FileView() {
           </Grid>
       </Button>
     </Tooltip>
+
+    <ShareModal message={window.location.href}/>
   </>
   );
 }
