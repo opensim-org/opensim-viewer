@@ -17,7 +17,6 @@ import viewerState from './state/ViewerState'
 import { SnackbarProvider } from 'notistack'
 import { Amplify } from 'aws-amplify';
 import type { WithAuthenticatorProps } from '@aws-amplify/ui-react';
-import { withAuthenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 
 import awsconfig from './aws-exports';
@@ -85,4 +84,4 @@ function App({ signOut, user }: WithAuthenticatorProps) {
     )
 }
 
-export default observer( withAuthenticator(App))
+export default observer(App)

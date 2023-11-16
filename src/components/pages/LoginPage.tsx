@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
-import Link from '@mui/material/Link';
 import { NavLink } from 'react-router-dom'
 import { Container, Typography, TextField, Button } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import viewerState from '../../state/ViewerState';
-import axios from 'axios';
-import { getBackendURL } from '../../helpers/urlHelpers'
+import { Auth  } from 'aws-amplify';
 
 interface LoginPageProps {
-    isLoggedIn: boolean
+    isLoggedIn: boolean;
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ isLoggedIn }) => {
@@ -22,34 +20,14 @@ const LoginPage: React.FC<LoginPageProps> = ({ isLoggedIn }) => {
 
     const handleLogin = async () => {
         try {
-            // If logged in, go to home.
-            if (isLoggedIn)
-                navigate('/');
+            // If not logged in, log in using Amplify Auth.
+            await Auth.signIn(username, password);
+            viewerState.setIsLoggedIn(true);
 
-            // If not logged in, log in using an axios call to the server.
-            await axios.post(getBackendURL('login/'), {
-                username: username,
-                password: password
-            }).then(response => {
-                if (response.status === 200) {
-                    // Set logged in to true.
-                    viewerState.setIsLoggedIn(true)
-                    // Save token to localStorage or Redux store
-                    localStorage.setItem('token', response.data.token);
-                    // Go to home.
-                    navigate('/');
-                } else {
-                    setErrorMessage(t('logout.logoutError'));
-                }
-            });;
-
-
-        } catch (error:any) {
-            if (error.response) {
-                setErrorMessage(error.response.data.detail);
-            } else {
-                setErrorMessage(t('login.loginError'));
-            }
+            // Go to home.
+            navigate('/');
+        } catch (error) {
+            setErrorMessage(t('login.loginError'));
         }
     };
 
@@ -87,9 +65,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ isLoggedIn }) => {
                 </Typography>
             )}
             <Typography style={{ marginTop: 16 }}>
-                <Link component={NavLink} to="/register/">
-                    {t('login.notSignedUp')}
-                </Link>
+                <NavLink to="/register/">{t('login.notSignedUp')}</NavLink>
             </Typography>
         </Container>
     );
