@@ -104,20 +104,22 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
               }
             }
             if (supportControls && curState.animating){
-
+              //console.log("animating", curState.currentAnimationIndex, animationIndex)
               if (curState.currentAnimationIndex !== animationIndex) {
                 const newAnimationIndex = curState.currentAnimationIndex
                 const oldIndex  = animationIndex
                 // animation has changed
                 if (oldIndex !== -1){
                   mixers[oldIndex].stopAllAction()
-            }
+                }
                  setAnimationIndex(newAnimationIndex)
                  mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).play()
-          }
-              if (curState.currentAnimationIndex!==-1)
+              }
+              if (curState.currentAnimationIndex!==-1){
                 mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
-      }
+                //console.log("updating mixer", curState.currentAnimationIndex)
+              }
+            }
           }
       }
     })
@@ -129,6 +131,10 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
             curState.setCurrentModelPath(currentModelPath)
             curState.setSceneTree(new SceneTreeModel(scene))
             curState.setAnimationList(animations)
+            mixers.length = 0
+            curState.currentAnimationIndex=-1;
+            setAnimationIndex(-1);
+            //console.log("Reset animation index ", curState.currentAnimationIndex)
         }
         return () => {
           if (objectSelectionBox !== null){
@@ -139,7 +145,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
           sceneObjectMap.clear();
           setUseEffectRunning(true)
         };
-      }, [scene, animations, supportControls, currentModelPath, curState, sceneObjectMap, objectSelectionBox])
+      }, [scene, animations, mixers, supportControls, currentModelPath, curState, sceneObjectMap, objectSelectionBox])
 
     
     // By the time we're here the model is guaranteed to be available

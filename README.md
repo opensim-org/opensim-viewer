@@ -6,7 +6,8 @@ Latest build is available here https://comforting-speculoos-d9e100.netlify.app/
 
 Latest deployed website https://master.d38m6crwj74ueg.amplifyapp.com/
 
-This project is tested with [BrowserStack](https://www.browserstack.com)
+<iframe src="https://master.d7iaa9a9lxtm6.amplifyapp.com/viewer" width="800" height="600">
+    </iframe>
 
 Latest production build of the viewer is available [here](https://comforting-speculoos-d9e100.netlify.app/viewer)
 

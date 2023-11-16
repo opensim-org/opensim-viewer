@@ -33,9 +33,8 @@ function App({ signOut, user }: WithAuthenticatorProps) {
     //
     ///models/  # will show list personal models
     ///models/id/ = retrieve_model(id) # retrieve specfic model
-    ///models/upload = create_model
     ///viewer/ show model gallery of personal models, or stock models if not logged-in
-    ///viewer/id  show model id in 3D view
+    ///viewer/url  show model specified by url in 3D view
     ///viewer = redirect to viewer/DEFAULT_MODEL/ 
     // / current home page of opensim-viewer with upload and login options
     return (
@@ -54,8 +53,12 @@ function App({ signOut, user }: WithAuthenticatorProps) {
                                 element={<ModelListPage featuredModelsFilePath={viewerState.featuredModelsFilePath} />}
                             />
                             <Route
-                                path="/viewer"
+                                path="/viewer/:urlParam?"
                                 element={<ModelViewPage />}
+                            />
+                            <Route
+                                path="/embed-viewer/:urlParam?"
+                                element={<ModelViewPage embedded={true} noFloor={true} />}
                             />
                             <Route
                                 path="/log_in"

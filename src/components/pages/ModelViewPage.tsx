@@ -22,6 +22,8 @@ import { ModelUIState } from "../../state/ModelUIState";
 import { observer } from "mobx-react";
 import { MyModelContext } from "../../state/ModelUIStateContext";
 import { useModelContext } from "../../state/ModelUIStateContext";
+import { useParams } from 'react-router-dom';
+
 import OpenSimFloor from "./OpenSimFloor";
 import VideoRecorder from "../Components/VideoRecorder"
 
@@ -44,11 +46,25 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   }),
 }));
 
+interface ViewerProps {
+  url?: string;
+  embedded?: boolean;
+  noFloor?:boolean
+}
 
-export function ModelViewPage() {
+export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const theme = useTheme();
   const curState = useModelContext();
-  curState.setCurrentModelPath(viewerState.currentModelPath);
+  let { urlParam } = useParams();
+
+  //console.log(urlParam);
+  if (urlParam!== undefined) {
+    var decodedUrl = decodeURIComponent(urlParam);
+    viewerState.setCurrentModelPath(decodedUrl);
+    curState.setCurrentModelPath(viewerState.currentModelPath);
+  }
+  else
+    curState.setCurrentModelPath(viewerState.currentModelPath);
   const [uiState] = React.useState<ModelUIState>(curState);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [selectedTabName, setSelectedTabName] = React.useState<string>("File");
@@ -82,7 +98,6 @@ export function ModelViewPage() {
             leftMenuWidth={leftMenuWidth}
             drawerContentWidth={drawerContentWidth}
           />
-
           <div id="canvas-container">
             <Suspense fallback={null}>
               <Canvas
@@ -118,7 +133,7 @@ export function ModelViewPage() {
                 </GizmoHelper>
                 <OpenSimControl/>
                 <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
-                <OpenSimFloor />
+                {!noFloor && <OpenSimFloor />}
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
               </Canvas>
               <BottomBar videoRecorderRef={videoRecorderRef}/>
