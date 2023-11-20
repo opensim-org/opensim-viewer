@@ -66,9 +66,7 @@ def convertMotForce2Gltf(motFilePath, shape) :
     # Create nodes for the experimental forces, 1 node per force
     firstNodeIndex = createForceNodes(shape, forcesDictionary, unitConversionToMeters, scaleData, forceScale, firstDataFrame, gltf, topNode)
     convertForcesTableToGltfAnimation(gltf, timeSeriesTableVec3, unitConversionToMeters, forcesDictionary, firstNodeIndex)
-    outfile = motFilePath.replace('.mot', '.gltf')
-    gltf.save(outfile)
-    return outfile
+    return gltf
 
 
 # def main():
