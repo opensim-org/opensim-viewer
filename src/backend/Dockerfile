@@ -16,6 +16,7 @@ RUN python3.8 -m pip install vtk
 RUN python3.8 -m pip install boto3
 RUN python3.8 -m pip install requests
 
+
 RUN mkdir -p ${FUNCTION_DIR}
 
 # Allows docker to cache installed dependencies between builds
@@ -25,7 +26,7 @@ COPY ./backend/basicShapes.gltf  ${FUNCTION_DIR}/osimConverters
 COPY ./backend/basicShapes.gltf  ${FUNCTION_DIR}
 COPY ./lambda_function.py  ${FUNCTION_DIR}/lambda_function.py
 COPY ./entrypoint  ${FUNCTION_DIR}/entrypoint
-#COPY ./files /tmp
+# COPY ./files /tmp
 
 RUN python3.8 -m pip install awslambdaric
 
@@ -36,7 +37,7 @@ RUN chmod +x ${FUNCTION_DIR}/entrypoint
 
 WORKDIR ${FUNCTION_DIR}
 
-#ENTRYPOINT ["/usr/bin/aws-lambda-rie", "/usr/bin/python3.8", "-m", "awslambdaric"]
+# local use ENTRYPOINT ["/usr/bin/aws-lambda-rie", "/usr/bin/python3.8", "-m", "awslambdaric"]
 ENTRYPOINT ["/usr/bin/python3.8", "-m", "awslambdaric"]
 CMD ["lambda_function.handler"]
 

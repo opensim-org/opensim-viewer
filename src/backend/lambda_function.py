@@ -7,6 +7,7 @@ from osimConverters import *
 import time, urllib
 import json
 from pathlib import Path
+
 import requests
 from urllib.parse import urlparse
 
@@ -17,6 +18,7 @@ s3 = boto3.client('s3')
 def handler(event, context):
     print(event)
     print(context)
+
     if ("url" in event): #using API with passed in url in event
         source_url = event["url"]
         url_path = urlparse(source_url).path
