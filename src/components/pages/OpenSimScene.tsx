@@ -61,6 +61,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     const [objectSelectionBox, setObjectSelectionBox] = useState<BoxHelper | null>(new BoxHelper(scene));
     const [useEffectRunning, setUseEffectRunning] = useState<boolean>(false)
     const [animationIndex, setAnimationIndex] = useState<number>(-1)
+    const [startTime, setStartTime] = useState<number>(0)
     const [mixers, ] = useState<AnimationMixer[]>([])
     let curState = useModelContext();
     curState.scene = scene;
@@ -103,21 +104,44 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
                 }
               }
             }
-            if (supportControls && curState.animating){
 
-              if (curState.currentAnimationIndex !== animationIndex) {
-                const newAnimationIndex = curState.currentAnimationIndex
-                const oldIndex  = animationIndex
-                // animation has changed
-                if (oldIndex !== -1){
-                  mixers[oldIndex].stopAllAction()
+            if (curState.currentAnimationIndex !== animationIndex) {
+              const newAnimationIndex = curState.currentAnimationIndex
+              const oldIndex  = animationIndex
+              // animation has changed
+              if (oldIndex !== -1){
+                mixers[oldIndex].stopAllAction()
+              }
+              setAnimationIndex(newAnimationIndex)
+              mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).play()
             }
-                 setAnimationIndex(newAnimationIndex)
-                 mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).play()
-          }
-              if (curState.currentAnimationIndex!==-1)
+            if (supportControls && curState.animating){
+              if (curState.currentAnimationIndex!==-1) {
+                if(curState.currentFrame !== startTime) {
+                  let duration = mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).getClip().duration;
+                  const framePercentage = curState.currentFrame / 100;
+                  const currentTime = duration * framePercentage;
+                  mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time = currentTime;
+                  setStartTime(curState.currentFrame)
+                }
                 mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
-      }
+                curState.setCurrentFrame(Math.trunc(mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time * 100))
+
+              }
+            } else if (supportControls) {
+              if (curState.currentAnimationIndex!==-1) {
+                if(curState.currentFrame !== startTime) {
+                  let duration = mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).getClip().duration;
+                  const framePercentage = curState.currentFrame / 100;
+                  const currentTime = duration * framePercentage;
+                  mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time = currentTime;
+                  setStartTime(curState.currentFrame)
+                  mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
+
+                }
+              }
+
+            }
           }
       }
     })
