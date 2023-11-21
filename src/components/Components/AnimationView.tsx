@@ -1,4 +1,5 @@
-import { Container, FormControl, IconButton, MenuItem, Select, SelectChangeEvent, Stack } from '@mui/material';
+import { Container, FormControl, IconButton, MenuItem, Select, SelectChangeEvent, Stack, Slider, Input } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import PauseCircleTwoToneIcon from '@mui/icons-material/PauseCircleTwoTone';
 import PlayCircleTwoToneIcon from '@mui/icons-material/PlayCircleTwoTone';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +9,15 @@ import { AnimationClip } from 'three';
 import { useModelContext } from '../../state/ModelUIStateContext';
 import React, { useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react';
+
+const NonAnimatedSlider = styled(Slider)(({ theme }) => ({
+  "& .MuiSlider-thumb": {
+    transition: 'none'
+  },
+  "& .MuiSlider-track": {
+    transition: 'none'
+  },
+}));
 
 interface AnimationViewProps {
     animating?: boolean;
@@ -32,7 +42,7 @@ const AnimationView : React.FC<AnimationViewProps> = (props:AnimationViewProps) 
   }
   function handleSpeedChange(event: SelectChangeEvent) {
       curState.setAnimationSpeed(Number(event.target.value));
-       setSpeed(Number(event.target.value))
+      setSpeed(Number(event.target.value))
   }
 
   const handleAnimationChangeEvent = (event: SelectChangeEvent) => {
@@ -64,16 +74,50 @@ const AnimationView : React.FC<AnimationViewProps> = (props:AnimationViewProps) 
       handleAnimationChange(props.animationList[0].name, false)
   }, [props.animationList, handleAnimationChange]);
 
+  const handleSliderChange = (event: Event, newValue: number | number[]) => {
+    curState.setCurrentFrame(newValue as number)
+  };
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    curState.setCurrentFrame(event.target.value === '' ? 0 : Number(event.target.value));
+  };
+
+  const handleBlur = () => {
+    if (curState.currentFrame < 0) {
+      curState.setCurrentFrame(0);
+    } else if (curState.currentFrame > 100) {
+      curState.setCurrentFrame(100);
+    }
+  };
 
   return (
   <>
     <Container disableGutters>
       <FormControl variant="standard" sx={{ m: 1, minWidth: 150 }}>
+        <Stack direction="row" color="primary">
+          <NonAnimatedSlider defaultValue={50} value={typeof curState.currentFrame === 'number' ? curState.currentFrame : 0} aria-label="Default" valueLabelDisplay="auto"
+          onChange={handleSliderChange}/>
+          <Input
+            size="small"
+            value={curState.currentFrame}
+            onChange={handleInputChange}
+            onBlur={handleBlur}
+            inputProps={{
+              step: 1,
+              min: 0,
+              max: 100,
+              type: 'number',
+              'aria-labelledby': 'input-slider',
+            }}
+          />
+          </Stack>
+      </FormControl>
+      <FormControl variant="standard" sx={{ m: 1, minWidth: 150 }}>
           <InputLabel id="simple-select-standard-label">Animations</InputLabel>
           <Select
           labelId="simple-select-standard-label"
           label={t('visualizationControl.animate')}
-          value={selectedAnim}
+          value={selectedAnim?.toString()}
           onChange={handleAnimationChangeEvent}
           disabled={props.animationList.length < 1}
           >
