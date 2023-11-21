@@ -113,25 +113,27 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
                 mixers[oldIndex].stopAllAction()
               }
               setAnimationIndex(newAnimationIndex)
-              mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).play()
+              mixers[curState.currentAnimationIndex]?.clipAction(animations[curState.currentAnimationIndex]).play()
             }
             if (supportControls && curState.animating){
               if (curState.currentAnimationIndex!==-1) {
-                if(curState.currentFrame !== startTime) {
-                  let duration = mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).getClip().duration;
-                  const framePercentage = curState.currentFrame / 100;
-                  const currentTime = duration * framePercentage;
-                  mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time = currentTime;
-                  setStartTime(curState.currentFrame)
-                }
-                mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
-                curState.setCurrentFrame(Math.trunc(mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time * 100))
+                let duration = mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).getClip().duration;
 
+                if(curState.currentFrame !== startTime) {
+                  const framePercentage = curState.currentFrame / 100;
+                  const currentTimeInSlider = duration * framePercentage;
+                  mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time =  currentTimeInSlider;
+                }
+                const currentTime = mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time
+                mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
+                console.log(duration)
+                curState.setCurrentFrame(Math.trunc((currentTime / duration) * 100))
+                setStartTime(Math.trunc((currentTime / duration) * 100))
               }
             } else if (supportControls) {
               if (curState.currentAnimationIndex!==-1) {
                 if(curState.currentFrame !== startTime) {
-                  let duration = mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).getClip().duration;
+                  let duration = mixers[curState.currentAnimationIndex]?.clipAction(animations[curState.currentAnimationIndex]).getClip().duration;
                   const framePercentage = curState.currentFrame / 100;
                   const currentTime = duration * framePercentage;
                   mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time = currentTime;
