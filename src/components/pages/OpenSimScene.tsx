@@ -61,6 +61,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     const [objectSelectionBox, setObjectSelectionBox] = useState<BoxHelper | null>(new BoxHelper(scene));
     const [useEffectRunning, setUseEffectRunning] = useState<boolean>(false)
     const [animationIndex, setAnimationIndex] = useState<number>(-1)
+    const [startTime, setStartTime] = useState<number>(0)
     const [mixers, ] = useState<AnimationMixer[]>([])
     let curState = useModelContext();
     curState.scene = scene;
@@ -102,22 +103,44 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
                   }
                 }
               }
+   
+
+            if (curState.currentAnimationIndex !== animationIndex) {
+              const newAnimationIndex = curState.currentAnimationIndex
+              const oldIndex  = animationIndex
+              // animation has changed
+              if (oldIndex !== -1){
+                mixers[oldIndex].stopAllAction()
+              }
+              setAnimationIndex(newAnimationIndex)
+              mixers[curState.currentAnimationIndex]?.clipAction(animations[curState.currentAnimationIndex]).play()
             }
             if (supportControls && curState.animating){
-              //console.log("animating", curState.currentAnimationIndex, animationIndex)
-              if (curState.currentAnimationIndex !== animationIndex) {
-                const newAnimationIndex = curState.currentAnimationIndex
-                const oldIndex  = animationIndex
-                // animation has changed
-                if (oldIndex !== -1){
-                  mixers[oldIndex].stopAllAction()
+              if (curState.currentAnimationIndex!==-1) {
+                let duration = mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).getClip().duration;
+
+                if(curState.currentFrame !== startTime) {
+                  const framePercentage = curState.currentFrame / 100;
+                  const currentTimeInSlider = duration * framePercentage;
+                  mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time =  currentTimeInSlider;
                 }
-                 setAnimationIndex(newAnimationIndex)
-                 mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).play()
-              }
-              if (curState.currentAnimationIndex!==-1){
+                const currentTime = mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time
                 mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
-                //console.log("updating mixer", curState.currentAnimationIndex)
+                console.log(duration)
+                curState.setCurrentFrame(Math.trunc((currentTime / duration) * 100))
+                setStartTime(Math.trunc((currentTime / duration) * 100))
+              }
+            } else if (supportControls) {
+              if (curState.currentAnimationIndex!==-1) {
+                if(curState.currentFrame !== startTime) {
+                  let duration = mixers[curState.currentAnimationIndex]?.clipAction(animations[curState.currentAnimationIndex]).getClip().duration;
+                  const framePercentage = curState.currentFrame / 100;
+                  const currentTime = duration * framePercentage;
+                  mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time = currentTime;
+                  setStartTime(curState.currentFrame)
+                  mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
+
+                }
               }
             }
           }

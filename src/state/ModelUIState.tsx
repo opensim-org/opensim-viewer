@@ -19,6 +19,7 @@ export class ModelUIState {
     selected: string
     deSelected: string
     cameraLayersMask: number
+    currentFrame: number
 
     constructor(
         currentModelPathState: string,
@@ -39,6 +40,7 @@ export class ModelUIState {
         this.selected = ""
         this.deSelected = ""
         this.cameraLayersMask = -1
+        this.currentFrame = 0
         makeObservable(this, {
             rotating: observable,
             currentModelPath: observable,
@@ -55,7 +57,9 @@ export class ModelUIState {
             setSelected: action,
             sceneTree: observable,
             setSceneTree: action,
-            cameraLayersMask: observable
+            cameraLayersMask: observable,
+            currentFrame: observable,
+            setCurrentFrame: action
         })
         console.log("Created ModelUIState instance ", currentModelPathState)
     }
@@ -113,5 +117,8 @@ export class ModelUIState {
     }
     toggleLayerVisibility(layerToToggle: number) {
         this.cameraLayersMask = this.cameraLayersMask ^ (1 << layerToToggle)
+    }
+    setCurrentFrame(currentFrame: number) {
+        this.currentFrame = currentFrame
     }
 }
