@@ -4,6 +4,9 @@ import App from './App'
 import reportWebVitals from './reportWebVitals'
 import { ThemeProvider, createTheme } from '@mui/material'
 import './internationalization/i18n'
+import { Amplify } from 'aws-amplify';
+import awsconfig from './aws-exports';
+Amplify.configure(awsconfig);
 
 const theme = createTheme({
     palette: {

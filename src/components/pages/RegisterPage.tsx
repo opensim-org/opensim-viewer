@@ -4,11 +4,10 @@ import { NavLink } from 'react-router-dom'
 import { Container, Typography, TextField, Button } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { getBackendURL } from '../../helpers/urlHelpers'
+import { Auth } from 'aws-amplify';
 
-import axios from 'axios';
 
-const HomePage = () => {
+const RegisterPage = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
 
@@ -21,28 +20,24 @@ const HomePage = () => {
 
     const handleRegister = async () => {
         try {
-            await axios.post(getBackendURL('sign_up/'), {
-                username: username,
-                password: password,
-                email: email,
-                first_name: firstName,
-                last_name: lastName
-            }).then(response => {
-                navigate('/log_in');
+            await Auth.signUp({
+                username,
+                password,
+                attributes: {
+                    email,
+                    given_name: firstName,
+                    family_name: lastName,
+                },
             });
-
-        } catch (error:any) {
-            if (error.response) {
-                setErrorMessage(error.response.data);
-            } else {
-                setErrorMessage(t('register.registerError'));
-            }
+            navigate('/log_in');
+        } catch (error: any) {
+            setErrorMessage(error.message);
         }
     };
 
     return (
         <Container>
-            <Typography variant="h2" style={{ marginTop: 100 }}>
+            <Typography variant="h2" style={{ marginTop: 50 }}>
                 {t('register.title')}
             </Typography>
             <TextField
@@ -94,7 +89,7 @@ const HomePage = () => {
                     {errorMessage}
                 </Typography>
             )}
-            <Typography style={{ marginTop: 16 }}>
+            <Typography style={{ marginTop: 16, marginBottom: 50 }}>
                 <Link component={NavLink} to="/log_in/">
                     {t('register.alreadySignedUp')}
                 </Link>
@@ -103,4 +98,4 @@ const HomePage = () => {
     );
 };
 
-export default HomePage;
+export default RegisterPage;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -20,6 +20,7 @@ import Tooltip from '@mui/material/Tooltip';
 import { useTranslation } from 'react-i18next';
 import Drawer from '@mui/material/Drawer';
 import Hidden from '@mui/material/Hidden';
+import { Auth } from 'aws-amplify';
 
 interface OpenSimAppBarProps {
   dark: boolean;
@@ -34,13 +35,30 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn }) => {
     setIsDrawerOpen(!isDrawerOpen);
   };
 
-    const styles = {
-      drawer: {
-        top: '68px',
-        left: '60px',
-        width: 'calc(100% - 60px)',
+  useEffect(() => {
+    const checkIsUserLoggedIn = async () => {
+      try {
+        const authenticatedUser = await Auth.currentAuthenticatedUser();
+        if (authenticatedUser !== undefined) {
+          viewerState.setIsLoggedIn(true);
+        } else {
+          viewerState.setIsLoggedIn(false);
+        }
+      } catch {
+        viewerState.setIsLoggedIn(false);
       }
     };
+
+    checkIsUserLoggedIn();
+  }, [isLoggedIn]);
+
+  const styles = {
+    drawer: {
+      top: '68px',
+      left: '60px',
+      width: 'calc(100% - 60px)',
+    }
+  };
 
   return (
     <div>

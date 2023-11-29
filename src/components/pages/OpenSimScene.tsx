@@ -103,7 +103,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
                   }
                 }
               }
-            }
+   
 
             if (curState.currentAnimationIndex !== animationIndex) {
               const newAnimationIndex = curState.currentAnimationIndex
@@ -142,7 +142,6 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
 
                 }
               }
-
             }
           }
       }
@@ -155,6 +154,10 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
             curState.setCurrentModelPath(currentModelPath)
             curState.setSceneTree(new SceneTreeModel(scene))
             curState.setAnimationList(animations)
+            mixers.length = 0
+            curState.currentAnimationIndex=-1;
+            setAnimationIndex(-1);
+            //console.log("Reset animation index ", curState.currentAnimationIndex)
         }
         return () => {
           if (objectSelectionBox !== null){
@@ -165,7 +168,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
           sceneObjectMap.clear();
           setUseEffectRunning(true)
         };
-      }, [scene, animations, supportControls, currentModelPath, curState, sceneObjectMap, objectSelectionBox])
+      }, [scene, animations, mixers, supportControls, currentModelPath, curState, sceneObjectMap, objectSelectionBox])
 
     
     // By the time we're here the model is guaranteed to be available

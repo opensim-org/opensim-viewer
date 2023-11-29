@@ -14,6 +14,8 @@ RUN apt-get update \
 RUN python3.8 -m pip install pygltflib
 RUN python3.8 -m pip install vtk
 RUN python3.8 -m pip install boto3
+RUN python3.8 -m pip install requests
+
 
 RUN mkdir -p ${FUNCTION_DIR}
 
