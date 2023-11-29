@@ -103,7 +103,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
                   }
                 }
               }
-   
+            }
 
             if (curState.currentAnimationIndex !== animationIndex) {
               const newAnimationIndex = curState.currentAnimationIndex
