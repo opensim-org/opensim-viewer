@@ -76,8 +76,10 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         scene.add(objectSelectionBox!);
       }
     }
-    // This is a hack we need to make sure mixers match animations not just count
-    if (animations.length > 0 && mixers.length !==animations.length ) {
+    // Make sure mixers match animations
+    if ((animations.length > 0 && mixers.length !==animations.length) ||
+        (animations.length > 0 && mixers.length > 0 && mixers[0].getRoot() !== scene)) {
+        mixers.length = 0
         animations.forEach((clip) => {
             const nextMixer = new AnimationMixer(scene)
             nextMixer.clipAction(clip, scene)
