@@ -123,7 +123,8 @@ const FileDropArea = observer(() => {
                     } else {
                       const key = file.name.replace(/\.\w+$/, '.gltf')
                       const gltf_url = "https://s3.us-west-2.amazonaws.com/opensim-viewer-public-download/"+key
-                      appState.setCurrentModelPath(gltf_url);
+                      /* appState.setCurrentModelPath(gltf_url); */
+                      navigate("/viewer/"+encodeURIComponent(gltf_url))
                       console.log('Lambda function invoked successfully:', data);
                       closeSnackbar()
                     }
