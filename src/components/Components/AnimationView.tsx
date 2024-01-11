@@ -1,7 +1,5 @@
 import { Container, FormControl, IconButton, MenuItem, Select, SelectChangeEvent, Stack, Slider, Input } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import PauseCircleTwoToneIcon from '@mui/icons-material/PauseCircleTwoTone';
-import PlayCircleTwoToneIcon from '@mui/icons-material/PlayCircleTwoTone';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import InputLabel from '@mui/material/InputLabel';
@@ -9,15 +7,6 @@ import { AnimationClip } from 'three';
 import { useModelContext } from '../../state/ModelUIStateContext';
 import React, { useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react';
-
-const NonAnimatedSlider = styled(Slider)(({ theme }) => ({
-  "& .MuiSlider-thumb": {
-    transition: 'none'
-  },
-  "& .MuiSlider-track": {
-    transition: 'none'
-  },
-}));
 
 interface AnimationViewProps {
     animating?: boolean;
@@ -30,21 +19,9 @@ const AnimationView : React.FC<AnimationViewProps> = (props:AnimationViewProps) 
   const { t } = useTranslation();
   const curState = useModelContext();
 
-  const [play, setPlay] = useState(false);
-  const [speed, setSpeed] = useState(1.0);
   const [selectedAnim, setSelectedAnim] = useState<string | undefined>("");
 
   // console.log("Props", props);
-  function togglePlayAnimation() {
-      curState.setAnimating(!curState.animating);
-      setPlay(!play);
-
-  }
-  function handleSpeedChange(event: SelectChangeEvent) {
-      curState.setAnimationSpeed(Number(event.target.value));
-      setSpeed(Number(event.target.value))
-  }
-
   const handleAnimationChangeEvent = (event: SelectChangeEvent) => {
     const targetName = event.target.value as string
     handleAnimationChange(targetName, true)
@@ -63,8 +40,6 @@ const AnimationView : React.FC<AnimationViewProps> = (props:AnimationViewProps) 
             curState.setAnimating(animate)
         }
     }
-    if (animate)
-      setPlay(curState.animating)
     //setAge(event.target.value as string);
   }, [curState]);
 
@@ -75,44 +50,9 @@ const AnimationView : React.FC<AnimationViewProps> = (props:AnimationViewProps) 
     }
   }, [curState.animations, handleAnimationChange]);
 
-  const handleSliderChange = (event: Event, newValue: number | number[]) => {
-    curState.setCurrentFrame(newValue as number)
-  };
-
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    curState.setCurrentFrame(event.target.value === '' ? 0 : Number(event.target.value));
-  };
-
-  const handleBlur = () => {
-    if (curState.currentFrame < 0) {
-      curState.setCurrentFrame(0);
-    } else if (curState.currentFrame > 100) {
-      curState.setCurrentFrame(100);
-    }
-  };
-
   return (
   <>
     <Container disableGutters>
-      <FormControl variant="standard" sx={{ m: 1, minWidth: 150 }}>
-        <Stack direction="row" color="primary">
-          <NonAnimatedSlider defaultValue={50} value={typeof curState.currentFrame === 'number' ? curState.currentFrame : 0} aria-label="Default" valueLabelDisplay="auto"
-          onChange={handleSliderChange}/>
-          <Input
-            size="small"
-            value={curState.currentFrame}
-            onChange={handleInputChange}
-            onBlur={handleBlur}
-            inputProps={{
-              step: 1,
-              min: 0,
-              max: 100,
-              type: 'number',
-              'aria-labelledby': 'input-slider',
-            }}
-          />
-          </Stack>
-      </FormControl>
       <FormControl variant="standard" sx={{ m: 1, minWidth: 150 }}>
           <InputLabel id="simple-select-standard-label">Animations</InputLabel>
           <Select
@@ -129,31 +69,7 @@ const AnimationView : React.FC<AnimationViewProps> = (props:AnimationViewProps) 
         ))}
       </Select>
       </FormControl>
-        <Stack direction="row" color="primary">
-        <IconButton
-              color="primary"
-              value={'Animation'}
-              disabled={curState.animations.length < 1}
-              onClick={togglePlayAnimation}>
-              {play?<PauseCircleTwoToneIcon/>:<PlayCircleTwoToneIcon/>}
-          </IconButton>
-          <FormControl>
-              <InputLabel id="simple-select-standard-label2">Speed</InputLabel>
-              <Select
-                  labelId="demo-simple-select-label"
-                  id="demo-simple-select"
-                  value={speed.toString()}
-                  label={t('visualizationControl.speed')}
-                  onChange={handleSpeedChange}
-                  disabled={curState.animations.length < 1}
-              >
-                  <MenuItem value={0.25}>0.25</MenuItem>
-                  <MenuItem value={0.5}>0.5</MenuItem>
-                  <MenuItem value={1.0}>1.0</MenuItem>
-                  <MenuItem value={2.0}>2.0</MenuItem>
-              </Select>
-          </FormControl>
-          </Stack>
+
       </Container>
     </>
   );
