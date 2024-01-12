@@ -20,6 +20,7 @@ import VisualizationControl from '../Components/VisualizationControl';
 import RecordView from '../Components/RecordView';
 import { ModelUIState } from '../../state/ModelUIState';
 import { observer } from 'mobx-react';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 import Tooltip from '@mui/material/Tooltip';
 import List from '@mui/material/List';
@@ -49,16 +50,22 @@ function DrawerMenu(props :DrawerMenuProps) {
   const { t } = useTranslation();
   const theme = useTheme();
 
+  const isExtraSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('xs'));
+  const isSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('sm'));
+  const isMediumScreen = useMediaQuery((theme:any) => theme.breakpoints.only('md'));
+
+  const heightBottomBar = isExtraSmallScreen ? 14 : isSmallScreen ? 14 : isMediumScreen ? 7 : 7;
+
     const styles = {
       drawer: {
         width: props.leftMenuWidth + 'px', // Set the width of the Drawer as needed
         top: '68px',
-        height: 'calc(100vh - 68px - 7.5vh)',
+        height: 'calc(100vh - 68px - ' + heightBottomBar + 'vh)',
       },
       drawerContent: {
         width: props.drawerContentWidth + 'px', // Set the width of the Drawer as needed
         top: '68px',
-        height: 'calc(100vh - 68px - 7.5vh)',
+        height: 'calc(100vh - 68px ' + heightBottomBar + 'vh)',
         left: props.leftMenuWidth + 'px'
       },
     };
