@@ -114,7 +114,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 }}
                 camera={{ position: [1500, 2000, 1000], fov: 75, far: 10000 }}
               >
-                <fog attach="fog" color="lightgray" near={1} far={10} />
+                <fog attach="fog" color="lightgray" near={1} far={10000} />
                 <color
                   attach="background"
                   args={
