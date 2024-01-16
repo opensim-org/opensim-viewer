@@ -19,7 +19,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     const no_face_cull = (scene: Group)=>{
       if (scene) {
         scene.traverse((o)=>{
-          if (o.name.endsWith("geometrypath")){
+          if (o.name.endsWith("path")){
             o.frustumCulled = false;
           }
           mapObjectToLayer(o)
