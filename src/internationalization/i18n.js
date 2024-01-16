@@ -113,6 +113,9 @@ i18next
                     snackbars: {
                         recording_video: "Recording Video...",
                         processing_video: "Processing video..."
+                    },
+                    floatingButton: {
+                        model_info: "Model info.",
                     }
                 }
             },
@@ -219,6 +222,9 @@ i18next
                     snackbars: {
                         recording_video: "Grabando Video...",
                         processing_video: "Procesando video..."
+                    },
+                    floatingButton: {
+                        model_info: "Info modelo.",
                     }
                 }
             }

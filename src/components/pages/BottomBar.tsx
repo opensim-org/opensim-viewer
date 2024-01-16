@@ -3,11 +3,9 @@ import { Stack, Container, IconButton, ToggleButton, FormControl, Slider, Select
 import { styled } from '@mui/material/styles';
 import { useState, useEffect } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { AnimationClip } from 'three';
 import ThreeSixtyTwoToneIcon from '@mui/icons-material/ThreeSixtyTwoTone'
 import ZoomOutTwoToneIcon from '@mui/icons-material/ZoomOutTwoTone'
 import ZoomInTwoToneIcon from '@mui/icons-material/ZoomInTwoTone'
-import StraightenTwoToneIcon from '@mui/icons-material/StraightenTwoTone'
 import ModeTwoToneIcon from '@mui/icons-material/ModeTwoTone'
 import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone'
 import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone'

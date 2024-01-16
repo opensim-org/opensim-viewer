@@ -14,6 +14,7 @@ import viewerState from "../../state/ViewerState";
 import OpenSimControl from "../pages/OpenSimControl";
 import { Suspense } from "react";
 import BottomBar from "../pages/BottomBar";
+import FloatingButton from '../Components/FloatingButton';
 
 import { useRef } from 'react';
 
@@ -95,7 +96,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     <MyModelContext.Provider value={uiState}>
       <Box component="div" sx={{ display: "flex" }}>
         <CssBaseline />
-
+        <FloatingButton />
         <Main>
           <DrawerMenu
             menuOpen={menuOpen}
