@@ -14,9 +14,11 @@ import PlayCircleTwoToneIcon from '@mui/icons-material/PlayCircleTwoTone';
 import InputLabel from '@mui/material/InputLabel';
 import Tooltip from '@mui/material/Tooltip';
 import { observer } from 'mobx-react'
+import { AnimationClip } from 'three';
 import { useTranslation } from 'react-i18next'
 import { useModelContext } from '../../state/ModelUIStateContext';
 import viewerState from '../../state/ViewerState'
+import React, { useCallback } from 'react';
 
 const NonAnimatedSlider = styled(Slider)(({ theme } : {theme:any}) => ({
   "& .MuiSlider-thumb": {
@@ -29,6 +31,10 @@ const NonAnimatedSlider = styled(Slider)(({ theme } : {theme:any}) => ({
 
 interface BottomBarProps {
   videoRecorderRef: any;
+  animating?: boolean;
+  animationList: AnimationClip[];
+  animationPlaySpeed?: number;
+  animationBounds?: number[];
 }
 
 function BottomBar({ videoRecorderRef }: BottomBarProps) {
@@ -36,6 +42,7 @@ function BottomBar({ videoRecorderRef }: BottomBarProps) {
     const curState = useModelContext();
     const [speed, setSpeed] = useState(1.0);
     const [play, setPlay] = useState(false);
+    const [selectedAnim, setSelectedAnim] = useState<string | undefined>("");
 
     const isExtraSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('xs'));
     const isSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('sm'));
@@ -43,9 +50,27 @@ function BottomBar({ videoRecorderRef }: BottomBarProps) {
 
     const minWidthSlider = isExtraSmallScreen ? 150 : isSmallScreen ? 175 : isMediumScreen ? 250 : 300; // Adjust values as needed
     const marginTopSlider = isExtraSmallScreen ? 0 : isSmallScreen ? 0 : isMediumScreen ? 0 : 1
-    useEffect(() => {
-      console.log(curState.animations)
-    }, [curState.animations]);
+
+    const handleAnimationChange = useCallback((animationName: string, animate: boolean) => {
+      const targetName = animationName
+      setSelectedAnim(animationName);
+      if ( targetName === ""){
+          curState.setAnimating(false)
+      }
+      else {
+          const idx = curState.animations.findIndex((value: AnimationClip, index: number)=>{return (value.name === targetName)})
+          if (idx !== -1) {
+              curState.currentAnimationIndex = idx
+              curState.setAnimating(animate)
+          }
+      }
+      //setAge(event.target.value as string);
+    }, [curState]);
+
+    const handleAnimationChangeEvent = (event: SelectChangeEvent) => {
+      const targetName = event.target.value as string
+      handleAnimationChange(targetName, true)
+    };
 
     function togglePlayAnimation() {
         curState.setAnimating(!curState.animating);
@@ -73,6 +98,13 @@ function BottomBar({ videoRecorderRef }: BottomBarProps) {
       curState.setCurrentFrame(newValue as number)
     };
 
+    useEffect(() => {
+      if (curState.animations.length > 0) {
+        setSelectedAnim(curState.animations[0].name)
+        handleAnimationChange(curState.animations[0].name, false)
+      }
+    }, [curState.animations, handleAnimationChange]);
+
     return (
         <Container style={{height: '7vh' }}>
 
@@ -81,16 +113,26 @@ function BottomBar({ videoRecorderRef }: BottomBarProps) {
                 <Stack direction="row" color="primary" justifyContent="center">
                   <FormControl variant="standard" sx={{ mr: 0, mt: 0.5, minWidth: 100 }}>
                     <Stack direction="row" color="primary">
-                      <IconButton
-                            color="primary"
-                            value={'Animation'}
-                            disabled={curState.animations.length < 1}
-                            onClick={togglePlayAnimation}>
-                            {play?<PauseCircleTwoToneIcon/>:<PlayCircleTwoToneIcon/>}
-                        </IconButton>
-                        <FormControl size="small" margin="normal">
-                            <InputLabel id="simple-select-standard-label2">Speed</InputLabel>
+                        <FormControl variant="standard" sx={{ m: 1, minWidth: 150 }}>
+                          <InputLabel id="simple-select-standard-label">Animations</InputLabel>
                             <Select
+                              labelId="simple-select-standard-label"
+                              label={t('visualizationControl.animate')}
+                              value={selectedAnim?.toString()}
+                              onChange={handleAnimationChangeEvent}
+                              disabled={curState.animations.length < 1}
+                              >
+                              {curState.animations.map(anim => (
+                              <MenuItem key={anim.name} value={anim.name}>
+                                {anim.name}
+                              </MenuItem>
+                              ))}
+                            </Select>
+                        </FormControl>
+                        <FormControl size="small" margin="normal">
+                          <InputLabel id="simple-select-standard-label2">Speed</InputLabel>
+                            <Select
+                                sx={{ mt: 0.25 }}
                                 labelId="demo-simple-select-label"
                                 id="demo-simple-select"
                                 value={speed.toString()}
@@ -104,6 +146,14 @@ function BottomBar({ videoRecorderRef }: BottomBarProps) {
                                 <MenuItem value={2.0}>2.0</MenuItem>
                             </Select>
                         </FormControl>
+                      <IconButton
+                            sx={{ mt: 0 }}
+                            color="primary"
+                            value={'Animation'}
+                            disabled={curState.animations.length < 1}
+                            onClick={togglePlayAnimation}>
+                            {play?<PauseCircleTwoToneIcon/>:<PlayCircleTwoToneIcon/>}
+                        </IconButton>
                     </Stack>
                   </FormControl>
                   <FormControl variant="standard" margin="normal" sx={{ m: 1, mr: 2, minWidth: minWidthSlider }}>

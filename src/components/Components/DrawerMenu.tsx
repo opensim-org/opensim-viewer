@@ -10,12 +10,10 @@ import { useTranslation } from 'react-i18next'
 import AccountTreeTwoToneIcon from '@mui/icons-material/AccountTreeTwoTone'
 import LayersTwoToneIcon from '@mui/icons-material/LayersTwoTone';
 import CameraEnhanceIcon from '@mui/icons-material/CameraEnhance';
-import TheatersIcon from '@mui/icons-material/Theaters';
 
 import SceneTreeView from '../Components/SceneTreeView';
 import FileView from '../Components/FileView';
 import ShareView from '../Components/ShareView';
-import AnimationView from '../Components/AnimationView';
 import VisualizationControl from '../Components/VisualizationControl';
 import RecordView from '../Components/RecordView';
 import { ModelUIState } from '../../state/ModelUIState';
@@ -119,21 +117,6 @@ function DrawerMenu(props :DrawerMenuProps) {
             </div>
           )}
 
-          {props.selectedTabName === 'Animation' && (
-            <div style={{ margin: '1em' }}>
-              <DrawerHeader>
-                <h3>{t('modelView.animation')}</h3>
-                <IconButton onClick={() => props.toggleOpenMenu('')}>
-                  {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-                </IconButton>
-              </DrawerHeader>
-              <AnimationView
-                animationPlaySpeed={1.0}
-                animating={props.uiState.animating}
-                animationList={props.uiState.animations}/>
-            </div>
-          )}
-
           {props.selectedTabName === 'Share' && (
             <div style={{ margin: '1em' }}>
               <DrawerHeader>
@@ -189,11 +172,6 @@ function DrawerMenu(props :DrawerMenuProps) {
             <Tooltip title={t('modelView.record')} placement="right">
                 <ListItem button onClick={() => props.toggleOpenMenu('Record')}>
                         <CameraEnhanceIcon />
-                </ListItem>
-            </Tooltip>
-            <Tooltip title={t('modelView.animation')} placement="right">
-                <ListItem button onClick={() => props.toggleOpenMenu('Animation')}>
-                        <TheatersIcon />
                 </ListItem>
             </Tooltip>
             <Tooltip title={t('modelView.share')} placement="right">

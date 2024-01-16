@@ -51,7 +51,7 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
 interface ViewerProps {
   url?: string;
   embedded?: boolean;
-  noFloor?:boolean
+  noFloor?:boolean;
 }
 
 export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
@@ -144,7 +144,11 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 {!noFloor && <OpenSimFloor />}
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
               </Canvas>
-              <BottomBar videoRecorderRef={videoRecorderRef}/>
+              <BottomBar
+                videoRecorderRef={videoRecorderRef}
+                animationPlaySpeed={1.0}
+                animating={uiState.animating}
+                animationList={uiState.animations}/>
             </Suspense>
           </div>
         </Main>
