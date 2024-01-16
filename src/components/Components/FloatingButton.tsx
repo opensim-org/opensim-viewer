@@ -26,7 +26,13 @@ const FloatingButton = () => {
           </IconButton>
       </Tooltip>
       {isWindowOpen &&
-        <div className="floating-window">Your text goes here</div>
+        <div className="floating-window">
+        Model name:
+        <br></br>
+        Description:
+        <br></br>
+        Authors:
+        </div>
         
       }
     </div>
