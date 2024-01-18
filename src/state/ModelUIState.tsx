@@ -53,6 +53,7 @@ export class ModelUIState {
             animationSpeed: observable,
             setAnimationList: observable,
             setAnimationSpeed: action,
+            animations: observable,
             selected: observable,
             setSelected: action,
             sceneTree: observable,
