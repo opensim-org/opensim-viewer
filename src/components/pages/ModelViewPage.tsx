@@ -3,6 +3,7 @@ import { styled, useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import { Canvas } from "@react-three/fiber";
+import useMediaQuery from '@mui/material/useMediaQuery';
 import {
   Bounds,
   Environment,
@@ -13,6 +14,7 @@ import viewerState from "../../state/ViewerState";
 import OpenSimControl from "../pages/OpenSimControl";
 import { Suspense } from "react";
 import BottomBar from "../pages/BottomBar";
+import FloatingButton from '../Components/FloatingButton';
 
 import { useRef } from 'react';
 
@@ -49,13 +51,19 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
 interface ViewerProps {
   url?: string;
   embedded?: boolean;
-  noFloor?:boolean
+  noFloor?:boolean;
 }
 
 export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const theme = useTheme();
   const curState = useModelContext();
   let { urlParam } = useParams();
+
+  const isExtraSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('xs'));
+  const isSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('sm'));
+  const isMediumScreen = useMediaQuery((theme:any) => theme.breakpoints.only('md'));
+
+  const heightBottomBar = isExtraSmallScreen ? 14 : isSmallScreen ? 14 : isMediumScreen ? 7 : 7;
 
   //console.log(urlParam);
   if (urlParam!== undefined) {
@@ -88,7 +96,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     <MyModelContext.Provider value={uiState}>
       <Box component="div" sx={{ display: "flex" }}>
         <CssBaseline />
-
+        <FloatingButton />
         <Main>
           <DrawerMenu
             menuOpen={menuOpen}
@@ -108,7 +116,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                     "calc(100vw - " +
                     (leftMenuWidth + (menuOpen ? drawerContentWidth : 0)) +
                     "px)",
-                  height: "calc(100vh - 68px - 7vh)",
+                  height: "calc(100vh - 68px - " + heightBottomBar + "vh)",
                   left: leftMenuWidth + (menuOpen ? drawerContentWidth : 0),
                   transition: "left 0.1s ease",
                 }}
@@ -136,7 +144,11 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 {!noFloor && <OpenSimFloor />}
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
               </Canvas>
-              <BottomBar videoRecorderRef={videoRecorderRef}/>
+              <BottomBar
+                videoRecorderRef={videoRecorderRef}
+                animationPlaySpeed={1.0}
+                animating={uiState.animating}
+                animationList={uiState.animations}/>
             </Suspense>
           </div>
         </Main>
