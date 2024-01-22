@@ -96,7 +96,10 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     <MyModelContext.Provider value={uiState}>
       <Box component="div" sx={{ display: "flex" }}>
         <CssBaseline />
-        <FloatingButton />
+        <FloatingButton 
+                model_name={uiState.modelInfo.model_name} 
+                desc={uiState.modelInfo.desc}
+                authors={uiState.modelInfo.authors}/>
         <Main>
           <DrawerMenu
             menuOpen={menuOpen}

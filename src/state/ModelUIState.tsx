@@ -3,6 +3,17 @@ import SceneTreeModel from '../helpers/SceneTreeModel'
 import { AnimationClip } from 'three/src/animation/AnimationClip'
 import { Group } from 'three'
 
+export class ModelInfo {
+    model_name: string | null
+    desc: string | null
+    authors: string | null
+    constructor(
+    ){
+        this.model_name = null
+        this.desc = null
+        this.authors = null
+    }
+}
 export class ModelUIState {
     currentModelPath: string
     scene: Group | null
@@ -20,7 +31,7 @@ export class ModelUIState {
     deSelected: string
     cameraLayersMask: number
     currentFrame: number
-
+    modelInfo: ModelInfo = new ModelInfo()
     constructor(
         currentModelPathState: string,
         rotatingState: boolean,
@@ -121,5 +132,10 @@ export class ModelUIState {
     }
     setCurrentFrame(currentFrame: number) {
         this.currentFrame = currentFrame
+    }
+    setModelInfo(curName: string, curDescription: string, curAuth: string) {
+        this.modelInfo.model_name = curName
+        this.modelInfo.desc = curDescription
+        this.modelInfo.authors = curAuth
     }
 }

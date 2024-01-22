@@ -75,6 +75,18 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         objectSelectionBox.visible = false;
         scene.add(objectSelectionBox!);
       }
+      // First child of scene is model, grab info from it
+      const modelData = scene.children[0].userData;
+      if (modelData.name.startsWith('Model')){
+        // Populate model name, description and authors if not null
+        let desc = 'description'
+        let authors = 'authors'
+        if (modelData.description !== undefined)
+          desc = modelData.description
+        if (modelData.authors !== undefined)
+          authors = modelData.authors
+        curState.setModelInfo(modelData.name, desc, authors)
+      }
     }
     // Make sure mixers match animations
     if ((animations.length > 0 && mixers.length !==animations.length) ||
