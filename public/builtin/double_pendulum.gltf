@@ -1112,7 +1112,12 @@
       "children": [
         1
       ],
-      "name": "Model:double_pendulum"
+      "name": "Model:double_pendulum",
+      "extras": {
+        "description": "Model to demonstrate how to analyze the motion of a double_pendulum",
+        "authors": "OpenSim Team.",
+        "publication": "OpenSim Paper."
+      }
     },
     {
       "children": [

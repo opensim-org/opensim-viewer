@@ -59,7 +59,9 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn }) => {
       width: 'calc(100% - 60px)',
     }
   };
-
+  const url = encodeURIComponent(viewerState.currentModelPath);
+  console.log(url);
+  
   return (
     <div>
 
@@ -71,7 +73,6 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn }) => {
         PaperProps={{
           style: styles.drawer,
         }}>
-
         <div>
           <Tooltip title={t('topBar.viewer')}>
             <Link component={NavLink} to="/viewer" sx={{ marginLeft: 'auto' }}>

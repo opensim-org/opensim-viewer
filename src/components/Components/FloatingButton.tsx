@@ -5,8 +5,9 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import { useTranslation } from 'react-i18next'
 import './FloatingButton.css'; // Create this file for styling
+import { ModelInfo } from '../../state/ModelUIState';
 
-const FloatingButton = () => {
+const FloatingButton = (info: ModelInfo) => {
   const { t } = useTranslation();
   const [isWindowOpen, setIsWindowOpen] = useState(false);
 
@@ -27,11 +28,11 @@ const FloatingButton = () => {
       </Tooltip>
       {isWindowOpen &&
         <div className="floating-window">
-        Model name:
+        {info.model_name}
         <br></br>
-        Description:
+        Description: {info.desc}
         <br></br>
-        Authors:
+        Authors: {info.authors}
         </div>
         
       }
