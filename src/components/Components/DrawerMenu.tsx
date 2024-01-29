@@ -24,6 +24,7 @@ import Tooltip from '@mui/material/Tooltip';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 
+import viewerState from '../../state/ViewerState'
 
 const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -174,11 +175,13 @@ function DrawerMenu(props :DrawerMenuProps) {
                         <CameraEnhanceIcon />
                 </ListItem>
             </Tooltip>
-            <Tooltip title={t('modelView.share')} placement="right">
-                <ListItem button onClick={() => props.toggleOpenMenu('Share')}>
-                        <ShareTwoToneIcon />
-                </ListItem>
-            </Tooltip>
+            {viewerState.isLoggedIn && (
+              <Tooltip title={t('modelView.share')} placement="right">
+                  <ListItem button onClick={() => props.toggleOpenMenu('Share')}>
+                          <ShareTwoToneIcon />
+                  </ListItem>
+              </Tooltip>
+            )}
           </List>
 
         </Drawer>
