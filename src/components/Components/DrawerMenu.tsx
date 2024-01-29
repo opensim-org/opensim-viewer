@@ -175,7 +175,7 @@ function DrawerMenu(props :DrawerMenuProps) {
                         <CameraEnhanceIcon />
                 </ListItem>
             </Tooltip>
-            {viewerState.isLoggedIn && (
+            {viewerState.isLoggedIn && !viewerState.isLocalUpload && (
               <Tooltip title={t('modelView.share')} placement="right">
                   <ListItem button onClick={() => props.toggleOpenMenu('Share')}>
                           <ShareTwoToneIcon />
