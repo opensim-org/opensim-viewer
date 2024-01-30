@@ -42,7 +42,6 @@ function App({ signOut, user }: WithAuthenticatorProps) {
             <CssBaseline />
             <BrowserRouter>
                 <div className="App" style={{ width: '100%'}}>
-                    <OpenSimAppBar dark={viewerState.dark} isLoggedIn={viewerState.isLoggedIn} />
                     <div>
                         <Routes>
                             <Route path="/" element={<HomePage />} />
