@@ -70,6 +70,8 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     var decodedUrl = decodeURIComponent(urlParam);
     viewerState.setCurrentModelPath(decodedUrl);
     curState.setCurrentModelPath(viewerState.currentModelPath);
+    // If urlParam is not undefined, this means it is getting the model from S3 and not from local.
+    viewerState.isLocalUpload = false;
   }
   else
     curState.setCurrentModelPath(viewerState.currentModelPath);

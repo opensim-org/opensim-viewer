@@ -4,6 +4,7 @@ class ViewerState {
     currentModelPath: string
     featuredModelsFilePath: string
     dark: boolean
+    isLocalUpload: boolean
     isLoggedIn: boolean
     snapshotName: string
     snapshotFormat: string
@@ -16,6 +17,7 @@ class ViewerState {
         currentModelPathState: string,
         featuredModelsFilePathState: string,
         darkState: boolean,
+        isLocalUploadState: boolean,
         isLoggedInState: boolean,
         snapshotName: string,
         snapshotFormat: string,
@@ -27,6 +29,7 @@ class ViewerState {
         this.currentModelPath = currentModelPathState
         this.featuredModelsFilePath = featuredModelsFilePathState
         this.dark = darkState
+        this.isLocalUpload = isLocalUploadState
         this.isLoggedIn = isLoggedInState
         this.snapshotName = snapshotName
         this.snapshotFormat = snapshotFormat
@@ -38,6 +41,7 @@ class ViewerState {
             currentModelPath: observable,
             featuredModelsFilePath: observable,
             dark: observable,
+            isLocalUpload: observable,
             isLoggedIn: observable,
             setCurrentModelPath: action,
             setFeaturedModelsFilePath: action,
@@ -65,12 +69,15 @@ class ViewerState {
     setDark(newState: boolean) {
         this.dark = newState
     }
+    setIsLocalUpload(newState: boolean) {
+      this.isLocalUpload = newState
+    }
     setIsLoggedIn(newState: boolean) {
         this.isLoggedIn = newState
     }
     setSnapshotName(newState: string) {
         this.snapshotName = newState
-}
+    }
     setSnapshotFormat(newState: string) {
         this.snapshotFormat = newState
     }
@@ -88,6 +95,6 @@ class ViewerState {
     }
 }
 
-const viewerState = new ViewerState('/builtin/arm26_elbow_flex.gltf', '/builtin/featured-models.json', false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false)
+const viewerState = new ViewerState('/builtin/arm26_elbow_flex.gltf', '/builtin/featured-models.json', false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false)
 
 export default viewerState
