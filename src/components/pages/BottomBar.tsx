@@ -1,24 +1,24 @@
 import Grid from '@mui/material/Unstable_Grid2'
-import { Stack, Container, IconButton, ToggleButton, FormControl, Slider, SelectChangeEvent, Input, MenuItem, Select } from '@mui/material'
+import { Stack, Container, IconButton, ToggleButton, FormControl, Slider, SelectChangeEvent, Input, MenuItem, Select } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useState, useEffect } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import ThreeSixtyTwoToneIcon from '@mui/icons-material/ThreeSixtyTwoTone'
-import ZoomOutTwoToneIcon from '@mui/icons-material/ZoomOutTwoTone'
-import ZoomInTwoToneIcon from '@mui/icons-material/ZoomInTwoTone'
-import ModeTwoToneIcon from '@mui/icons-material/ModeTwoTone'
-import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone'
-import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone'
+import ThreeSixtyTwoToneIcon from '@mui/icons-material/ThreeSixtyTwoTone';
+import ZoomOutTwoToneIcon from '@mui/icons-material/ZoomOutTwoTone';
+import ZoomInTwoToneIcon from '@mui/icons-material/ZoomInTwoTone';
+import ModeTwoToneIcon from '@mui/icons-material/ModeTwoTone';
+import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone';
+import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
 import PauseCircleTwoToneIcon from '@mui/icons-material/PauseCircleTwoTone';
 import PlayCircleTwoToneIcon from '@mui/icons-material/PlayCircleTwoTone';
 import InputLabel from '@mui/material/InputLabel';
 import Tooltip from '@mui/material/Tooltip';
 import { observer } from 'mobx-react'
 import { AnimationClip } from 'three';
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next';
 import { useModelContext } from '../../state/ModelUIStateContext';
-import viewerState from '../../state/ViewerState'
-import React, { useCallback } from 'react';
+import viewerState from '../../state/ViewerState';
+import React, { useCallback, useRef } from 'react';
 
 const NonAnimatedSlider = styled(Slider)(({ theme } : {theme:any}) => ({
   "& .MuiSlider-thumb": {
@@ -30,6 +30,7 @@ const NonAnimatedSlider = styled(Slider)(({ theme } : {theme:any}) => ({
 }));
 
 interface BottomBarProps {
+  ref?: React.RefObject<HTMLButtonElement>;
   videoRecorderRef: any;
   animating?: boolean;
   animationList: AnimationClip[];
@@ -37,7 +38,11 @@ interface BottomBarProps {
   animationBounds?: number[];
 }
 
-function BottomBar({ videoRecorderRef }: BottomBarProps) {
+const BottomBar = React.forwardRef(function CustomContent(
+    props: BottomBarProps,
+    ref,
+  ) {
+    const bottomBarRef = useRef(null);
     const { t } = useTranslation();
     const curState = useModelContext();
     const [speed, setSpeed] = useState(1.0);
@@ -106,10 +111,10 @@ function BottomBar({ videoRecorderRef }: BottomBarProps) {
     }, [curState.animations, handleAnimationChange]);
 
     return (
-        <Container style={{height: '7vh' }}>
+        <Container>
 
             <Stack direction="row" color="primary" justifyContent="center">
-              <Grid container spacing={2} style={{textAlign: "center"}} alignItems="center" justifyContent="center">
+              <Grid ref={(ref as any) || bottomBarRef} container spacing={2} style={{textAlign: "center"}} alignItems="center" justifyContent="center">
                 <Stack direction="row" color="primary" justifyContent="center">
                   <FormControl variant="standard" sx={{ mr: 0, mt: 0.5, minWidth: 100 }}>
                     <Stack direction="row" color="primary">
@@ -226,9 +231,9 @@ function BottomBar({ videoRecorderRef }: BottomBarProps) {
                         disabled={viewerState.isProcessingVideo}
                         onClick={() => {
                           if (!viewerState.isRecordingVideo) {
-                              videoRecorderRef.current.startRecording();
+                              props.videoRecorderRef.current.startRecording();
                           } else {
-                              videoRecorderRef.current.stopRecording();
+                              props.videoRecorderRef.current.stopRecording();
                           }}}>
                           <VideoCameraFrontTwoToneIcon />
                       </IconButton>
@@ -238,6 +243,6 @@ function BottomBar({ videoRecorderRef }: BottomBarProps) {
             </Stack>
         </Container>
     )
-}
+});
 
 export default observer(BottomBar)

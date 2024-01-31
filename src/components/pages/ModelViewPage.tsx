@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useRef, useEffect, useState } from 'react';
 import { styled, useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -16,8 +16,6 @@ import { Suspense } from "react";
 import BottomBar from "../pages/BottomBar";
 import FloatingButton from '../Components/FloatingButton';
 
-import { useRef } from 'react';
-
 import DrawerMenu from "../Components/DrawerMenu";
 import OpenSimScene from "../pages/OpenSimScene";
 import { ModelUIState } from "../../state/ModelUIState";
@@ -28,7 +26,6 @@ import { useParams } from 'react-router-dom';
 
 import OpenSimFloor from "./OpenSimFloor";
 import VideoRecorder from "../Components/VideoRecorder"
-
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
@@ -55,6 +52,8 @@ interface ViewerProps {
 }
 
 export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
+  const bottomBarRef = useRef<HTMLDivElement>(null);
+
   const theme = useTheme();
   const curState = useModelContext();
   let { urlParam } = useParams();
@@ -63,7 +62,17 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const isSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('sm'));
   const isMediumScreen = useMediaQuery((theme:any) => theme.breakpoints.only('md'));
 
-  const heightBottomBar = isExtraSmallScreen ? 14 : isSmallScreen ? 14 : isMediumScreen ? 7 : 7;
+  const [heightBottomBar, setHeightBottomBar] = useState(0);
+
+  useEffect(() => {
+    if (bottomBarRef.current) {
+      const heightBottomBar = bottomBarRef.current.offsetHeight;
+      setHeightBottomBar(bottomBarRef.current.offsetHeight);
+
+      // Do something with heightBottomBar if needed
+      console.log('Height of BottomBar:', heightBottomBar);
+    }
+  }, [bottomBarRef.current]);
 
   //console.log(urlParam);
   if (urlParam!== undefined) {
@@ -121,7 +130,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                     "calc(100vw - " +
                     (leftMenuWidth + (menuOpen ? drawerContentWidth : 0)) +
                     "px)",
-                  height: "calc(100vh - 68px - " + heightBottomBar + "vh)",
+                  height: "calc(100vh - 68px - " + heightBottomBar + "px)",
                   left: leftMenuWidth + (menuOpen ? drawerContentWidth : 0),
                   transition: "left 0.1s ease",
                 }}
@@ -150,6 +159,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
               </Canvas>
               <BottomBar
+                ref={bottomBarRef}
                 videoRecorderRef={videoRecorderRef}
                 animationPlaySpeed={1.0}
                 animating={uiState.animating}
