@@ -1,5 +1,4 @@
-import Grid from '@mui/material/Unstable_Grid2'
-import { Stack, Container, IconButton, ToggleButton, FormControl, Slider, SelectChangeEvent, Input, MenuItem, Select } from '@mui/material';
+import { Stack, Grid, Container, IconButton, ToggleButton, FormControl, Slider, SelectChangeEvent, Input, MenuItem, Select } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useState, useEffect } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -54,6 +53,7 @@ const BottomBar = React.forwardRef(function CustomContent(
     const isMediumScreen = useMediaQuery((theme:any) => theme.breakpoints.only('md'));
 
     const minWidthSlider = isExtraSmallScreen ? 150 : isSmallScreen ? 175 : isMediumScreen ? 250 : 300; // Adjust values as needed
+    const maxWidthTime = 50;
     const marginTopSlider = isExtraSmallScreen ? 0 : isSmallScreen ? 0 : isMediumScreen ? 0 : 1
 
     const handleAnimationChange = useCallback((animationName: string, animate: boolean) => {
@@ -111,137 +111,159 @@ const BottomBar = React.forwardRef(function CustomContent(
     }, [curState.animations, handleAnimationChange]);
 
     return (
-        <Container>
+      <Container ref={(ref as any) || bottomBarRef}>
 
-            <Stack direction="row" color="primary" justifyContent="center">
-              <Grid ref={(ref as any) || bottomBarRef} container spacing={2} style={{textAlign: "center"}} alignItems="center" justifyContent="center">
-                <Stack direction="row" color="primary" justifyContent="center">
-                  <FormControl variant="standard" sx={{ mr: 0, mt: 0.5, minWidth: 100 }}>
-                    <Stack direction="row" color="primary">
-                        <FormControl variant="standard" sx={{ m: 1, minWidth: 150 }}>
-                          <InputLabel id="simple-select-standard-label">Animations</InputLabel>
-                            <Select
-                              labelId="simple-select-standard-label"
-                              label={t('visualizationControl.animate')}
-                              value={selectedAnim?.toString()}
-                              onChange={handleAnimationChangeEvent}
-                              disabled={curState.animations.length < 1}
-                              >
-                              {curState.animations.map(anim => (
-                              <MenuItem key={anim.name} value={anim.name}>
-                                {anim.name}
-                              </MenuItem>
-                              ))}
-                            </Select>
-                        </FormControl>
-                        <FormControl size="small" margin="normal">
-                          <InputLabel id="simple-select-standard-label2">Speed</InputLabel>
-                            <Select
-                                sx={{ mt: 0.25 }}
-                                labelId="demo-simple-select-label"
-                                id="demo-simple-select"
-                                value={speed.toString()}
-                                label={t('visualizationControl.speed')}
-                                onChange={handleSpeedChange}
-                                disabled={curState.animations.length < 1}
-                            >
-                                <MenuItem value={0.25}>0.25</MenuItem>
-                                <MenuItem value={0.5}>0.5</MenuItem>
-                                <MenuItem value={1.0}>1.0</MenuItem>
-                                <MenuItem value={2.0}>2.0</MenuItem>
-                            </Select>
-                        </FormControl>
-                      <IconButton
-                            sx={{ mt: 0 }}
-                            color="primary"
-                            value={'Animation'}
-                            disabled={curState.animations.length < 1}
-                            onClick={togglePlayAnimation}>
-                            {play?<PauseCircleTwoToneIcon/>:<PlayCircleTwoToneIcon/>}
-                        </IconButton>
-                    </Stack>
-                  </FormControl>
-                  <FormControl variant="standard" margin="normal" sx={{ m: 1, mr: 2, minWidth: minWidthSlider }}>
-                    <Stack direction="row" color="primary">
-                      <NonAnimatedSlider
-                        sx={{ mr: 1, mt: marginTopSlider }}
-                        defaultValue={50}
-                        value={typeof curState.currentFrame === 'number' ? curState.currentFrame : 0}
-                        aria-label="Default"
-                        valueLabelDisplay="auto"
-                        onChange={handleSliderChange}
-                        disabled={curState.animations.length < 1}
-                        />
-                      <Input
-                        sx={{ mt: marginTopSlider }}
-                        size="small"
-                        value={curState.currentFrame}
-                        onChange={handleInputChange}
-                        onBlur={handleBlur}
-                        inputProps={{
-                          step: 1,
-                          min: 0,
-                          max: 100,
-                          type: 'number',
-                          'aria-labelledby': 'input-slider',
-                        }}
-                        disabled={curState.animations.length < 1}
-                      />
-                    </Stack>
-                  </FormControl>
-                </Stack>
-                <Stack direction="row" color="primary">
-                  <Tooltip title={t('bottomBar.autoRotate')}>
-                      <ToggleButton
-                          color="primary"
-                          selected={curState.rotating}
-                          value={'Rotate'}
-                          onClick={() => curState.setRotating(!curState.rotating)}>
-                          <ThreeSixtyTwoToneIcon />
-                      </ToggleButton>
-                  </Tooltip>
-                  <Tooltip title={t('bottomBar.zoomIn')}>
-                      <IconButton color="primary" onClick={() => {
-                          curState.setZoomFactor(1.1);
-                          curState.setZooming(true)}}>
-                          <ZoomInTwoToneIcon />
-                      </IconButton>
-                  </Tooltip>
-                  <Tooltip title={t('bottomBar.zoomOut')}>
-                      <IconButton color="primary" onClick={() => {
-                          curState.setZoomFactor(0.9);
-                          curState.setZooming(true)}}>
-                          <ZoomOutTwoToneIcon />
-                      </IconButton>
-                  </Tooltip>
-                  <Tooltip title={t('bottomBar.annotate')}>
-                      <IconButton color="primary">
-                          <ModeTwoToneIcon />
-                      </IconButton>
-                  </Tooltip>
-                  <Tooltip title={t('bottomBar.snapshoot')}>
-                      <IconButton color="primary" onClick={() => {
-                          curState.setTakeSnapshot();}}>
-                          <PhotoCameraTwoToneIcon />
-                      </IconButton>
-                  </Tooltip>
-                  <Tooltip title={t('bottomBar.record')}>
-                      <IconButton
-                        color={!viewerState.isRecordingVideo && !viewerState.isProcessingVideo ? "primary" : (viewerState.isProcessingVideo ? "warning" : "error")}
-                        disabled={viewerState.isProcessingVideo}
-                        onClick={() => {
-                          if (!viewerState.isRecordingVideo) {
-                              props.videoRecorderRef.current.startRecording();
-                          } else {
-                              props.videoRecorderRef.current.stopRecording();
-                          }}}>
-                          <VideoCameraFrontTwoToneIcon />
-                      </IconButton>
-                  </Tooltip>
-                </Stack>
-              </Grid>
-            </Stack>
-        </Container>
+        <Grid container spacing={1} justifyContent="center">
+
+          <Grid item>
+            <FormControl margin="dense" size="small" sx={{minWidth: 150 }}>
+              <InputLabel id="simple-select-standard-label">Animations</InputLabel>
+              <Select
+                labelId="simple-select-standard-label"
+                label={t('visualizationControl.animate')}
+                value={selectedAnim?.toString()}
+                onChange={handleAnimationChangeEvent}
+                disabled={curState.animations.length < 1}>
+                  {curState.animations.map(anim => (
+                    <MenuItem key={anim.name} value={anim.name}>
+                      {anim.name}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid item>
+            <FormControl margin="dense" size="small">
+              <InputLabel id="simple-select-standard-label2">Speed</InputLabel>
+              <Select
+                labelId="demo-simple-select-label"
+                id="demo-simple-select"
+                value={speed.toString()}
+                label={t('visualizationControl.speed')}
+                onChange={handleSpeedChange}
+                disabled={curState.animations.length < 1}>
+                  <MenuItem value={0.25}>0.25</MenuItem>
+                  <MenuItem value={0.5}>0.5</MenuItem>
+                  <MenuItem value={1.0}>1.0</MenuItem>
+                  <MenuItem value={2.0}>2.0</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid item>
+            <FormControl margin="dense" size="small">
+              <IconButton
+                color="primary"
+                value={'Animation'}
+                disabled={curState.animations.length < 1}
+                onClick={togglePlayAnimation}>
+                  {play?<PauseCircleTwoToneIcon/>:<PlayCircleTwoToneIcon/>}
+              </IconButton>
+            </FormControl>
+          </Grid>
+
+          <Grid item>
+            <FormControl margin="dense" size="small" sx={{minWidth: minWidthSlider}}>
+              <NonAnimatedSlider
+                defaultValue={50}
+                value={typeof curState.currentFrame === 'number' ? curState.currentFrame : 0}
+                aria-label="Default"
+                valueLabelDisplay="auto"
+                onChange={handleSliderChange}
+                disabled={curState.animations.length < 1}/>
+            </FormControl>
+          </Grid>
+
+          <Grid item>
+            <FormControl margin="dense" size="small">
+              <Input
+                sx={{maxWidth: maxWidthTime}}
+                size="small"
+                value={curState.currentFrame}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+                inputProps={{
+                  step: 1,
+                  min: 0,
+                  max: 100,
+                  type: 'number',
+                  'aria-labelledby': 'input-slider'}}
+                disabled={curState.animations.length < 1}/>
+            </FormControl>
+          </Grid>
+
+        </Grid>
+
+        <Grid container spacing={0} justifyContent="center">
+
+          <Grid item>
+            <Tooltip title={t('bottomBar.autoRotate')}>
+              <ToggleButton
+                color="primary"
+                selected={curState.rotating}
+                value={'Rotate'}
+                onClick={() => curState.setRotating(!curState.rotating)}>
+                  <ThreeSixtyTwoToneIcon />
+              </ToggleButton>
+            </Tooltip>
+          </Grid>
+
+          <Grid item>
+            <Tooltip title={t('bottomBar.zoomIn')}>
+              <IconButton color="primary" onClick={() => {
+                curState.setZoomFactor(1.1);
+                curState.setZooming(true)}}>
+                  <ZoomInTwoToneIcon />
+              </IconButton>
+            </Tooltip>
+          </Grid>
+
+          <Grid item>
+            <Tooltip title={t('bottomBar.zoomOut')}>
+              <IconButton color="primary" onClick={() => {
+                curState.setZoomFactor(0.9);
+                curState.setZooming(true)}}>
+                  <ZoomOutTwoToneIcon />
+              </IconButton>
+            </Tooltip>
+          </Grid>
+
+          <Grid item>
+            <Tooltip title={t('bottomBar.annotate')}>
+              <IconButton color="primary">
+                <ModeTwoToneIcon />
+              </IconButton>
+            </Tooltip>
+          </Grid>
+
+          <Grid item>
+            <Tooltip title={t('bottomBar.snapshoot')}>
+              <IconButton color="primary" onClick={() => {
+                curState.setTakeSnapshot();}}>
+                  <PhotoCameraTwoToneIcon />
+              </IconButton>
+            </Tooltip>
+          </Grid>
+
+          <Grid item>
+            <Tooltip title={t('bottomBar.record')}>
+              <IconButton
+                color={!viewerState.isRecordingVideo && !viewerState.isProcessingVideo ? "primary" : (viewerState.isProcessingVideo ? "warning" : "error")}
+                disabled={viewerState.isProcessingVideo}
+                onClick={() => {
+                  if (!viewerState.isRecordingVideo) {
+                    props.videoRecorderRef.current.startRecording();
+                  } else {
+                    props.videoRecorderRef.current.stopRecording();}}
+                }>
+                  <VideoCameraFrontTwoToneIcon />
+              </IconButton>
+            </Tooltip>
+          </Grid>
+        </Grid>
+
+      </Container>
     )
 });
 
