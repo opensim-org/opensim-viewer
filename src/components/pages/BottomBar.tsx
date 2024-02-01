@@ -53,7 +53,7 @@ const BottomBar = React.forwardRef(function CustomContent(
     const isMediumScreen = useMediaQuery((theme:any) => theme.breakpoints.only('md'));
 
     const minWidthSlider = isExtraSmallScreen ? 150 : isSmallScreen ? 175 : isMediumScreen ? 250 : 300; // Adjust values as needed
-    const maxWidthTime = 50;
+    const maxWidthTime = 45;
     const marginTopSlider = isExtraSmallScreen ? 0 : isSmallScreen ? 0 : isMediumScreen ? 0 : 1
 
     const handleAnimationChange = useCallback((animationName: string, animate: boolean) => {
@@ -116,8 +116,7 @@ const BottomBar = React.forwardRef(function CustomContent(
         <Grid container spacing={1} justifyContent="center">
 
           <Grid item>
-            <FormControl margin="dense" size="small" sx={{minWidth: 150 }}>
-              <InputLabel id="simple-select-standard-label">Animations</InputLabel>
+            <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
               <Select
                 labelId="simple-select-standard-label"
                 label={t('visualizationControl.animate')}
@@ -134,8 +133,7 @@ const BottomBar = React.forwardRef(function CustomContent(
           </Grid>
 
           <Grid item>
-            <FormControl margin="dense" size="small">
-              <InputLabel id="simple-select-standard-label2">Speed</InputLabel>
+            <FormControl margin="dense" size="small" variant="standard">
               <Select
                 labelId="demo-simple-select-label"
                 id="demo-simple-select"
@@ -152,8 +150,9 @@ const BottomBar = React.forwardRef(function CustomContent(
           </Grid>
 
           <Grid item>
-            <FormControl margin="dense" size="small">
+            <FormControl margin="dense" size="small" variant="standard">
               <IconButton
+                size="small"
                 color="primary"
                 value={'Animation'}
                 disabled={curState.animations.length < 1}
@@ -176,7 +175,7 @@ const BottomBar = React.forwardRef(function CustomContent(
           </Grid>
 
           <Grid item>
-            <FormControl margin="dense" size="small">
+            <FormControl margin="dense" size="small" variant="filled">
               <Input
                 sx={{maxWidth: maxWidthTime}}
                 size="small"

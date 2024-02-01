@@ -108,9 +108,9 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
       <Box component="div" sx={{ display: "flex" }}>
         <CssBaseline />
         <FloatingButton 
-                model_name={uiState.modelInfo.model_name} 
-                desc={uiState.modelInfo.desc}
-                authors={uiState.modelInfo.authors}/>
+            model_name={uiState.modelInfo.model_name}
+            desc={uiState.modelInfo.desc}
+            authors={uiState.modelInfo.authors}/>
         <Main>
           <DrawerMenu
             menuOpen={menuOpen}
