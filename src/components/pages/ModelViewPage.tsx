@@ -107,8 +107,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
             model_name={uiState.modelInfo.model_name}
             desc={uiState.modelInfo.desc}
             authors={uiState.modelInfo.authors}/>
-        <FloatingControlsPanel
-          videoRecorderRef={videoRecorderRef}/>
         <Main>
           <DrawerMenu
             menuOpen={menuOpen}
@@ -120,6 +118,8 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
           />
           <div id="canvas-container">
             <Suspense fallback={null}>
+              <FloatingControlsPanel
+                videoRecorderRef={videoRecorderRef}/>
               <Canvas
                 gl={{ preserveDrawingBuffer: true }}
                 shadows="soft"
