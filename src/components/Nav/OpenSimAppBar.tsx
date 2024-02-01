@@ -204,7 +204,7 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn, isFullS
             </Tooltip>
           </Hidden>
 
-          <Hidden mdUp>
+          <Hidden>
             <Tooltip title={isFullScreen ? t('topBar.exitFullScreen') : t('topBar.enterFullScreen')}>
               <IconButton
                 color="secondary"

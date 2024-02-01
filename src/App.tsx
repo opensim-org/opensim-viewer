@@ -52,7 +52,7 @@ function App({ signOut, user }: WithAuthenticatorProps) {
       // Force landscape mode
       alert(t('app.switch_landscape'));
     }
-  }, [isSmallScreen, isPortrait]);
+  }, [isSmallScreen, isPortrait, t]);
     // On file system we'll have a folder per model containing cached/versioned gltf, possibly .osim file, data files, display 
     // preferences
     // urls could be something like:
