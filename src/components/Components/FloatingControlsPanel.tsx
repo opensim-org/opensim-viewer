@@ -31,8 +31,8 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
   return (
     <div className="floating-buttons-container">
 
-    <Grid container spacing={0} direction="column">
-      <Grid item>
+    <Grid container spacing={0} direction="row">
+      <Grid item xs={3}>
         <Tooltip title={t('bottomBar.zoomIn')}>
           <IconButton color="primary" onClick={() => {
             curState.setZoomFactor(1.1);
@@ -42,7 +42,7 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
         </Tooltip>
       </Grid>
 
-      <Grid item>
+      <Grid item xs={3}>
         <Tooltip title={t('bottomBar.zoomOut')}>
           <IconButton color="primary" onClick={() => {
             curState.setZoomFactor(0.9);
@@ -52,7 +52,7 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
         </Tooltip>
       </Grid>
 
-      <Grid item>
+      <Grid item xs={3}>
         <Tooltip title={t('bottomBar.snapshoot')}>
           <IconButton color="primary" onClick={() => {
             curState.setTakeSnapshot();}}>
@@ -61,7 +61,7 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
         </Tooltip>
       </Grid>
 
-      <Grid item>
+      <Grid item xs={3}>
         <Tooltip title={t('bottomBar.record')}>
           <IconButton
             color={!viewerState.isRecordingVideo && !viewerState.isProcessingVideo ? "primary" : (viewerState.isProcessingVideo ? "warning" : "error")}
@@ -77,7 +77,16 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
         </Tooltip>
       </Grid>
 
-      <Grid item>
+      <Grid item xs={3}>
+      </Grid>
+
+      <Grid item xs={3}>
+      </Grid>
+
+      <Grid item xs={3}>
+      </Grid>
+
+      <Grid item xs={3}>
         <Tooltip title={t('floatingButton.model_info')}>
             <IconButton
               color="primary"
