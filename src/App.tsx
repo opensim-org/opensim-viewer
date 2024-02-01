@@ -70,7 +70,7 @@ function App({ signOut, user }: WithAuthenticatorProps) {
           <SnackbarProvider>
             <CssBaseline />
             <BrowserRouter>
-                <div className="App" style={{ width: '100%', backgroundColor: viewerState.dark ? appTheme.palette.background.default : lightTheme.palette.background.default}} ref={elementRef}>
+                <div className="App" style={{ width: '100%', overflow: 'auto', backgroundColor: viewerState.dark ? appTheme.palette.background.default : lightTheme.palette.background.default}} ref={elementRef}>
                     <OpenSimAppBar dark={viewerState.dark} isLoggedIn={viewerState.isLoggedIn} isFullScreen={viewerState.isFullScreen} toggleFullscreen={toggleFullscreen}/>
                     <div>
                         <Routes>
