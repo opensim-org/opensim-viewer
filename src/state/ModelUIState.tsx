@@ -7,11 +7,10 @@ export class ModelInfo {
     model_name: string | null
     desc: string | null
     authors: string | null
-    constructor(
-    ){
-        this.model_name = null
-        this.desc = null
-        this.authors = null
+    constructor(model_name:string|null=null, desc:string|null=null, authors:string|null=null){
+        this.model_name = model_name
+        this.desc = desc
+        this.authors = authors
     }
 }
 export class ModelUIState {

@@ -13,7 +13,6 @@ import viewerState from "../../state/ViewerState";
 import OpenSimControl from "../pages/OpenSimControl";
 import { Suspense } from "react";
 import BottomBar from "../pages/BottomBar";
-import FloatingInfoButton from '../Components/FloatingInfoButton';
 import FloatingControlsPanel from '../Components/FloatingControlsPanel';
 
 import DrawerMenu from "../Components/DrawerMenu";
@@ -26,6 +25,7 @@ import { useParams } from 'react-router-dom';
 
 import OpenSimFloor from "./OpenSimFloor";
 import VideoRecorder from "../Components/VideoRecorder"
+import { ModelInfo } from '../../state/ModelUIState';
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
@@ -103,10 +103,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     <MyModelContext.Provider value={uiState}>
       <Box component="div" sx={{ display: "flex" }}>
         <CssBaseline />
-        <FloatingInfoButton
-            model_name={uiState.modelInfo.model_name}
-            desc={uiState.modelInfo.desc}
-            authors={uiState.modelInfo.authors}/>
         <Main>
           <DrawerMenu
             menuOpen={menuOpen}
@@ -119,7 +115,8 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
           <div id="canvas-container">
             <Suspense fallback={null}>
               <FloatingControlsPanel
-                videoRecorderRef={videoRecorderRef}/>
+                videoRecorderRef={videoRecorderRef}
+                info={new ModelInfo(uiState.modelInfo.model_name, uiState.modelInfo.desc, uiState.modelInfo.authors)}/>
               <Canvas
                 gl={{ preserveDrawingBuffer: true }}
                 shadows="soft"
