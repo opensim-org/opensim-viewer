@@ -1,10 +1,9 @@
-// FloatingButton.js
 import React, { useState } from 'react';
 import InfoIcon from '@mui/icons-material/Info';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import { useTranslation } from 'react-i18next'
-import './FloatingButton.css'; // Create this file for styling
+import './FloatingInfoButton.css';
 import { ModelInfo } from '../../state/ModelUIState';
 
 const FloatingButton = (info: ModelInfo) => {

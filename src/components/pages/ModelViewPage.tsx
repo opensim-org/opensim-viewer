@@ -14,7 +14,8 @@ import viewerState from "../../state/ViewerState";
 import OpenSimControl from "../pages/OpenSimControl";
 import { Suspense } from "react";
 import BottomBar from "../pages/BottomBar";
-import FloatingButton from '../Components/FloatingButton';
+import FloatingInfoButton from '../Components/FloatingInfoButton';
+import FloatingControlsPanel from '../Components/FloatingControlsPanel';
 
 import DrawerMenu from "../Components/DrawerMenu";
 import OpenSimScene from "../pages/OpenSimScene";
@@ -107,10 +108,12 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     <MyModelContext.Provider value={uiState}>
       <Box component="div" sx={{ display: "flex" }}>
         <CssBaseline />
-        <FloatingButton 
+        <FloatingInfoButton
             model_name={uiState.modelInfo.model_name}
             desc={uiState.modelInfo.desc}
             authors={uiState.modelInfo.authors}/>
+        <FloatingControlsPanel
+          videoRecorderRef={videoRecorderRef}/>
         <Main>
           <DrawerMenu
             menuOpen={menuOpen}
@@ -160,7 +163,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
               </Canvas>
               <BottomBar
                 ref={bottomBarRef}
-                videoRecorderRef={videoRecorderRef}
                 animationPlaySpeed={1.0}
                 animating={uiState.animating}
                 animationList={uiState.animations}/>

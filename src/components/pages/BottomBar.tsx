@@ -30,7 +30,6 @@ const NonAnimatedSlider = styled(Slider)(({ theme } : {theme:any}) => ({
 
 interface BottomBarProps {
   ref?: React.RefObject<HTMLButtonElement>;
-  videoRecorderRef: any;
   animating?: boolean;
   animationList: AnimationClip[];
   animationPlaySpeed?: number;
@@ -192,10 +191,6 @@ const BottomBar = React.forwardRef(function CustomContent(
             </FormControl>
           </Grid>
 
-        </Grid>
-
-        <Grid container spacing={0} justifyContent="center">
-
           <Grid item>
             <Tooltip title={t('bottomBar.autoRotate')}>
               <ToggleButton
@@ -207,60 +202,8 @@ const BottomBar = React.forwardRef(function CustomContent(
               </ToggleButton>
             </Tooltip>
           </Grid>
-
-          <Grid item>
-            <Tooltip title={t('bottomBar.zoomIn')}>
-              <IconButton color="primary" onClick={() => {
-                curState.setZoomFactor(1.1);
-                curState.setZooming(true)}}>
-                  <ZoomInTwoToneIcon />
-              </IconButton>
-            </Tooltip>
-          </Grid>
-
-          <Grid item>
-            <Tooltip title={t('bottomBar.zoomOut')}>
-              <IconButton color="primary" onClick={() => {
-                curState.setZoomFactor(0.9);
-                curState.setZooming(true)}}>
-                  <ZoomOutTwoToneIcon />
-              </IconButton>
-            </Tooltip>
-          </Grid>
-
-          <Grid item>
-            <Tooltip title={t('bottomBar.annotate')}>
-              <IconButton color="primary">
-                <ModeTwoToneIcon />
-              </IconButton>
-            </Tooltip>
-          </Grid>
-
-          <Grid item>
-            <Tooltip title={t('bottomBar.snapshoot')}>
-              <IconButton color="primary" onClick={() => {
-                curState.setTakeSnapshot();}}>
-                  <PhotoCameraTwoToneIcon />
-              </IconButton>
-            </Tooltip>
-          </Grid>
-
-          <Grid item>
-            <Tooltip title={t('bottomBar.record')}>
-              <IconButton
-                color={!viewerState.isRecordingVideo && !viewerState.isProcessingVideo ? "primary" : (viewerState.isProcessingVideo ? "warning" : "error")}
-                disabled={viewerState.isProcessingVideo}
-                onClick={() => {
-                  if (!viewerState.isRecordingVideo) {
-                    props.videoRecorderRef.current.startRecording();
-                  } else {
-                    props.videoRecorderRef.current.stopRecording();}}
-                }>
-                  <VideoCameraFrontTwoToneIcon />
-              </IconButton>
-            </Tooltip>
-          </Grid>
         </Grid>
+
 
       </Container>
     )
