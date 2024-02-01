@@ -1,22 +1,15 @@
-import { Stack, Grid, Container, IconButton, ToggleButton, FormControl, Slider, SelectChangeEvent, Input, MenuItem, Select } from '@mui/material';
+import { Grid, Container, IconButton, ToggleButton, FormControl, Slider, SelectChangeEvent, Input, MenuItem, Select } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useState, useEffect } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import ThreeSixtyTwoToneIcon from '@mui/icons-material/ThreeSixtyTwoTone';
-import ZoomOutTwoToneIcon from '@mui/icons-material/ZoomOutTwoTone';
-import ZoomInTwoToneIcon from '@mui/icons-material/ZoomInTwoTone';
-import ModeTwoToneIcon from '@mui/icons-material/ModeTwoTone';
-import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone';
-import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
 import PauseCircleTwoToneIcon from '@mui/icons-material/PauseCircleTwoTone';
 import PlayCircleTwoToneIcon from '@mui/icons-material/PlayCircleTwoTone';
-import InputLabel from '@mui/material/InputLabel';
 import Tooltip from '@mui/material/Tooltip';
 import { observer } from 'mobx-react'
 import { AnimationClip } from 'three';
 import { useTranslation } from 'react-i18next';
 import { useModelContext } from '../../state/ModelUIStateContext';
-import viewerState from '../../state/ViewerState';
 import React, { useCallback, useRef } from 'react';
 
 const NonAnimatedSlider = styled(Slider)(({ theme } : {theme:any}) => ({
@@ -53,7 +46,6 @@ const BottomBar = React.forwardRef(function CustomContent(
 
     const minWidthSlider = isExtraSmallScreen ? 150 : isSmallScreen ? 175 : isMediumScreen ? 250 : 300; // Adjust values as needed
     const maxWidthTime = 45;
-    const marginTopSlider = isExtraSmallScreen ? 0 : isSmallScreen ? 0 : isMediumScreen ? 0 : 1
 
     const handleAnimationChange = useCallback((animationName: string, animate: boolean) => {
       const targetName = animationName

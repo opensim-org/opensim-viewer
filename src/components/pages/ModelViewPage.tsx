@@ -3,7 +3,6 @@ import { styled, useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import { Canvas } from "@react-three/fiber";
-import useMediaQuery from '@mui/material/useMediaQuery';
 import {
   Bounds,
   Environment,
@@ -59,10 +58,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const curState = useModelContext();
   let { urlParam } = useParams();
 
-  const isExtraSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('xs'));
-  const isSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('sm'));
-  const isMediumScreen = useMediaQuery((theme:any) => theme.breakpoints.only('md'));
-
   const [heightBottomBar, setHeightBottomBar] = useState(0);
 
   useEffect(() => {
@@ -73,7 +68,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
       // Do something with heightBottomBar if needed
       console.log('Height of BottomBar:', heightBottomBar);
     }
-  }, [bottomBarRef.current]);
+  }, []);
 
   //console.log(urlParam);
   if (urlParam!== undefined) {

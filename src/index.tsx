@@ -18,7 +18,8 @@ const theme = createTheme({
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 root.render(
     <>
-    <meta name="viewport" content="width=device-width"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
     <React.StrictMode>
         <ThemeProvider theme={theme}>
             <App />
