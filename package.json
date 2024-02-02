@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "proxy": "http://localhost:8000",
-  "homepage": "http://localhost:8002/threejs/viewer/",
   "dependencies": {
     "@aws-amplify/ui-react": "^5.3.1",
     "@aws-sdk/client-lambda": "^3.436.0",
