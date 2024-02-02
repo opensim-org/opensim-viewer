@@ -19,7 +19,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     const no_face_cull = (scene: Group)=>{
       if (scene) {
         scene.traverse((o)=>{
-          if (o.name.endsWith("geometrypath")){
+          if (o.name.endsWith("path")){
             o.frustumCulled = false;
           }
           mapObjectToLayer(o)
@@ -74,6 +74,18 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
       if (objectSelectionBox !== null) {
         objectSelectionBox.visible = false;
         scene.add(objectSelectionBox!);
+      }
+      // First child of scene is model, grab info from it
+      const modelData = scene.children[0].userData;
+      if (modelData.name.startsWith('Model')){
+        // Populate model name, description and authors if not null
+        let desc = 'description'
+        let authors = 'authors'
+        if (modelData.description !== undefined)
+          desc = modelData.description
+        if (modelData.authors !== undefined)
+          authors = modelData.authors
+        curState.setModelInfo(modelData.name, desc, authors)
       }
     }
     // Make sure mixers match animations

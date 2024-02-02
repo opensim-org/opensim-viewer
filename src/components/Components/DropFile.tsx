@@ -103,6 +103,9 @@ const FileDropArea = observer(() => {
 
             store.uploadProgress = 1;
             store.uploadPercentage = 1;
+
+            // File uploaded to local.
+            viewerState.isLocalUpload = true
         } else {
             Storage.put(file.name, file).then(()=>{
               /*
@@ -131,6 +134,9 @@ const FileDropArea = observer(() => {
                 });
                 if (location.pathname !== '/viewer')
                     navigate('/viewer');
+
+                // File uploaded to S3, so it is not a local upload.
+                viewerState.isLocalUpload = true
               })
               .catch(error => {
                   console.error('Error:', error);

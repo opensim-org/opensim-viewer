@@ -10,21 +10,21 @@ import { useTranslation } from 'react-i18next'
 import AccountTreeTwoToneIcon from '@mui/icons-material/AccountTreeTwoTone'
 import LayersTwoToneIcon from '@mui/icons-material/LayersTwoTone';
 import CameraEnhanceIcon from '@mui/icons-material/CameraEnhance';
-import TheatersIcon from '@mui/icons-material/Theaters';
 
 import SceneTreeView from '../Components/SceneTreeView';
 import FileView from '../Components/FileView';
 import ShareView from '../Components/ShareView';
-import AnimationView from '../Components/AnimationView';
 import VisualizationControl from '../Components/VisualizationControl';
 import RecordView from '../Components/RecordView';
 import { ModelUIState } from '../../state/ModelUIState';
 import { observer } from 'mobx-react';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 import Tooltip from '@mui/material/Tooltip';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 
+import viewerState from '../../state/ViewerState'
 
 const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -49,16 +49,22 @@ function DrawerMenu(props :DrawerMenuProps) {
   const { t } = useTranslation();
   const theme = useTheme();
 
+  const isExtraSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('xs'));
+  const isSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('sm'));
+  const isMediumScreen = useMediaQuery((theme:any) => theme.breakpoints.only('md'));
+
+  const heightBottomBar = isExtraSmallScreen ? 14 : isSmallScreen ? 14 : isMediumScreen ? 7 : 7;
+
     const styles = {
       drawer: {
         width: props.leftMenuWidth + 'px', // Set the width of the Drawer as needed
         top: '68px',
-        height: 'calc(100vh - 68px - 7.5vh)',
+        height: 'calc(100vh - 68px - ' + heightBottomBar + 'vh)',
       },
       drawerContent: {
         width: props.drawerContentWidth + 'px', // Set the width of the Drawer as needed
         top: '68px',
-        height: 'calc(100vh - 68px - 7.5vh)',
+        height: 'calc(100vh - 68px ' + heightBottomBar + 'vh)',
         left: props.leftMenuWidth + 'px'
       },
     };
@@ -109,21 +115,6 @@ function DrawerMenu(props :DrawerMenuProps) {
                 </IconButton>
               </DrawerHeader>
               <VisualizationControl />
-            </div>
-          )}
-
-          {props.selectedTabName === 'Animation' && (
-            <div style={{ margin: '1em' }}>
-              <DrawerHeader>
-                <h3>{t('modelView.animation')}</h3>
-                <IconButton onClick={() => props.toggleOpenMenu('')}>
-                  {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-                </IconButton>
-              </DrawerHeader>
-              <AnimationView
-                animationPlaySpeed={1.0}
-                animating={props.uiState.animating}
-                animationList={props.uiState.animations}/>
             </div>
           )}
 
@@ -184,16 +175,13 @@ function DrawerMenu(props :DrawerMenuProps) {
                         <CameraEnhanceIcon />
                 </ListItem>
             </Tooltip>
-            <Tooltip title={t('modelView.animation')} placement="right">
-                <ListItem button onClick={() => props.toggleOpenMenu('Animation')}>
-                        <TheatersIcon />
-                </ListItem>
-            </Tooltip>
-            <Tooltip title={t('modelView.share')} placement="right">
-                <ListItem button onClick={() => props.toggleOpenMenu('Share')}>
-                        <ShareTwoToneIcon />
-                </ListItem>
-            </Tooltip>
+            {viewerState.isLoggedIn && !viewerState.isLocalUpload && (
+              <Tooltip title={t('modelView.share')} placement="right">
+                  <ListItem button onClick={() => props.toggleOpenMenu('Share')}>
+                          <ShareTwoToneIcon />
+                  </ListItem>
+              </Tooltip>
+            )}
           </List>
 
         </Drawer>

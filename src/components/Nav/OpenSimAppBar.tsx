@@ -14,6 +14,8 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import ThreeDRotationIcon from '@mui/icons-material/ThreeDRotation';
 import GridViewIcon from '@mui/icons-material/GridView';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
 import viewerState from '../../state/ViewerState';
 import { NavLink } from 'react-router-dom';
 import Tooltip from '@mui/material/Tooltip';
@@ -25,9 +27,11 @@ import { Auth } from 'aws-amplify';
 interface OpenSimAppBarProps {
   dark: boolean;
   isLoggedIn: boolean;
+  isFullScreen: boolean;
+  toggleFullscreen?: any;
 }
 
-const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn }) => {
+const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn, isFullScreen, toggleFullscreen }) => {
   const { t } = useTranslation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -59,7 +63,9 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn }) => {
       width: 'calc(100% - 60px)',
     }
   };
-
+  const url = encodeURIComponent(viewerState.currentModelPath);
+  console.log(url);
+  
   return (
     <div>
 
@@ -71,7 +77,6 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn }) => {
         PaperProps={{
           style: styles.drawer,
         }}>
-
         <div>
           <Tooltip title={t('topBar.viewer')}>
             <Link component={NavLink} to="/viewer" sx={{ marginLeft: 'auto' }}>
@@ -121,6 +126,7 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn }) => {
               </IconButton>
             </Link>
           </Tooltip>
+
         </div>
       </Drawer>
 
@@ -195,6 +201,19 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn }) => {
                   {isLoggedIn ? <LogoutIcon /> : <LoginIcon />}
                 </IconButton>
               </Link>
+            </Tooltip>
+          </Hidden>
+
+          <Hidden>
+            <Tooltip title={isFullScreen ? t('topBar.exitFullScreen') : t('topBar.enterFullScreen')}>
+              <IconButton
+                color="secondary"
+                sx={{ ml: 1 }}
+                onClick={() => {
+                  toggleFullscreen();
+                }}>
+                  { isFullScreen ?  <FullscreenExitIcon /> : <FullscreenIcon /> }
+              </IconButton>
             </Tooltip>
           </Hidden>
         </Toolbar>

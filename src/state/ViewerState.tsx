@@ -4,7 +4,9 @@ class ViewerState {
     currentModelPath: string
     featuredModelsFilePath: string
     dark: boolean
+    isLocalUpload: boolean
     isLoggedIn: boolean
+    isFullScreen: boolean
     snapshotName: string
     snapshotFormat: string
     recordedVideoName: string
@@ -16,7 +18,9 @@ class ViewerState {
         currentModelPathState: string,
         featuredModelsFilePathState: string,
         darkState: boolean,
+        isLocalUploadState: boolean,
         isLoggedInState: boolean,
+        isFullScreenState: boolean,
         snapshotName: string,
         snapshotFormat: string,
         recordedVideoName: string,
@@ -27,7 +31,9 @@ class ViewerState {
         this.currentModelPath = currentModelPathState
         this.featuredModelsFilePath = featuredModelsFilePathState
         this.dark = darkState
+        this.isLocalUpload = isLocalUploadState
         this.isLoggedIn = isLoggedInState
+        this.isFullScreen = isFullScreenState
         this.snapshotName = snapshotName
         this.snapshotFormat = snapshotFormat
         this.recordedVideoName = recordedVideoName
@@ -38,7 +44,9 @@ class ViewerState {
             currentModelPath: observable,
             featuredModelsFilePath: observable,
             dark: observable,
+            isLocalUpload: observable,
             isLoggedIn: observable,
+            isFullScreen: observable,
             setCurrentModelPath: action,
             setFeaturedModelsFilePath: action,
             setSnapshotName: action,
@@ -65,12 +73,18 @@ class ViewerState {
     setDark(newState: boolean) {
         this.dark = newState
     }
+    setIsLocalUpload(newState: boolean) {
+      this.isLocalUpload = newState
+    }
     setIsLoggedIn(newState: boolean) {
         this.isLoggedIn = newState
     }
+    setIsFullScreen(newState: boolean) {
+      this.isFullScreen = newState
+    }
     setSnapshotName(newState: string) {
         this.snapshotName = newState
-}
+    }
     setSnapshotFormat(newState: string) {
         this.snapshotFormat = newState
     }
@@ -88,6 +102,6 @@ class ViewerState {
     }
 }
 
-const viewerState = new ViewerState('/builtin/arm26_elbow_flex.gltf', '/builtin/featured-models.json', false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false)
+const viewerState = new ViewerState('/builtin/arm26_elbow_flex.gltf', '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false)
 
 export default viewerState

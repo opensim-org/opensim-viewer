@@ -2,11 +2,13 @@ import { observer } from 'mobx-react';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import LinkedinIcon from '@mui/icons-material/LinkedIn';
+import LinkIcon from '@mui/icons-material/Link';
 import { useTranslation } from 'react-i18next'
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import Grid from '@mui/material/Grid';
 import ShareModal from './ShareModal';
+import { Stack } from '@mui/material'
 
 function FileView() {
   const { t } = useTranslation();
@@ -95,7 +97,12 @@ function FileView() {
       </Button>
     </Tooltip>
 
-    <ShareModal message={window.location.href}/>
+
+    <Stack direction="row" color="primary" justifyContent="center">
+      <span style={{marginRight: '1em'}}><LinkIcon/>
+      </span>
+      <ShareModal message={window.location.href}/>
+    </Stack>
   </>
   );
 }
