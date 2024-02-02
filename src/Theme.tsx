@@ -10,6 +10,9 @@ const appTheme = createTheme({
         secondary: {
             main: '#E8F0FE',
         },
+        background: {
+            default: '#000000'
+        },
     },
     components: {
         MuiButton: {

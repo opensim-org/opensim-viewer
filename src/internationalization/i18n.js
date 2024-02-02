@@ -14,6 +14,9 @@ i18next
                     welcome_title: "OpenSim Online Viewer",
                     viewer: "Viewer",
                     models: "Models",
+                    app: {
+                        switch_landscape: "Please switch to landscape mode for a better experience."
+                    },
                     dropFile: {
                         unsuportedTypes_one: "The file has an unsupported type. Accepted file types are: {{file_formats}}",
                         unsuportedTypes_other: "One or more files have unsupported types. Accepted file types are: {{file_formats}}",
@@ -44,7 +47,9 @@ i18next
                         logIn: "Log In",
                         logOut: "Log Out",
                         viewer: "Viewer",
-                        models: "Models"
+                        models: "Models",
+                        enterFullScreen: "Enter Fullscreen",
+                        exitFullScreen: "Exit Fullscreen"
                     },
                     bottomBar: {
                         autoRotate: "Auto-rotate",
@@ -124,6 +129,9 @@ i18next
                     welcome_title: "OpenSim Online Viewer",
                     viewer: "Visor",
                     models: "Modelos",
+                    app: {
+                        switch_landscape: "Por favor, cambie a modo paisaje para una mejor experiencia."
+                    },
                     dropFile: {
                         unsuportedTypes_one: "No se soporta el formato del archivo. Los formatos soportados son: {{file_formats}}",
                         unsuportedTypes_other: "No se soporta el formato de uno o mas archivos. Los formatos soportados son: {{file_formats}}",
@@ -153,7 +161,9 @@ i18next
                         logIn: "Log In",
                         logOut: "Log Out",
                         viewer: "Visualizador",
-                        models: "Modelos"
+                        models: "Modelos",
+                        enterFullScreen: "Entrar Pantalla Completa",
+                        exitFullScreen: "Salir Pantalla Completa"
                     },
                     bottomBar: {
                         autoRotate: "Auto-rotar",

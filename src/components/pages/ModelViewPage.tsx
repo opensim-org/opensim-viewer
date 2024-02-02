@@ -1,9 +1,8 @@
-import * as React from "react";
+import React, { useRef, useEffect, useState } from 'react';
 import { styled, useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import { Canvas } from "@react-three/fiber";
-import useMediaQuery from '@mui/material/useMediaQuery';
 import {
   Bounds,
   Environment,
@@ -14,9 +13,7 @@ import viewerState from "../../state/ViewerState";
 import OpenSimControl from "../pages/OpenSimControl";
 import { Suspense } from "react";
 import BottomBar from "../pages/BottomBar";
-import FloatingButton from '../Components/FloatingButton';
-
-import { useRef } from 'react';
+import FloatingControlsPanel from '../Components/FloatingControlsPanel';
 
 import DrawerMenu from "../Components/DrawerMenu";
 import OpenSimScene from "../pages/OpenSimScene";
@@ -28,7 +25,7 @@ import { useParams } from 'react-router-dom';
 
 import OpenSimFloor from "./OpenSimFloor";
 import VideoRecorder from "../Components/VideoRecorder"
-
+import { ModelInfo } from '../../state/ModelUIState';
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
@@ -55,15 +52,23 @@ interface ViewerProps {
 }
 
 export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
+  const bottomBarRef = useRef<HTMLDivElement>(null);
+
   const theme = useTheme();
   const curState = useModelContext();
   let { urlParam } = useParams();
 
-  const isExtraSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('xs'));
-  const isSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('sm'));
-  const isMediumScreen = useMediaQuery((theme:any) => theme.breakpoints.only('md'));
+  const [heightBottomBar, setHeightBottomBar] = useState(0);
 
-  const heightBottomBar = isExtraSmallScreen ? 14 : isSmallScreen ? 14 : isMediumScreen ? 7 : 7;
+  useEffect(() => {
+    if (bottomBarRef.current) {
+      const heightBottomBar = bottomBarRef.current.offsetHeight;
+      setHeightBottomBar(bottomBarRef.current.offsetHeight);
+
+      // Do something with heightBottomBar if needed
+      console.log('Height of BottomBar:', heightBottomBar);
+    }
+  }, []);
 
   //console.log(urlParam);
   if (urlParam!== undefined) {
@@ -98,10 +103,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     <MyModelContext.Provider value={uiState}>
       <Box component="div" sx={{ display: "flex" }}>
         <CssBaseline />
-        <FloatingButton 
-                model_name={uiState.modelInfo.model_name} 
-                desc={uiState.modelInfo.desc}
-                authors={uiState.modelInfo.authors}/>
         <Main>
           <DrawerMenu
             menuOpen={menuOpen}
@@ -113,6 +114,9 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
           />
           <div id="canvas-container">
             <Suspense fallback={null}>
+              <FloatingControlsPanel
+                videoRecorderRef={videoRecorderRef}
+                info={new ModelInfo(uiState.modelInfo.model_name, uiState.modelInfo.desc, uiState.modelInfo.authors)}/>
               <Canvas
                 gl={{ preserveDrawingBuffer: true }}
                 shadows="soft"
@@ -121,7 +125,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                     "calc(100vw - " +
                     (leftMenuWidth + (menuOpen ? drawerContentWidth : 0)) +
                     "px)",
-                  height: "calc(100vh - 68px - " + heightBottomBar + "vh)",
+                  height: "calc(100vh - 68px - " + heightBottomBar + "px)",
                   left: leftMenuWidth + (menuOpen ? drawerContentWidth : 0),
                   transition: "left 0.1s ease",
                 }}
@@ -150,7 +154,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
               </Canvas>
               <BottomBar
-                videoRecorderRef={videoRecorderRef}
+                ref={bottomBarRef}
                 animationPlaySpeed={1.0}
                 animating={uiState.animating}
                 animationList={uiState.animations}/>
