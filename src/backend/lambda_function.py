@@ -39,7 +39,9 @@ def handler(event, context):
     elif ("s3" in event):
         source_bucket = event["s3"]
         object_key = event["key"]
+        print("Object Key: " + object_key)
         file_name = '/tmp/' + object_key.split('/')[-1]
+        print("File Name: " + file_name)
         user_uuid = object_key.split('/')[-2]
         print("Attempting to download")
         s3.download_file(source_bucket, object_key, file_name)
