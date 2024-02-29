@@ -27,7 +27,6 @@ def handler(event, context):
         # download the file from url into local tmp folder
         response = requests.get(source_url)
         print("response.status_code=", response.status_code)
-        user_uuid = None
         if response.status_code == 200:
             file_name = os.path.join('/tmp', filename)
             print("file_name =", file_name)
@@ -39,19 +38,17 @@ def handler(event, context):
     elif ("s3" in event):
         source_bucket = event["s3"]
         object_key = event["key"]
-        print("Object Key: " + object_key)
         file_name = '/tmp/' + object_key.split('/')[-1]
-        print("File Name: " + file_name)
-        user_uuid = object_key.split('/')[-2]
         print("Attempting to download")
         s3.download_file(source_bucket, object_key, file_name)
     else : #invoked using s3 upload directly
         source_bucket = event['Records'][0]['s3']['bucket']['name']
         object_key = event['Records'][0]['s3']['object']['key']
         file_name = '/tmp/' + object_key.split('/')[-1]
-        user_uuid = object_key.split('/')[-2]
         print("Attempting to download")
         s3.download_file(source_bucket, object_key, file_name)
+
+    print("Object key: " + object_key)
 
     print("setup conversion function")
     target_bucket = 'opensim-viewer-public-download'
@@ -67,21 +64,7 @@ def handler(event, context):
         gltfJson.save(destinationFile)
         print("Gltf file saved")
         destinationFileName = Path(file_name).with_suffix('.gltf')
-        if user_uuid:
-            user_uuid = user_uuid + "/"
-        else:
-            user_uuid = ""
-        strDestinationFileName = user_uuid + str(destinationFileName).split('/')[-1]
-        print("Destination File Name: " + strDestinationFileName)
-        # Create user folder if it does not exist
-        user_folder_exists = s3.list_objects_v2(Bucket=target_bucket, Prefix=user_uuid).get('Contents')
-        print("User folder exists: " + user_folder_exists)
-        if not user_folder_exists:
-            # If the folder doesn't exist, create it
-            s3.put_object(Bucket=target_bucket, Key=user_uuid)
-            user_folder_exists = s3.list_objects_v2(Bucket=target_bucket, Prefix=user_uuid).get('Contents')
-            print("User folder exists after creation: " + user_folder_exists)
-
+        strDestinationFileName = str(destinationFileName).split('/')[-1]
         # print("DestinationFile string", strDestinationFileName)
         s3.upload_file(destinationFile, target_bucket, strDestinationFileName)
         # print("File upload launched")
