@@ -70,12 +70,15 @@ def handler(event, context):
         else:
             user_uuid = ""
         strDestinationFileName = user_uuid + str(destinationFileName).split('/')[-1]
+        print("Destination File Name: " + strDestinationFileName)
         # Create user folder if it does not exist
         user_folder_exists = s3.list_objects_v2(Bucket=target_bucket, Prefix=user_uuid).get('Contents')
-
+        print("User folder exists: " + user_folder_exists)
         if not user_folder_exists:
             # If the folder doesn't exist, create it
             s3.put_object(Bucket=target_bucket, Key=user_uuid)
+            user_folder_exists = s3.list_objects_v2(Bucket=target_bucket, Prefix=user_uuid).get('Contents')
+            print("User folder exists after creation: " + user_folder_exists)
 
         # print("DestinationFile string", strDestinationFileName)
         s3.upload_file(destinationFile, target_bucket, strDestinationFileName)
