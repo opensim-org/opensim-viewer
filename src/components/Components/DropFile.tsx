@@ -131,7 +131,8 @@ const FileDropArea = observer(() => {
                 FunctionName: 'opensim-viewer-func', // replace with your Lambda function's name
                 Payload: JSON.stringify({
                     s3: 'opensimviewer-input-bucket101047-dev',
-                    key: 'public/' + file.name
+                    key: 'public/' + file.name,
+                    user_uuid: user_uuid
                 })
               };
               lambda.invoke(params, (err: any, data: any) => {
