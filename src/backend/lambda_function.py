@@ -63,7 +63,10 @@ def handler(event, context):
         print ("output file", destinationFile)
         gltfJson.save(destinationFile)
         print("Gltf file saved")
-        destinationFileName = Path(file_name).with_suffix('.gltf')
+        # Extract user_uuid from the key
+        user_uuid = object_key.split('/')[1] + "/"
+        print("UUID: " + user_uuid)
+        destinationFileName = user_uuid + Path(file_name).with_suffix('.gltf')
         strDestinationFileName = str(destinationFileName).split('/')[-1]
         # print("DestinationFile string", strDestinationFileName)
         s3.upload_file(destinationFile, target_bucket, strDestinationFileName)
