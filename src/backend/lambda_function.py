@@ -27,6 +27,7 @@ def handler(event, context):
         # download the file from url into local tmp folder
         response = requests.get(source_url)
         print("response.status_code=", response.status_code)
+        user_uuid = None
         if response.status_code == 200:
             file_name = os.path.join('/tmp', filename)
             print("file_name =", file_name)
@@ -39,12 +40,14 @@ def handler(event, context):
         source_bucket = event["s3"]
         object_key = event["key"]
         file_name = '/tmp/' + object_key.split('/')[-1]
+        user_uuid = object_key.split('/')[-2]
         print("Attempting to download")
         s3.download_file(source_bucket, object_key, file_name)
     else : #invoked using s3 upload directly
         source_bucket = event['Records'][0]['s3']['bucket']['name']
         object_key = event['Records'][0]['s3']['object']['key']
         file_name = '/tmp/' + object_key.split('/')[-1]
+        user_uuid = object_key.split('/')[-2]
         print("Attempting to download")
         s3.download_file(source_bucket, object_key, file_name)
 
@@ -62,7 +65,11 @@ def handler(event, context):
         gltfJson.save(destinationFile)
         print("Gltf file saved")
         destinationFileName = Path(file_name).with_suffix('.gltf')
-        strDestinationFileName = str(destinationFileName).split('/')[-1]
+        if user_uuid:
+            user_uuid = user_uuid + "/"
+        else:
+            user_uuid = ""
+        strDestinationFileName = user_uuid + str(destinationFileName).split('/')[-1]
         # print("DestinationFile string", strDestinationFileName)
         s3.upload_file(destinationFile, target_bucket, strDestinationFileName)
         # print("File upload launched")
