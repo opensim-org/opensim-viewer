@@ -131,7 +131,7 @@ const FileDropArea = observer(() => {
                 FunctionName: 'opensim-viewer-func', // replace with your Lambda function's name
                 Payload: JSON.stringify({
                     s3: 'opensimviewer-input-bucket101047-dev',
-                    key: 'public/' + user_uuid + file.name
+                    key: 'public/' + file.name
                 })
               };
               lambda.invoke(params, (err: any, data: any) => {
@@ -139,7 +139,7 @@ const FileDropArea = observer(() => {
                         console.error(err);
                     } else {
                       const key = file.name.replace(/\.\w+$/, '.gltf')
-                      const gltf_url = "https://s3.us-west-2.amazonaws.com/opensim-viewer-public-download/" + user_uuid + key
+                      const gltf_url = "https://s3.us-west-2.amazonaws.com/opensim-viewer-public-download/" + key
                       /* appState.setCurrentModelPath(gltf_url); */
                       navigate("/viewer/"+encodeURIComponent(gltf_url))
                       console.log('Lambda function invoked successfully:', data);
