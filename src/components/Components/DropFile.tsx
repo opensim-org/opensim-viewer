@@ -114,41 +114,43 @@ const FileDropArea = observer(() => {
                   const gltf_url = response.data['url']; .replace(/\.\w+$/, '.gltf')
                   appState.setCurrentModelPath(gltf_url); */
               const storedDataString = localStorage.getItem('CognitoIdentityServiceProvider.6jlm2jeibh9aqb0dg34q2uf8pu.albertocasas.userData');
+
+              let user_uuid = ""
               if (storedDataString != null) {
                 let storedData = JSON.parse(storedDataString);
-                let user_uuid = ""
                 storedData["UserAttributes"].forEach((element:any) => {
                   if (element["Name"] === "sub") {
-                    user_uuid = element["Value"];
+                    user_uuid = element["Value"] + "/";
                   }
                 });
-                const params: AWS.Lambda.InvocationRequest = {
-                  FunctionName: 'opensim-viewer-func', // replace with your Lambda function's name
-                  Payload: JSON.stringify({
-                      s3: 'opensimviewer-input-bucket101047-dev',
-                      key: 'public/' + user_uuid + "/" +file.name
-                  })
-                };
-                lambda.invoke(params, (err: any, data: any) => {
-                      if (err) {
-                          console.error(err);
-                      } else {
-                        const key = file.name.replace(/\.\w+$/, '.gltf')
-                        const gltf_url = "https://s3.us-west-2.amazonaws.com/opensim-viewer-public-download/"+user_uuid+"/"+key
-                        /* appState.setCurrentModelPath(gltf_url); */
-                        navigate("/viewer/"+encodeURIComponent(gltf_url))
-                        console.log('Lambda function invoked successfully:', data);
-                        closeSnackbar()
-                      }
-                  });
-                  if (location.pathname !== '/viewer')
-                      navigate('/viewer');
+              } else {
+                console.log("User not authenticated.")
+              }
 
-                  // File uploaded to S3, so it is not a local upload.
-                  viewerState.isLocalUpload = true
-                } else {
-                  console.log("ERROR")
-                }
+              const params: AWS.Lambda.InvocationRequest = {
+                FunctionName: 'opensim-viewer-func', // replace with your Lambda function's name
+                Payload: JSON.stringify({
+                    s3: 'opensimviewer-input-bucket101047-dev',
+                    key: 'public/' + user_uuid + file.name
+                })
+              };
+              lambda.invoke(params, (err: any, data: any) => {
+                    if (err) {
+                        console.error(err);
+                    } else {
+                      const key = file.name.replace(/\.\w+$/, '.gltf')
+                      const gltf_url = "https://s3.us-west-2.amazonaws.com/opensim-viewer-public-download/"+key
+                      /* appState.setCurrentModelPath(gltf_url); */
+                      navigate("/viewer/"+encodeURIComponent(gltf_url))
+                      console.log('Lambda function invoked successfully:', data);
+                      closeSnackbar()
+                    }
+                });
+                if (location.pathname !== '/viewer')
+                    navigate('/viewer');
+
+                // File uploaded to S3, so it is not a local upload.
+                viewerState.isLocalUpload = true
               })
               .catch(error => {
                   console.error('Error:', error);
