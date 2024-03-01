@@ -69,6 +69,7 @@ def handler(event, context):
         print("Gltf file saved")
         destinationFileName = Path(file_name).with_suffix('.gltf')
         strDestinationFileName = user_uuid + str(destinationFileName).split('/')[-1]
+        print("Destination File Name: " + strDestinationFileName)
         # print("DestinationFile string", strDestinationFileName)
         s3.upload_file(destinationFile, target_bucket, strDestinationFileName)
         # print("File upload launched")
