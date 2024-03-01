@@ -120,7 +120,7 @@ const FileDropArea = observer(() => {
                 let storedData = JSON.parse(storedDataString);
                 storedData["UserAttributes"].forEach((element:any) => {
                   if (element["Name"] === "sub") {
-                    user_uuid = element["Value"] + "/";
+                    user_uuid = element["Value"];
                   }
                 });
               } else {
