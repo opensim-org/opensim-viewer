@@ -18,12 +18,41 @@ import { SnackbarProvider } from 'notistack'
 import { Amplify } from 'aws-amplify';
 import type { WithAuthenticatorProps } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
+import { useMediaQuery } from '@mui/material';
+import { useMediaQuery as useResponsiveQuery } from 'react-responsive';
+import screenfull from 'screenfull';
+import React, { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import awsconfig from './aws-exports';
 Amplify.configure(awsconfig);
 
-function App({ signOut, user }: WithAuthenticatorProps) {
+const useDeviceOrientation = () => {
+  const isPortrait = useResponsiveQuery({ query: '(orientation: portrait)' });
+  return isPortrait;
+};
 
+function App({ signOut, user }: WithAuthenticatorProps) {
+  const { t } = useTranslation();
+  const isPortrait = useDeviceOrientation();
+  const isSmallScreen = useMediaQuery('(max-width:600px)');
+  const elementRef = useRef(null);
+
+  const toggleFullscreen = () => {
+    if (screenfull.isEnabled) {
+      if (elementRef.current) {
+        screenfull.toggle(elementRef.current);
+        viewerState.setIsFullScreen(!viewerState.isFullScreen)
+      }
+    }
+  };
+
+  React.useEffect(() => {
+    if (isSmallScreen && isPortrait) {
+      // Force landscape mode
+      alert(t('app.switch_landscape'));
+    }
+  }, [isSmallScreen, isPortrait, t]);
     // On file system we'll have a folder per model containing cached/versioned gltf, possibly .osim file, data files, display 
     // preferences
     // urls could be something like:
@@ -41,7 +70,8 @@ function App({ signOut, user }: WithAuthenticatorProps) {
           <SnackbarProvider>
             <CssBaseline />
             <BrowserRouter>
-                <div className="App" style={{ width: '100%'}}>
+                <div className="App" style={{ width: '100%', overflow: 'auto', backgroundColor: viewerState.dark ? appTheme.palette.background.default : lightTheme.palette.background.default}} ref={elementRef}>
+                    <OpenSimAppBar dark={viewerState.dark} isLoggedIn={viewerState.isLoggedIn} isFullScreen={viewerState.isFullScreen} toggleFullscreen={toggleFullscreen}/>
                     <div>
                         <Routes>
                             <Route path="/" element={<HomePage />} />

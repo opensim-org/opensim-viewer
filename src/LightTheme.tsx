@@ -10,6 +10,9 @@ const lightTheme = createTheme({
         secondary: {
             main: '#E8F0FE',
         },
+        background: {
+            default: '#ffffff'
+        },
     },
     components: {
         MuiButton: {
