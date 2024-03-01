@@ -71,7 +71,9 @@ function App({ signOut, user }: WithAuthenticatorProps) {
             <CssBaseline />
             <BrowserRouter>
                 <div className="App" style={{ width: '100%', overflow: 'auto', backgroundColor: viewerState.dark ? appTheme.palette.background.default : lightTheme.palette.background.default}} ref={elementRef}>
-                    <OpenSimAppBar dark={viewerState.dark} isLoggedIn={viewerState.isLoggedIn} isFullScreen={viewerState.isFullScreen} toggleFullscreen={toggleFullscreen}/>
+                    <div id="opensim-appbar-visibility">
+                      <OpenSimAppBar dark={viewerState.dark} isLoggedIn={viewerState.isLoggedIn} isFullScreen={viewerState.isFullScreen} toggleFullscreen={toggleFullscreen}/>
+                    </div>
                     <div>
                         <Routes>
                             <Route path="/" element={<HomePage />} />

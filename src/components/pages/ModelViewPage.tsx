@@ -104,20 +104,23 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
       <Box component="div" sx={{ display: "flex" }}>
         <CssBaseline />
         <Main>
-          <DrawerMenu
-            menuOpen={menuOpen}
-            selectedTabName={selectedTabName}
-            toggleOpenMenu={toggleOpenMenu}
-            uiState={uiState}
-            leftMenuWidth={leftMenuWidth}
-            drawerContentWidth={drawerContentWidth}
-          />
+          <div id="opensim-modelview-sidebar">
+            <DrawerMenu
+              menuOpen={menuOpen}
+              selectedTabName={selectedTabName}
+              toggleOpenMenu={toggleOpenMenu}
+              uiState={uiState}
+              leftMenuWidth={leftMenuWidth}
+              drawerContentWidth={drawerContentWidth}
+            />
+          </div>
           <div id="canvas-container">
             <Suspense fallback={null}>
               <FloatingControlsPanel
                 videoRecorderRef={videoRecorderRef}
                 info={new ModelInfo(uiState.modelInfo.model_name, uiState.modelInfo.desc, uiState.modelInfo.authors)}/>
               <Canvas
+                id="canvas-element"
                 gl={{ preserveDrawingBuffer: true }}
                 shadows="soft"
                 style={{
