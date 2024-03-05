@@ -48,6 +48,12 @@ def handler(event, context):
         print("Attempting to download")
         s3.download_file(source_bucket, object_key, file_name)
 
+    user_uuid = ""
+    if "user_uuid" in event:
+        user_uuid = event["user_uuid"] + "/"
+
+    print("user_uuid: " + user_uuid)
+
     print("setup conversion function")
     target_bucket = 'opensim-viewer-public-download'
     print("file_name", file_name)
@@ -62,7 +68,8 @@ def handler(event, context):
         gltfJson.save(destinationFile)
         print("Gltf file saved")
         destinationFileName = Path(file_name).with_suffix('.gltf')
-        strDestinationFileName = str(destinationFileName).split('/')[-1]
+        strDestinationFileName = user_uuid + str(destinationFileName).split('/')[-1]
+        print("Destination File Name: " + strDestinationFileName)
         # print("DestinationFile string", strDestinationFileName)
         s3.upload_file(destinationFile, target_bucket, strDestinationFileName)
         # print("File upload launched")
