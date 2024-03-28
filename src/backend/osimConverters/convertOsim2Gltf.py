@@ -12,6 +12,9 @@ from .DecorativeGeometryImplementationGltf import DecorativeGeometryImplementati
 def convertOsim2Gltf(osimModelFilePath, geometrySearchPath, motionPaths=[]) :
 
   path = Path(osimModelFilePath)
+  parent_folder = path.parent.absolute()
+  osim.ModelVisualizer.addDirToGeometrySearchPaths(parent_folder)
+  osim.ModelVisualizer.addDirToGeometrySearchPaths(os.path.join(parent_folder, 'Geometry'))
   osim.ModelVisualizer.addDirToGeometrySearchPaths(geometrySearchPath)
   # fallback to stock meshes
   osim.ModelVisualizer.addDirToGeometrySearchPaths('Geometry')
