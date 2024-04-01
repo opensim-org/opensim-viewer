@@ -7,7 +7,6 @@ import LogoutPage from './components/pages/LogoutPage'
 import RegisterPage from './components/pages/RegisterPage'
 import Chart from './components/pages/Chart'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import './App.css'
 import { observer } from 'mobx-react'
 import { ThemeProvider, CssBaseline } from '@mui/material'
 import appTheme from './Theme'
@@ -23,6 +22,7 @@ import { useMediaQuery as useResponsiveQuery } from 'react-responsive';
 import screenfull from 'screenfull';
 import React, { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import withLayout from './withLayout'
 
 import awsconfig from './aws-exports';
 Amplify.configure(awsconfig);
@@ -115,4 +115,4 @@ function App({ signOut, user }: WithAuthenticatorProps) {
     )
 }
 
-export default observer(App)
+export default withLayout(observer(App));
