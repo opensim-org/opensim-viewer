@@ -13,6 +13,7 @@ class ViewerState {
     recordedVideoFormat: string
     isRecordingVideo: boolean
     isProcessingVideo: boolean
+    user_uuid: string
 
     constructor(
         currentModelPathState: string,
@@ -40,6 +41,7 @@ class ViewerState {
         this.recordedVideoFormat = recordedVideoFormat
         this.isRecordingVideo = isRecordingVideo
         this.isProcessingVideo = isProcessingVideo
+        this.user_uuid = ''
         makeObservable(this, {
             currentModelPath: observable,
             featuredModelsFilePath: observable,
@@ -78,6 +80,19 @@ class ViewerState {
     }
     setIsLoggedIn(newState: boolean) {
         this.isLoggedIn = newState
+        if (this.isLoggedIn){
+            // Cache user_uuid until logout
+            const userName = localStorage.getItem('CognitoIdentityServiceProvider.6jlm2jeibh9aqb0dg34q2uf8pu.LastAuthUser');
+            const storedDataString = localStorage.getItem('CognitoIdentityServiceProvider.6jlm2jeibh9aqb0dg34q2uf8pu.'+userName+'.userData');
+              if (storedDataString != null) {
+                let storedData = JSON.parse(storedDataString);
+                storedData["UserAttributes"].forEach((element:any) => {
+                  if (element["Name"] === "sub") {
+                    this.user_uuid = element["Value"];
+                  }
+                });
+              }
+        }
     }
     setIsFullScreen(newState: boolean) {
       this.isFullScreen = newState

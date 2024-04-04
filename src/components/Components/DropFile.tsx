@@ -112,20 +112,10 @@ const FileDropArea = observer(() => {
                 const api_url = 'https://eudfxg3a9l.execute-api.us-west-2.amazonaws.com/dev/'
                 axios.post(api_url, data).then(response => {
                   const gltf_url = response.data['url']; .replace(/\.\w+$/, '.gltf')
-                  appState.setCurrentModelPath(gltf_url); */
-              const storedDataString = localStorage.getItem('CognitoIdentityServiceProvider.6jlm2jeibh9aqb0dg34q2uf8pu.albertocasas.userData');
+                  appState.setCurrentModelPath(gltf_url); 
+                  CognitoIdentityServiceProvider.6jlm2jeibh9aqb0dg34q2uf8pu.ayman1234.userData*/
 
-              let user_uuid = ""
-              if (storedDataString != null) {
-                let storedData = JSON.parse(storedDataString);
-                storedData["UserAttributes"].forEach((element:any) => {
-                  if (element["Name"] === "sub") {
-                    user_uuid = element["Value"];
-                  }
-                });
-              } else {
-                console.log("User not authenticated.")
-              }
+              let user_uuid = viewerState.user_uuid;
 
               const params: AWS.Lambda.InvocationRequest = {
                 FunctionName: 'opensim-viewer-func', // replace with your Lambda function's name
@@ -140,7 +130,7 @@ const FileDropArea = observer(() => {
                         console.error(err);
                     } else {
                       const key = file.name.replace(/\.\w+$/, '.gltf')
-                      const gltf_url = "https://s3.us-west-2.amazonaws.com/opensim-viewer-public-download/" + key
+                      const gltf_url = "https://s3.us-west-2.amazonaws.com/opensim-viewer-public-download/" + user_uuid + "/"+key
                       /* appState.setCurrentModelPath(gltf_url); */
                       navigate("/viewer/"+encodeURIComponent(gltf_url))
                       console.log('Lambda function invoked successfully:', data);

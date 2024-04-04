@@ -87,10 +87,6 @@ function App({ signOut, user }: WithAuthenticatorProps) {
                                 element={<ModelViewPage />}
                             />
                             <Route
-                                path="/embed-viewer/:urlParam?"
-                                element={<ModelViewPage embedded={true} noFloor={true} />}
-                            />
-                            <Route
                                 path="/log_in"
                                 element={<LoginPage isLoggedIn={viewerState.isLoggedIn}/>}
                             />
