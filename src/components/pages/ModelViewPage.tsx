@@ -76,7 +76,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     viewerState.setCurrentModelPath(decodedUrl);
     curState.setCurrentModelPath(viewerState.currentModelPath);
     // If urlParam is not undefined, this means it is getting the model from S3 and not from local.
-    viewerState.isLocalUpload = false;
+    viewerState.setIsLocalUpload(false);
   }
   else
     curState.setCurrentModelPath(viewerState.currentModelPath);
