@@ -20,8 +20,9 @@ import '@aws-amplify/ui-react/styles.css';
 import { useMediaQuery } from '@mui/material';
 import { useMediaQuery as useResponsiveQuery } from 'react-responsive';
 import screenfull from 'screenfull';
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import './App.css'
 
 import awsconfig from './aws-exports';
 Amplify.configure(awsconfig);
@@ -36,6 +37,7 @@ function App({ signOut, user }: WithAuthenticatorProps) {
   const isPortrait = useDeviceOrientation();
   const isSmallScreen = useMediaQuery('(max-width:600px)');
   const elementRef = useRef(null);
+  const [ displayAppBar, setDisplayAppBar ] = useState('inherit');
 
   const toggleFullscreen = () => {
     if (screenfull.isEnabled) {
@@ -60,11 +62,7 @@ function App({ signOut, user }: WithAuthenticatorProps) {
 
     // Dynamically import CSS file based on the parameter value
     if (cssParam === 'gui') {
-      require('./gui.css')
-      console.log('CSS for gui mode loaded');
-    } else {
-      require('./App.css')
-      console.log('No specific CSS to load');
+      setDisplayAppBar('none')
     }
   }, []);
 
@@ -86,7 +84,7 @@ function App({ signOut, user }: WithAuthenticatorProps) {
             <CssBaseline />
             <BrowserRouter>
                 <div className="App" style={{ width: '100%', overflow: 'auto', backgroundColor: viewerState.dark ? appTheme.palette.background.default : lightTheme.palette.background.default}} ref={elementRef}>
-                    <div id="opensim-appbar-visibility">
+                    <div id="opensim-appbar-visibility" style={{display: displayAppBar}}>
                       <OpenSimAppBar dark={viewerState.dark} isLoggedIn={viewerState.isLoggedIn} isFullScreen={viewerState.isFullScreen} toggleFullscreen={toggleFullscreen}/>
                     </div>
                     <div>
