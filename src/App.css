@@ -2,6 +2,10 @@
   display: inherit;
 }
 
+#opensim-modelview-sidebar {
+  display: inherit;
+}
+
 .App {
   text-align: center;
   height: 100vh;

@@ -1,9 +1,9 @@
 #opensim-appbar-visibility {
-  display: none !important;
+  display: none;
 }
 
 #opensim-modelview-sidebar {
-  display: none !important;
+  display: none;
 }
 
 #canvas-element {
