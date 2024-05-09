@@ -53,6 +53,21 @@ function App({ signOut, user }: WithAuthenticatorProps) {
       alert(t('app.switch_landscape'));
     }
   }, [isSmallScreen, isPortrait, t]);
+
+  React.useEffect(() => {
+    // Parse URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const cssParam = urlParams.get('css'); // Assuming 'css' is the parameter name
+
+    // Dynamically import CSS file based on the parameter value
+    if (cssParam === 'gui') {
+      require('./gui.css')
+      console.log('CSS for gui mode loaded');
+    } else {
+      console.log('No specific CSS to load');
+    }
+  }, []);
+
     // On file system we'll have a folder per model containing cached/versioned gltf, possibly .osim file, data files, display 
     // preferences
     // urls could be something like:
