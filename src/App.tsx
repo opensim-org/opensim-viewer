@@ -64,6 +64,7 @@ function App({ signOut, user }: WithAuthenticatorProps) {
       require('./gui.css')
       console.log('CSS for gui mode loaded');
     } else {
+      require('./App.css')
       console.log('No specific CSS to load');
     }
   }, []);
