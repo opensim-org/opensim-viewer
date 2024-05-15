@@ -53,12 +53,27 @@ interface ViewerProps {
 
 export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const bottomBarRef = useRef<HTMLDivElement>(null);
+  const videoRecorderRef = useRef(null);
+
+
+  // TODO: Move to a general styles file?
+  const leftMenuWidth = 60;
+  const drawerContentWidth = 250;
+
+  const [heightBottomBar, setHeightBottomBar] = useState(0);
 
   const theme = useTheme();
   const curState = useModelContext();
   let { urlParam } = useParams();
 
-  const [heightBottomBar, setHeightBottomBar] = useState(0);
+  const [uiState] = React.useState<ModelUIState>(curState);
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const [selectedTabName, setSelectedTabName] = React.useState<string>("File");
+
+  const [ displaySideBar, setDisplaySideBar ] = useState('inherit');
+  const [canvasWidth, setCanvasWidth] = useState("calc(100vw - " + (leftMenuWidth + (menuOpen ? drawerContentWidth : 0)) + "px)")
+  const [canvasHeight, setCanvasHeight] = useState("calc(100vh - 68px - " + heightBottomBar + "px)")
+  const [canvasLeft, setCanvasLeft] = useState(leftMenuWidth + (menuOpen ? drawerContentWidth : 0))
 
   useEffect(() => {
     if (bottomBarRef.current) {
@@ -67,6 +82,20 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 
       // Do something with heightBottomBar if needed
       console.log('Height of BottomBar:', heightBottomBar);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    // Parse URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const cssParam = urlParams.get('css'); // Assuming 'css' is the parameter name
+
+    // Dynamically import CSS file based on the parameter value
+    if (cssParam === 'gui') {
+      setDisplaySideBar('none');
+      setCanvasWidth('100% !important');
+      setCanvasHeight('calc(100vh - 68px) !important');
+      setCanvasLeft(0);
     }
   }, []);
 
@@ -80,12 +109,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   }
   else
     curState.setCurrentModelPath(viewerState.currentModelPath);
-  const [uiState] = React.useState<ModelUIState>(curState);
-  const [menuOpen, setMenuOpen] = React.useState(false);
-  const [selectedTabName, setSelectedTabName] = React.useState<string>("File");
-
-  const videoRecorderRef = useRef(null);
-
   function toggleOpenMenu(name: string = "") {
     // If same name, or empty just toggle.
     if (name === selectedTabName || name === "") setMenuOpen(!menuOpen);
@@ -94,17 +117,12 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     // Always store same name.
     setSelectedTabName(name);
   }
-
-  // TODO: Move to a general styles file?
-  const leftMenuWidth = 60;
-  const drawerContentWidth = 250;
-
   return (
     <MyModelContext.Provider value={uiState}>
       <Box component="div" sx={{ display: "flex" }}>
         <CssBaseline />
         <Main>
-          <div id="opensim-modelview-sidebar">
+          <div id="opensim-modelview-sidebar" style={{display: displaySideBar}}>
             <DrawerMenu
               menuOpen={menuOpen}
               selectedTabName={selectedTabName}
@@ -124,12 +142,9 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 gl={{ preserveDrawingBuffer: true }}
                 shadows="soft"
                 style={{
-                  width:
-                    "calc(100vw - " +
-                    (leftMenuWidth + (menuOpen ? drawerContentWidth : 0)) +
-                    "px)",
-                  height: "calc(100vh - 68px - " + heightBottomBar + "px)",
-                  left: leftMenuWidth + (menuOpen ? drawerContentWidth : 0),
+                  width: canvasWidth,
+                  height: canvasHeight,
+                  left: canvasLeft,
                   transition: "left 0.1s ease",
                 }}
                 camera={{ position: [1500, 2000, 1000], fov: 75, far: 10000 }}
