@@ -13,6 +13,7 @@ class ViewerState {
     recordedVideoFormat: string
     isRecordingVideo: boolean
     isProcessingVideo: boolean
+    isGuiMode: boolean
     user_uuid: string
 
     constructor(
@@ -27,6 +28,7 @@ class ViewerState {
         recordedVideoName: string,
         recordedVideoFormat: string,
         isRecordingVideo: boolean,
+        isGuiMode: boolean,
         isProcessingVideo: boolean
     ) {
         this.currentModelPath = currentModelPathState
@@ -40,6 +42,7 @@ class ViewerState {
         this.recordedVideoName = recordedVideoName
         this.recordedVideoFormat = recordedVideoFormat
         this.isRecordingVideo = isRecordingVideo
+        this.isGuiMode = isGuiMode
         this.isProcessingVideo = isProcessingVideo
         this.user_uuid = ''
         makeObservable(this, {
@@ -60,6 +63,7 @@ class ViewerState {
             recordedVideoName: observable,
             recordedVideoFormat: observable,
             isRecordingVideo: observable,
+            isGuiMode: observable,
             isProcessingVideo: observable,
             setIsProcessingVideo: action,
             setIsRecordingVideo: action,
@@ -112,11 +116,14 @@ class ViewerState {
     setIsProcessingVideo(newState: boolean) {
         this.isProcessingVideo = newState
     }
+    setIsGuiMode(newState: boolean) {
+      this.isGuiMode = newState
+    }
     setIsRecordingVideo(newState: boolean) {
         this.isRecordingVideo = newState
     }
 }
 
-const viewerState = new ViewerState('/builtin/arm26_elbow_flex.gltf', '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false)
+const viewerState = new ViewerState('/builtin/arm26_elbow_flex.gltf', '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false, false)
 
 export default viewerState

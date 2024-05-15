@@ -16,6 +16,7 @@ import { ModelInfo } from '../../state/ModelUIState';
 interface FloatingControlsPanelProps {
   videoRecorderRef: any;
   info: ModelInfo;
+  top: string;
 }
 
 function FloatingControlsPanel(props :FloatingControlsPanelProps) {
@@ -29,7 +30,7 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
   };
 
   return (
-    <div className="floating-buttons-container">
+    <div className="floating-buttons-container" style={{top: props.top}}>
 
     <Grid container spacing={0} direction="row">
       <Grid item xs={3}>
