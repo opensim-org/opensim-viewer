@@ -71,9 +71,10 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const [selectedTabName, setSelectedTabName] = React.useState<string>("File");
 
   const [ displaySideBar, setDisplaySideBar ] = useState('inherit');
-  const [canvasWidth, setCanvasWidth] = useState("calc(100vw - " + (leftMenuWidth + (menuOpen ? drawerContentWidth : 0)) + "px)")
-  const [canvasHeight, setCanvasHeight] = useState("calc(100vh - 68px - " + heightBottomBar + "px)")
-  const [canvasLeft, setCanvasLeft] = useState(leftMenuWidth + (menuOpen ? drawerContentWidth : 0))
+  const [canvasWidth, setCanvasWidth] = useState("calc(100vw - " + (leftMenuWidth + (menuOpen ? drawerContentWidth : 0)) + "px)");
+  const [canvasHeight, setCanvasHeight] = useState("calc(100vh - 68px - " + heightBottomBar + "px)");
+  const [canvasLeft, setCanvasLeft] = useState(leftMenuWidth + (menuOpen ? drawerContentWidth : 0));
+  const [floatingButtonsContainerTop, setFloatingButtonsContainerTop] = useState("80px");
 
   useEffect(() => {
     if (bottomBarRef.current) {
@@ -86,18 +87,16 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   }, []);
 
   React.useEffect(() => {
-    // Parse URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const cssParam = urlParams.get('css'); // Assuming 'css' is the parameter name
-
-    // Dynamically import CSS file based on the parameter value
-    if (cssParam === 'gui') {
+    // Change interface if we are in GUI mode.
+    if (viewerState.isGuiMode) {
       setDisplaySideBar('none');
-      setCanvasWidth('100% !important');
-      setCanvasHeight('calc(100vh - 68px) !important');
+      setCanvasWidth('100%');
+      setCanvasHeight('calc(100vh - 68px)');
       setCanvasLeft(0);
+      setFloatingButtonsContainerTop("12px")
     }
   }, []);
+  console.log("GUI mvp: " + viewerState.isGuiMode)
 
   //console.log(urlParam);
   if (urlParam!== undefined) {
@@ -136,7 +135,8 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
             <Suspense fallback={null}>
               <FloatingControlsPanel
                 videoRecorderRef={videoRecorderRef}
-                info={new ModelInfo(uiState.modelInfo.model_name, uiState.modelInfo.desc, uiState.modelInfo.authors)}/>
+                info={new ModelInfo(uiState.modelInfo.model_name, uiState.modelInfo.desc, uiState.modelInfo.authors)}
+                top={floatingButtonsContainerTop}/>
               <Canvas
                 id="canvas-element"
                 gl={{ preserveDrawingBuffer: true }}

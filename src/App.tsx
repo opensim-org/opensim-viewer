@@ -60,11 +60,14 @@ function App({ signOut, user }: WithAuthenticatorProps) {
     const urlParams = new URLSearchParams(window.location.search);
     const cssParam = urlParams.get('css'); // Assuming 'css' is the parameter name
 
-    // Dynamically import CSS file based on the parameter value
+    // Set gui mode if parameter is present.
     if (cssParam === 'gui') {
+      viewerState.setIsGuiMode(true)
       setDisplayAppBar('none')
     }
   }, []);
+
+  console.log("GUI: " + viewerState.isGuiMode)
 
     // On file system we'll have a folder per model containing cached/versioned gltf, possibly .osim file, data files, display 
     // preferences
