@@ -67,8 +67,6 @@ function App({ signOut, user }: WithAuthenticatorProps) {
     }
   }, []);
 
-  console.log("GUI: " + viewerState.isGuiMode)
-
     // On file system we'll have a folder per model containing cached/versioned gltf, possibly .osim file, data files, display 
     // preferences
     // urls could be something like:

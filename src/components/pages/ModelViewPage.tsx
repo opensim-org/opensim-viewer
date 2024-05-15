@@ -96,7 +96,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
       setFloatingButtonsContainerTop("12px")
     }
   }, []);
-  console.log("GUI mvp: " + viewerState.isGuiMode)
 
   //console.log(urlParam);
   if (urlParam!== undefined) {
