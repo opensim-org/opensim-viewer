@@ -81,6 +81,8 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
       const heightBottomBar = bottomBarRef.current.offsetHeight;
       setHeightBottomBar(bottomBarRef.current.offsetHeight);
 
+      setCanvasHeight("calc(100vh - 68px - " + heightBottomBar + "px)");
+
       // Do something with heightBottomBar if needed
       console.log('Height of BottomBar:', heightBottomBar);
     }
