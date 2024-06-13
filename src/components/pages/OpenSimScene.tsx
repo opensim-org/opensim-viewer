@@ -7,7 +7,6 @@ import { observer } from 'mobx-react'
 
 import SceneTreeModel from '../../helpers/SceneTreeModel'
 import { useModelContext } from '../../state/ModelUIStateContext'
-import { Camera } from 'three/src/cameras/Camera'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
 
 interface OpenSimSceneProps {
@@ -19,7 +18,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
 
     // useGLTF suspends the component, it literally stops processing
     const { scene, animations } = useGLTF(currentModelPath);
-    const { set, camera, gl } = useThree();
+    const { set, gl } = useThree();
     const no_face_cull = (scene: Group)=>{
       if (scene) {
         scene.traverse((o)=>{
@@ -95,7 +94,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         curState.setCurrentCameraIndex(0)
         set({ camera: cameras[0] as PerspectiveCamera});
       }
-    }, [curState, scene]);
+    }, [curState, scene, gl.domElement, set]);
 
     // This useEffect sets the current selected camera.
     useEffect(() => {

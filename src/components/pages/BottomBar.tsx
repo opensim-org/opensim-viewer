@@ -127,7 +127,7 @@ const BottomBar = React.forwardRef(function CustomContent(
         setSelectedCam(curState.cameras[0].name)
         handleCameraChange(curState.cameras[0].name)
       }
-    }, [curState.cameras]);
+    }, [curState.cameras, handleCameraChange]);
 
     return (
       <Container ref={(ref as any) || bottomBarRef}>
