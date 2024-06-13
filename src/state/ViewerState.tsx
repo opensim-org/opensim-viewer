@@ -58,6 +58,7 @@ class ViewerState {
             setSnapshotFormat: action,
             setRecordedVideoName: action,
             setRecordedVideoFormat: action,
+            setIsLoggedIn: action,
             snapshotName: observable,
             snapshotFormat: observable,
             recordedVideoName: observable,
