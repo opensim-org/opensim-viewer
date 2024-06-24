@@ -1,6 +1,7 @@
 import { makeObservable, observable, action } from 'mobx'
 import SceneTreeModel from '../helpers/SceneTreeModel'
 import { AnimationClip } from 'three/src/animation/AnimationClip'
+import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
 import { Group } from 'three'
 
 export class ModelInfo {
@@ -26,6 +27,8 @@ export class ModelUIState {
     animationSpeed: number
     animations: AnimationClip[]
     currentAnimationIndex: number
+    cameras: PerspectiveCamera[]
+    currentCameraIndex: number
     selected: string
     deSelected: string
     cameraLayersMask: number
@@ -47,6 +50,8 @@ export class ModelUIState {
         this.animationSpeed = 1.0
         this.animations = []
         this.currentAnimationIndex = -1
+        this.cameras = []
+        this.currentCameraIndex = -1
         this.selected = ""
         this.deSelected = ""
         this.cameraLayersMask = -1
@@ -64,13 +69,17 @@ export class ModelUIState {
             setAnimationList: observable,
             setAnimationSpeed: action,
             animations: observable,
+            cameras: observable,
+            setCamerasList: action,
             selected: observable,
             setSelected: action,
             sceneTree: observable,
             setSceneTree: action,
             cameraLayersMask: observable,
             currentFrame: observable,
-            setCurrentFrame: action
+            setCurrentFrame: action,
+            currentCameraIndex: observable,
+            setCurrentCameraIndex: action
         })
         console.log("Created ModelUIState instance ", currentModelPathState)
     }
@@ -83,8 +92,10 @@ export class ModelUIState {
             this.cameraLayersMask = -1
             this.animating = false
             this.animationSpeed = 1
-			this.animations = []
+			      this.animations = []
             this.currentAnimationIndex = -1
+			      this.cameras = []
+            this.currentCameraIndex = -1
         }
     }
     setRotating(newState: boolean) {
@@ -105,6 +116,9 @@ export class ModelUIState {
     setCurrentAnimationIndex(newIndex: number) {
         this.currentAnimationIndex = newIndex
     }
+    setCurrentCameraIndex(newIndex: number) {
+        this.currentCameraIndex = newIndex
+    }
     setShowGlobalFrame(newState: boolean) {
         this.showGlobalFrame = newState 
     }
@@ -113,6 +127,9 @@ export class ModelUIState {
     }
     setAnimationList(animations: AnimationClip[]) {
         this.animations=animations
+    }
+    setCamerasList(cameras: PerspectiveCamera[]) {
+        this.cameras=cameras
     }
     setAnimationSpeed(newSpeed: number) {
         this.animationSpeed = newSpeed

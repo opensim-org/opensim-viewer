@@ -1,11 +1,13 @@
 import { useGLTF } from '@react-three/drei'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 
 import { useEffect, useState } from 'react'
 import { AnimationMixer, BoxHelper, Group, Object3D } from 'three'
+import { observer } from 'mobx-react'
 
 import SceneTreeModel from '../../helpers/SceneTreeModel'
 import { useModelContext } from '../../state/ModelUIStateContext'
+import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
 
 interface OpenSimSceneProps {
     currentModelPath: string,
@@ -16,6 +18,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
 
     // useGLTF suspends the component, it literally stops processing
     const { scene, animations } = useGLTF(currentModelPath);
+    const { set, gl } = useThree();
     const no_face_cull = (scene: Group)=>{
       if (scene) {
         scene.traverse((o)=>{
@@ -23,10 +26,11 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
             o.frustumCulled = false;
           }
           mapObjectToLayer(o)
-          
+
         })
       }
     };
+
     const LayerMap = new Map([
       ["Mesh", 1],
       ["Force", 2],
@@ -65,6 +69,40 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     const [mixers, ] = useState<AnimationMixer[]>([])
     let curState = useModelContext();
     curState.scene = scene;
+
+    const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
+
+
+    // This useEffect loads the cameras and assign them to its respective states.
+    useEffect(() => {
+      const cameras = scene.getObjectsByProperty( 'isPerspectiveCamera', true )
+      if (cameras.length > 0) {
+        // Get the canvas element from the gl
+        var canvas = gl.domElement;
+        // Calculate the aspect ratio
+        var aspectRatio = canvas.clientWidth / canvas.clientHeight;
+        // Set aspectRatio to cameras
+        cameras.forEach(function(camera) {
+            const cameraPers = camera as PerspectiveCamera
+            cameraPers.aspect = aspectRatio;
+            cameraPers.updateProjectionMatrix();
+        });
+        // Update cameras list.
+        curState.setCamerasList(cameras.map(obj => obj as PerspectiveCamera))
+        // Set current camera and current index as 0
+        setCurrentCamera(cameras.length > 0 ? cameras[0] as PerspectiveCamera : new PerspectiveCamera())
+        curState.setCurrentCameraIndex(0)
+        set({ camera: cameras[0] as PerspectiveCamera});
+      }
+    }, [curState, scene, gl.domElement, set]);
+
+    // This useEffect sets the current selected camera.
+    useEffect(() => {
+      if (curState.cameras.length > 0 && currentCamera) {
+        setCurrentCamera(curState.cameras[curState.currentCameraIndex] as PerspectiveCamera)
+        set({ camera: currentCamera as PerspectiveCamera});
+      }
+    }, [currentCamera, set, curState.currentCameraIndex, curState.cameras]);
 
     if (supportControls) {
       scene.traverse((o) => {
@@ -153,7 +191,6 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
                   mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time = currentTime;
                   setStartTime(curState.currentFrame)
                   mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
-
                 }
               }
             }
@@ -196,4 +233,4 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
       </>
 }
 
-export default OpenSimScene
+export default observer(OpenSimScene)
