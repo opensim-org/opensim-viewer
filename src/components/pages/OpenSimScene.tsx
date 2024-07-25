@@ -107,8 +107,6 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         animations.forEach((clip) => {
           clip.tracks.forEach((track) => {
             if (track.name.includes(selectedCamera.name)) {
-              console.log(`Camera animation found in clip: ${clip.name}`);
-
               if (track.name.endsWith('.position')) {
                 // Extract initial position
                 const initialPosition = new THREE.Vector3(
@@ -181,8 +179,6 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     }
 
     useFrame((state, delta) => {
-    console.log(camera.position)
-    console.log(camera.rotation)
       if (!useEffectRunning) {
           if (curState !== undefined) {
             if (supportControls ) {
