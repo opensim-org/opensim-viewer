@@ -179,6 +179,8 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     }
 
     useFrame((state, delta) => {
+    console.log(camera.position)
+    console.log(camera.rotation)
       if (!useEffectRunning) {
           if (curState !== undefined) {
             if (supportControls ) {
