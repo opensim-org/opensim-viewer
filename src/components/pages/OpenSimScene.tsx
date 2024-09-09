@@ -2,7 +2,7 @@ import { useGLTF } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 
 import { useEffect, useState } from 'react'
-import { AnimationMixer, BoxHelper, Group, Object3D } from 'three'
+import { AnimationMixer, BoxHelper, Color, Group, Mesh, Object3D } from 'three'
 import { observer } from 'mobx-react'
 
 import SceneTreeModel from '../../helpers/SceneTreeModel'
@@ -17,7 +17,7 @@ interface OpenSimSceneProps {
 const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportControls }) => {
 
     // useGLTF suspends the component, it literally stops processing
-    const { scene, animations } = useGLTF(currentModelPath);
+    const { scene, animations} = useGLTF(currentModelPath);
     const { set, gl } = useThree();
     const no_face_cull = (scene: Group)=>{
       if (scene) {
@@ -60,6 +60,17 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     }
   }
     no_face_cull(scene);
+
+    const applyAnimationColors = ()=>{
+      colorNodeMap.forEach((node)=>{
+         if (node instanceof Mesh){
+          //console.log(node.material.color);
+          //console.log(node);
+          const newColor = new Color(node.position.x, node.position.y, node.position.z);
+          node.material.color = newColor
+         }
+      })
+    }
     // eslint-disable-next-line no-mixed-operators
     const [sceneObjectMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
     const [objectSelectionBox, setObjectSelectionBox] = useState<BoxHelper | null>(new BoxHelper(scene));
@@ -67,6 +78,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     const [animationIndex, setAnimationIndex] = useState<number>(-1)
     const [startTime, setStartTime] = useState<number>(0)
     const [mixers, ] = useState<AnimationMixer[]>([])
+    const [colorNodeMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
     let curState = useModelContext();
     curState.scene = scene;
 
@@ -106,9 +118,13 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
 
     if (supportControls) {
       scene.traverse((o) => {
-          sceneObjectMap.set(o.uuid, o)
+          sceneObjectMap.set(o.uuid, o);
+          if (o.name.startsWith("ColorNode")) {
+            colorNodeMap.set(o.uuid, o);
+          }
           }
       )
+
       if (objectSelectionBox !== null) {
         objectSelectionBox.visible = false;
         scene.add(objectSelectionBox!);
@@ -179,6 +195,8 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
                 const currentTime = mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time
                 mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
                 console.log(duration)
+                // For material at index "key" setColor to nodes["value"].translation
+                applyAnimationColors();
                 curState.setCurrentFrame(Math.trunc((currentTime / duration) * 100))
                 setStartTime(Math.trunc((currentTime / duration) * 100))
               }
@@ -188,6 +206,8 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
                   let duration = mixers[curState.currentAnimationIndex]?.clipAction(animations[curState.currentAnimationIndex]).getClip().duration;
                   const framePercentage = curState.currentFrame / 100;
                   const currentTime = duration * framePercentage;
+                  // For material at index "key" setColor to nodes["value"].translation
+                  applyAnimationColors();
                   mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time = currentTime;
                   setStartTime(curState.currentFrame)
                   mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
