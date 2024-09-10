@@ -1,6 +1,8 @@
 import { useGLTF } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 
+import * as THREE from 'three';
+
 import { useEffect, useState } from 'react'
 import { AnimationMixer, BoxHelper, Color, Group, Mesh, Object3D } from 'three'
 import { observer } from 'mobx-react'
@@ -17,8 +19,8 @@ interface OpenSimSceneProps {
 const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportControls }) => {
 
     // useGLTF suspends the component, it literally stops processing
-    const { scene, animations} = useGLTF(currentModelPath);
-    const { set, gl } = useThree();
+    const { scene, animations } = useGLTF(currentModelPath);
+    const { set, gl, camera } = useThree();
     const no_face_cull = (scene: Group)=>{
       if (scene) {
         scene.traverse((o)=>{
@@ -104,17 +106,61 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         // Set current camera and current index as 0
         setCurrentCamera(cameras.length > 0 ? cameras[0] as PerspectiveCamera : new PerspectiveCamera())
         curState.setCurrentCameraIndex(0)
-        set({ camera: cameras[0] as PerspectiveCamera});
       }
-    }, [curState, scene, gl.domElement, set]);
+    }, [curState, scene, gl.domElement.clientWidth, gl.domElement, set]);
 
     // This useEffect sets the current selected camera.
     useEffect(() => {
       if (curState.cameras.length > 0 && currentCamera) {
-        setCurrentCamera(curState.cameras[curState.currentCameraIndex] as PerspectiveCamera)
-        set({ camera: currentCamera as PerspectiveCamera});
+        const selectedCamera = curState.cameras[curState.currentCameraIndex] as PerspectiveCamera;
+        setCurrentCamera(selectedCamera);
+        set({ camera: selectedCamera });
+
+        animations.forEach((clip) => {
+          clip.tracks.forEach((track) => {
+            if (track.name.includes(selectedCamera.name)) {
+              if (track.name.endsWith('.position')) {
+                // Extract initial position
+                const initialPosition = new THREE.Vector3(
+                  track.values[0],
+                  track.values[1],
+                  track.values[2]
+                );
+                console.log("INITIAL")
+                console.log(initialPosition)
+                selectedCamera.position.copy(initialPosition);
+              }
+
+              if (track.name.endsWith('.quaternion')) {
+                // Extract initial rotation (quaternion)
+                const initialRotation = new THREE.Quaternion(
+                  track.values[0],
+                  track.values[1],
+                  track.values[2],
+                  track.values[3]
+                );
+                console.log("INITIAL")
+                console.log(initialRotation)
+                selectedCamera.quaternion.copy(initialRotation);
+              }
+
+              if (track.name.endsWith('.rotation')) {
+                // Extract initial rotation (Euler)
+                const initialRotation = new THREE.Euler(
+                  track.values[0],
+                  track.values[1],
+                  track.values[2]
+                );
+                console.log("INITIAL")
+                console.log(initialRotation)
+                selectedCamera.rotation.copy(initialRotation);
+              }
+            }
+          });
+        });
       }
-    }, [currentCamera, set, curState.currentCameraIndex, curState.cameras]);
+    }, [currentCamera, set, curState.currentCameraIndex, curState.cameras, animations]);
+
 
     if (supportControls) {
       scene.traverse((o) => {
@@ -142,6 +188,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         curState.setModelInfo(modelData.name, desc, authors)
       }
     }
+
     // Make sure mixers match animations
     if ((animations.length > 0 && mixers.length !==animations.length) ||
         (animations.length > 0 && mixers.length > 0 && mixers[0].getRoot() !== scene)) {
@@ -155,6 +202,8 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     }
 
     useFrame((state, delta) => {
+    console.log(camera.position)
+    console.log(camera.rotation)
       if (!useEffectRunning) {
           if (curState !== undefined) {
             if (supportControls ) {

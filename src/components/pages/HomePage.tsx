@@ -8,7 +8,7 @@ const HomePage = () => {
         <Container>
             <Typography variant="h2" style={{ marginTop: 100 }}>
                 {t('welcome_title')}
-                <DropFile></DropFile>
+                <DropFile paddingY={50}></DropFile>
             </Typography>
         </Container>
     )

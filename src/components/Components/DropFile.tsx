@@ -20,7 +20,11 @@ const lambda = new AWS.Lambda({
   region: 'us-west-2', // replace with your region
 });
 
-const FileDropArea = observer(() => {
+interface FileDropAreaProps {
+  paddingY?: number;
+}
+
+const FileDropArea: React.FC<FileDropAreaProps> =observer(({ paddingY = 16}) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -157,7 +161,7 @@ const FileDropArea = observer(() => {
       sx={{
         border: '1px dashed gray',
         borderRadius: '4px',
-        padding: '16px',
+        padding: `${paddingY}px`,
         textAlign: 'center',
         cursor: 'pointer',
       }}
