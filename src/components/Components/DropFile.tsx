@@ -112,12 +112,6 @@ const FileDropArea: React.FC<FileDropAreaProps> =observer(({ paddingY = 16}) => 
             viewerState.isLocalUpload = true
         } else {
             Storage.put(file.name, file).then(()=>{
-              /*
-                const api_url = 'https://eudfxg3a9l.execute-api.us-west-2.amazonaws.com/dev/'
-                axios.post(api_url, data).then(response => {
-                  const gltf_url = response.data['url']; .replace(/\.\w+$/, '.gltf')
-                  appState.setCurrentModelPath(gltf_url); 
-                  CognitoIdentityServiceProvider.6jlm2jeibh9aqb0dg34q2uf8pu.ayman1234.userData*/
 
               let user_uuid = viewerState.user_uuid;
 
