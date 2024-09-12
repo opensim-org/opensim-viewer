@@ -10,6 +10,7 @@ import { observer } from 'mobx-react'
 import { AnimationClip } from 'three';
 import { useTranslation } from 'react-i18next';
 import { useModelContext } from '../../state/ModelUIStateContext';
+import { Camera } from 'three/src/cameras/Camera'
 import React, { useCallback, useRef } from 'react';
 
 const NonAnimatedSlider = styled(Slider)(({ theme } : {theme:any}) => ({
@@ -39,6 +40,7 @@ const BottomBar = React.forwardRef(function CustomContent(
     const [speed, setSpeed] = useState(1.0);
     const [play, setPlay] = useState(false);
     const [selectedAnim, setSelectedAnim] = useState<string | undefined>("");
+    const [selectedCam, setSelectedCam] = useState<string | undefined>("");
 
     const isExtraSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('xs'));
     const isSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('sm'));
@@ -46,6 +48,7 @@ const BottomBar = React.forwardRef(function CustomContent(
 
     const minWidthSlider = isExtraSmallScreen ? 150 : isSmallScreen ? 175 : isMediumScreen ? 250 : 300; // Adjust values as needed
     const maxWidthTime = 45;
+
 
     const handleAnimationChange = useCallback((animationName: string, animate: boolean) => {
       const targetName = animationName
@@ -63,9 +66,27 @@ const BottomBar = React.forwardRef(function CustomContent(
       //setAge(event.target.value as string);
     }, [curState]);
 
+    const handleCameraChange = useCallback((cameraName: string) => {
+      const targetName = cameraName
+      setSelectedCam(cameraName);
+
+        const idx = curState.cameras.findIndex((value: Camera, index: number)=>{return (value.name === targetName)})
+        if (idx !== -1) {
+            curState.setCurrentCameraIndex(idx)
+        }
+
+      curState.setCurrentFrame(0);
+      //setAge(event.target.value as string);
+    }, [curState]);
+
     const handleAnimationChangeEvent = (event: SelectChangeEvent) => {
       const targetName = event.target.value as string
       handleAnimationChange(targetName, true)
+    };
+
+    const handleCameraChangeEvent = (event: SelectChangeEvent) => {
+      const targetName = event.target.value as string
+      handleCameraChange(targetName)
     };
 
     function togglePlayAnimation() {
@@ -101,11 +122,19 @@ const BottomBar = React.forwardRef(function CustomContent(
       }
     }, [curState.animations, handleAnimationChange]);
 
+    useEffect(() => {
+      if (curState.cameras.length > 0) {
+        setSelectedCam(curState.cameras[0].name)
+        handleCameraChange(curState.cameras[0].name)
+      }
+    }, [curState.cameras, handleCameraChange]);
+
     return (
       <Container ref={(ref as any) || bottomBarRef}>
 
         <Grid container spacing={1} justifyContent="center">
 
+          { curState.animations.length < 1 ? null : (
           <Grid item>
             <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
               <Select
@@ -122,6 +151,27 @@ const BottomBar = React.forwardRef(function CustomContent(
               </Select>
             </FormControl>
           </Grid>
+          )}
+
+          { curState.cameras.length < 1 ? null : (
+          <Grid item>
+            <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
+              <Select
+                labelId="simple-select-standard-label"
+                label={t('visualizationControl.camera')}
+                value={selectedCam?.toString()}
+                onChange={handleCameraChangeEvent}
+                disabled={curState.cameras.length < 1}>
+                  {curState.cameras.map(cam => (
+                    <MenuItem key={cam.name} value={cam.name}>
+                      {cam.name}
+                    </MenuItem>
+                  ))}
+                visibility={false}
+              </Select>
+            </FormControl>
+          </Grid>
+          )}
 
           <Grid item>
             <FormControl margin="dense" size="small" variant="standard">

@@ -7,7 +7,6 @@ import LogoutPage from './components/pages/LogoutPage'
 import RegisterPage from './components/pages/RegisterPage'
 import Chart from './components/pages/Chart'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import './App.css'
 import { observer } from 'mobx-react'
 import { ThemeProvider, CssBaseline } from '@mui/material'
 import appTheme from './Theme'
@@ -21,8 +20,9 @@ import '@aws-amplify/ui-react/styles.css';
 import { useMediaQuery } from '@mui/material';
 import { useMediaQuery as useResponsiveQuery } from 'react-responsive';
 import screenfull from 'screenfull';
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import './App.css'
 
 import awsconfig from './aws-exports';
 Amplify.configure(awsconfig);
@@ -37,6 +37,7 @@ function App({ signOut, user }: WithAuthenticatorProps) {
   const isPortrait = useDeviceOrientation();
   const isSmallScreen = useMediaQuery('(max-width:600px)');
   const elementRef = useRef(null);
+  const [ displayAppBar, setDisplayAppBar ] = useState('inherit');
 
   const toggleFullscreen = () => {
     if (screenfull.isEnabled) {
@@ -53,6 +54,19 @@ function App({ signOut, user }: WithAuthenticatorProps) {
       alert(t('app.switch_landscape'));
     }
   }, [isSmallScreen, isPortrait, t]);
+
+  React.useEffect(() => {
+    // Parse URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const cssParam = urlParams.get('css'); // Assuming 'css' is the parameter name
+
+    // Set gui mode if parameter is present.
+    if (cssParam === 'gui') {
+      viewerState.setIsGuiMode(true)
+      setDisplayAppBar('none')
+    }
+  }, []);
+
     // On file system we'll have a folder per model containing cached/versioned gltf, possibly .osim file, data files, display 
     // preferences
     // urls could be something like:
@@ -71,7 +85,9 @@ function App({ signOut, user }: WithAuthenticatorProps) {
             <CssBaseline />
             <BrowserRouter>
                 <div className="App" style={{ width: '100%', overflow: 'auto', backgroundColor: viewerState.dark ? appTheme.palette.background.default : lightTheme.palette.background.default}} ref={elementRef}>
-                    <OpenSimAppBar dark={viewerState.dark} isLoggedIn={viewerState.isLoggedIn} isFullScreen={viewerState.isFullScreen} toggleFullscreen={toggleFullscreen}/>
+                    <div id="opensim-appbar-visibility" style={{display: displayAppBar}}>
+                      <OpenSimAppBar dark={viewerState.dark} isLoggedIn={viewerState.isLoggedIn} isFullScreen={viewerState.isFullScreen} toggleFullscreen={toggleFullscreen}/>
+                    </div>
                     <div>
                         <Routes>
                             <Route path="/" element={<HomePage />} />
@@ -83,10 +99,6 @@ function App({ signOut, user }: WithAuthenticatorProps) {
                             <Route
                                 path="/viewer/:urlParam?"
                                 element={<ModelViewPage />}
-                            />
-                            <Route
-                                path="/embed-viewer/:urlParam?"
-                                element={<ModelViewPage embedded={true} noFloor={true} />}
                             />
                             <Route
                                 path="/log_in"

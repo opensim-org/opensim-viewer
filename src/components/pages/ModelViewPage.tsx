@@ -53,20 +53,49 @@ interface ViewerProps {
 
 export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const bottomBarRef = useRef<HTMLDivElement>(null);
+  const videoRecorderRef = useRef(null);
+
+
+  // TODO: Move to a general styles file?
+  const leftMenuWidth = 60;
+  const drawerContentWidth = 250;
+
+  const [heightBottomBar, setHeightBottomBar] = useState(0);
 
   const theme = useTheme();
   const curState = useModelContext();
   let { urlParam } = useParams();
 
-  const [heightBottomBar, setHeightBottomBar] = useState(0);
+  const [uiState] = React.useState<ModelUIState>(curState);
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const [selectedTabName, setSelectedTabName] = React.useState<string>("File");
+
+  const [ displaySideBar, setDisplaySideBar ] = useState('inherit');
+  const [canvasWidth, setCanvasWidth] = useState("calc(100vw - " + (leftMenuWidth + (menuOpen ? drawerContentWidth : 0)) + "px)");
+  const [canvasHeight, setCanvasHeight] = useState("calc(100vh - 68px - " + heightBottomBar + "px)");
+  const [canvasLeft, setCanvasLeft] = useState(leftMenuWidth + (menuOpen ? drawerContentWidth : 0));
+  const [floatingButtonsContainerTop, setFloatingButtonsContainerTop] = useState("80px");
 
   useEffect(() => {
     if (bottomBarRef.current) {
       const heightBottomBar = bottomBarRef.current.offsetHeight;
       setHeightBottomBar(bottomBarRef.current.offsetHeight);
 
+      setCanvasHeight("calc(100vh - 68px - " + heightBottomBar + "px)");
+
       // Do something with heightBottomBar if needed
       console.log('Height of BottomBar:', heightBottomBar);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    // Change interface if we are in GUI mode.
+    if (viewerState.isGuiMode) {
+      setDisplaySideBar('none');
+      setCanvasWidth('100%');
+      setCanvasHeight('calc(100vh - 68px)');
+      setCanvasLeft(0);
+      setFloatingButtonsContainerTop("12px")
     }
   }, []);
 
@@ -76,16 +105,10 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     viewerState.setCurrentModelPath(decodedUrl);
     curState.setCurrentModelPath(viewerState.currentModelPath);
     // If urlParam is not undefined, this means it is getting the model from S3 and not from local.
-    viewerState.isLocalUpload = false;
+    viewerState.setIsLocalUpload(false);
   }
   else
     curState.setCurrentModelPath(viewerState.currentModelPath);
-  const [uiState] = React.useState<ModelUIState>(curState);
-  const [menuOpen, setMenuOpen] = React.useState(false);
-  const [selectedTabName, setSelectedTabName] = React.useState<string>("File");
-
-  const videoRecorderRef = useRef(null);
-
   function toggleOpenMenu(name: string = "") {
     // If same name, or empty just toggle.
     if (name === selectedTabName || name === "") setMenuOpen(!menuOpen);
@@ -94,39 +117,35 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     // Always store same name.
     setSelectedTabName(name);
   }
-
-  // TODO: Move to a general styles file?
-  const leftMenuWidth = 60;
-  const drawerContentWidth = 250;
-
   return (
     <MyModelContext.Provider value={uiState}>
       <Box component="div" sx={{ display: "flex" }}>
         <CssBaseline />
         <Main>
-          <DrawerMenu
-            menuOpen={menuOpen}
-            selectedTabName={selectedTabName}
-            toggleOpenMenu={toggleOpenMenu}
-            uiState={uiState}
-            leftMenuWidth={leftMenuWidth}
-            drawerContentWidth={drawerContentWidth}
-          />
+          <div id="opensim-modelview-sidebar" style={{display: displaySideBar}}>
+            <DrawerMenu
+              menuOpen={menuOpen}
+              selectedTabName={selectedTabName}
+              toggleOpenMenu={toggleOpenMenu}
+              uiState={uiState}
+              leftMenuWidth={leftMenuWidth}
+              drawerContentWidth={drawerContentWidth}
+            />
+          </div>
           <div id="canvas-container">
             <Suspense fallback={null}>
               <FloatingControlsPanel
                 videoRecorderRef={videoRecorderRef}
-                info={new ModelInfo(uiState.modelInfo.model_name, uiState.modelInfo.desc, uiState.modelInfo.authors)}/>
+                info={new ModelInfo(uiState.modelInfo.model_name, uiState.modelInfo.desc, uiState.modelInfo.authors)}
+                top={floatingButtonsContainerTop}/>
               <Canvas
+                id="canvas-element"
                 gl={{ preserveDrawingBuffer: true }}
                 shadows="soft"
                 style={{
-                  width:
-                    "calc(100vw - " +
-                    (leftMenuWidth + (menuOpen ? drawerContentWidth : 0)) +
-                    "px)",
-                  height: "calc(100vh - 68px - " + heightBottomBar + "px)",
-                  left: leftMenuWidth + (menuOpen ? drawerContentWidth : 0),
+                  width: canvasWidth,
+                  height: canvasHeight,
+                  left: canvasLeft,
                   transition: "left 0.1s ease",
                 }}
                 camera={{ position: [1500, 2000, 1000], fov: 75, far: 10000 }}

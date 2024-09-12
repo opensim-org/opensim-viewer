@@ -1,11 +1,15 @@
 import { useGLTF } from '@react-three/drei'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
+
+import * as THREE from 'three';
 
 import { useEffect, useState } from 'react'
-import { AnimationMixer, BoxHelper, Group, Object3D } from 'three'
+import { AnimationMixer, BoxHelper, Color, Group, Mesh, Object3D } from 'three'
+import { observer } from 'mobx-react'
 
 import SceneTreeModel from '../../helpers/SceneTreeModel'
 import { useModelContext } from '../../state/ModelUIStateContext'
+import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
 
 interface OpenSimSceneProps {
     currentModelPath: string,
@@ -16,6 +20,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
 
     // useGLTF suspends the component, it literally stops processing
     const { scene, animations } = useGLTF(currentModelPath);
+    const { set, gl, camera } = useThree();
     const no_face_cull = (scene: Group)=>{
       if (scene) {
         scene.traverse((o)=>{
@@ -23,10 +28,11 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
             o.frustumCulled = false;
           }
           mapObjectToLayer(o)
-          
+
         })
       }
     };
+
     const LayerMap = new Map([
       ["Mesh", 1],
       ["Force", 2],
@@ -56,6 +62,17 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     }
   }
     no_face_cull(scene);
+
+    const applyAnimationColors = ()=>{
+      colorNodeMap.forEach((node)=>{
+         if (node instanceof Mesh){
+          //console.log(node.material.color);
+          //console.log(node);
+          const newColor = new Color(node.position.x, node.position.y, node.position.z);
+          node.material.color = newColor
+         }
+      })
+    }
     // eslint-disable-next-line no-mixed-operators
     const [sceneObjectMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
     const [objectSelectionBox, setObjectSelectionBox] = useState<BoxHelper | null>(new BoxHelper(scene));
@@ -63,14 +80,97 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     const [animationIndex, setAnimationIndex] = useState<number>(-1)
     const [startTime, setStartTime] = useState<number>(0)
     const [mixers, ] = useState<AnimationMixer[]>([])
+    const [colorNodeMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
     let curState = useModelContext();
     curState.scene = scene;
 
+    const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
+
+
+    // This useEffect loads the cameras and assign them to its respective states.
+    useEffect(() => {
+      const cameras = scene.getObjectsByProperty( 'isPerspectiveCamera', true )
+      if (cameras.length > 0) {
+        // Get the canvas element from the gl
+        var canvas = gl.domElement;
+        // Calculate the aspect ratio
+        var aspectRatio = canvas.clientWidth / canvas.clientHeight;
+        // Set aspectRatio to cameras
+        cameras.forEach(function(camera) {
+            const cameraPers = camera as PerspectiveCamera
+            cameraPers.aspect = aspectRatio;
+            cameraPers.updateProjectionMatrix();
+        });
+        // Update cameras list.
+        curState.setCamerasList(cameras.map(obj => obj as PerspectiveCamera))
+        // Set current camera and current index as 0
+        setCurrentCamera(cameras.length > 0 ? cameras[0] as PerspectiveCamera : new PerspectiveCamera())
+        curState.setCurrentCameraIndex(0)
+      }
+    }, [curState, scene, gl.domElement.clientWidth, gl.domElement, set]);
+
+    // This useEffect sets the current selected camera.
+    useEffect(() => {
+      if (curState.cameras.length > 0 && currentCamera) {
+        const selectedCamera = curState.cameras[curState.currentCameraIndex] as PerspectiveCamera;
+        setCurrentCamera(selectedCamera);
+        set({ camera: selectedCamera });
+
+        animations.forEach((clip) => {
+          clip.tracks.forEach((track) => {
+            if (track.name.includes(selectedCamera.name)) {
+              if (track.name.endsWith('.position')) {
+                // Extract initial position
+                const initialPosition = new THREE.Vector3(
+                  track.values[0],
+                  track.values[1],
+                  track.values[2]
+                );
+                console.log("INITIAL")
+                console.log(initialPosition)
+                selectedCamera.position.copy(initialPosition);
+              }
+
+              if (track.name.endsWith('.quaternion')) {
+                // Extract initial rotation (quaternion)
+                const initialRotation = new THREE.Quaternion(
+                  track.values[0],
+                  track.values[1],
+                  track.values[2],
+                  track.values[3]
+                );
+                console.log("INITIAL")
+                console.log(initialRotation)
+                selectedCamera.quaternion.copy(initialRotation);
+              }
+
+              if (track.name.endsWith('.rotation')) {
+                // Extract initial rotation (Euler)
+                const initialRotation = new THREE.Euler(
+                  track.values[0],
+                  track.values[1],
+                  track.values[2]
+                );
+                console.log("INITIAL")
+                console.log(initialRotation)
+                selectedCamera.rotation.copy(initialRotation);
+              }
+            }
+          });
+        });
+      }
+    }, [currentCamera, set, curState.currentCameraIndex, curState.cameras, animations]);
+
+
     if (supportControls) {
       scene.traverse((o) => {
-          sceneObjectMap.set(o.uuid, o)
+          sceneObjectMap.set(o.uuid, o);
+          if (o.name.startsWith("ColorNode")) {
+            colorNodeMap.set(o.uuid, o);
+          }
           }
       )
+
       if (objectSelectionBox !== null) {
         objectSelectionBox.visible = false;
         scene.add(objectSelectionBox!);
@@ -88,6 +188,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         curState.setModelInfo(modelData.name, desc, authors)
       }
     }
+
     // Make sure mixers match animations
     if ((animations.length > 0 && mixers.length !==animations.length) ||
         (animations.length > 0 && mixers.length > 0 && mixers[0].getRoot() !== scene)) {
@@ -101,6 +202,8 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     }
 
     useFrame((state, delta) => {
+    console.log(camera.position)
+    console.log(camera.rotation)
       if (!useEffectRunning) {
           if (curState !== undefined) {
             if (supportControls ) {
@@ -141,6 +244,8 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
                 const currentTime = mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time
                 mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
                 console.log(duration)
+                // For material at index "key" setColor to nodes["value"].translation
+                applyAnimationColors();
                 curState.setCurrentFrame(Math.trunc((currentTime / duration) * 100))
                 setStartTime(Math.trunc((currentTime / duration) * 100))
               }
@@ -150,10 +255,11 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
                   let duration = mixers[curState.currentAnimationIndex]?.clipAction(animations[curState.currentAnimationIndex]).getClip().duration;
                   const framePercentage = curState.currentFrame / 100;
                   const currentTime = duration * framePercentage;
+                  // For material at index "key" setColor to nodes["value"].translation
+                  applyAnimationColors();
                   mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time = currentTime;
                   setStartTime(curState.currentFrame)
                   mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
-
                 }
               }
             }
@@ -196,4 +302,4 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
       </>
 }
 
-export default OpenSimScene
+export default observer(OpenSimScene)

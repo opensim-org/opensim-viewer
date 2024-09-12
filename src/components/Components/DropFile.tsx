@@ -20,7 +20,11 @@ const lambda = new AWS.Lambda({
   region: 'us-west-2', // replace with your region
 });
 
-const FileDropArea = observer(() => {
+interface FileDropAreaProps {
+  paddingY?: number;
+}
+
+const FileDropArea: React.FC<FileDropAreaProps> =observer(({ paddingY = 16}) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -108,16 +112,15 @@ const FileDropArea = observer(() => {
             viewerState.isLocalUpload = true
         } else {
             Storage.put(file.name, file).then(()=>{
-              /*
-                const api_url = 'https://eudfxg3a9l.execute-api.us-west-2.amazonaws.com/dev/'
-                axios.post(api_url, data).then(response => {
-                  const gltf_url = response.data['url']; .replace(/\.\w+$/, '.gltf')
-                  appState.setCurrentModelPath(gltf_url); */
+
+              let user_uuid = viewerState.user_uuid;
+
               const params: AWS.Lambda.InvocationRequest = {
                 FunctionName: 'opensim-viewer-func', // replace with your Lambda function's name
                 Payload: JSON.stringify({
                     s3: 'opensimviewer-input-bucket101047-dev',
-                    key: 'public/'+file.name
+                    key: 'public/' + file.name,
+                    user_uuid: user_uuid
                 })
               };
               lambda.invoke(params, (err: any, data: any) => {
@@ -125,7 +128,7 @@ const FileDropArea = observer(() => {
                         console.error(err);
                     } else {
                       const key = file.name.replace(/\.\w+$/, '.gltf')
-                      const gltf_url = "https://s3.us-west-2.amazonaws.com/opensim-viewer-public-download/"+key
+                      const gltf_url = "https://s3.us-west-2.amazonaws.com/opensim-viewer-public-download/" + user_uuid + "/"+key
                       /* appState.setCurrentModelPath(gltf_url); */
                       navigate("/viewer/"+encodeURIComponent(gltf_url))
                       console.log('Lambda function invoked successfully:', data);
@@ -152,7 +155,7 @@ const FileDropArea = observer(() => {
       sx={{
         border: '1px dashed gray',
         borderRadius: '4px',
-        padding: '16px',
+        padding: `${paddingY}px`,
         textAlign: 'center',
         cursor: 'pointer',
       }}

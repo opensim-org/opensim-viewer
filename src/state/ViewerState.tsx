@@ -13,6 +13,8 @@ class ViewerState {
     recordedVideoFormat: string
     isRecordingVideo: boolean
     isProcessingVideo: boolean
+    isGuiMode: boolean
+    user_uuid: string
 
     constructor(
         currentModelPathState: string,
@@ -26,6 +28,7 @@ class ViewerState {
         recordedVideoName: string,
         recordedVideoFormat: string,
         isRecordingVideo: boolean,
+        isGuiMode: boolean,
         isProcessingVideo: boolean
     ) {
         this.currentModelPath = currentModelPathState
@@ -39,7 +42,9 @@ class ViewerState {
         this.recordedVideoName = recordedVideoName
         this.recordedVideoFormat = recordedVideoFormat
         this.isRecordingVideo = isRecordingVideo
+        this.isGuiMode = isGuiMode
         this.isProcessingVideo = isProcessingVideo
+        this.user_uuid = ''
         makeObservable(this, {
             currentModelPath: observable,
             featuredModelsFilePath: observable,
@@ -53,11 +58,13 @@ class ViewerState {
             setSnapshotFormat: action,
             setRecordedVideoName: action,
             setRecordedVideoFormat: action,
+            setIsLoggedIn: action,
             snapshotName: observable,
             snapshotFormat: observable,
             recordedVideoName: observable,
             recordedVideoFormat: observable,
             isRecordingVideo: observable,
+            isGuiMode: observable,
             isProcessingVideo: observable,
             setIsProcessingVideo: action,
             setIsRecordingVideo: action,
@@ -78,6 +85,19 @@ class ViewerState {
     }
     setIsLoggedIn(newState: boolean) {
         this.isLoggedIn = newState
+        if (this.isLoggedIn){
+            // Cache user_uuid until logout
+            const userName = localStorage.getItem('CognitoIdentityServiceProvider.6jlm2jeibh9aqb0dg34q2uf8pu.LastAuthUser');
+            const storedDataString = localStorage.getItem('CognitoIdentityServiceProvider.6jlm2jeibh9aqb0dg34q2uf8pu.'+userName+'.userData');
+              if (storedDataString != null) {
+                let storedData = JSON.parse(storedDataString);
+                storedData["UserAttributes"].forEach((element:any) => {
+                  if (element["Name"] === "sub") {
+                    this.user_uuid = element["Value"];
+                  }
+                });
+              }
+        }
     }
     setIsFullScreen(newState: boolean) {
       this.isFullScreen = newState
@@ -97,11 +117,14 @@ class ViewerState {
     setIsProcessingVideo(newState: boolean) {
         this.isProcessingVideo = newState
     }
+    setIsGuiMode(newState: boolean) {
+      this.isGuiMode = newState
+    }
     setIsRecordingVideo(newState: boolean) {
         this.isRecordingVideo = newState
     }
 }
 
-const viewerState = new ViewerState('/builtin/arm26_elbow_flex.gltf', '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false)
+const viewerState = new ViewerState('/builtin/arm26_elbow_flex.gltf', '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false, false)
 
 export default viewerState
