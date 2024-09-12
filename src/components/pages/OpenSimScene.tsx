@@ -1,13 +1,14 @@
 import { useGLTF } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 
-import { useEffect, useState } from 'react'
-import { AnimationMixer, BoxHelper, Group, Object3D } from 'three'
+import { useEffect, useRef, useState } from 'react'
+import { AnimationMixer, BoxHelper, Group, Object3D, Scene } from 'three'
 import { observer } from 'mobx-react'
 
 import SceneTreeModel from '../../helpers/SceneTreeModel'
 import { useModelContext } from '../../state/ModelUIStateContext'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
+import { GUI } from 'lil-gui'
 
 interface OpenSimSceneProps {
     currentModelPath: string,
@@ -70,6 +71,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     let curState = useModelContext();
     curState.scene = scene;
 
+    const sceneRef = useRef<Scene>()
     const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
 
 
@@ -103,6 +105,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         set({ camera: currentCamera as PerspectiveCamera});
       }
     }, [currentCamera, set, curState.currentCameraIndex, curState.cameras]);
+
 
     if (supportControls) {
       scene.traverse((o) => {
@@ -220,7 +223,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     
     // By the time we're here the model is guaranteed to be available
     return <>
-    <primitive object={scene} 
+    <primitive object={scene} ref={sceneRef}
       onPointerDown={(e: any) => curState.setSelected(e.object.uuid)}
       onPointerMissed={() => curState.setSelected("")}/>
       <directionalLight position={[0.5, 1.5, -0.5]} intensity={.25} color={0xf0f0f0}

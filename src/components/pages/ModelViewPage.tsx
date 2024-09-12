@@ -98,7 +98,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
       setFloatingButtonsContainerTop("12px")
     }
   }, []);
-
+  
   //console.log(urlParam);
   if (urlParam!== undefined) {
     var decodedUrl = decodeURIComponent(urlParam);
