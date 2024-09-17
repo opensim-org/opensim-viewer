@@ -1,6 +1,7 @@
 import { useGLTF } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 
+import * as THREE from 'three';
 import { useEffect, useRef, useState } from 'react'
 import { AnimationMixer, BoxHelper, Color, DirectionalLight, Group, Object3D, Scene, SpotLight } from 'three'
 
