@@ -1,4 +1,5 @@
 import { makeObservable, observable, action } from 'mobx'
+import { Color, Vector3 } from 'three'
 
 class ViewerState {
     currentModelPath: string
@@ -15,7 +16,17 @@ class ViewerState {
     isProcessingVideo: boolean
     isGuiMode: boolean
     user_uuid: string
-
+    // scene options
+    backgroundColor: Color
+    backgroundImage: string | null
+    sceneLightPosition: Vector3
+    // floor options
+    floorTextureFile: string
+    floorVisible: boolean
+    floorHeight: number
+    // light
+    lightIntensity: number
+    lightColor: Color
     constructor(
         currentModelPathState: string,
         featuredModelsFilePathState: string,
@@ -45,6 +56,14 @@ class ViewerState {
         this.isGuiMode = isGuiMode
         this.isProcessingVideo = isProcessingVideo
         this.user_uuid = ''
+        this.backgroundColor = new Color(1., 1., 1.)
+        this.backgroundImage = null
+        this.floorTextureFile = 'tile.jpg'
+        this.floorVisible = true
+        this.floorHeight = 0
+        this.sceneLightPosition = new Vector3(0.5, 1.5, -0.5)
+        this.lightIntensity = 0.25
+        this.lightColor = new Color(0.7, 0.7, 0.7)
         makeObservable(this, {
             currentModelPath: observable,
             featuredModelsFilePath: observable,
@@ -68,6 +87,12 @@ class ViewerState {
             isProcessingVideo: observable,
             setIsProcessingVideo: action,
             setIsRecordingVideo: action,
+            floorHeight: observable,
+            floorVisible: observable,
+            backgroundColor: observable,
+            lightIntensity: observable,
+            lightColor: observable,
+            setBackgroundColor: action,
         })
     }
 
@@ -122,6 +147,9 @@ class ViewerState {
     }
     setIsRecordingVideo(newState: boolean) {
         this.isRecordingVideo = newState
+    }
+    setBackgroundColor(newColor: Color) {
+        this.backgroundColor = newColor
     }
 }
 

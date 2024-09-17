@@ -2,13 +2,13 @@ import { useGLTF } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 
 import { useEffect, useRef, useState } from 'react'
-import { AnimationMixer, BoxHelper, Group, Object3D, Scene } from 'three'
+import { AnimationMixer, BoxHelper, DirectionalLight, Group, Object3D, Scene } from 'three'
 import { observer } from 'mobx-react'
 
 import SceneTreeModel from '../../helpers/SceneTreeModel'
 import { useModelContext } from '../../state/ModelUIStateContext'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
-import { GUI } from 'lil-gui'
+import viewerState from '../../state/ViewerState'
 
 interface OpenSimSceneProps {
     currentModelPath: string,
@@ -72,6 +72,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     curState.scene = scene;
 
     const sceneRef = useRef<Scene>()
+    const lightRef = useRef<DirectionalLight | null>(null)
     const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
 
 
@@ -226,7 +227,8 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     <primitive object={scene} ref={sceneRef}
       onPointerDown={(e: any) => curState.setSelected(e.object.uuid)}
       onPointerMissed={() => curState.setSelected("")}/>
-      <directionalLight position={[0.5, 1.5, -0.5]} intensity={.25} color={0xf0f0f0}
+      <directionalLight ref={lightRef} position={[0.5, 1.5, -0.5]} 
+          intensity={viewerState.lightIntensity} color={viewerState.lightColor}
         castShadow={true} 
         shadow-camera-far={8}
         shadow-camera-left={-2}

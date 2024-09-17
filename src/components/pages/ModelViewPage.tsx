@@ -27,6 +27,8 @@ import OpenSimFloor from "./OpenSimFloor";
 import VideoRecorder from "../Components/VideoRecorder"
 import { ModelInfo } from '../../state/ModelUIState';
 
+import GUI from 'lil-gui';
+
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
 }>(({ theme, open }) => ({
@@ -99,6 +101,21 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     }
   }, []);
   
+  React.useEffect(() => {
+    const gui = new GUI()
+    const sceneFolder = gui.addFolder("Scene");
+    sceneFolder.addColor(viewerState, 'backgroundColor');
+    const floorFolder = gui.addFolder("Floor");
+    floorFolder.add(viewerState, 'floorHeight', -2, 2, .01).name("Height")
+    floorFolder.add(viewerState, 'floorVisible')
+    const lightFolder = gui.addFolder("Lights");
+    lightFolder.add(viewerState, 'lightIntensity', 0, 2, .05).name("Intensity")
+    lightFolder.addColor(viewerState, 'lightColor').name("Color")
+    return () => {
+        gui.destroy()
+      }
+  }, []);
+  
   //console.log(urlParam);
   if (urlParam!== undefined) {
     var decodedUrl = decodeURIComponent(urlParam);
@@ -158,7 +175,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   }
                 />
                 <Bounds fit clip observe>
-                  <OpenSimScene
+                  <OpenSimScene 
                     currentModelPath={viewerState.currentModelPath}
                     supportControls={true}
                   />
@@ -169,7 +186,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 </GizmoHelper>
                 <OpenSimControl/>
                 <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
-                {!noFloor && <OpenSimFloor />}
+                <OpenSimFloor />
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
               </Canvas>
               <BottomBar
