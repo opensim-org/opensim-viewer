@@ -1,19 +1,59 @@
 *Requisites:** Conda and python installed.
 
-1. To develop/update backend you have to have aws permissions/access so you can build a docker image and uploaded on aws. Typically the steps to make changes and push them are as follows:
-1. Modify/test the python code in osimConverters folder (these are the utilities that take OpenSim native formats and convert to gltf format)
-2. Build docker image using the command
-   "docker build -t opensim-viewer/converter ."
-3. Push the image to aws using the push commands on this page:
-   https://us-west-2.console.aws.amazon.com/ecr/repositories/private/660440363484/opensim-viewer/converter?region=us-west-2
-4. Wire the lambda function that does the work to use the latest/uploaded image, ECR repository is here
-   https://us-west-2.console.aws.amazon.com/ecr/repositories/private/660440363484/opensim-viewer/converter?region=us-west-2
-   and you select the image to run (for the lambda function opensim-viewer-func) on this page
-   https://us-west-2.console.aws.amazon.com/lambda/home?region=us-west-2#/functions/opensim-viewer-func?tab=image
-   select image -> Deploy new image -> select repository opensim-viewer/converter then select from drop down
+1. Create environment using the `environment.yml` file:
 
-Description of specific python files in osimConverters:
-------------------------------------------------------
+   `conda env create -f environment.yml`
+
+2. Activate environment:
+
+   `conda activate opensim-viewer-bend`
+
+3. Start server:
+
+   `python manage.py runserver`
+
+### Instructions for database migration
+
+   1. Create migration files:
+
+      `python manage.py makemigrations`
+
+   2. Migrate the database (warning: data can be lost)
+
+      `python manage.py migrate`
+
+### Instructions for recreating ERD diagram
+
+Instructions in this [Link](https://www.wplogout.com/export-database-diagrams-erd-from-django/).
+
+### Instructions for localization
+
+Instructions in this [Link](https://docs.djangoproject.com/en/4.2/topics/i18n/translation/).
+
+Inside of backend app folder:
+
+1. Create files for a language:
+
+   `django-admin makemessages -l <language-code>`
+
+2. Compile messages:
+
+   `django-admin compilemessages`
+
+### Instruction for testing
+
+- Execute all tests:
+
+   `python manage.py test --verbosity=0`
+   
+   
+General
+-------
+- This folder contains scripts to convert OpenSim based data files into gltf format
+- We use third party library pygltflib to manipulate the gltf structure thus avoiding low level json file manipulation and encoding/decoding whenever possible.
+
+Description of specific python files:
+-------------------------------------
 - openSimData2Gltf.py: gneric utilities that take columns of data and time stamps and create the corresponding Accessors in the passed in GLTF2 structure
 - convert{xxx}2Gltf.py: Utilities for converting files with extension {xxx} to gltf, the convention is to produce a file with the same name but with different extension, unless an output file is specified
  
