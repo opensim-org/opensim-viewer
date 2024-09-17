@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { styled, useTheme } from "@mui/material/styles";
+import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import { Canvas } from "@react-three/fiber";
@@ -64,7 +64,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 
   const [heightBottomBar, setHeightBottomBar] = useState(0);
 
-  const theme = useTheme();
   const curState = useModelContext();
   let { urlParam } = useParams();
 
@@ -104,13 +103,14 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   React.useEffect(() => {
     const gui = new GUI()
     const sceneFolder = gui.addFolder("Scene");
-    sceneFolder.addColor(viewerState, 'backgroundColor');
+    sceneFolder.addColor(viewerState, 'backgroundColor').onChange(function(v: any){viewerState.setBackgroundColor(v)});
     const floorFolder = gui.addFolder("Floor");
     floorFolder.add(viewerState, 'floorHeight', -2, 2, .01).name("Height")
     floorFolder.add(viewerState, 'floorVisible')
     const lightFolder = gui.addFolder("Lights");
     lightFolder.add(viewerState, 'lightIntensity', 0, 2, .05).name("Intensity")
-    lightFolder.addColor(viewerState, 'lightColor').name("Color")
+    lightFolder.addColor(viewerState, 'lightColor').name("Color").onChange(function(v: any){viewerState.setLightColor(v)})
+    lightFolder.add(viewerState, 'spotLight')
     return () => {
         gui.destroy()
       }
@@ -168,11 +168,11 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 camera={{ position: [1500, 2000, 1000], fov: 75, far: 10000 }}
               >
                 <fog attach="fog" color="lightgray" near={1} far={10000} />
-                <color
-                  attach="background"
-                  args={
-                    theme.palette.mode === "dark" ? ["#151518"] : ["#cccccc"]
-                  }
+                <color 
+                  attach="background" args={[viewerState.backgroundColor.r, viewerState.backgroundColor.g, viewerState.backgroundColor.b]}
+                  // args={
+                  //   theme.palette.mode === "dark" ? ["#151518"] : ["#cccccc"]
+                  // }
                 />
                 <Bounds fit clip observe>
                   <OpenSimScene 

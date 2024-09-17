@@ -27,6 +27,7 @@ class ViewerState {
     // light
     lightIntensity: number
     lightColor: Color
+    spotLight: boolean
     constructor(
         currentModelPathState: string,
         featuredModelsFilePathState: string,
@@ -56,14 +57,15 @@ class ViewerState {
         this.isGuiMode = isGuiMode
         this.isProcessingVideo = isProcessingVideo
         this.user_uuid = ''
-        this.backgroundColor = new Color(1., 1., 1.)
+        this.backgroundColor = new Color(0.7, 0.7, 0.7)
         this.backgroundImage = null
         this.floorTextureFile = 'tile.jpg'
         this.floorVisible = true
         this.floorHeight = 0
         this.sceneLightPosition = new Vector3(0.5, 1.5, -0.5)
         this.lightIntensity = 0.25
-        this.lightColor = new Color(0.7, 0.7, 0.7)
+        this.lightColor = new Color(0.6, 0.6, 0.6)
+        this.spotLight = false
         makeObservable(this, {
             currentModelPath: observable,
             featuredModelsFilePath: observable,
@@ -90,9 +92,11 @@ class ViewerState {
             floorHeight: observable,
             floorVisible: observable,
             backgroundColor: observable,
+            setBackgroundColor: action,
             lightIntensity: observable,
             lightColor: observable,
-            setBackgroundColor: action,
+            setLightColor: action,
+            spotLight: observable,
         })
     }
 
@@ -147,6 +151,9 @@ class ViewerState {
     }
     setIsRecordingVideo(newState: boolean) {
         this.isRecordingVideo = newState
+    }
+    setLightColor(newColor: Color) {
+        this.lightColor = newColor
     }
     setBackgroundColor(newColor: Color) {
         this.backgroundColor = newColor

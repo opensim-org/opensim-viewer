@@ -2,7 +2,7 @@ import { useGLTF } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 
 import { useEffect, useRef, useState } from 'react'
-import { AnimationMixer, BoxHelper, DirectionalLight, Group, Object3D, Scene } from 'three'
+import { AnimationMixer, BoxHelper, Color, DirectionalLight, Group, Object3D, Scene, SpotLight } from 'three'
 import { observer } from 'mobx-react'
 
 import SceneTreeModel from '../../helpers/SceneTreeModel'
@@ -68,11 +68,13 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     const [animationIndex, setAnimationIndex] = useState<number>(-1)
     const [startTime, setStartTime] = useState<number>(0)
     const [mixers, ] = useState<AnimationMixer[]>([])
+    const [lightColor, setLightColor] = useState<Color>(viewerState.lightColor);
     let curState = useModelContext();
     curState.scene = scene;
 
     const sceneRef = useRef<Scene>()
     const lightRef = useRef<DirectionalLight | null>(null)
+    const spotlightRef = useRef<SpotLight>(null)
     const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
 
 
@@ -209,6 +211,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
             curState.setCurrentModelPath(currentModelPath)
             curState.setSceneTree(new SceneTreeModel(scene))
             curState.setAnimationList(animations)
+            setLightColor(new Color(viewerState.lightColor))
         }
         return () => {
           if (objectSelectionBox !== null){
@@ -219,7 +222,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
           sceneObjectMap.clear();
           setUseEffectRunning(true)
         };
-      }, [scene, animations, supportControls, currentModelPath, curState, sceneObjectMap, objectSelectionBox])
+      }, [scene, animations, supportControls, currentModelPath, curState, sceneObjectMap, objectSelectionBox, lightColor])
 
     
     // By the time we're here the model is guaranteed to be available
@@ -228,13 +231,14 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
       onPointerDown={(e: any) => curState.setSelected(e.object.uuid)}
       onPointerMissed={() => curState.setSelected("")}/>
       <directionalLight ref={lightRef} position={[0.5, 1.5, -0.5]} 
-          intensity={viewerState.lightIntensity} color={viewerState.lightColor}
+          intensity={viewerState.lightIntensity} color={lightColor}
         castShadow={true} 
         shadow-camera-far={8}
         shadow-camera-left={-2}
         shadow-camera-right={2}
         shadow-camera-top={2}
         shadow-camera-bottom={-2}/>
+      <spotLight visible={viewerState.spotLight} ref={spotlightRef} position={[0.5, 2.5, -.05]} color={lightColor}/>
       </>
 }
 
