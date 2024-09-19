@@ -28,6 +28,7 @@ import VideoRecorder from "../Components/VideoRecorder"
 import { ModelInfo } from '../../state/ModelUIState';
 
 import GUI from 'lil-gui';
+import { Color } from 'three';
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
@@ -75,7 +76,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const [canvasHeight, setCanvasHeight] = useState("calc(100vh - 68px - " + heightBottomBar + "px)");
   const [canvasLeft, setCanvasLeft] = useState(leftMenuWidth + (menuOpen ? drawerContentWidth : 0));
   const [floatingButtonsContainerTop, setFloatingButtonsContainerTop] = useState("80px");
-
+  const [bgndColor, setBgndColor] = useState<Color>(new Color(0.7, 0.7, 0.7));
 
   useEffect(() => {
     if (bottomBarRef.current) {
@@ -98,15 +99,19 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
       setCanvasLeft(0);
       setFloatingButtonsContainerTop("12px")
     }
+    setBgndColor(viewerState.backgroundColor);
   }, []);
 
   React.useEffect(() => {
     const gui = new GUI()
-    const sceneFolder = gui.addFolder("Scene");
-    sceneFolder.addColor(viewerState, 'backgroundColor').name("Backdrop")
+    // const sceneFolder = gui.addFolder("Scene");
+    // sceneFolder.addColor(viewerState, 'backgroundColor')
     const floorFolder = gui.addFolder("Floor");
     floorFolder.add(viewerState, 'floorHeight', -2, 2, .01).name("Height")
     floorFolder.add(viewerState, 'floorVisible')
+    floorFolder.add(viewerState, 'floorTextureFile', { 'tile':0, 'wood-floor':1}).name("Texture").onChange(
+      function(v: any){viewerState.setFloorTextureIndex(v)}
+    );
     const lightFolder = gui.addFolder("Lights");
     lightFolder.add(viewerState, 'lightIntensity', 0, 2, .05).name("Intensity")
     lightFolder.addColor(viewerState, 'lightColor').name("Color")
@@ -168,8 +173,9 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 camera={{ position: [1500, 2000, 1000], fov: 75, far: 10000 }}
               >
                 <fog attach="fog" color="lightgray" near={1} far={10000} />
+
                 <color 
-                  attach="background" args={[viewerState.backgroundColor.r, viewerState.backgroundColor.g, viewerState.backgroundColor.b]}
+                  attach="background" args={[bgndColor.r, bgndColor.g, bgndColor.b]}
                   // args={
                   //   theme.palette.mode === "dark" ? ["#151518"] : ["#cccccc"]
                   // }

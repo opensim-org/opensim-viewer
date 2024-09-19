@@ -21,7 +21,7 @@ class ViewerState {
     backgroundImage: string | null
     sceneLightPosition: Vector3
     // floor options
-    floorTextureFile: string
+    textureIndex: number
     floorVisible: boolean
     floorHeight: number
     // light
@@ -59,7 +59,7 @@ class ViewerState {
         this.user_uuid = ''
         this.backgroundColor = new Color(0.7, 0.7, 0.7)
         this.backgroundImage = null
-        this.floorTextureFile = 'tile.jpg'
+        this.textureIndex = 0
         this.floorVisible = true
         this.floorHeight = 0
         this.sceneLightPosition = new Vector3(0.5, 1.5, -0.5)
@@ -91,6 +91,8 @@ class ViewerState {
             setIsRecordingVideo: action,
             floorHeight: observable,
             floorVisible: observable,
+            textureIndex: observable,
+            setFloorTextureIndex: action,
             backgroundColor: observable,
             setBackgroundColor: action,
             lightIntensity: observable,
@@ -156,6 +158,9 @@ class ViewerState {
     }
     setBackgroundColor(newColor: Color) {
         this.backgroundColor = newColor
+    }
+    setFloorTextureIndex(newIndex: number) {
+        this.textureIndex = newIndex
     }
 }
 

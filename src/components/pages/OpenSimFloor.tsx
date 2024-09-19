@@ -5,8 +5,11 @@ import { Mesh, RepeatWrapping, TextureLoader } from 'three';
 import viewerState from '../../state/ViewerState';
 
 const OpenSimFloor = () => {
-    const textureFile = '/tile.jpg'
-    const floorTexture =  useLoader(TextureLoader, textureFile);
+    const floorTextures =  [ 
+        useLoader(TextureLoader, '/tile.jpg'),
+        useLoader(TextureLoader, '/wood-floor.jpg')
+    ]
+    var floorTexture = floorTextures[viewerState.textureIndex]
     floorTexture.wrapS = floorTexture.wrapT = RepeatWrapping;
     floorTexture.offset.set(0, 0);
     floorTexture.repeat.set(8, 8);
