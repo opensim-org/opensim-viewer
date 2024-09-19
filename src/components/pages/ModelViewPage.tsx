@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { styled, useTheme } from "@mui/material/styles";
+import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import { Canvas } from "@react-three/fiber";
@@ -26,6 +26,8 @@ import { useParams } from 'react-router-dom';
 import OpenSimFloor from "./OpenSimFloor";
 import VideoRecorder from "../Components/VideoRecorder"
 import { ModelInfo } from '../../state/ModelUIState';
+
+import GUI from 'lil-gui';
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
@@ -55,14 +57,12 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const bottomBarRef = useRef<HTMLDivElement>(null);
   const videoRecorderRef = useRef(null);
 
-
   // TODO: Move to a general styles file?
   const leftMenuWidth = 60;
   const drawerContentWidth = 250;
 
   const [heightBottomBar, setHeightBottomBar] = useState(0);
 
-  const theme = useTheme();
   const curState = useModelContext();
   let { urlParam } = useParams();
 
@@ -70,11 +70,12 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [selectedTabName, setSelectedTabName] = React.useState<string>("File");
 
-  const [ displaySideBar, setDisplaySideBar ] = useState('inherit');
+  const [displaySideBar, setDisplaySideBar ] = useState('inherit');
   const [canvasWidth, setCanvasWidth] = useState("calc(100vw - " + (leftMenuWidth + (menuOpen ? drawerContentWidth : 0)) + "px)");
   const [canvasHeight, setCanvasHeight] = useState("calc(100vh - 68px - " + heightBottomBar + "px)");
   const [canvasLeft, setCanvasLeft] = useState(leftMenuWidth + (menuOpen ? drawerContentWidth : 0));
   const [floatingButtonsContainerTop, setFloatingButtonsContainerTop] = useState("80px");
+
 
   useEffect(() => {
     if (bottomBarRef.current) {
@@ -99,6 +100,22 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     }
   }, []);
 
+  React.useEffect(() => {
+    const gui = new GUI()
+    const sceneFolder = gui.addFolder("Scene");
+    sceneFolder.addColor(viewerState, 'backgroundColor').name("Backdrop")
+    const floorFolder = gui.addFolder("Floor");
+    floorFolder.add(viewerState, 'floorHeight', -2, 2, .01).name("Height")
+    floorFolder.add(viewerState, 'floorVisible')
+    const lightFolder = gui.addFolder("Lights");
+    lightFolder.add(viewerState, 'lightIntensity', 0, 2, .05).name("Intensity")
+    lightFolder.addColor(viewerState, 'lightColor').name("Color")
+    lightFolder.add(viewerState, 'spotLight')
+    return () => {
+        gui.destroy()
+      }
+  }, []);
+  
   //console.log(urlParam);
   if (urlParam!== undefined) {
     var decodedUrl = decodeURIComponent(urlParam);
@@ -151,11 +168,11 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 camera={{ position: [1500, 2000, 1000], fov: 75, far: 10000 }}
               >
                 <fog attach="fog" color="lightgray" near={1} far={10000} />
-                <color
-                  attach="background"
-                  args={
-                    theme.palette.mode === "dark" ? ["#151518"] : ["#cccccc"]
-                  }
+                <color 
+                  attach="background" args={[viewerState.backgroundColor.r, viewerState.backgroundColor.g, viewerState.backgroundColor.b]}
+                  // args={
+                  //   theme.palette.mode === "dark" ? ["#151518"] : ["#cccccc"]
+                  // }
                 />
                 <Bounds fit clip observe>
                   <OpenSimScene
@@ -169,7 +186,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 </GizmoHelper>
                 <OpenSimControl/>
                 <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
-                {!noFloor && <OpenSimFloor />}
+                <OpenSimFloor />
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
               </Canvas>
               <BottomBar

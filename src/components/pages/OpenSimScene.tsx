@@ -3,13 +3,14 @@ import { useFrame, useThree } from '@react-three/fiber'
 
 import * as THREE from 'three';
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AnimationMixer, BoxHelper, Color, Group, Mesh, Object3D } from 'three'
 import { observer } from 'mobx-react'
 
 import SceneTreeModel from '../../helpers/SceneTreeModel'
 import { useModelContext } from '../../state/ModelUIStateContext'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
+import viewerState from '../../state/ViewerState'
 
 interface OpenSimSceneProps {
     currentModelPath: string,
@@ -20,7 +21,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
 
     // useGLTF suspends the component, it literally stops processing
     const { scene, animations } = useGLTF(currentModelPath);
-    const { set, gl, camera } = useThree();
+    const { set, gl} = useThree();
     const no_face_cull = (scene: Group)=>{
       if (scene) {
         scene.traverse((o)=>{
@@ -81,9 +82,13 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     const [startTime, setStartTime] = useState<number>(0)
     const [mixers, ] = useState<AnimationMixer[]>([])
     const [colorNodeMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
+
     let curState = useModelContext();
     curState.scene = scene;
 
+    const sceneRef = useRef<THREE.Scene>()
+    const lightRef = useRef<THREE.DirectionalLight | null>(null)
+    const spotlightRef = useRef<THREE.SpotLight>(null)
     const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
 
 
@@ -107,6 +112,8 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         setCurrentCamera(cameras.length > 0 ? cameras[0] as PerspectiveCamera : new PerspectiveCamera())
         curState.setCurrentCameraIndex(0)
       }
+      lightRef.current!.color = viewerState.lightColor
+      spotlightRef.current!.color = viewerState.lightColor
     }, [curState, scene, gl.domElement.clientWidth, gl.domElement, set]);
 
     // This useEffect sets the current selected camera.
@@ -202,8 +209,8 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     }
 
     useFrame((state, delta) => {
-    console.log(camera.position)
-    console.log(camera.rotation)
+    //console.log(camera.position)
+    //console.log(camera.rotation)
       if (!useEffectRunning) {
           if (curState !== undefined) {
             if (supportControls ) {
@@ -243,7 +250,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
                 }
                 const currentTime = mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time
                 mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
-                console.log(duration)
+                //console.log(duration)
                 // For material at index "key" setColor to nodes["value"].translation
                 applyAnimationColors();
                 curState.setCurrentFrame(Math.trunc((currentTime / duration) * 100))
@@ -289,16 +296,18 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     
     // By the time we're here the model is guaranteed to be available
     return <>
-    <primitive object={scene} 
+    <primitive object={scene} ref={sceneRef}
       onPointerDown={(e: any) => curState.setSelected(e.object.uuid)}
       onPointerMissed={() => curState.setSelected("")}/>
-      <directionalLight position={[0.5, 1.5, -0.5]} intensity={.25} color={0xf0f0f0}
+      <directionalLight ref={lightRef} position={[0.5, 1.5, -0.5]} 
+          intensity={viewerState.lightIntensity} color={viewerState.lightColor}
         castShadow={true} 
         shadow-camera-far={8}
         shadow-camera-left={-2}
         shadow-camera-right={2}
         shadow-camera-top={2}
         shadow-camera-bottom={-2}/>
+      <spotLight visible={viewerState.spotLight} ref={spotlightRef} position={[0.5, 2.5, -.05]} color={viewerState.lightColor}/>
       </>
 }
 
