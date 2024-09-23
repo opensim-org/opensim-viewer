@@ -111,7 +111,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     const floorFolder = gui.addFolder("Floor");
     floorFolder.add(viewerState, 'floorHeight', -2, 2, .01).name("Height")
     floorFolder.add(viewerState, 'floorVisible')
-    floorFolder.add(viewerState, 'floorTextureFile', { 'tile':0, 'wood-floor':1}).name("Texture").onChange(
+    floorFolder.add(viewerState, 'floorTextureFile', { 'tile':0, 'wood-floor':1, 'Cobblestone':2, 'textureStone':3}).name("Texture").onChange(
       function(v: any){viewerState.setFloorTextureIndex(v)}
     );
     const lightFolder = gui.addFolder("Lights");
