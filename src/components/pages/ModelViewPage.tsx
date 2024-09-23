@@ -28,7 +28,7 @@ import VideoRecorder from "../Components/VideoRecorder"
 import { ModelInfo } from '../../state/ModelUIState';
 
 import GUI from 'lil-gui';
-import { Color } from 'three';
+import { Color} from 'three';
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
@@ -57,7 +57,7 @@ interface ViewerProps {
 export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const bottomBarRef = useRef<HTMLDivElement>(null);
   const videoRecorderRef = useRef(null);
-
+  const coloRef = useRef<Color>(null)
   // TODO: Move to a general styles file?
   const leftMenuWidth = 60;
   const drawerContentWidth = 250;
@@ -104,8 +104,10 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 
   React.useEffect(() => {
     const gui = new GUI()
-    // const sceneFolder = gui.addFolder("Scene");
-    // sceneFolder.addColor(viewerState, 'backgroundColor')
+    const sceneFolder = gui.addFolder("Scene");
+    sceneFolder.addColor(viewerState, 'backgroundColor').onChange(
+      function(v: any){viewerState.setBackgroundColor(v); coloRef.current?.copy(v);}
+    );
     const floorFolder = gui.addFolder("Floor");
     floorFolder.add(viewerState, 'floorHeight', -2, 2, .01).name("Height")
     floorFolder.add(viewerState, 'floorVisible')
@@ -174,14 +176,14 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
               >
                 <fog attach="fog" color="lightgray" near={1} far={10000} />
 
-                <color 
+                <color  ref={coloRef}
                   attach="background" args={[bgndColor.r, bgndColor.g, bgndColor.b]}
                   // args={
                   //   theme.palette.mode === "dark" ? ["#151518"] : ["#cccccc"]
                   // }
                 />
                 <Bounds fit clip observe>
-                  <OpenSimScene
+                  <OpenSimScene 
                     currentModelPath={viewerState.currentModelPath}
                     supportControls={true}
                   />
