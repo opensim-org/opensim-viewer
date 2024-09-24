@@ -9,7 +9,8 @@ const OpenSimFloor = () => {
         useLoader(TextureLoader, '/tile.jpg'),
         useLoader(TextureLoader, '/wood-floor.jpg'),
         useLoader(TextureLoader, '/Cobblestone.png'),
-        useLoader(TextureLoader, '/textureStone.png')
+        useLoader(TextureLoader, '/cement.jpg'),
+        useLoader(TextureLoader, '/grassy_d.png')
     ]
     var floorTexture = floorTextures[viewerState.textureIndex]
     floorTexture.wrapS = floorTexture.wrapT = RepeatWrapping;
