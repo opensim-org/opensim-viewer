@@ -32,71 +32,62 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
   return (
     <div className="floating-buttons-container" style={{top: props.top}}>
 
-    <Grid container spacing={0} direction="row">
-      <Grid item xs={3}>
-        <Tooltip title={t('bottomBar.zoomIn')}>
-          <IconButton color="primary" onClick={() => {
-            curState.setZoomFactor(1.1);
-            curState.setZooming(true)}}>
-              <ZoomInTwoToneIcon />
-          </IconButton>
-        </Tooltip>
-      </Grid>
-
-      <Grid item xs={3}>
-        <Tooltip title={t('bottomBar.zoomOut')}>
-          <IconButton color="primary" onClick={() => {
-            curState.setZoomFactor(0.9);
-            curState.setZooming(true)}}>
-              <ZoomOutTwoToneIcon />
-          </IconButton>
-        </Tooltip>
-      </Grid>
-
-      <Grid item xs={3}>
-        <Tooltip title={t('bottomBar.snapshoot')}>
-          <IconButton color="primary" onClick={() => {
-            curState.setTakeSnapshot();}}>
-              <PhotoCameraTwoToneIcon />
-          </IconButton>
-        </Tooltip>
-      </Grid>
-
-      <Grid item xs={3}>
-        <Tooltip title={t('bottomBar.record')}>
-          <IconButton
-            color={!viewerState.isRecordingVideo && !viewerState.isProcessingVideo ? "primary" : (viewerState.isProcessingVideo ? "warning" : "error")}
-            disabled={viewerState.isProcessingVideo}
-            onClick={() => {
-              if (!viewerState.isRecordingVideo) {
-                props.videoRecorderRef.current.startRecording();
-              } else {
-                props.videoRecorderRef.current.stopRecording();}}
-            }>
-              <VideoCameraFrontTwoToneIcon />
-          </IconButton>
-        </Tooltip>
-      </Grid>
-
-      <Grid item xs={3}>
-      </Grid>
-
-      <Grid item xs={3}>
-      </Grid>
-
-      <Grid item xs={3}>
-      </Grid>
-
-      <Grid item xs={3}>
-        <Tooltip title={t('floatingButton.model_info')}>
-            <IconButton
-              color="primary"
-              onClick={handleButtonClick}>
-                <InfoIcon />
+      <Grid container spacing={-4} direction="row">
+        <Grid item xs={6}>
+          <Tooltip title={t('bottomBar.zoomIn')}>
+            <IconButton color="primary" onClick={() => {
+              curState.setZoomFactor(1.1);
+              curState.setZooming(true)}}>
+                <ZoomInTwoToneIcon />
             </IconButton>
-        </Tooltip>
+          </Tooltip>
+        </Grid>
+
+        <Grid item xs={6}>
+          <Tooltip title={t('bottomBar.zoomOut')}>
+            <IconButton color="primary" onClick={() => {
+              curState.setZoomFactor(0.9);
+              curState.setZooming(true)}}>
+                <ZoomOutTwoToneIcon />
+            </IconButton>
+          </Tooltip>
+        </Grid>
+
+        <Grid item xs={6}>
+          <Tooltip title={t('bottomBar.snapshoot')}>
+            <IconButton color="primary" onClick={() => {
+              curState.setTakeSnapshot();}}>
+                <PhotoCameraTwoToneIcon />
+            </IconButton>
+          </Tooltip>
+        </Grid>
+
+        <Grid item xs={6}>
+          <Tooltip title={t('bottomBar.record')}>
+            <IconButton
+              color={!viewerState.isRecordingVideo && !viewerState.isProcessingVideo ? "primary" : (viewerState.isProcessingVideo ? "warning" : "error")}
+              disabled={viewerState.isProcessingVideo}
+              onClick={() => {
+                if (!viewerState.isRecordingVideo) {
+                  props.videoRecorderRef.current.startRecording();
+                } else {
+                  props.videoRecorderRef.current.stopRecording();}}
+              }>
+                <VideoCameraFrontTwoToneIcon />
+            </IconButton>
+          </Tooltip>
+        </Grid>
+
+        <Grid item xs={6}>
+          <Tooltip title={t('floatingButton.model_info')}>
+              <IconButton
+                color="primary"
+                onClick={handleButtonClick}>
+                  <InfoIcon />
+              </IconButton>
+          </Tooltip>
+        </Grid>
       </Grid>
-    </Grid>
 
       {isWindowOpen &&
         <div className="floating-window">
