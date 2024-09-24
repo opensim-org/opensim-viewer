@@ -174,7 +174,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 }}
                 camera={{ position: [1500, 2000, 1000], fov: 75, far: 10000 }}
               >
-              <Environment files="/img/venice_sunset_1k.hdr" />
               <fog attach="fog" color="lightgray" near={1} far={10000} />
 
                 <color  ref={coloRef}
