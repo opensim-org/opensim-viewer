@@ -90,7 +90,7 @@ function App({ signOut, user }: WithAuthenticatorProps) {
                     </div>
                     <div>
                         <Routes>
-                            <Route path="/" element={<HomePage />} />
+                            <Route path="/" element={viewerState.isGuiMode?<ModelViewPage />:<HomePage />} />
                             <Route path="/about" element={<AboutPage />} />
                             <Route
                                 path="/models"

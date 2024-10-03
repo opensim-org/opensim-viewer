@@ -4,8 +4,6 @@ import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
 import Link from '@mui/material/Link';
-import logo_dark from './logo-dark.svg';
-import logo from './logo.svg';
 import LoginIcon from '@mui/icons-material/Login';
 import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -133,13 +131,6 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn, isFullS
       <AppBar position="relative" style={{zIndex: 3000}}>
 
         <Toolbar variant="dense" color="inherit">
-          <Link component={NavLink} to="/">
-            <Box
-              component="img"
-              sx={{ height: 60 }}
-              alt="Logo"
-              src={dark ? logo_dark : logo}/>
-          </Link>
 
           <Hidden smUp>
             <IconButton
