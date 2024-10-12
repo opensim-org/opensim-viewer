@@ -80,48 +80,7 @@ function App({ signOut, user }: WithAuthenticatorProps) {
     ///viewer = redirect to viewer/DEFAULT_MODEL/ 
     // / current home page of opensim-viewer with upload and login options
     return (
-        <ThemeProvider theme={viewerState.dark ? appTheme : lightTheme}>
-          <SnackbarProvider>
-            <CssBaseline />
-            <BrowserRouter>
-                <div className="App" style={{ width: '100%', overflow: 'auto', backgroundColor: viewerState.dark ? appTheme.palette.background.default : lightTheme.palette.background.default}} ref={elementRef}>
-                    <div id="opensim-appbar-visibility" style={{display: displayAppBar}}>
-                      <OpenSimAppBar dark={viewerState.dark} isLoggedIn={viewerState.isLoggedIn} isFullScreen={viewerState.isFullScreen} toggleFullscreen={toggleFullscreen}/>
-                    </div>
-                    <div>
-                        <Routes>
-                            <Route path="/" element={viewerState.isGuiMode?<ModelViewPage />:<HomePage />} />
-                            <Route path="/about" element={<AboutPage />} />
-                            <Route
-                                path="/models"
-                                element={<ModelListPage featuredModelsFilePath={viewerState.featuredModelsFilePath} />}
-                            />
-                            <Route
-                                path="/viewer/:urlParam?"
-                                element={<ModelViewPage />}
-                            />
-                            <Route
-                                path="/log_in"
-                                element={<LoginPage isLoggedIn={viewerState.isLoggedIn}/>}
-                            />
-                            <Route
-                                path="/log_out"
-                                element={<LogoutPage isLoggedIn={viewerState.isLoggedIn}/>}
-                            />
-                            <Route
-                                path="/register"
-                                element={<RegisterPage />}
-                            />
-                            <Route
-                                path="/chart"
-                                element={<Chart />}
-                            />
-                        </Routes>
-                    </div>
-                </div>
-            </BrowserRouter>
-          </SnackbarProvider>
-        </ThemeProvider>
+              <ModelViewPage/>
     )
 }
 

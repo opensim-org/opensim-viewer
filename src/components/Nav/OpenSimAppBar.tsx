@@ -36,7 +36,7 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn, isFullS
   const toggleDrawer = () => {
     setIsDrawerOpen(!isDrawerOpen);
   };
-
+/*
   useEffect(() => {
     const checkIsUserLoggedIn = async () => {
       try {
@@ -53,7 +53,7 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn, isFullS
 
     checkIsUserLoggedIn();
   }, [isLoggedIn]);
-
+*/
   const styles = {
     drawer: {
       top: '68px',
