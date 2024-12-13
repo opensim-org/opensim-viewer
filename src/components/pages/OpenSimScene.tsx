@@ -1,5 +1,6 @@
-import { useGLTF } from '@react-three/drei'
+
 import { useFrame, useThree } from '@react-three/fiber'
+import { useLoader } from '@react-three/fiber'
 
 import * as THREE from 'three';
 
@@ -11,6 +12,7 @@ import SceneTreeModel from '../../helpers/SceneTreeModel'
 import { useModelContext } from '../../state/ModelUIStateContext'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
 import viewerState from '../../state/ViewerState'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 interface OpenSimSceneProps {
     currentModelPath: string,
@@ -20,7 +22,9 @@ interface OpenSimSceneProps {
 const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportControls }) => {
 
     // useGLTF suspends the component, it literally stops processing
-    const { scene, animations } = useGLTF(currentModelPath);
+    const {scene, materials} = useLoader(GLTFLoader, currentModelPath);
+    const animations = scene.animations
+  
     const { set, gl} = useThree();
     const no_face_cull = (scene: Group)=>{
       if (scene) {
@@ -50,7 +54,9 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
       ["ContactMesh", 8],
       ["ContactHalfSpace", 8]
     ]);
-    
+
+    const bumpHeight = new THREE.TextureLoader().load('bone-bumpmap.jpg');
+
     const mapObjectToLayer = (obj3d: Object3D)=>{
       if (obj3d.userData !== null && obj3d.userData !== undefined &&
           obj3d.userData.opensimType !== undefined) {
@@ -91,7 +97,12 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     const spotlightRef = useRef<THREE.SpotLight>(null)
     const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
 
-
+    useEffect(() => {
+        if (materials.bone !== undefined) {
+          (materials.bone as THREE.MeshStandardMaterial).bumpMap = bumpHeight;
+          (materials.bone as THREE.MeshStandardMaterial).bumpScale = 0.01
+        }
+    })
     // This useEffect loads the cameras and assign them to its respective states.
     useEffect(() => {
       const cameras = scene.getObjectsByProperty( 'isPerspectiveCamera', true )
