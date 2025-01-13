@@ -1,16 +1,15 @@
 {
   "name": "opensim-viewer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "proxy": "http://localhost:8000",
+  "homepage": ".",
   "dependencies": {
     "@aws-amplify/ui-react": "^5.3.1",
     "@aws-sdk/client-lambda": "^3.436.0",
     "@aws-sdk/client-s3": "^3.433.0",
     "@aws-sdk/s3-request-presigner": "^3.433.0",
     "@babel/plugin-proposal-private-property-in-object": "^7.21.0-placeholder-for-preset-env.2",
-    "@emotion/react": "^11.10.6",
-    "@emotion/styled": "^11.10.6",
     "@ffmpeg/ffmpeg": "^0.12.7",
     "@ffmpeg/util": "^0.12.1",
     "@mui/icons-material": "^5.11.11",
