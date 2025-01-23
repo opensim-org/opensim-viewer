@@ -1,19 +1,6 @@
-import HomePage from './components/pages/HomePage'
-import AboutPage from './components/pages/AboutPage'
-import ModelListPage from './components/pages/ModelListPage/ModelListPage'
 import ModelViewPage from './components/pages/ModelViewPage'
-import LoginPage from './components/pages/LoginPage'
-import LogoutPage from './components/pages/LogoutPage'
-import RegisterPage from './components/pages/RegisterPage'
-import Chart from './components/pages/Chart'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { observer } from 'mobx-react'
-import { ThemeProvider, CssBaseline } from '@mui/material'
-import appTheme from './Theme'
-import lightTheme from './LightTheme'
-import OpenSimAppBar from './components/Nav/OpenSimAppBar'
 import viewerState from './state/ViewerState'
-import { SnackbarProvider } from 'notistack'
 import { Amplify } from 'aws-amplify';
 import type { WithAuthenticatorProps } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
@@ -80,7 +67,7 @@ function App({ signOut, user }: WithAuthenticatorProps) {
     ///viewer = redirect to viewer/DEFAULT_MODEL/ 
     // / current home page of opensim-viewer with upload and login options
     return (
-              <ModelViewPage/>
+        <ModelViewPage/>
     )
 }
 

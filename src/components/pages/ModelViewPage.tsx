@@ -28,7 +28,7 @@ import VideoRecorder from "../Components/VideoRecorder"
 import { ModelInfo } from '../../state/ModelUIState';
 
 import GUI from 'lil-gui';
-import { Color} from 'three';
+import { Color, Group, ObjectLoader, Scene} from 'three';
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
@@ -101,6 +101,26 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     }
     setBgndColor(viewerState.backgroundColor);
   }, []);
+
+  useEffect(() => {
+    // Create fresh WebSocket
+    const socket = new WebSocket('ws://127.0.0.1:8002/visEndpoint');
+    socket.onopen = () => { console.log("socket opened");}
+    socket.onmessage = function(evt) { 
+      console.log(evt.data)
+      var loader  = new ObjectLoader();
+      loader.load('/builtin/bouncing_block.json', 
+        function (object) { 
+          uiState.scene = object as Group
+          }, 
+        function (xhr) { console.log((xhr.loaded / xhr.total * 100) + '% loaded'); }, 
+        function (error) { console.error('An error happened', error); } );
+    };
+    // Implement your WebSocket logic here
+    return () => {
+      //socket.disconnect();
+    };
+  }, [uiState]);
 
   React.useEffect(() => {
     const gui = new GUI()
