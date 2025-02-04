@@ -22,7 +22,7 @@ const OpenSimFloor = () => {
     return <>
         <mesh name='Floor' ref={floorRef} rotation-x={-Math.PI / 2} 
                 position-y={viewerState.floorHeight} visible={viewerState.floorVisible} receiveShadow >
-        <planeGeometry attach="geometry" args={[20, 20]} />
+        <planeGeometry attach="geometry" args={[10, 10]} />
         <meshPhongMaterial attach="material" color={floorColor} map={floorTexture}/>
         </mesh>
     </>

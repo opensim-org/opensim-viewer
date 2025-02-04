@@ -16,7 +16,7 @@ import BottomBar from "../pages/BottomBar";
 import FloatingControlsPanel from '../Components/FloatingControlsPanel';
 
 import DrawerMenu from "../Components/DrawerMenu";
-import OpenSimScene from "../pages/OpenSimScene";
+import OpenSimGUIScene from "../pages/OpenSimGUIScene";
 import { ModelUIState } from "../../state/ModelUIState";
 import { observer } from "mobx-react";
 import { MyModelContext } from "../../state/ModelUIStateContext";
@@ -28,7 +28,7 @@ import VideoRecorder from "../Components/VideoRecorder"
 import { ModelInfo } from '../../state/ModelUIState';
 
 import GUI from 'lil-gui';
-import { Color, Group, ObjectLoader, Scene} from 'three';
+import { Color, Group, ObjectLoader} from 'three';
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
@@ -192,9 +192,9 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   left: canvasLeft,
                   transition: "left 0.1s ease",
                 }}
-                camera={{ position: [1500, 2000, 1000], fov: 75, far: 10000 }}
+                camera={{ position: [1.5, 2.0, 1.0], fov: 75, far: 10 }}
               >
-              <fog attach="fog" color="lightgray" near={1} far={10000} />
+              <fog attach="fog" color="lightgray" near={.01} far={10} />
 
                 <color  ref={coloRef}
                   attach="background" args={[bgndColor.r, bgndColor.g, bgndColor.b]}
@@ -203,7 +203,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   // }
                 />
                 <Bounds fit clip observe>
-                  <OpenSimScene 
+                  <OpenSimGUIScene 
                     currentModelPath={viewerState.currentModelPath}
                     supportControls={true}
                   />

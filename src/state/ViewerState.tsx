@@ -164,6 +164,6 @@ class ViewerState {
     }
 }
 
-const viewerState = new ViewerState('/builtin/double_pendulum.gltf', '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, true, false)
+const viewerState = new ViewerState('/builtin/leg39.json', '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, true, false)
 
 export default viewerState
