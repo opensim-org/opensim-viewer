@@ -28,7 +28,7 @@ import VideoRecorder from "../Components/VideoRecorder"
 import { ModelInfo } from '../../state/ModelUIState';
 
 import GUI from 'lil-gui';
-import { Color, Group, ObjectLoader} from 'three';
+import { Color} from 'three';
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
@@ -108,13 +108,12 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     socket.onopen = () => { console.log("socket opened");}
     socket.onmessage = function(evt) { 
       console.log(evt.data)
-      var loader  = new ObjectLoader();
-      loader.load('/builtin/bouncing_block.json', 
-        function (object) { 
-          uiState.scene = object as Group
-          }, 
-        function (xhr) { console.log((xhr.loaded / xhr.total * 100) + '% loaded'); }, 
-        function (error) { console.error('An error happened', error); } );
+      var msgOp = JSON.parse(evt.data).Op
+      if (msgOp !== "OpenModel")
+        return;
+      var modeluuid = JSON.parse(evt.data).UUID;
+      var filejson = modeluuid.substring(0,8)+'.json';
+      uiState.setCurrentModelPath(filejson)
     };
     // Implement your WebSocket logic here
     return () => {
@@ -151,8 +150,8 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     // If urlParam is not undefined, this means it is getting the model from S3 and not from local.
     viewerState.setIsLocalUpload(false);
   }
-  else
-    curState.setCurrentModelPath(viewerState.currentModelPath);
+  // else
+  //   curState.setCurrentModelPath(viewerState.currentModelPath);
   function toggleOpenMenu(name: string = "") {
     // If same name, or empty just toggle.
     if (name === selectedTabName || name === "") setMenuOpen(!menuOpen);
@@ -204,7 +203,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 />
                 <Bounds fit clip observe>
                   <OpenSimGUIScene 
-                    currentModelPath={viewerState.currentModelPath}
+                    currentModelPath={uiState.currentModelPath}
                     supportControls={true}
                   />
                 </Bounds>
