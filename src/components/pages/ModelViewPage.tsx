@@ -107,13 +107,8 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     const socket = new WebSocket('ws://127.0.0.1:8002/visEndpoint');
     socket.onopen = () => { console.log("socket opened");}
     socket.onmessage = function(evt) { 
-      console.log(evt.data)
-      var msgOp = JSON.parse(evt.data).Op
-      if (msgOp !== "OpenModel")
-        return;
-      var modeluuid = JSON.parse(evt.data).UUID;
-      var filejson = modeluuid.substring(0,8)+'.json';
-      uiState.setCurrentModelPath(filejson)
+      //console.log(evt.data)
+      uiState.handleSocketMessage(evt.data);
     };
     // Implement your WebSocket logic here
     return () => {

@@ -2,7 +2,7 @@ import { makeObservable, observable, action } from 'mobx'
 import SceneTreeModel from '../helpers/SceneTreeModel'
 import { AnimationClip } from 'three/src/animation/AnimationClip'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
-import { Group } from 'three'
+import { Object3D, Scene } from 'three'
 
 export class ModelInfo {
     model_name: string | null
@@ -14,9 +14,10 @@ export class ModelInfo {
         this.authors = authors
     }
 }
+
 export class ModelUIState {
     currentModelPath: string
-    scene: Group | null
+    scene: Scene | null
     rotating: boolean
     zooming: boolean
     zoom_inOut: number
@@ -34,6 +35,7 @@ export class ModelUIState {
     cameraLayersMask: number
     currentFrame: number
     modelInfo: ModelInfo = new ModelInfo()
+    modelDictionary: { [key: string]: Object3D } = {}
     constructor(
         currentModelPathState: string,
         rotatingState: boolean,
@@ -84,10 +86,29 @@ export class ModelUIState {
         console.log("Created ModelUIState instance ", currentModelPathState)
     }
 
-    setCurrentModelPath(newState: string) {
+    addModelFromPath(newJsonFile: string) {
         let oldPath = this.currentModelPath
-        if (oldPath !== newState){
-            this.currentModelPath = newState
+        if (oldPath !== newJsonFile){
+            this.currentModelPath = newJsonFile
+            this.sceneTree = null;
+            this.cameraLayersMask = -1
+            this.animating = false
+            this.animationSpeed = 1
+			      this.animations = []
+            this.currentAnimationIndex = -1
+			      this.cameras = []
+            this.currentCameraIndex = -1
+        }
+    }
+    
+    addModelToMap(model_uuid:string, modelGroup: Object3D) {
+        this.modelDictionary[model_uuid] = modelGroup
+    }
+
+    setCurrentModelPath(newPath: string) {
+        let oldPath = this.currentModelPath
+        if (oldPath !== newPath){
+            this.currentModelPath = newPath
             this.sceneTree = null;
             this.cameraLayersMask = -1
             this.animating = false
@@ -154,4 +175,20 @@ export class ModelUIState {
         this.modelInfo.desc = curDescription
         this.modelInfo.authors = curAuth
     }
+    handleSocketMessage(data: string) {
+        var msgOp = JSON.parse(data).Op
+        switch(msgOp){
+            case "OpenModel":
+                var modeluuid = JSON.parse(data).UUID;
+                var filejson = modeluuid.substring(0,8)+'.json';
+                this.addModelFromPath(filejson)
+                break;
+            case "CloseModel":
+                var modeltoClose = JSON.parse(data).UUID;
+                this.modelDictionary[modeltoClose].removeFromParent()
+                break;
+    
+        }
+    }
+
 }

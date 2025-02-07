@@ -19,9 +19,9 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     // useGLTF suspends the component, it literally stops processing
     const sceneRef = useRef<THREE.Scene>(new THREE.Scene());
-    const gltf = useLoader(ObjectLoader, currentModelPath)
-    const computeNormals = (scene: Group)=>{
-      scene.traverse((o) => {
+    const modelGroup = useLoader(ObjectLoader, currentModelPath)
+    const computeNormals = (group: Group)=>{
+      group.traverse((o) => {
         if (o.type === "Mesh"){
           console.log(o);
           (o as Mesh).geometry.computeVertexNormals()
@@ -29,10 +29,11 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
       }
     )
     };
-    computeNormals(gltf as Group);
-    sceneRef.current.add(gltf);
+    computeNormals(modelGroup as Group);
+    sceneRef.current.add(modelGroup);
+    
     const scene = sceneRef.current;
-    const animations = gltf.animations;
+    const animations = modelGroup.animations;
     const { set, gl} = useThree();
     const no_face_cull = (scene: Group)=>{
       if (scene) {
@@ -96,7 +97,13 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     const [colorNodeMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
 
     let curState = useModelContext();
-    //curState.scene = scene;
+    if (curState.scene === null)
+      curState.scene = sceneRef.current;
+    const boundingBox = new THREE.Box3();
+    // Compute the bounding box of the scene
+    boundingBox.setFromObject(curState.scene);
+
+    curState.addModelToMap(modelGroup.uuid, modelGroup);
 
     //const sceneRef = useRef<THREE.Scene>()
     const lightRef = useRef<THREE.DirectionalLight | null>(null)
@@ -279,7 +286,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         setUseEffectRunning(false)
         if (supportControls) {
             curState.setCurrentModelPath(currentModelPath)
-            // curState.setSceneTree(new SceneTreeModel(scene))
+            /// curState.setSceneTree(new SceneTreeModel(scene))
             curState.setAnimationList(animations)
         }
         return () => {
