@@ -232,7 +232,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
               }
               else {
                 let selectedObject = sceneObjectMap.get(curState.selected)!
-                if (selectedObject !== undefined && selectedObject.type === "Mesh") {
+                if (selectedObject !== undefined) {
                     if (objectSelectionBox !== null) {
                       objectSelectionBox?.setFromObject(selectedObject);
                       objectSelectionBox!.visible = true
