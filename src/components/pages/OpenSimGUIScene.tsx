@@ -23,14 +23,14 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     const computeNormals = (group: Group)=>{
       group.traverse((o) => {
         if (o.type === "Mesh"){
-          console.log(o);
           (o as Mesh).geometry.computeVertexNormals()
         }
       }
     )
     };
     computeNormals(modelGroup as Group);
-    sceneRef.current.add(modelGroup);
+    if (sceneRef.current!==null) 
+      sceneRef.current.add(modelGroup);
     
     const scene = sceneRef.current;
     const animations = modelGroup.animations;
@@ -99,11 +99,16 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     let curState = useModelContext();
     if (curState.scene === null)
       curState.scene = sceneRef.current;
-    const boundingBox = new THREE.Box3();
-    // Compute the bounding box of the scene
-    boundingBox.setFromObject(curState.scene);
 
     curState.addModelToMap(modelGroup.uuid, modelGroup);
+    if (curState.getNumberOfOpenModels()>=1) {
+      const boundingBox = new THREE.Box3();
+      // Compute the bounding box of the scene if models are already loaded
+      boundingBox.setFromObject(sceneRef.current);
+      const modelbbox = new THREE.Box3().setFromObject(modelGroup)
+      boundingBox.setFromObject(sceneRef.current);
+      //modelGroup.position.z = boundingBox.max.z+modelbbox.max.z-modelbbox.min.z
+    }
 
     //const sceneRef = useRef<THREE.Scene>()
     const lightRef = useRef<THREE.DirectionalLight | null>(null)

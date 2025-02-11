@@ -3,7 +3,8 @@ import SceneTreeModel from '../helpers/SceneTreeModel'
 import { AnimationClip } from 'three/src/animation/AnimationClip'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
 import { Object3D, Scene } from 'three'
-
+import { CommandFactory } from './commands/CommandFactory'
+import { Command } from './Command'
 export class ModelInfo {
     model_name: string | null
     desc: string | null
@@ -36,6 +37,7 @@ export class ModelUIState {
     currentFrame: number
     modelInfo: ModelInfo = new ModelInfo()
     modelDictionary: { [key: string]: Object3D } = {}
+    nodeDictionary: { [key: string]: Object3D } = {}
     constructor(
         currentModelPathState: string,
         rotatingState: boolean,
@@ -100,11 +102,18 @@ export class ModelUIState {
             this.currentCameraIndex = -1
         }
     }
-    
+
     addModelToMap(model_uuid:string, modelGroup: Object3D) {
         this.modelDictionary[model_uuid] = modelGroup
+        modelGroup.traverse((o) => {
+            this.nodeDictionary[o.uuid] =  o;
+        });
     }
 
+    getNumberOfOpenModels() {
+        return Object.keys(this.modelDictionary).length;
+    }
+    
     setCurrentModelPath(newPath: string) {
         let oldPath = this.currentModelPath
         if (oldPath !== newPath){
@@ -175,20 +184,44 @@ export class ModelUIState {
         this.modelInfo.desc = curDescription
         this.modelInfo.authors = curAuth
     }
+    objectByUuid(uuid: string) {
+        return this.nodeDictionary[uuid]
+    }
+    executeCommandJson(message: string): void {
+        console.log(message);
+        var parsedMessage = JSON.parse(message);
+        this.executeOneCommandJson(parsedMessage);
+        
+    }
+    executeOneCommandJson(cmd: Object) {
+        new CommandFactory().createAndExecuteCommand(this, cmd);
+    }
     handleSocketMessage(data: string) {
-        var msgOp = JSON.parse(data).Op
+        var parsedMessage = JSON.parse(data);
+        var msgOp = parsedMessage.Op
         switch(msgOp){
             case "OpenModel":
-                var modeluuid = JSON.parse(data).UUID;
+                var modeluuid = parsedMessage.UUID;
                 var filejson = modeluuid.substring(0,8)+'.json';
                 this.addModelFromPath(filejson)
                 break;
             case "CloseModel":
-                var modeltoClose = JSON.parse(data).UUID;
+                var modeltoClose = parsedMessage.UUID;
                 this.modelDictionary[modeltoClose].removeFromParent()
                 break;
-    
-        }
+            case "Select" :
+                this.setSelected(parsedMessage.UUID)
+                break;
+            case "Deselect" :
+                this.setSelected("")
+                break;
+            case "execute":
+                this.executeCommandJson(data);
+                break; 
+            case "SetCurrentModel":
+                this.setSelected(parsedMessage.UUID);
+                break;
+            }
     }
 
 }
