@@ -4,7 +4,7 @@ import { AnimationClip } from 'three/src/animation/AnimationClip'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
 import { Object3D, Scene } from 'three'
 import { CommandFactory } from './commands/CommandFactory'
-import { Command } from './Command'
+
 export class ModelInfo {
     model_name: string | null
     desc: string | null
@@ -96,9 +96,9 @@ export class ModelUIState {
             this.cameraLayersMask = -1
             this.animating = false
             this.animationSpeed = 1
-			      this.animations = []
+            this.animations = []
             this.currentAnimationIndex = -1
-			      this.cameras = []
+            this.cameras = []
             this.currentCameraIndex = -1
         }
     }

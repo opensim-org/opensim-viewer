@@ -1,6 +1,6 @@
 
 import {SetValueCommand} from './Commands.js';
-import {SetColorCommand} from './Commands.js';
+//import {SetColorCommand} from './Commands.js';
 import {MultiCmdsCommand} from './Commands.js';
 import {SetScaleCommand} from './Commands.js';
 import {MoveObjectCommand} from './Commands.js';
@@ -22,16 +22,16 @@ CommandFactory.prototype = {
                 var cmd = new SetValueCommand(theEditor);
                 return cmd;
             case 'SetValueCommandMuscle':
-                var cmd = new SetValueCommandMuscle(theEditor);
+                cmd = new SetValueCommandMuscle(theEditor);
                 return cmd;
             case 'SetColorCommand':
-                var cmd = new SetMaterialColorCommand(theEditor);
+                cmd = new SetMaterialColorCommand(theEditor);
                 return cmd;
            case 'SetScaleCommand':
-                var cmd = new SetScaleCommand(theEditor);
+                cmd = new SetScaleCommand(theEditor);
                 return cmd;
             case 'MoveObjectCommand':
-                var cmd = new MoveObjectCommand(theEditor);
+                cmd = new MoveObjectCommand(theEditor);
                 return cmd;
             // case 'RemoveObjectCommand':
             //     var cmd = new RemoveObjectCommand(theEditor);
@@ -40,16 +40,16 @@ CommandFactory.prototype = {
             //     var cmd = new AddObjectCommand(theEditor);
             //     return cmd;
             case 'SetMaterialColorCommand':
-                var cmd = new SetMaterialColorCommand(theEditor);
+                cmd = new SetMaterialColorCommand(theEditor);
                 return cmd;
             case 'SetMaterialValueCommand':
-                var cmd = new SetMaterialValueCommand(theEditor);
+                cmd = new SetMaterialValueCommand(theEditor);
                 return cmd;
             case 'SetPositionCommand':
-                var cmd = new SetPositionCommand(theEditor);
+                cmd = new SetPositionCommand(theEditor);
                 return cmd;
             case 'SetRotationCommand':
-                var cmd = new SetRotationCommand(theEditor);
+                cmd = new SetRotationCommand(theEditor);
                 return cmd;
             default:
                 break;
