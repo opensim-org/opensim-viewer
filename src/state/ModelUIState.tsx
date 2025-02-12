@@ -35,6 +35,7 @@ export class ModelUIState {
     deSelected: string
     cameraLayersMask: number
     currentFrame: number
+    last_message_uuid: string
     modelInfo: ModelInfo = new ModelInfo()
     modelDictionary: { [key: string]: Object3D } = {}
     nodeDictionary: { [key: string]: Object3D } = {}
@@ -60,6 +61,7 @@ export class ModelUIState {
         this.deSelected = ""
         this.cameraLayersMask = -1
         this.currentFrame = 0
+        this.last_message_uuid = ""
         makeObservable(this, {
             rotating: observable,
             currentModelPath: observable,
@@ -104,6 +106,8 @@ export class ModelUIState {
     }
 
     addModelToMap(model_uuid:string, modelGroup: Object3D) {
+        if (modelGroup.uuid in this.modelDictionary)
+            return;
         this.modelDictionary[model_uuid] = modelGroup
         modelGroup.traverse((o) => {
             this.nodeDictionary[o.uuid] =  o;
@@ -199,6 +203,9 @@ export class ModelUIState {
     handleSocketMessage(data: string) {
         var parsedMessage = JSON.parse(data);
         var msgOp = parsedMessage.Op
+        if (parsedMessage.message_uuid === this.last_message_uuid)
+            return;
+        this.last_message_uuid = parsedMessage.message_uuid;
         switch(msgOp){
             case "OpenModel":
                 var modeluuid = parsedMessage.UUID;
@@ -219,9 +226,21 @@ export class ModelUIState {
                 this.executeCommandJson(data);
                 break; 
             case "SetCurrentModel":
-                this.setSelected(parsedMessage.UUID);
+                //this.setSelected(parsedMessage.UUID);
                 break;
-            }
+            case "Frame":
+                var transforms = parsedMessage.Transforms;
+                for (var i = 0; i < transforms.length; i ++ ) {
+                    var oneBodyTransform = transforms[i];
+                    var o = this.objectByUuid( oneBodyTransform.uuid);
+                    //alert("mat before: " + o.matrix);
+                    if (o !== undefined) {
+                        o.matrixAutoUpdate = false;
+                        o.matrix.fromArray(oneBodyTransform.matrix);
+                    }
+                }
+                this.scene?.updateMatrixWorld(true);
+                break;
+        }
     }
-
 }
