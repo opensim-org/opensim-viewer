@@ -106,8 +106,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
       // Compute the bounding box of the scene if models are already loaded
       boundingBox.setFromObject(sceneRef.current);
       const modelbbox = new THREE.Box3().setFromObject(modelGroup)
-      boundingBox.setFromObject(sceneRef.current);
-      //modelGroup.position.z = boundingBox.max.z+modelbbox.max.z-modelbbox.min.z
+      modelGroup.position.z = boundingBox.max.z-modelbbox.min.z
     }
 
     //const sceneRef = useRef<THREE.Scene>()
