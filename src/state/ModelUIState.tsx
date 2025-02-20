@@ -228,6 +228,18 @@ export class ModelUIState {
             case "SetCurrentModel":
                 //this.setSelected(parsedMessage.UUID);
                 break;
+            case "addModelObject":
+                this.executeCommandJson(parsedMessage);
+                let parentUuid = parsedMessage.command.object.object.parent;
+                let cmd = parsedMessage.command;
+                let newUuid = cmd.objectUuid;
+                //editor.moveObject(this.objectByUuid(newUuid), this.objectByUuid(parentUuid));
+                // if (msg.command.bbox !== undefined) {
+                //     // update models bounding box with bbox;
+                //     editor.updateModelBBox(msg.command.bbox);
+                // }
+                this.scene?.updateMatrixWorld(true);
+                break;
             case "Frame":
                 var transforms = parsedMessage.Transforms;
                 for (var i = 0; i < transforms.length; i ++ ) {
