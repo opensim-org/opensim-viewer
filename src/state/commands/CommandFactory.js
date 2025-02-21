@@ -4,8 +4,8 @@ import {SetValueCommand} from './Commands.js';
 import {MultiCmdsCommand} from './Commands.js';
 import {SetScaleCommand} from './Commands.js';
 import {MoveObjectCommand} from './Commands.js';
-//import {RemoveObjectCommand} from './Commands.js';
-//import {AddObjectCommand} from './Commands.js';
+import {RemoveObjectCommand} from './Commands.js';
+import {AddObjectCommand} from './Commands.js';
 import {SetMaterialColorCommand} from './Commands.js';
 import {SetMaterialValueCommand} from './Commands.js';
 import { SetPositionCommand } from './Commands.js';
@@ -33,12 +33,12 @@ CommandFactory.prototype = {
             case 'MoveObjectCommand':
                 cmd = new MoveObjectCommand(theEditor);
                 return cmd;
-            // case 'RemoveObjectCommand':
-            //     var cmd = new RemoveObjectCommand(theEditor);
-            //     return cmd;
-            // case 'AddObjectCommand':
-            //     var cmd = new AddObjectCommand(theEditor);
-            //     return cmd;
+            case 'RemoveObjectCommand':
+                cmd = new RemoveObjectCommand(theEditor);
+                return cmd;
+            case 'AddObjectCommand':
+                cmd = new AddObjectCommand(theEditor);
+                return cmd;
             case 'SetMaterialColorCommand':
                 cmd = new SetMaterialColorCommand(theEditor);
                 return cmd;

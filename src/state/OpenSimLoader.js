@@ -3,6 +3,8 @@ import { Color, Group, InstancedMesh, Sprite, Points, Line, LineLoop, LineSegmen
 import { HemisphereLight, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, AmbientLight, RectAreaLight, LightProbe, OrthographicCamera, PerspectiveCamera } from "three";
 import { CubeTexture, Texture, DataTexture, MaterialLoader} from "three";
 import { InstancedBufferAttribute, Sphere, Box3, Scene, AnimationClip, AxesHelper, ArrowHelper} from "three";
+//import { SkinnedMuscle } from "SkinnedMuscle.js"
+
 import {
 	UVMapping,
 	CubeReflectionMapping,
@@ -706,8 +708,12 @@ parseObject( data, geometries, materials, textures, animations ) {
 		    object = new AxesHelper(data.size);
 		    break;
         case 'Arrow':
-            object = new ArrowHelper(data.dir, data.origin, 1000, data.color);
+            object = new ArrowHelper(data.dir, data.origin, 1.0, data.color);
             break;
+        case 'GeometryPath':
+            // object = new SkinnedMuscle(getGeometry(data.geometry),
+            //     getMaterial( data.material ), data.points, data.active);
+            // break;
 
         default:
 

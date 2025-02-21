@@ -195,10 +195,19 @@ export class ModelUIState {
         console.log(message);
         var parsedMessage = JSON.parse(message);
         this.executeOneCommandJson(parsedMessage);
-        
     }
     executeOneCommandJson(cmd: Object) {
         new CommandFactory().createAndExecuteCommand(this, cmd);
+    }
+    addObject( object: Object3D ): void {
+        console.log(object);
+        if (object.parent !== null && object.parent !== undefined)
+			object.parent.add(object);
+		else
+			this.scene?.add( object );
+    }
+    removeObject( object: Object3D ): void {
+        console.log(object);
     }
     handleSocketMessage(data: string) {
         var parsedMessage = JSON.parse(data);
@@ -229,7 +238,7 @@ export class ModelUIState {
                 //this.setSelected(parsedMessage.UUID);
                 break;
             case "addModelObject":
-                this.executeCommandJson(parsedMessage);
+                this.executeCommandJson(data);
                 let parentUuid = parsedMessage.command.object.object.parent;
                 let cmd = parsedMessage.command;
                 let newUuid = cmd.objectUuid;

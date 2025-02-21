@@ -1,6 +1,6 @@
 import { Command } from '../Command.js';
 
-//import { OpenSimLoader } from '../OpenSimLoader.js';
+import { OpenSimLoader } from '../OpenSimLoader.js';
 
 /**
  * @param editor Editor
@@ -70,8 +70,8 @@ class RemoveObjectCommand extends Command {
 
 		if ( this.object === undefined ) {
 
-			// var loader = new OpenSimLoader();
-			// this.object = loader.parse( json.object );
+			var loader = new OpenSimLoader();
+			this.object = loader.parse( json.object );
 
 		}
 
