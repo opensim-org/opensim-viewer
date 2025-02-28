@@ -3,7 +3,7 @@ import { Color, Group, InstancedMesh, Sprite, Points, Line, LineLoop, LineSegmen
 import { HemisphereLight, LoaderUtils, FileLoader, SpotLight, PointLight, DirectionalLight, AmbientLight, RectAreaLight, LightProbe, OrthographicCamera, PerspectiveCamera } from "three";
 import { CubeTexture, Texture, DataTexture, MaterialLoader} from "three";
 import { InstancedBufferAttribute, Sphere, Box3, Scene, AnimationClip, AxesHelper, ArrowHelper} from "three";
-//import { SkinnedMuscle } from "SkinnedMuscle.js"
+import { SkinnedMuscle } from "./SkinnedMuscle";
 
 import {
 	UVMapping,
@@ -26,12 +26,6 @@ import {
 } from "three";
 
 class OpenSimLoader extends ObjectLoader {
-
-constructor( manager ) {
-
-    super( manager );
-
-}
 
 load( url, onLoad, onProgress, onError ) {
 
@@ -711,9 +705,9 @@ parseObject( data, geometries, materials, textures, animations ) {
             object = new ArrowHelper(data.dir, data.origin, 1.0, data.color);
             break;
         case 'GeometryPath':
-            // object = new SkinnedMuscle(getGeometry(data.geometry),
-            //     getMaterial( data.material ), data.points, data.active);
-            // break;
+            object = new SkinnedMuscle(getGeometry(data.geometry),
+                getMaterial( data.material ), data.points, data.active);
+            break;
 
         default:
 

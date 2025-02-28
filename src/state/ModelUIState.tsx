@@ -3,7 +3,9 @@ import SceneTreeModel from '../helpers/SceneTreeModel'
 import { AnimationClip } from 'three/src/animation/AnimationClip'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
 import { Object3D, Scene } from 'three'
+import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
 import { CommandFactory } from './commands/CommandFactory'
+import { saveAs } from 'file-saver';
 
 export class ModelInfo {
     model_name: string | null
@@ -188,11 +190,26 @@ export class ModelUIState {
         this.modelInfo.desc = curDescription
         this.modelInfo.authors = curAuth
     }
+    exportScene(): void {
+        const exporter = new GLTFExporter();
+        exporter.parse(
+            this.objectByUuid(this.selected),
+            (gltf) => {
+              const output = JSON.stringify(gltf, null, 2);
+              const blob = new Blob([output], { type: 'application/json' });
+              saveAs(blob, 'scene.gltf');
+              // You can save the output to a file or handle it as needed
+            },
+            (error) => {
+              console.error('An error occurred during parsing', error);
+            }
+          );
+    }
     objectByUuid(uuid: string) {
         return this.nodeDictionary[uuid]
     }
     executeCommandJson(message: string): void {
-        console.log(message);
+        //console.log(message);
         var parsedMessage = JSON.parse(message);
         this.executeOneCommandJson(parsedMessage);
     }
@@ -208,6 +225,12 @@ export class ModelUIState {
     }
     removeObject( object: Object3D ): void {
         console.log(object);
+    }
+    updatePath( pathUpdateJson: JSON ): void {
+        console.log(pathUpdateJson);
+        // var pathObject = this.objectByUuid(pathUpdateJson.uuid);
+		// if (pathObject !== undefined)
+		// 	pathObject.setColor(pathUpdateJson.color);
     }
     handleSocketMessage(data: string) {
         var parsedMessage = JSON.parse(data);
@@ -258,6 +281,12 @@ export class ModelUIState {
                     if (o !== undefined) {
                         o.matrixAutoUpdate = false;
                         o.matrix.fromArray(oneBodyTransform.matrix);
+                    }
+                }
+                var paths = parsedMessage.paths;
+                if (paths !== undefined){
+                    for (var p=0; p < paths.length; p++ ) {
+                        this.updatePath(paths[p]);
                     }
                 }
                 this.scene?.updateMatrixWorld(true);

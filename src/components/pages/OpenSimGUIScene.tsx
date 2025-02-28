@@ -310,16 +310,20 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     return <>
     <primitive object={sceneRef.current} ref={sceneRef}
       onPointerDown={(e: any) => curState.setSelected(e.object.uuid)}
-      onPointerMissed={() => curState.setSelected("")}/>
-      <directionalLight ref={lightRef} position={[0.5, 1.5, -0.5]} 
-          intensity={viewerState.lightIntensity} color={viewerState.lightColor}
-        castShadow={true} 
-        shadow-camera-far={8}
-        shadow-camera-left={-2}
-        shadow-camera-right={2}
-        shadow-camera-top={2}
-        shadow-camera-bottom={-2}/>
-      <spotLight visible={viewerState.spotLight} ref={spotlightRef} position={[0.5, 1.5, -.05]} color={viewerState.lightColor} penumbra={0.2} />
+      onPointerMissed={() => curState.setSelected("")}
+      />
+
+        <directionalLight ref={lightRef} position={[0.5, 1.5, -0.5]} 
+            intensity={viewerState.lightIntensity} color={viewerState.lightColor}
+          castShadow={true} 
+          shadow-camera-far={8}
+          shadow-camera-left={-2}
+          shadow-camera-right={2}
+          shadow-camera-top={2}
+          shadow-camera-bottom={-2}/>
+        <axesHelper />
+        <spotLight visible={viewerState.spotLight} ref={spotlightRef} position={[0.5, 1.5, -.05]} color={viewerState.lightColor} penumbra={0.2} />
+
       </>
 }
 
