@@ -16,20 +16,20 @@ class SkinnedMuscle extends SkinnedMesh {
         // When off only caps are shown, when on, user defined points are shown (for editing/picking)
         this.showInnerPathPoints = false;
 
-        for (var ij=0; ij< 2*points.length-2; ij++) {
-            var bone = new Bone();
+        for (let ij=0; ij< 2*points.length-2; ij++) {
+            let bone = new Bone();
             bone.position.set(0, 0, 0);
             bone.quaternion.set(0, 0, 0, 1);
             bone.ppt = this.pathpoints[Math.floor(ij/2)];
             this.bones.push(bone);
         }
 
-        var numVerticesPerLevel = geometry.attributes.position.count / (2*points.length-2);
+        const numVerticesPerLevel = geometry.attributes.position.count / (2*points.length-2);
         const position = geometry.attributes.position;
         this.skinIndices = [];
         this.skinWeights = [];
-        for ( var ii = 0; ii < position.count; ii++ ) {
-            var skinIndex = Math.floor(ii / numVerticesPerLevel);
+        for ( let ii = 0; ii < position.count; ii++ ) {
+            const skinIndex = Math.floor(ii / numVerticesPerLevel);
             //var pptIndex = Math.floor((skinIndex+1)/2);
             //var activePoint = this.actives[pptIndex];
             this.skinIndices.push(skinIndex, 0, 0, 0);
@@ -44,7 +44,7 @@ class SkinnedMuscle extends SkinnedMesh {
         material.skinning = true;
         //SkinnedMesh.call( this, geometry, material );
         this.skeleton = new Skeleton( this.bones );
-        for (var j = 0; j < this.bones.length; j++)
+        for (let j = 0; j < this.bones.length; j++)
             this.add( this.skeleton.bones[ j ]);
         //this.add( skeleton.bones[ 0 ]);
         super.bind( this.skeleton );
@@ -70,14 +70,15 @@ class SkinnedMuscle extends SkinnedMesh {
         //console.warn("Num bones in updateMatrixWorld: " + bones.length);
         if (this.parent === null)
             return;
+        //super.updateMatrixWorld(force);
         let scene = this.parent.parent.parent;
         if (this.pathpointObjects.length !== this.pathpoints.length){
             let b = 0;
-            for ( var p=0; p < this.pathpoints.length; p++) {
-                let pptObject1 = scene.getObjectByProperty('uuid',this.pathpoints[p]);
+            for ( let p=0; p < this.pathpoints.length; p++) {
+                const pptObject1 = scene.getObjectByProperty('uuid',this.pathpoints[p]);
                 if (this.firstPointMaterial === undefined && pptObject1 !== undefined && p === 0)
                     this.firstPointMaterial = pptObject1.material;
-                let pptObject2 = scene.getObjectByProperty('uuid', this.pathpoints[p+1]);
+                const pptObject2 = scene.getObjectByProperty('uuid', this.pathpoints[p+1]);
 
                 if (pptObject1 !== undefined) {
                 // add every pathpoint to the list of PathPoint objects
@@ -95,45 +96,47 @@ class SkinnedMuscle extends SkinnedMesh {
         // Compute reverse transform from Ground to Scene (usually this's inverse translation)
         // This is necessary since the blending to compute vertices adds offset twice
         if (this.parent === null) return; // construction
-        var mat = new Matrix4().copy(this.parent.matrixWorld).invert();
-        var vec = new Vector3().setFromMatrixPosition(mat);
+        const mat = new Matrix4().copy(this.parent.matrixWorld).invert();
+        const vec = new Vector3().setFromMatrixPosition(mat);
 
-        // Variables for the two points of a given path segement, the axis to
+        // Variables for the two points of a given path segment, the axis to
         // be rotated (from) and the vector between them (to)
-        var pt1 = new Vector3();
-        var pt2 = new Vector3();
-        var vFrom = new Vector3(0, -1, 0);
-        var vTo = new Vector3();
+        const pt1 = new Vector3();
+        const pt2 = new Vector3();
+        const vFrom = new Vector3(0, -1, 0);
 
         // cycle through each segement defined by two PathPoints, pt1 and pt2
         // and align the bones (caps of each segment) to be alinged with
         // the vector connecting them.
-        var b = 0; // bone (of SkinnedMuscle) index
-        for (var px = 0; px < this.pathpoints.length-1; px++) {
-            var thisPathpointObject = this.pathpointObjects[px];
-            var nextPathpointObject = this.pathpointObjects[px+1];
+        let nb = 0; // bone (of SkinnedMuscle) index
+        for (let px = 0; px < this.pathpoints.length-1; px++) {
+            const thisPathpointObject = this.pathpointObjects[px];
+            const nextPathpointObject = this.pathpointObjects[px+1];
             //console.log("pathpoints in world", thisPathpointObject.matrixWorld, nextPathpointObject.matrixWorld);
             if(thisPathpointObject !== undefined) {
                 pt1.setFromMatrixPosition(thisPathpointObject.matrixWorld);
                 pt2.setFromMatrixPosition(nextPathpointObject.matrixWorld);
 
-                vTo = pt2.clone();
+                const vTo = pt2.clone();
                 vTo.sub(pt1).normalize();
 
                 // bones are positioned on the pathpoints
-                this.bones[b].position.setFromMatrixPosition(thisPathpointObject.matrixWorld);
-                this.bones[b].position.add(vec);
+                this.bones[nb].position.setFromMatrixPosition(thisPathpointObject.matrixWorld);
+                this.bones[nb].position.add(vec);
                 // console.log("boneb in world", bones[b].position);
                 // the orientation of the bone is updated to have its Y-axis pointed
                 // back along the vector from pt1 to pt2
-                this.bones[b].quaternion.setFromUnitVectors(vFrom, vTo);
-                
-                this.bones[++b].position.setFromMatrixPosition(nextPathpointObject.matrixWorld);
+                this.bones[nb].quaternion.setFromUnitVectors(vFrom, vTo);
+                this.bones[nb].updateMatrixWorld(true);
+                nb++;
+                this.bones[nb].position.setFromMatrixPosition(nextPathpointObject.matrixWorld);
                 // the orientation of the bone is updated to have its Y-axis pointed
                 // back along the vector from pt1 to pt2
-                this.bones[b].position.add(vec);
+                this.bones[nb].position.add(vec);
                 // console.log("boneb+1 in world", bones[b].position);
-                this.bones[b++].quaternion.setFromUnitVectors(vFrom, vTo);
+                this.bones[nb].quaternion.setFromUnitVectors(vFrom, vTo);
+                this.bones[nb].updateMatrixWorld(true);
+                nb++;
             }
         }
         //this.skeleton.update();
@@ -143,14 +146,14 @@ class SkinnedMuscle extends SkinnedMesh {
     setVisible( newValue) {
         this.visible = newValue;
         // Now repeat for the inner pathpoints under this muscle
-        for (var p = 0; p < this.pathpoints.length; p++) {
+        for (let p = 0; p < this.pathpoints.length; p++) {
             if (this.pathpointObjects[p].opensimType!=="ComputedPathPoint")
                 this.pathpointObjects[p].visible = newValue;
         }
     }
 
     togglePathPoints(newValue) {
-        for (var p = 0; p < this.pathpoints.length; p++) {
+        for (let p = 0; p < this.pathpoints.length; p++) {
             if (this.actives[p])
                 this.pathpointObjects[p].visible = newValue;
         }

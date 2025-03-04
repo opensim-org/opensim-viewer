@@ -6,7 +6,7 @@ import { Object3D, Scene } from 'three'
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
 import { CommandFactory } from './commands/CommandFactory'
 import { saveAs } from 'file-saver';
-
+import { SkinnedMuscle } from './SkinnedMuscle'
 export class ModelInfo {
     model_name: string | null
     desc: string | null
@@ -218,19 +218,20 @@ export class ModelUIState {
     }
     addObject( object: Object3D ): void {
         console.log(object);
-        if (object.parent !== null && object.parent !== undefined)
-			object.parent.add(object);
-		else
-			this.scene?.add( object );
+        if (object.parent !== null && object.parent !== undefined) 
+            object.parent.add(object)
+        else 
+            this.scene?.add(object)
     }
     removeObject( object: Object3D ): void {
         console.log(object);
     }
-    updatePath( pathUpdateJson: JSON ): void {
-        console.log(pathUpdateJson);
-        // var pathObject = this.objectByUuid(pathUpdateJson.uuid);
-		// if (pathObject !== undefined)
-		// 	pathObject.setColor(pathUpdateJson.color);
+    updatePath( pathUpdateJson: string ): void {
+        //console.log(pathUpdateJson);
+        var parsedMessage = JSON.parse(pathUpdateJson)
+        const pathObject = this.objectByUuid(parsedMessage['uuid']);
+        if (pathObject !== undefined)
+           (pathObject as SkinnedMuscle).setColor(parsedMessage['color']);
     }
     handleSocketMessage(data: string) {
         var parsedMessage = JSON.parse(data);
@@ -286,7 +287,7 @@ export class ModelUIState {
                 var paths = parsedMessage.paths;
                 if (paths !== undefined){
                     for (var p=0; p < paths.length; p++ ) {
-                        this.updatePath(paths[p]);
+                        this.updatePath(JSON.stringify(paths[p]));
                     }
                 }
                 this.scene?.updateMatrixWorld(true);

@@ -3,13 +3,14 @@ import { useFrame, useLoader, useThree } from '@react-three/fiber'
 import * as THREE from 'three';
 
 import { useEffect, useRef, useState } from 'react'
-import { AnimationMixer, BoxHelper, Color, Group, Mesh, Object3D} from 'three'
+import { AnimationMixer, Color, Group, Mesh, Object3D} from 'three'
 import { observer } from 'mobx-react'
 
 import { useModelContext } from '../../state/ModelUIStateContext'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
 import viewerState from '../../state/ViewerState'
 import { OpenSimLoader } from '../../state/OpenSimLoader';
+
 
 interface OpenSimSceneProps {
     currentModelPath: string,
@@ -90,7 +91,6 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     }
     // eslint-disable-next-line no-mixed-operators
     const [sceneObjectMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
-    const [objectSelectionBox, setObjectSelectionBox] = useState<BoxHelper | null>(new BoxHelper(scene));
     const [useEffectRunning, setUseEffectRunning] = useState<boolean>(false)
     const [animationIndex, setAnimationIndex] = useState<number>(-1)
     const [startTime, setStartTime] = useState<number>(0)
@@ -106,13 +106,15 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
       const boundingBox = new THREE.Box3();
       // Compute the bounding box of the scene if models are already loaded
       boundingBox.setFromObject(sceneRef.current);
-      const modelbbox = new THREE.Box3().setFromObject(modelGroup!)
-      modelGroup!.position.z = boundingBox.max.z-modelbbox.min.z
+      // const modelbbox = new THREE.Box3().setFromObject(modelGroup!)
+      // modelGroup!.position.z = boundingBox.max.z-modelbbox.min.z
     }
 
     //const sceneRef = useRef<THREE.Scene>()
     const lightRef = useRef<THREE.DirectionalLight | null>(null)
     const spotlightRef = useRef<THREE.SpotLight>(null)
+    const csRef = useRef<THREE.Group>(null)
+    const bboxRef = useRef<THREE.BoxHelper>(null)
     const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
 
 
@@ -201,11 +203,6 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           }
           }
       )
-
-      if (objectSelectionBox !== null) {
-        objectSelectionBox.visible = false;
-        scene.add(objectSelectionBox!);
-      }
     }
 
     // Make sure mixers match animations
@@ -227,20 +224,19 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           if (curState !== undefined) {
             if (supportControls ) {
               if (curState.selected === "") {
-                if (objectSelectionBox !== null)
-                    objectSelectionBox!.visible = false
+                bboxRef.current!.visible = false
               }
               else {
                 let selectedObject = sceneObjectMap.get(curState.selected)!
                 if (selectedObject !== undefined && selectedObject.type !== 'BoxHelper') {
-                    if (objectSelectionBox !== null) {
-                      objectSelectionBox?.setFromObject(selectedObject);
-                      objectSelectionBox!.visible = true
+                    if (bboxRef.current !== null) {
+                      bboxRef.current.setFromObject(selectedObject);
+                      bboxRef.current!.visible = true
                   }
                 }
               }
             }
-
+            csRef.current!.visible =  curState.showGlobalFrame
             if (curState.currentAnimationIndex !== animationIndex) {
               const newAnimationIndex = curState.currentAnimationIndex
               const oldIndex  = animationIndex
@@ -295,35 +291,45 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             curState.setAnimationList(animations)
         }
         return () => {
-          if (objectSelectionBox !== null){
-            scene.remove(objectSelectionBox)
-            setObjectSelectionBox(null);
-            curState.setSelected("")
-          }
+          curState.setSelected("")
           sceneObjectMap.clear();
           setUseEffectRunning(true)
         };
-      }, [scene, animations, supportControls, currentModelPath, curState, sceneObjectMap, objectSelectionBox])
+      }, [scene, animations, supportControls, currentModelPath, curState, sceneObjectMap])
 
     
     // By the time we're here the model is guaranteed to be available
     return <>
-    <primitive object={sceneRef.current} ref={sceneRef}
+    <scene ref={sceneRef}
       onPointerDown={(e: any) => curState.setSelected(e.object.uuid)}
       onPointerMissed={() => curState.setSelected("")}
       />
-
-        <directionalLight ref={lightRef} position={[0.5, 1.5, -0.5]} 
-            intensity={viewerState.lightIntensity} color={viewerState.lightColor}
-          castShadow={true} 
-          shadow-camera-far={8}
-          shadow-camera-left={-2}
-          shadow-camera-right={2}
-          shadow-camera-top={2}
-          shadow-camera-bottom={-2}/>
-        <axesHelper />
-        <spotLight visible={viewerState.spotLight} ref={spotlightRef} position={[0.5, 1.5, -.05]} color={viewerState.lightColor} penumbra={0.2} />
-
+      <directionalLight ref={lightRef} position={[0.5, 1.5, -0.5]} 
+          intensity={viewerState.lightIntensity} color={viewerState.lightColor}
+        castShadow={true}
+        shadow-camera-far={8}
+        shadow-camera-left={-2}
+        shadow-camera-right={2}
+        shadow-camera-top={2}
+        shadow-camera-bottom={-2}/>
+      <group ref={csRef}>
+      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.2]}>
+          <cylinderGeometry args={[.005, .005, 0.4, 32]}/>
+          <meshStandardMaterial color="blue" />
+        </mesh>
+        <mesh rotation={[0, 0, 0]}  position={[0, 0.2, 0]}>
+          <cylinderGeometry args={[.005, .005, 0.4, 32]}/>
+          <meshStandardMaterial color="green" />
+        </mesh>
+        <mesh rotation={[0, 0, Math.PI / 2]}  position={[0.2, 0, 0]}>
+          <cylinderGeometry args={[.005, .005, 0.4, 32]}/>
+          <meshStandardMaterial color="red" />
+        </mesh>
+      </group>
+      <boxHelper ref={bboxRef} visible={false}/>
+      <spotLight visible={viewerState.spotLight} 
+              ref={spotlightRef} position={[0.5, 1.5, -.05]} 
+              color={viewerState.lightColor} penumbra={0.2} />
       </>
 }
 

@@ -122,12 +122,13 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     sceneFolder.addColor(viewerState, 'backgroundColor').onChange(
       function(v: any){viewerState.setBackgroundColor(v); coloRef.current?.copy(v);}
     );
+    sceneFolder.add(uiState, 'showGlobalFrame')
     const floorFolder = gui.addFolder("Floor");
     floorFolder.add(viewerState, 'floorHeight', -2, 2, .01).name("Height")
     floorFolder.add(viewerState, 'floorVisible')
-    floorFolder.add(viewerState, 'floorTextureFile', { 'tile':0, 'wood-floor':1, 'Cobblestone':2, 'textureStone':3, 'grassy':4}).name("Texture").onChange(
-      function(v: any){viewerState.setFloorTextureIndex(v)}
-    );
+    // floorFolder.add(viewerState, 'floorTextureFile', { 'tile':0, 'wood-floor':1, 'Cobblestone':2, 'textureStone':3, 'grassy':4}).name("Texture").onChange(
+    //   function(v: any){viewerState.setFloorTextureIndex(v)}
+    // );
     const lightFolder = gui.addFolder("Lights");
     lightFolder.add(viewerState, 'lightIntensity', 0, 2, .05).name("Intensity")
     lightFolder.addColor(viewerState, 'lightColor').name("Color")
@@ -210,7 +211,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   <GizmoViewport labelColor="white" axisHeadScale={1} />
                 </GizmoHelper>
                 <OpenSimControl/>
-                <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
                 <OpenSimFloor />
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
               </Canvas>
