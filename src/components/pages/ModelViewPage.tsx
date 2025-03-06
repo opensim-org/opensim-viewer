@@ -134,8 +134,13 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     lightFolder.addColor(viewerState, 'lightColor').name("Color")
     lightFolder.add(viewerState, 'spotLight')
 
-    const exportFolder = gui.addFolder("Export");
-    exportFolder.add(uiState, 'exportScene')
+    const cameraFolder = gui.addFolder("Camera");
+    //cameraFolder.add(uiState, 'useOrbitControl');
+    const environmentFolder = gui.addFolder("Environment");
+    environmentFolder.add(uiState, 'exportScene')
+    // environmentFolder.add(uiState, 'exportEnvironment')
+    // environmentFolder.add(uiState, 'importEnvironment')
+    // environmentFolder.add(uiState, 'replaceEnvironment')
     return () => {
         gui.destroy()
       }
@@ -200,7 +205,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   //   theme.palette.mode === "dark" ? ["#151518"] : ["#cccccc"]
                   // }
                 />
-                <Bounds fit clip observe>
+                <Bounds observe>
                   <OpenSimGUIScene 
                     currentModelPath={uiState.currentModelPath}
                     supportControls={true}

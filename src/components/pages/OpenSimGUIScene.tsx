@@ -301,8 +301,6 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     // By the time we're here the model is guaranteed to be available
     return <>
     <scene ref={sceneRef}
-      onPointerDown={(e: any) => curState.setSelected(e.object.uuid)}
-      onPointerMissed={() => curState.setSelected("")}
       />
       <directionalLight ref={lightRef} position={[0.5, 1.5, -0.5]} 
           intensity={viewerState.lightIntensity} color={viewerState.lightColor}

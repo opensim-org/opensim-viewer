@@ -37,6 +37,7 @@ export class ModelUIState {
     deSelected: string
     selectedObject: Object3D | null
     draggable: boolean
+    useOrbitControl: boolean
     cameraLayersMask: number
     currentFrame: number
     last_message_uuid: string
@@ -65,6 +66,7 @@ export class ModelUIState {
         this.deSelected = ""
         this.selectedObject = null
         this.draggable = false
+        this.useOrbitControl = true
         this.cameraLayersMask = -1
         this.currentFrame = 0
         this.last_message_uuid = ""
@@ -92,7 +94,8 @@ export class ModelUIState {
             currentFrame: observable,
             setCurrentFrame: action,
             currentCameraIndex: observable,
-            setCurrentCameraIndex: action
+            setCurrentCameraIndex: action,
+            useOrbitControl: observable,
         })
         console.log("Created ModelUIState instance ", currentModelPathState)
     }
@@ -181,6 +184,10 @@ export class ModelUIState {
             this.selected = uuid
             this.selectedObject = this.objectByUuid(uuid)
             this.draggable = true
+        }
+        if (uuid==="") {
+            this.selectedObject = null
+            this.draggable = false
         }
     }
     getLayerVisibility(layerToTest: number) {

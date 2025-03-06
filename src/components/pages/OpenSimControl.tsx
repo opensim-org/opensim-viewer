@@ -40,20 +40,14 @@ const OpenSimControl = () => {
                     camera.layers.disable(layernumber)
             }
         }
-        if (curState.selected!==null){
-            const selectedObj = curState.objectByUuid(curState.selected)
-            if (transformRef.current) {
-                //transformRef.current.update();
-                console.log("selected")
-              }
-            //transformRef.update();
-        }
       })
     //console.log(viewerState.rotating);
     return <>
         {curState.draggable ?
             (<TransformControls object={curState.selectedObject!} />) :
-            (<OrbitControls autoRotate autoRotateSpeed={curState.rotating ? 2 : 0.0} makeDefault  />)
+            curState.useOrbitControl ?
+            (<OrbitControls autoRotate autoRotateSpeed={curState.rotating ? 2 : 0.0} makeDefault  />):
+            (<CameraControls makeDefault />)
         }
     </>
 }
