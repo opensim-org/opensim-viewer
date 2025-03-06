@@ -35,6 +35,8 @@ export class ModelUIState {
     currentCameraIndex: number
     selected: string
     deSelected: string
+    selectedObject: Object3D | null
+    draggable: boolean
     cameraLayersMask: number
     currentFrame: number
     last_message_uuid: string
@@ -61,6 +63,8 @@ export class ModelUIState {
         this.currentCameraIndex = -1
         this.selected = ""
         this.deSelected = ""
+        this.selectedObject = null
+        this.draggable = false
         this.cameraLayersMask = -1
         this.currentFrame = 0
         this.last_message_uuid = ""
@@ -72,6 +76,7 @@ export class ModelUIState {
             setRotating: action,
             setCurrentModelPath: action,
             setZooming: action,
+            draggable: observable,
             setShowGlobalFrame: action,
             animationSpeed: observable,
             setAnimationList: observable,
@@ -174,6 +179,8 @@ export class ModelUIState {
         if (this.selected !== uuid) {
             this.deSelected = this.selected
             this.selected = uuid
+            this.selectedObject = this.objectByUuid(uuid)
+            this.draggable = true
         }
     }
     getLayerVisibility(layerToTest: number) {
@@ -259,7 +266,7 @@ export class ModelUIState {
                 this.executeCommandJson(data);
                 break; 
             case "SetCurrentModel":
-                //this.setSelected(parsedMessage.UUID);
+                this.setSelected(parsedMessage.UUID);
                 break;
             case "addModelObject":
                 this.executeCommandJson(data);
@@ -274,6 +281,7 @@ export class ModelUIState {
                 this.scene?.updateMatrixWorld(true);
                 break;
             case "Frame":
+                this.setSelected("")
                 var transforms = parsedMessage.Transforms;
                 for (var i = 0; i < transforms.length; i ++ ) {
                     var oneBodyTransform = transforms[i];

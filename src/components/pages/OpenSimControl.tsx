@@ -1,4 +1,4 @@
-import { OrbitControls, CameraControls } from '@react-three/drei'
+import { OrbitControls, TransformControls, CameraControls, TransformControlsProps } from '@react-three/drei'
 import { observer } from 'mobx-react'
 import { useModelContext } from '../../state/ModelUIStateContext';
 
@@ -13,8 +13,8 @@ const OpenSimControl = () => {
         camera,
     } = useThree()
 
-    const ref = useRef<CameraControls>();
     const curState = useModelContext();
+    const transformRef = useRef<typeof TransformControls>();
 
     useFrame((_, delta) => {
         if (curState.zooming){
@@ -40,11 +40,21 @@ const OpenSimControl = () => {
                     camera.layers.disable(layernumber)
             }
         }
+        if (curState.selected!==null){
+            const selectedObj = curState.objectByUuid(curState.selected)
+            if (transformRef.current) {
+                //transformRef.current.update();
+                console.log("selected")
+              }
+            //transformRef.update();
+        }
       })
     //console.log(viewerState.rotating);
     return <>
-        <OrbitControls autoRotate autoRotateSpeed={curState.rotating ? 2 : 0.0} makeDefault  />
-        <CameraControls enabled={false} ref={(ref as unknown) as Ref<CameraControls> | undefined}/>
+        {curState.draggable ?
+            (<TransformControls object={curState.selectedObject!} />) :
+            (<OrbitControls autoRotate autoRotateSpeed={curState.rotating ? 2 : 0.0} makeDefault  />)
+        }
     </>
 }
 
