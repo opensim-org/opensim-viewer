@@ -4,7 +4,6 @@ import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import { Canvas } from "@react-three/fiber";
 import {
-  Bounds,
   Environment,
   GizmoHelper,
   GizmoViewport,
@@ -23,7 +22,6 @@ import { MyModelContext } from "../../state/ModelUIStateContext";
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { useParams } from 'react-router-dom';
 
-import OpenSimFloor from "./OpenSimFloor";
 import VideoRecorder from "../Components/VideoRecorder"
 import { ModelInfo } from '../../state/ModelUIState';
 
@@ -205,18 +203,15 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   //   theme.palette.mode === "dark" ? ["#151518"] : ["#cccccc"]
                   // }
                 />
-                <Bounds observe>
                   <OpenSimGUIScene 
                     currentModelPath={uiState.currentModelPath}
                     supportControls={true}
                   />
-                </Bounds>
                 <Environment files="/builtin/potsdamer_platz_1k.hdr" />
                 <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
                   <GizmoViewport labelColor="white" axisHeadScale={1} />
                 </GizmoHelper>
                 <OpenSimControl/>
-                <OpenSimFloor />
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
               </Canvas>
               <BottomBar

@@ -262,6 +262,7 @@ export class ModelUIState {
             case "CloseModel":
                 var modeltoClose = parsedMessage.UUID;
                 this.modelDictionary[modeltoClose].removeFromParent()
+                delete this.modelDictionary[modeltoClose]
                 break;
             case "Select" :
                 this.setSelected(parsedMessage.UUID)

@@ -29,6 +29,9 @@ class OpenSimLoader extends ObjectLoader {
 
 load( url, onLoad, onProgress, onError ) {
 
+    if (url==='')
+        return;
+    
     const scope = this;
 
     const path = ( this.path === '' ) ? LoaderUtils.extractUrlBase( url ) : this.path;
