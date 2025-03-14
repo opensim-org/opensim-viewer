@@ -52,11 +52,13 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     //computeNormals(modelGroup as Group);
     const animations = modelGroup!.animations;
 
+    // Create layers so that draggable objects are on a few layers so intersections
+    // can be filtered easily.
     const LayerMap = new Map([
-      ["Mesh", 1],
+      ["Mesh", 1],  // selectable
       ["Force", 2],
       ["World", 3],
-      ["Marker", 4], 
+      ["Marker", 4], // selectable, draggable
       ["ExpMarker", 5],
       ["expForce", 6],
       ["WrapSphere", 7],
@@ -66,7 +68,10 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
       ["wrapObject", 7],
       ["ContactSphere", 8],
       ["ContactMesh", 8],
-      ["ContactHalfSpace", 8]
+      ["ContactHalfSpace", 8],
+      ["Model", 9], // draggable
+      ["Ground", 10],
+      ["PathPoint", 11] // selectable, draggable
     ]);
     
     const mapObjectToLayer = (obj: Object3D)=>{
@@ -326,7 +331,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
               color={viewerState.lightColor} penumbra={0.2} />
         <OpenSimFloor />
       </group>
-      <group name='OpenSimModels' ref={modelsRef} />
+      <group name='OpenSimModels' ref={modelsRef} onPointerDown={handleClick}/>
       <group name='WCS' ref={csRef}>
         <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.2]}>
             <cylinderGeometry args={[.005, .005, 0.4, 32]}/>

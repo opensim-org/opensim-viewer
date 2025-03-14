@@ -44,6 +44,9 @@ export class ModelUIState {
     modelInfo: ModelInfo = new ModelInfo()
     modelDictionary: { [key: string]: Object3D } = {}
     nodeDictionary: { [key: string]: Object3D } = {}
+    selectableTypes: string[] = []
+    draggableTypes: string[] = []
+    socket: WebSocket|null = null
     constructor(
         currentModelPathState: string,
         rotatingState: boolean,
@@ -70,6 +73,8 @@ export class ModelUIState {
         this.cameraLayersMask = -1
         this.currentFrame = 0
         this.last_message_uuid = ""
+        this.selectableTypes = ["Marker", "PathPoint", "Model", "Mesh"]
+        this.draggableTypes = ["Marker", "PathPoint", "Model"]
         makeObservable(this, {
             rotating: observable,
             currentModelPath: observable,
@@ -183,7 +188,10 @@ export class ModelUIState {
             this.deSelected = this.selected
             this.selected = uuid
             this.selectedObject = this.objectByUuid(uuid)
-            this.draggable = true
+            if (this.selectedObject){
+                 this.draggable = this.selectedObject.userData !== undefined &&
+                 this.draggableTypes.includes(this.selectedObject.userData.opensimType)
+            }
         }
         if (uuid==="") {
             this.selectedObject = null
@@ -247,6 +255,9 @@ export class ModelUIState {
         if (pathObject !== undefined)
            (pathObject as SkinnedMuscle).setColor(parsedMessage['color']);
     }
+    setSocketHandle(socket: WebSocket) {
+        this.socket = socket;
+    }
     handleSocketMessage(data: string) {
         var parsedMessage = JSON.parse(data);
         var msgOp = parsedMessage.Op
@@ -309,5 +320,9 @@ export class ModelUIState {
                 this.scene?.updateMatrixWorld(true);
                 break;
         }
+    }
+    sendText(json: string) {
+        console.log(json);
+        this.socket!.send(json);
     }
 }

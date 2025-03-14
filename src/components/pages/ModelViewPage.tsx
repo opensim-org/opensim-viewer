@@ -107,6 +107,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     socket.onmessage = function(evt) { 
       //console.log(evt.data)
       uiState.handleSocketMessage(evt.data);
+      uiState.setSocketHandle(socket);
     };
     // Implement your WebSocket logic here
     return () => {

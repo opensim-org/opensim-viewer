@@ -43,10 +43,29 @@ const OpenSimControl = () => {
             }
         }
        })
+    function transformSelected(e?: THREE.Event | undefined): void {
+        console.log(e)
+        console.log(e!.type);
+        console.log(e!.target!.object)
+    }
+
+    function completeTransform(e?: THREE.Event | undefined): void {
+        console.log(e)
+        console.log(e!.type);
+        console.log(e!.target!.object)
+        curState.draggable = false;
+        var json = JSON.stringify({
+                                    "event": "translate",
+                                    "uuid": e!.target!.object.uuid,
+                                    "location": e!.target!.object.position
+                                });
+        curState.sendText(json);
+    }
+
     //console.log(viewerState.rotating);
     return <>
         {curState.draggable ?
-            (<TransformControls object={curState.selectedObject!} />) :
+            (<TransformControls object={curState.selectedObject!} onChange={transformSelected} onMouseUp={completeTransform}/>) :
             (curState.useOrbitControl ?
                 (<OrbitControls args={[camera, domElement]} makeDefault />):
                 (<CameraControls makeDefault />)
