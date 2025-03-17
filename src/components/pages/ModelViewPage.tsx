@@ -27,6 +27,7 @@ import { ModelInfo } from '../../state/ModelUIState';
 
 import GUI from 'lil-gui';
 import { Color} from 'three';
+import OpenSimLogo from './OpenSimLogo';
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
@@ -204,10 +205,11 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   //   theme.palette.mode === "dark" ? ["#151518"] : ["#cccccc"]
                   // }
                 />
-                  <OpenSimGUIScene 
-                    currentModelPath={uiState.currentModelPath}
-                    supportControls={true}
-                  />
+                <OpenSimGUIScene 
+                  currentModelPath={uiState.currentModelPath}
+                  supportControls={true}
+                />
+                <OpenSimLogo />
                 <Environment files="/builtin/potsdamer_platz_1k.hdr" />
                 <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
                   <GizmoViewport labelColor="white" axisHeadScale={1} />
@@ -215,11 +217,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 <OpenSimControl/>
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
               </Canvas>
-              <BottomBar
-                ref={bottomBarRef}
-                animationPlaySpeed={1.0}
-                animating={uiState.animating}
-                animationList={uiState.animations}/>
             </Suspense>
           </div>
         </Main>
