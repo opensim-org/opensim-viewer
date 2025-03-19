@@ -10,15 +10,11 @@ import viewerState from "../../state/ViewerState";
 const OpenSimControl = () => {
     const {
         gl, // WebGL renderer
-        camera,
-        controls,
-        gl: { domElement }
+        camera
     } = useThree()
 
     const curState = useModelContext();
-    const transformRef = useRef<typeof TransformControls>();
-    const currentControls = controls;
-    useFrame((_, delta) => {
+   useFrame((_, delta) => {
         if (curState.zooming){
             console.log(delta)
             let zoomFactor = curState.zoom_inOut;
@@ -65,10 +61,10 @@ const OpenSimControl = () => {
     //console.log(viewerState.rotating);
     return <>
         {curState.draggable ?
-            (<TransformControls object={curState.selectedObject!} onChange={transformSelected} onMouseUp={completeTransform}/>) :
+            (<TransformControls camera={camera} object={curState.selectedObject!} onChange={transformSelected} onMouseUp={completeTransform}/>) :
             (curState.useOrbitControl ?
-                (<OrbitControls args={[camera, domElement]} makeDefault />):
-                (<CameraControls makeDefault />)
+                (<OrbitControls camera={camera} makeDefault />):
+                (<CameraControls camera={camera} makeDefault />)
             )
         }
     </>
