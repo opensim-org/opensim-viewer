@@ -104,7 +104,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
       curState.scene = sceneRef.current;
 
     curState.addModelToMap(modelGroup!.uuid, modelGroup!);
-    mapObjectToLayer(modelGroup!)
+    //mapObjectToLayer(modelGroup!)
     if (curState.getNumberOfOpenModels()>1) {
       const boundingBox = new THREE.Box3();
       // Compute the bounding box of the scene if models are already loaded
@@ -303,14 +303,22 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
     raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects(scene.children);
+    const intersects = raycaster.intersectObjects(scene.children[1].children);
     if (intersects.length > 0) {
       // find first visible object
+      let selected_uuid = undefined
       for (let i = 0; i < intersects.length; i++){
         if (intersects[i].object.visible){
           //curState.setSelected(intersects[i].object.uuid);
-          console.log(intersects[i].object.name);
+          selected_uuid = intersects[i].object.uuid;
+          if (intersects[i].object.userData!== null &&
+            intersects[i].object.userData.draggable){
+            break;
+          }
         }
+      }
+      if (selected_uuid !== undefined){
+        curState.setSelected(selected_uuid);
       }
     }
   }
