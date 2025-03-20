@@ -286,7 +286,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
           if (objectSelectionBox !== null){
             scene.remove(objectSelectionBox)
             setObjectSelectionBox(null);
-            curState.setSelected("")
+            curState.setSelected("", false)
           }
           sceneObjectMap.clear();
           setUseEffectRunning(true)
@@ -297,8 +297,8 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     // By the time we're here the model is guaranteed to be available
     return <>
     <primitive object={scene} ref={sceneRef}
-      onPointerDown={(e: any) => curState.setSelected(e.object.uuid)}
-      onPointerMissed={() => curState.setSelected("")}/>
+      onPointerDown={(e: any) => curState.setSelected(e.object.uuid, true)}
+      onPointerMissed={() => curState.setSelected("", true)}/>
       <directionalLight ref={lightRef} position={[0.5, 1.5, -0.5]} 
           intensity={viewerState.lightIntensity} color={viewerState.lightColor}
         castShadow={true} 

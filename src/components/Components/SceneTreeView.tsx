@@ -47,7 +47,7 @@ const SceneTreeView  = ()  => {
     }
     const handleSelect = async (event: any, node: any) => {
       //console.log('nodeId: ', node)
-      curState.setSelected(node as string);
+      curState.setSelected(node as string, false);
     }
     const sTree = curState.sceneTree
     if (sTree === null && curState.scene !== null) {

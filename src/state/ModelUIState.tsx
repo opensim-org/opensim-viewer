@@ -128,6 +128,12 @@ export class ModelUIState {
             this.nodeDictionary[o.uuid] =  o;
         });
     }
+    addObjectToMap(object:Object3D) {
+        this.nodeDictionary[object.uuid] =  object
+        object.traverse((o) => {
+            this.nodeDictionary[o.uuid] =  o;
+        })
+    }
 
     getNumberOfOpenModels() {
         return Object.keys(this.modelDictionary).length;
@@ -183,7 +189,7 @@ export class ModelUIState {
     setAnimationSpeed(newSpeed: number) {
         this.animationSpeed = newSpeed
     }
-    setSelected(uuid: string) {
+    setSelected(uuid: string, notifyGUI: boolean) {
         if (this.selected !== uuid) {
             this.deSelected = this.selected
             this.selected = uuid
@@ -196,6 +202,13 @@ export class ModelUIState {
         if (uuid==="") {
             this.selectedObject = null
             this.draggable = false
+        }
+        if (notifyGUI) {
+            // Send uuid of selected object across socket
+            var json = JSON.stringify({
+               "event": "select",
+                "uuid": uuid});
+            this.sendText(json);
         }
     }
     getLayerVisibility(layerToTest: number) {
@@ -258,6 +271,13 @@ export class ModelUIState {
     setSocketHandle(socket: WebSocket) {
         this.socket = socket;
     }
+    moveObject( object: Object3D, parent: Object3D): void {
+        if (parent === undefined) {
+            console.log('parent not found, using scene')
+            //parent = this.scene;
+        }
+        parent.add(object)
+    }
     handleSocketMessage(data: string) {
         var parsedMessage = JSON.parse(data);
         var msgOp = parsedMessage.Op
@@ -272,27 +292,29 @@ export class ModelUIState {
                 break;
             case "CloseModel":
                 var modeltoClose = parsedMessage.UUID;
-                this.modelDictionary[modeltoClose].removeFromParent()
-                delete this.modelDictionary[modeltoClose]
+                if (this.modelDictionary[modeltoClose]!== undefined){
+                    this.modelDictionary[modeltoClose].removeFromParent()
+                    delete this.modelDictionary[modeltoClose]
+                }
                 break;
             case "Select" :
-                this.setSelected(parsedMessage.UUID)
+                this.setSelected(parsedMessage.UUID, false)
                 break;
             case "Deselect" :
-                this.setSelected("")
+                this.setSelected("", false)
                 break;
             case "execute":
                 this.executeCommandJson(data);
                 break; 
             case "SetCurrentModel":
-                this.setSelected(parsedMessage.UUID);
+                this.setSelected(parsedMessage.UUID, false);
                 break;
             case "addModelObject":
                 this.executeCommandJson(data);
                 let parentUuid = parsedMessage.command.object.object.parent;
                 let cmd = parsedMessage.command;
                 let newUuid = cmd.objectUuid;
-                //editor.moveObject(this.objectByUuid(newUuid), this.objectByUuid(parentUuid));
+                this.moveObject(this.objectByUuid(newUuid), this.objectByUuid(parentUuid));
                 // if (msg.command.bbox !== undefined) {
                 //     // update models bounding box with bbox;
                 //     editor.updateModelBBox(msg.command.bbox);
@@ -300,7 +322,7 @@ export class ModelUIState {
                 this.scene?.updateMatrixWorld(true);
                 break;
             case "Frame":
-                this.setSelected("")
+                this.setSelected("", false)
                 var transforms = parsedMessage.Transforms;
                 for (var i = 0; i < transforms.length; i ++ ) {
                     var oneBodyTransform = transforms[i];

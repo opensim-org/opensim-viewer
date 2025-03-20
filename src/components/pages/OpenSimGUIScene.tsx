@@ -76,6 +76,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     
     const mapObjectToLayer = (obj: Object3D)=>{
       obj.traverse((obj3d) => {
+      /*
       let layerNum = 0
       if (obj3d.userData !== null && obj3d.userData !== undefined &&
           obj3d.userData.opensimType !== undefined) {
@@ -85,6 +86,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           layerNum = possibleLayer
       }
       obj3d.layers.set(layerNum)
+      */
       obj3d.castShadow = true
     })
   }
@@ -103,20 +105,21 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     if (curState.scene === null)
       curState.scene = sceneRef.current;
 
-    curState.addModelToMap(modelGroup!.uuid, modelGroup!);
-    //mapObjectToLayer(modelGroup!)
-    if (curState.getNumberOfOpenModels()>1) {
-      const boundingBox = new THREE.Box3();
-      // Compute the bounding box of the scene if models are already loaded
-      boundingBox.setFromObject(modelsRef.current!);
-      const modelbbox = new THREE.Box3().setFromObject(modelGroup!)
-      modelGroup!.position.z = boundingBox.max.z-modelbbox.min.z
-    }
-
     // This useEffect loads the cameras and assign them to its respective states.
     useEffect(() => {
       if (modelsRef.current!==null) {
+        const boundingBox = new THREE.Box3();
+        // // Compute the bounding box of the scene if models are already loaded
+        boundingBox.setFromObject(modelsRef.current!);
+        const modelbbox = new THREE.Box3().setFromObject(modelGroup!)
+
         modelsRef.current.add(modelGroup as Group);
+        curState.addModelToMap(modelGroup!.uuid, modelGroup!);
+        mapObjectToLayer(modelGroup!)
+
+        if (curState.getNumberOfOpenModels()>1 && Number.isFinite(boundingBox.max.z) ) {
+          modelGroup!.position.z = boundingBox.max.z-modelbbox.min.z
+        }
       }
       const cameras = scene.getObjectsByProperty( 'isPerspectiveCamera', true )
       if (cameras.length > 0) {
@@ -289,7 +292,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             curState.setAnimationList(animations)
         }
         return () => {
-          curState.setSelected("")
+          curState.setSelected("", false)
           sceneObjectMap.clear();
           setUseEffectRunning(true)
         };
@@ -318,7 +321,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         }
       }
       if (selected_uuid !== undefined){
-        curState.setSelected(selected_uuid);
+        curState.setSelected(selected_uuid, true);
       }
     }
   }

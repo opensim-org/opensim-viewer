@@ -41,13 +41,9 @@ const OpenSimControl = () => {
        })
     function transformSelected(e?: THREE.Event | undefined): void {
         console.log(e)
-        console.log(e!.type);
-        console.log(e!.target!.object)
     }
 
     function completeTransform(e?: THREE.Event | undefined): void {
-        console.log(e)
-        console.log(e!.type);
         console.log(e!.target!.object)
         curState.draggable = false;
         var json = JSON.stringify({
