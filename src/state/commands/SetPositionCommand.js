@@ -36,10 +36,10 @@ class SetPositionCommand extends Command {
 
 	execute() {
 
-		this.object.position.copy( this.newPosition );
-		this.object.updateMatrixWorld( true );
-		//this.editor.signals.objectChanged.dispatch( this.object );
-
+		if (this.object !== undefined){
+			this.object.position.copy( this.newPosition );
+			this.object.updateMatrixWorld( true );
+		}
 	}
 
 	undo() {
