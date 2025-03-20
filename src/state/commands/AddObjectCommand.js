@@ -28,7 +28,7 @@ class AddObjectCommand extends Command {
 		this.editor.addObject( this.object );
 		//this.editor.select( this.object );
 		this.object.updateMatrixWorld( true );
-
+		this.editor.addObjectToMap( this.object );
 	}
 
 	undo() {
