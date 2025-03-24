@@ -278,6 +278,25 @@ export class ModelUIState {
         }
         parent.add(object)
     }
+    getModelOffsetsJson() {
+        var offsets: any = {
+            "type": "transforms",
+            "ObjectType": "Model",
+             "uuids" : [],
+             "positions": []
+        };
+        var modeluuid="";
+        for (modeluuid in this.modelDictionary) {
+            offsets.uuids.push(modeluuid);
+            var nextModel = this.objectByUuid(modeluuid);
+            offsets.positions.push(nextModel.position);
+        };
+        return JSON.stringify(offsets);
+    }
+    scaleGeometry(scaleJson:string) {
+        console.log(scaleJson);
+        this.executeOneCommandJson(scaleJson);
+    }
     handleSocketMessage(data: string) {
         var parsedMessage = JSON.parse(data);
         var msgOp = parsedMessage.Op
@@ -315,10 +334,6 @@ export class ModelUIState {
                 let cmd = parsedMessage.command;
                 let newUuid = cmd.objectUuid;
                 this.moveObject(this.objectByUuid(newUuid), this.objectByUuid(parentUuid));
-                // if (msg.command.bbox !== undefined) {
-                //     // update models bounding box with bbox;
-                //     editor.updateModelBBox(msg.command.bbox);
-                // }
                 this.scene?.updateMatrixWorld(true);
                 break;
             case "Frame":
@@ -340,6 +355,22 @@ export class ModelUIState {
                     }
                 }
                 this.scene?.updateMatrixWorld(true);
+                break;
+            case "getOffsets":
+                this.sendText(this.getModelOffsetsJson());
+                break;
+            case "ReplaceGeometry":
+                // Placeholder since this doesn't appear in GUI
+                //editor.replaceGeometry(msg.geometries, msg.uuid);
+                console.log(data);
+                break;
+            case "scaleGeometry":
+                this.scaleGeometry(parsedMessage);
+                this.scene?.updateMatrixWorld(true);
+                break;
+            case "PathOperation":
+                // TODO: support path edit message type
+                //editor.processPathEdit(msg);
                 break;
         }
     }
