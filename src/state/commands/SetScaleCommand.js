@@ -38,6 +38,7 @@ class SetScaleCommand extends Command {
 	execute() {
 
 		this.object.scale.copy( this.newScale );
+		this.object.needsUpdate = true
 		this.object.updateMatrixWorld( true );
 		//this.editor.signals.objectChanged.dispatch( this.object );
 
@@ -46,6 +47,7 @@ class SetScaleCommand extends Command {
 	undo() {
 
 		this.object.scale.copy( this.oldScale );
+		this.object.needsUpdate = true
 		this.object.updateMatrixWorld( true );
 		//this.editor.signals.objectChanged.dispatch( this.object );
 
@@ -62,7 +64,9 @@ class SetScaleCommand extends Command {
 		const output = super.toJSON( this );
 
 		output.objectUuid = this.object.uuid;
-		output.oldScale = this.oldScale.toArray();
+		if (this.oldScale !== undefined) {
+			output.oldScale = this.oldScale.toArray();
+		}
 		output.newScale = this.newScale.toArray();
 
 		return output;
@@ -74,7 +78,9 @@ class SetScaleCommand extends Command {
 		super.fromJSON( json );
 
 		this.object = this.editor.objectByUuid( json.objectUuid );
-		this.oldScale = new Vector3().fromArray( json.oldScale );
+		if (json.oldScale !== undefined) {
+			this.oldScale = new Vector3().fromArray( json.oldScale );
+		}
 		this.newScale = new Vector3().fromArray( json.newScale );
 
 	}
