@@ -6,21 +6,55 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { Ref, useRef } from 'react'
 
 import viewerState from "../../state/ViewerState";
+import { Object3D } from 'three';
 
 const OpenSimControl = () => {
     const {
         gl, // WebGL renderer
-        camera
+        camera,
+        controls
     } = useThree()
 
-    const curState = useModelContext();
+   const curState = useModelContext();
+
    useFrame((_, delta) => {
-        if (curState.zooming){
-            console.log(delta)
-            let zoomFactor = curState.zoom_inOut;
-            camera.zoom *= zoomFactor;
-            camera.updateProjectionMatrix();
-            curState.zooming = false;
+        if (curState.pending_key !== "") {
+            switch (curState.pending_key) {
+                case 'i':
+                case 'I':
+                    (controls as unknown as CameraControls).dolly(0.5, true)
+                    break;
+                case 'o':
+                case 'O':
+                    (controls as unknown as CameraControls).dolly(-0.5, true)
+                    break;
+                case 'ArrowLeft':
+                    (controls as unknown as CameraControls).truck(0.2, 0.0, true)
+                    break;
+                case 'ArrowRight':
+                    (controls as unknown as CameraControls).truck(-0.2, 0.0, true)
+                    break;
+                case 'ArrowUp':
+                    (controls as unknown as CameraControls).truck(0.0, 0.2, true)
+                    break;
+                case 'ArrowDown':
+                    (controls as unknown as CameraControls).truck(0.0, -0.2, true)
+                    break;
+                case 'r':
+                case 'R':
+                    if (curState.selectedObject !== null)
+                        (controls as unknown as CameraControls).fitToBox(curState.selectedObject!, true)
+                    else {
+                        const useScene = curState.scene
+                        useScene?.traverse((object: Object3D)=>{
+                            if (object.type === "Group" && object.name === "OpenSimModels"){
+                                (controls as unknown as CameraControls).fitToBox(object, true)
+                            }
+                        })
+                    }
+                    break;
+            }
+            curState.pending_key = "";
         }
         else if (curState.takeSnapshot){
             const link = document.createElement('a')
@@ -58,10 +92,7 @@ const OpenSimControl = () => {
     return <>
         {curState.draggable ?
             (<TransformControls camera={camera} object={curState.selectedObject!} onChange={transformSelected} onMouseUp={completeTransform}/>) :
-            (curState.useOrbitControl ?
-                (<OrbitControls camera={camera} makeDefault />):
-                (<CameraControls camera={camera} makeDefault />)
-            )
+            <CameraControls camera={camera} makeDefault />
         }
     </>
 }

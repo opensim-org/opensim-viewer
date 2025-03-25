@@ -143,6 +143,19 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
       spotlightRef.current!.color = viewerState.lightColor
     }, [curState, scene, gl.domElement.clientWidth, gl.domElement, set, modelGroup]);
 
+    
+
+    useEffect(() => {
+      const handleKeyDown = (event: KeyboardEvent) => {
+        curState.handleKey(event.key);
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }, [curState]);
+  
+  
     // This useEffect sets the current selected camera.
     useEffect(() => {
       if (curState.cameras.length > 0 && currentCamera) {
@@ -342,7 +355,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
               color={viewerState.lightColor} penumbra={0.2} />
         <OpenSimFloor />
       </group>
-      <group name='OpenSimModels' ref={modelsRef} onPointerDown={handleClick}/>
+      <group name='OpenSimModels' ref={modelsRef} onPointerDown={handleClick} />
       <group name='WCS' ref={csRef}>
         <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.2]}>
             <cylinderGeometry args={[.005, .005, 0.4, 32]}/>

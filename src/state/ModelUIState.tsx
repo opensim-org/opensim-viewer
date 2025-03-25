@@ -24,6 +24,7 @@ export class ModelUIState {
     rotating: boolean
     zooming: boolean
     zoom_inOut: number
+    pending_key: string
     takeSnapshot: boolean
     showGlobalFrame: boolean
     sceneTree: SceneTreeModel | null
@@ -56,6 +57,7 @@ export class ModelUIState {
         this.rotating = rotatingState
         this.zooming = false
         this.zoom_inOut = 0.0
+        this.pending_key = ""
         this.takeSnapshot = false
         this.showGlobalFrame = false
         this.sceneTree = null
@@ -377,5 +379,8 @@ export class ModelUIState {
     sendText(json: string) {
         console.log(json);
         this.socket!.send(json);
+    }
+    handleKey(key: string) {
+        this.pending_key = key
     }
 }
