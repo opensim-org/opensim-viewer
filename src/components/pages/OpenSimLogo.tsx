@@ -31,36 +31,3 @@ const OpenSimLogo: React.FC = () => {
 };
 
 export default OpenSimLogo;
-
-// const OpenSimLogo = ({ screenX, screenY }) => {
-
-//     //const curState = useModelContext();
-//     const logoTexture = useLoader(TextureLoader, '/OpenSimWatermarkOpaqueGrayscale128x128.png')
-//     const material = new SpriteMaterial({ map: logoTexture });//spriteMaterial.scaleByViewport = false;
-//     const spriteRef=useRef<Sprite>(null);
-//     const { camera, size } = useThree();
-
-//     // This used to be AdditiveBlending, but that caused the logo to
-//     // very bright white on certain backgrounds.
-//     // https://threejs.org/examples/webgl_materials_blending.html
-
-//     const orthoScene = useRef<Scene>(null);
-//     const matRef=useRef<SpriteMaterial>(null);
-//     const orthoCameraRef=useRef<OrthographicCamera>(null);
-
-//     useEffect(() => {
-//         if (spriteRef.current) {
-//             const vector = new Vector3(
-//               (screenX / size.width) * 2 - 1,
-//               -(screenY / size.height) * 2 + 1,
-//               0.5
-//             );
-//             vector.unproject(camera);
-//             spriteRef.current.position.set(vector.x, vector.y, vector.z);
-//           }
-//     })
-
-//     return <sprite ref={spriteRef} position={[0, 0, 0]} 
-//                     scale={[0.5, 0.5, 0.5]}
-//                     material={material} />
-// }
