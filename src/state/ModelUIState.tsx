@@ -38,7 +38,6 @@ export class ModelUIState {
     deSelected: string
     selectedObject: Object3D | null
     draggable: boolean
-    useOrbitControl: boolean
     cameraLayersMask: number
     currentFrame: number
     last_message_uuid: string
@@ -71,7 +70,6 @@ export class ModelUIState {
         this.deSelected = ""
         this.selectedObject = null
         this.draggable = false
-        this.useOrbitControl = true
         this.cameraLayersMask = -1
         this.currentFrame = 0
         this.last_message_uuid = ""
@@ -102,7 +100,6 @@ export class ModelUIState {
             setCurrentFrame: action,
             currentCameraIndex: observable,
             setCurrentCameraIndex: action,
-            useOrbitControl: observable,
         })
         console.log("Created ModelUIState instance ", currentModelPathState)
     }
@@ -163,6 +160,14 @@ export class ModelUIState {
     }
     setZoomFactor(inOut: number) {
         this.zoom_inOut = inOut
+        if (this.zooming){
+            if (inOut > 1.) {
+                this.handleKey('i')
+            }
+            else {
+                this.handleKey('o')
+            }
+        }
     }
     setTakeSnapshot() {
         this.takeSnapshot = true
@@ -190,6 +195,12 @@ export class ModelUIState {
     }
     setAnimationSpeed(newSpeed: number) {
         this.animationSpeed = newSpeed
+    }
+    saveCamera() {
+        this.handleKey('s')
+    }
+    restoreCamera() {
+        this.handleKey('r')
     }
     setSelected(uuid: string, notifyGUI: boolean) {
         if (this.selected !== uuid) {

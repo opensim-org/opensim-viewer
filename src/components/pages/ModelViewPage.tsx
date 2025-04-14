@@ -94,7 +94,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     if (viewerState.isGuiMode) {
       setDisplaySideBar('none');
       setCanvasWidth('100%');
-      setCanvasHeight('calc(100vh - 68px)');
+      setCanvasHeight('calc(100vh - 30px)');
       setCanvasLeft(0);
       setFloatingButtonsContainerTop("12px")
     }
@@ -135,12 +135,10 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     lightFolder.add(viewerState, 'spotLight')
 
     const cameraFolder = gui.addFolder("Camera");
-    //cameraFolder.add(uiState, 'useOrbitControl');
+    cameraFolder.add(uiState, 'saveCamera');
+    cameraFolder.add(uiState, 'restoreCamera');
     const environmentFolder = gui.addFolder("Environment");
     environmentFolder.add(uiState, 'exportScene')
-    // environmentFolder.add(uiState, 'exportEnvironment')
-    // environmentFolder.add(uiState, 'importEnvironment')
-    // environmentFolder.add(uiState, 'replaceEnvironment')
     return () => {
         gui.destroy()
       }

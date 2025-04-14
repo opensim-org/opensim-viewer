@@ -11,7 +11,7 @@ const OpenSimLogo: React.FC = () => {
   const { size, viewport, camera } = useThree();
 
   useEffect(() => {
-    const texture = new TextureLoader().load('/OpenSimWatermarkOpaqueGrayscale128x128.png');
+    const texture = new TextureLoader().load('./opensimLogo23.png');
     spriteRef.current.material = new SpriteMaterial({ map: texture });
     spriteRef.current.position.set(1.4, 1.75, 1.0)
   }, []);

@@ -40,8 +40,8 @@ const OpenSimControl = () => {
                 case 'ArrowDown':
                     (controls as unknown as CameraControls).truck(0.0, -0.2, true)
                     break;
-                case 'r':
-                case 'R':
+                case 'f':
+                case 'F':
                     if (curState.selectedObject !== null)
                         (controls as unknown as CameraControls).fitToBox(curState.selectedObject!, true)
                     else {
@@ -52,6 +52,14 @@ const OpenSimControl = () => {
                             }
                         })
                     }
+                    break;
+                case 's':
+                case 'S':
+                    (controls as unknown as CameraControls).saveState();
+                    break;
+                case 'r':
+                case 'R':
+                    (controls as unknown as CameraControls).reset(true);
                     break;
             }
             curState.pending_key = "";
