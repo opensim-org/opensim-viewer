@@ -28,6 +28,7 @@ import { ModelInfo } from '../../state/ModelUIState';
 import GUI from 'lil-gui';
 import { Color} from 'three';
 import OpenSimLogo from './OpenSimLogo';
+import OpenSimSkybox from './OpenSimSkybox';
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
@@ -122,12 +123,15 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     sceneFolder.addColor(viewerState, 'backgroundColor').onChange(
       function(v: any){viewerState.setBackgroundColor(v); coloRef.current?.copy(v);}
     );
+    // sceneFolder.add(uiState, 'image', ['NoBackground', 'sky', 'canyon', 'pastures', 'desert', 'dark', 'city']).onChange(
+    //   function(v: any){uiState.setSkyboxImage(v);}
+    // );
     sceneFolder.add(uiState, 'showGlobalFrame')
     const floorFolder = gui.addFolder("Floor");
     floorFolder.add(viewerState, 'floorHeight', -2, 2, .01).name("Height")
     floorFolder.add(viewerState, 'floorVisible')
     // floorFolder.add(viewerState, 'floorTextureFile', { 'tile':0, 'wood-floor':1, 'Cobblestone':2, 'textureStone':3, 'grassy':4}).name("Texture").onChange(
-    //   function(v: any){viewerState.setFloorTextureIndex(v)}
+    //    function(v: any){viewerState.setFloorTextureIndex(v)}
     // );
     const lightFolder = gui.addFolder("Lights");
     lightFolder.add(viewerState, 'lightIntensity', 0, 2, .05).name("Intensity")
@@ -193,7 +197,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   left: canvasLeft,
                   transition: "left 0.1s ease",
                 }}
-                camera={{ position: [1.5, 2.0, 1.0], fov: 75, far: 10 }}
+                camera={{ position: [.2, .1, .2], fov: 50, far: 10 }}
               >
               <fog attach="fog" color="lightgray" near={.01} far={10} />
 
@@ -207,12 +211,12 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   currentModelPath={uiState.currentModelPath}
                   supportControls={true}
                 />
-                <OpenSimLogo />
                 <Environment files="/builtin/potsdamer_platz_1k.hdr" />
                 <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
                   <GizmoViewport labelColor="white" axisHeadScale={1} />
                 </GizmoHelper>
                 <OpenSimControl/>
+                <OpenSimSkybox textureName={uiState.useSkybox} />
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
               </Canvas>
             </Suspense>

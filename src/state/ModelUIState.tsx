@@ -2,7 +2,7 @@ import { makeObservable, observable, action } from 'mobx'
 import SceneTreeModel from '../helpers/SceneTreeModel'
 import { AnimationClip } from 'three/src/animation/AnimationClip'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
-import { Object3D, Scene } from 'three'
+import { Box3, Object3D, Scene } from 'three'
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
 import { CommandFactory } from './commands/CommandFactory'
 import { saveAs } from 'file-saver';
@@ -47,6 +47,8 @@ export class ModelUIState {
     selectableTypes: string[] = []
     draggableTypes: string[] = []
     socket: WebSocket|null = null
+    useSkybox: string
+    fitToBox: Box3 | null
     constructor(
         currentModelPathState: string,
         rotatingState: boolean,
@@ -75,6 +77,8 @@ export class ModelUIState {
         this.last_message_uuid = ""
         this.selectableTypes = ["Marker", "PathPoint", "Model", "Mesh"]
         this.draggableTypes = ["Marker", "PathPoint", "Model"]
+        this.useSkybox = "NoBackground"
+        this.fitToBox = null
         makeObservable(this, {
             rotating: observable,
             currentModelPath: observable,
@@ -146,9 +150,9 @@ export class ModelUIState {
             this.cameraLayersMask = -1
             this.animating = false
             this.animationSpeed = 1
-			      this.animations = []
+            this.animations = []
             this.currentAnimationIndex = -1
-			      this.cameras = []
+            this.cameras = []
             this.currentCameraIndex = -1
         }
     }
@@ -239,6 +243,8 @@ export class ModelUIState {
         this.modelInfo.authors = curAuth
     }
     exportScene(): void {
+        if (this.selectedObject === null )
+            return; // Nothing to export.
         const exporter = new GLTFExporter();
         exporter.parse(
             this.objectByUuid(this.selected),
@@ -394,4 +400,10 @@ export class ModelUIState {
     handleKey(key: string) {
         this.pending_key = key
     }
+    setSkyboxImage(skyboxName: string) {
+        this.useSkybox = skyboxName
+    }
+    fitCameraTo(objectbbox: Box3) {
+        this.fitToBox = objectbbox;
+      }
 }

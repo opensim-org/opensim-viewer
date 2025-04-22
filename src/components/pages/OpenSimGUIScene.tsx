@@ -107,6 +107,8 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     // This useEffect loads the cameras and assign them to its respective states.
     useEffect(() => {
+      var isoViewEye = new THREE.Vector3(0, 0, 0)
+      var isoViewLookAt = new THREE.Vector3(0, 0, 0)
       if (modelsRef.current!==null) {
         const boundingBox = new THREE.Box3();
         // // Compute the bounding box of the scene if models are already loaded
@@ -119,6 +121,11 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
         if (curState.getNumberOfOpenModels()>1 && Number.isFinite(boundingBox.max.z) ) {
           modelGroup!.position.z = boundingBox.max.z-modelbbox.min.z
+          const scenebbox = new THREE.Box3().setFromObject(modelsRef.current!)
+          curState.fitCameraTo(scenebbox);
+        }
+        else {
+          curState.fitCameraTo(modelbbox);
         }
       }
       const cameras = scene.getObjectsByProperty( 'isPerspectiveCamera', true )
@@ -336,6 +343,8 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
       if (selected_uuid !== undefined){
         curState.setSelected(selected_uuid, true);
       }
+      else
+        curState.setSelected("", true);
     }
   }
 

@@ -6,11 +6,11 @@ import viewerState from '../../state/ViewerState';
 
 const OpenSimFloor = () => {
     const floorTextures =  [ 
-        useLoader(TextureLoader, '/tile.jpg'),
-        useLoader(TextureLoader, '/wood-floor.jpg'),
-        useLoader(TextureLoader, '/Cobblestone.png'),
-        useLoader(TextureLoader, '/cement.jpg'),
-        useLoader(TextureLoader, '/grassy_d.png')
+        useLoader(TextureLoader, process.env.PUBLIC_URL + '/images/tile.jpg'),
+        useLoader(TextureLoader, process.env.PUBLIC_URL + '/images/wood-floor.jpg'),
+        useLoader(TextureLoader, process.env.PUBLIC_URL + '/images/Cobblestone.png'),
+        useLoader(TextureLoader, process.env.PUBLIC_URL + '/images/cement.jpg'),
+        useLoader(TextureLoader, process.env.PUBLIC_URL + '/images/grassy_d.png')
     ]
     var floorTexture = floorTextures[viewerState.textureIndex]
     floorTexture.wrapS = floorTexture.wrapT = RepeatWrapping;

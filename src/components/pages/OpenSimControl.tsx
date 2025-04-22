@@ -3,10 +3,9 @@ import { observer } from 'mobx-react'
 import { useModelContext } from '../../state/ModelUIStateContext';
 
 import { useFrame, useThree } from '@react-three/fiber'
-import { Ref, useRef } from 'react'
 
 import viewerState from "../../state/ViewerState";
-import { Object3D } from 'three';
+import { Box3, Object3D, PerspectiveCamera, Vector3 } from 'three';
 
 const OpenSimControl = () => {
     const {
@@ -61,6 +60,7 @@ const OpenSimControl = () => {
                 case 'R':
                     (controls as unknown as CameraControls).reset(true);
                     break;
+
             }
             curState.pending_key = "";
         }
@@ -80,6 +80,10 @@ const OpenSimControl = () => {
                     camera.layers.disable(layernumber)
             }
         }
+        if (curState.fitToBox !== null) {
+            fitToBox(curState.fitToBox)
+            curState.fitToBox = null
+        }
        })
     function transformSelected(e?: THREE.Event | undefined): void {
         console.log(e)
@@ -96,6 +100,28 @@ const OpenSimControl = () => {
         curState.sendText(json);
     }
 
+    function fitToBox(boundingBox: Box3) {
+        const center = boundingBox.getCenter(new Vector3());
+        const size = boundingBox.getSize(new Vector3());
+
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const fov = (camera as PerspectiveCamera).fov * (Math.PI / 180);
+        const offset = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+
+        var dir = new Vector3(0.0, 0.0, 1.0);
+        dir.x = camera.matrix.elements[8];
+        dir.y = camera.matrix.elements[9];
+        dir.z = camera.matrix.elements[10];
+        dir.multiplyScalar(offset);
+        var newPos = new Vector3();
+        newPos.addVectors(center, dir);
+
+        (controls as unknown as CameraControls).moveTo(newPos.x, newPos.y, newPos.z, true);
+        if (controls) 
+            (controls as unknown as CameraControls).setTarget(center.x, center.y, center.z, true);
+
+
+    }
     //console.log(viewerState.rotating);
     return <>
         {curState.draggable ?
