@@ -211,7 +211,7 @@ export class ModelUIState {
             this.deSelected = this.selected
             this.selected = uuid
             this.selectedObject = this.objectByUuid(uuid)
-            if (this.selectedObject){
+            if (this.selectedObject != null){
                  this.draggable = this.selectedObject.userData !== undefined &&
                  this.draggableTypes.includes(this.selectedObject.userData.opensimType)
             }

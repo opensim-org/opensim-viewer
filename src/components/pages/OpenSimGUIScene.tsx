@@ -320,32 +320,19 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     
   function handleClick(event: ThreeEvent<MouseEvent>): void {
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-    raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects(scene.children[1].children);
-    if (intersects.length > 0) {
-      // find first visible object
-      let selected_uuid = undefined
-      for (let i = 0; i < intersects.length; i++){
-        if (intersects[i].object.visible){
-          //curState.setSelected(intersects[i].object.uuid);
-          selected_uuid = intersects[i].object.uuid;
-          if (intersects[i].object.userData!== null &&
-            intersects[i].object.userData.draggable){
-            break;
-          }
-        }
-      }
+    //event.stopPropagation();
+    if (event.object !== undefined) {
+      const selected_uuid = event.object.uuid;
       if (selected_uuid !== undefined){
         curState.setSelected(selected_uuid, true);
       }
       else
         curState.setSelected("", true);
     }
+  }
+
+  function clearSelection(): void {
+    curState.setSelected("", true);
   }
 
     // By the time we're here the model is guaranteed to be available
@@ -364,7 +351,9 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
               color={viewerState.lightColor} penumbra={0.2} />
         <OpenSimFloor />
       </group>
-      <group name='OpenSimModels' ref={modelsRef} onPointerDown={handleClick} />
+      <group name='OpenSimModels' ref={modelsRef}  
+            onClick={(e)=>{ handleClick(e);}}
+            onPointerMissed={(e)=>{clearSelection();}} />
       <group name='WCS' ref={csRef}>
         <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.2]}>
             <cylinderGeometry args={[.005, .005, 0.4, 32]}/>

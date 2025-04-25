@@ -197,7 +197,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   left: canvasLeft,
                   transition: "left 0.1s ease",
                 }}
-                camera={{ position: [.2, .1, .2], fov: 50, far: 10 }}
+                camera={{ position: [.2, .1, .2], fov: 50 }}
               >
               <fog attach="fog" color="lightgray" near={.01} far={50} />
 
