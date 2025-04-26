@@ -71,15 +71,6 @@ const OpenSimControl = () => {
             link.click()
             curState.takeSnapshot = false;
         }
-        else if (curState.cameraLayersMask !== camera.layers.mask) {
-            for (let layernumber =0; layernumber < 31; layernumber++){
-                let newState = curState.getLayerVisibility(layernumber)
-                if (newState)
-                    camera.layers.enable(layernumber)
-                else
-                    camera.layers.disable(layernumber)
-            }
-        }
         if (curState.fitToBox !== null) {
             fitToBox(curState.fitToBox)
             curState.fitToBox = null
@@ -91,13 +82,13 @@ const OpenSimControl = () => {
 
     function completeTransform(e?: THREE.Event | undefined): void {
         console.log(e!.target!.object)
-        curState.draggable = false;
         var json = JSON.stringify({
                                     "event": "translate",
                                     "uuid": e!.target!.object.uuid,
                                     "location": e!.target!.object.position
                                 });
         curState.sendText(json);
+        console.log("completeTransform")
     }
 
     function fitToBox(boundingBox: Box3) {
@@ -116,18 +107,17 @@ const OpenSimControl = () => {
         var newPos = new Vector3();
         newPos.addVectors(center, dir);
 
-        (controls as unknown as CameraControls).moveTo(newPos.x, newPos.y, newPos.z, true);
-        if (controls) 
+        if (controls) {
+            (controls as unknown as CameraControls).moveTo(newPos.x, newPos.y, newPos.z, true);
             (controls as unknown as CameraControls).setTarget(center.x, center.y, center.z, true);
-
+        }
 
     }
     //console.log(viewerState.rotating);
     return <>
-        {curState.draggable ?
-            (<TransformControls camera={camera} object={curState.selectedObject!} onChange={transformSelected} onMouseUp={completeTransform}/>) :
-            <CameraControls camera={camera} makeDefault />
-        }
+        {curState.draggable && <TransformControls object={curState.selectedObject!} onMouseUp={completeTransform}/>}
+        <CameraControls camera={camera} makeDefault />
+        
     </>
 }
 

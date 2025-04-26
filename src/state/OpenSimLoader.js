@@ -702,6 +702,7 @@ parseObject( data, geometries, materials, textures, animations ) {
         // NOW OpenSim types
         case 'Frame':
            object = new AxesHelper(data.size);
+           object.layers.set(3)
            break;
         case 'Arrow':
             object = new ArrowHelper(data.dir, data.origin, 1.0, data.color);
