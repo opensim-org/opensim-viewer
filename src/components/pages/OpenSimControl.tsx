@@ -1,4 +1,4 @@
-import { OrbitControls, TransformControls, CameraControls} from '@react-three/drei'
+import { TransformControls, CameraControls} from '@react-three/drei'
 import { observer } from 'mobx-react'
 import { useModelContext } from '../../state/ModelUIStateContext';
 
@@ -76,19 +76,17 @@ const OpenSimControl = () => {
             curState.fitToBox = null
         }
        })
-    function transformSelected(e?: THREE.Event | undefined): void {
-        console.log(e)
-    }
+
 
     function completeTransform(e?: THREE.Event | undefined): void {
-        console.log(e!.target!.object)
+        if (curState.debug)
+            console.log(e!.target!.object)
         var json = JSON.stringify({
                                     "event": "translate",
                                     "uuid": e!.target!.object.uuid,
                                     "location": e!.target!.object.position
                                 });
         curState.sendText(json);
-        console.log("completeTransform")
     }
 
     function fitToBox(boundingBox: Box3) {
@@ -113,7 +111,6 @@ const OpenSimControl = () => {
         }
 
     }
-    //console.log(viewerState.rotating);
     return <>
         {curState.draggable && <TransformControls object={curState.selectedObject!} onMouseUp={completeTransform}/>}
         <CameraControls camera={camera} makeDefault />

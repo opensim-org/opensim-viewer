@@ -49,6 +49,7 @@ export class ModelUIState {
     socket: WebSocket|null = null
     useSkybox: string
     fitToBox: Box3 | null
+    debug: boolean
     constructor(
         currentModelPathState: string,
         rotatingState: boolean,
@@ -79,6 +80,7 @@ export class ModelUIState {
         this.draggableTypes = ["Marker", "PathPoint", "Model"]
         this.useSkybox = "NoBackground"
         this.fitToBox = null
+        this.debug = false
         makeObservable(this, {
             rotating: observable,
             currentModelPath: observable,
@@ -313,7 +315,8 @@ export class ModelUIState {
         return JSON.stringify(offsets);
     }
     scaleGeometry(scaleJson:string) {
-        console.log(scaleJson);
+        if (this.debug)
+            console.log(scaleJson);
         this.executeOneCommandJson(scaleJson);
     }
     handleSocketMessage(data: string) {
@@ -381,7 +384,8 @@ export class ModelUIState {
             case "ReplaceGeometry":
                 // Placeholder since this doesn't appear in GUI
                 //editor.replaceGeometry(msg.geometries, msg.uuid);
-                console.log(data);
+                if (this.debug)
+                    console.log(data);
                 break;
             case "scaleGeometry":
                 this.scaleGeometry(parsedMessage);
@@ -394,7 +398,8 @@ export class ModelUIState {
         }
     }
     sendText(json: string) {
-        console.log(json);
+        if (this.debug)
+            console.log(json);
         this.socket!.send(json);
     }
     handleKey(key: string) {
