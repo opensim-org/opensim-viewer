@@ -1,7 +1,7 @@
 import ModelViewPage from './components/pages/ModelViewPage'
 import { observer } from 'mobx-react'
 import viewerState from './state/ViewerState'
-import { Amplify } from 'aws-amplify';
+//import { Amplify } from 'aws-amplify';
 import type { WithAuthenticatorProps } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import { useMediaQuery } from '@mui/material';
@@ -11,8 +11,8 @@ import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import './App.css'
 
-import awsconfig from './aws-exports';
-Amplify.configure(awsconfig);
+// import awsconfig from './aws-exports';
+// Amplify.configure(awsconfig);
 
 const useDeviceOrientation = () => {
   const isPortrait = useResponsiveQuery({ query: '(orientation: portrait)' });
