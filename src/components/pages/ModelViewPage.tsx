@@ -211,7 +211,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   currentModelPath={uiState.currentModelPath}
                   supportControls={true}
                 />
-                <Environment files="/builtin/potsdamer_platz_1k.hdr" />
                 <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
                   <GizmoViewport labelColor="white" axisHeadScale={1} />
                 </GizmoHelper>
