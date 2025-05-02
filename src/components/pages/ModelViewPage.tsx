@@ -27,7 +27,7 @@ import { ModelInfo } from '../../state/ModelUIState';
 
 import GUI from 'lil-gui';
 import { Color} from 'three';
-import OpenSimLogo from './OpenSimLogo';
+//import OpenSimLogo from './OpenSimLogo';
 import OpenSimSkybox from './OpenSimSkybox';
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
