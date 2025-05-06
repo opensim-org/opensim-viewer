@@ -15,13 +15,14 @@ const OpenSimSkybox = (props: skyboxProps) => {
     const [currentTextureName, setTextureName] = useState<string>(props.textureName);
     const [currentTexture, setCurrentTexture] = useState<CubeTexture>()
     const loadTexture = (textureName: string) => {
+      const relativePath = '/assets/images/skyboxes/'
       setCurrentTexture(new CubeTextureLoader().load([
-        process.env.PUBLIC_URL + '/images/skyboxes/'+textureName+'/px.jpg',
-        process.env.PUBLIC_URL + '/images/skyboxes/'+textureName+'/nx.jpg',
-        process.env.PUBLIC_URL + '/images/skyboxes/'+textureName+'/py.jpg',
-        process.env.PUBLIC_URL + '/images/skyboxes/'+textureName+'/ny.jpg',
-        process.env.PUBLIC_URL + '/images/skyboxes/'+textureName+'/pz.jpg',
-        process.env.PUBLIC_URL + '/images/skyboxes/'+textureName+'/nz.jpg'
+        process.env.PUBLIC_URL + relativePath +textureName+'/px.jpg',
+        process.env.PUBLIC_URL + relativePath +textureName+'/nx.jpg',
+        process.env.PUBLIC_URL + relativePath +textureName+'/py.jpg',
+        process.env.PUBLIC_URL + relativePath +textureName+'/ny.jpg',
+        process.env.PUBLIC_URL + relativePath +textureName+'/pz.jpg',
+        process.env.PUBLIC_URL + relativePath +textureName+'/nz.jpg'
       ], ((texture)=>{scene.background = texture})));
     }
 

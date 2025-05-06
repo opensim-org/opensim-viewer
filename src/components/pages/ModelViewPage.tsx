@@ -215,6 +215,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   <GizmoViewport labelColor="white" axisHeadScale={1} />
                 </GizmoHelper>
                 <OpenSimControl/>
+                <Environment files="/assets/potsdamer_platz_1k.hdr"/>
                 <OpenSimSkybox textureName={uiState.useSkybox} />
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
               </Canvas>

@@ -5,12 +5,13 @@ import { Mesh, RepeatWrapping, TextureLoader } from 'three';
 import viewerState from '../../state/ViewerState';
 
 const OpenSimFloor = () => {
+    const relativePath='/assets/images'
     const floorTextures =  [ 
-        useLoader(TextureLoader, process.env.PUBLIC_URL + '/images/tile.jpg'),
-        useLoader(TextureLoader, process.env.PUBLIC_URL + '/images/wood-floor.jpg'),
-        useLoader(TextureLoader, process.env.PUBLIC_URL + '/images/Cobblestone.png'),
-        useLoader(TextureLoader, process.env.PUBLIC_URL + '/images/cement.jpg'),
-        useLoader(TextureLoader, process.env.PUBLIC_URL + '/images/grassy_d.png')
+        useLoader(TextureLoader, process.env.PUBLIC_URL + relativePath + '/tile.jpg'),
+        useLoader(TextureLoader, process.env.PUBLIC_URL + relativePath + '/wood-floor.jpg'),
+        useLoader(TextureLoader, process.env.PUBLIC_URL + relativePath + '/Cobblestone.png'),
+        useLoader(TextureLoader, process.env.PUBLIC_URL + relativePath + '/cement.jpg'),
+        useLoader(TextureLoader, process.env.PUBLIC_URL + relativePath + '/grassy_d.png')
     ]
     var floorTexture = floorTextures[viewerState.textureIndex]
     floorTexture.wrapS = floorTexture.wrapT = RepeatWrapping;
