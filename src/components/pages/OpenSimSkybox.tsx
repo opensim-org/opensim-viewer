@@ -17,12 +17,12 @@ const OpenSimSkybox = (props: skyboxProps) => {
     const loadTexture = (textureName: string) => {
       const relativePath = '/assets/images/skyboxes/'
       setCurrentTexture(new CubeTextureLoader().load([
-        process.env.PUBLIC_URL + relativePath +textureName+'/px.jpg',
-        process.env.PUBLIC_URL + relativePath +textureName+'/nx.jpg',
-        process.env.PUBLIC_URL + relativePath +textureName+'/py.jpg',
-        process.env.PUBLIC_URL + relativePath +textureName+'/ny.jpg',
-        process.env.PUBLIC_URL + relativePath +textureName+'/pz.jpg',
-        process.env.PUBLIC_URL + relativePath +textureName+'/nz.jpg'
+        relativePath +textureName+'/px.jpg',
+        relativePath +textureName+'/nx.jpg',
+        relativePath +textureName+'/py.jpg',
+        relativePath +textureName+'/ny.jpg',
+        relativePath +textureName+'/pz.jpg',
+        relativePath +textureName+'/nz.jpg'
       ], ((texture)=>{scene.background = texture})));
     }
 

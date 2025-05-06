@@ -51,3 +51,4 @@ amplifytools.xcconfig
 #amplify-do-not-edit-end
 
 .env
+/src/editor
