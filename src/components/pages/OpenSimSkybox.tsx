@@ -1,4 +1,4 @@
-import { invalidate, useFrame, useThree} from '@react-three/fiber'
+import { useFrame, useThree} from '@react-three/fiber'
 import { Color, CubeTexture, CubeTextureLoader } from 'three';
 import { useState } from 'react';
 import { observer } from 'mobx-react';

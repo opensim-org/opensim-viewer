@@ -58,9 +58,9 @@ CommandFactory.prototype = {
     createAndExecuteCommand: function ( theEditor, json ) {
         var commandType = json.command.type;
         if (commandType !== 'MultiCmdsCommand'){
-            var cmd = this.createCommandByName(theEditor, commandType);
-            cmd.fromJSON(json.command);
-            cmd.execute();
+            var cmd2 = this.createCommandByName(theEditor, commandType);
+            cmd2.fromJSON(json.command);
+            cmd2.execute();
         }
         else {
                 var cmd = new MultiCmdsCommand(theEditor, json.command.cmds);

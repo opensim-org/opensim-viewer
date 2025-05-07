@@ -11,7 +11,6 @@ import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
 import viewerState from '../../state/ViewerState'
 import { OpenSimLoader } from '../../state/OpenSimLoader';
 import OpenSimFloor from './OpenSimFloor';
-import { Bounds } from '@react-three/drei';
 
 
 interface OpenSimSceneProps {
@@ -23,7 +22,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     // useGLTF suspends the component, it literally stops processing
     const { set, gl} = useThree();
-    const { camera, scene } = useThree();
+    const { scene } = useThree();
     const sceneRef = useRef<THREE.Scene>(scene);
     const [sceneObjectMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
     const [useEffectRunning, setUseEffectRunning] = useState<boolean>(false)
@@ -107,8 +106,6 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     // This useEffect loads the cameras and assign them to its respective states.
     useEffect(() => {
-      var isoViewEye = new THREE.Vector3(0, 0, 0)
-      var isoViewLookAt = new THREE.Vector3(0, 0, 0)
       if (modelsRef.current!==null) {
         const boundingBox = new THREE.Box3();
         // // Compute the bounding box of the scene if models are already loaded
