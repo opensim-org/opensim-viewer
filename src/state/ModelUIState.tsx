@@ -245,11 +245,13 @@ export class ModelUIState {
         this.modelInfo.authors = curAuth
     }
     exportScene(): void {
-        if (this.selectedObject === null )
-            return; // Nothing to export.
         const exporter = new GLTFExporter();
+        var objectToExport:Object3D = this.scene!;
+        if (this.selected!=="") {
+            objectToExport = this.objectByUuid(this.selected);
+        }
         exporter.parse(
-            this.objectByUuid(this.selected),
+            objectToExport,
             (gltf) => {
               const output = JSON.stringify(gltf, null, 2);
               const blob = new Blob([output], { type: 'application/json' });
