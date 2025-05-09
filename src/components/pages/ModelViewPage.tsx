@@ -24,7 +24,7 @@ import { useParams } from 'react-router-dom';
 import VideoRecorder from "../Components/VideoRecorder"
 import { ModelInfo } from '../../state/ModelUIState';
 
-import GUI from 'lil-gui';
+import { GUI }from 'dat.gui';
 import { Color} from 'three';
 //import OpenSimLogo from './OpenSimLogo';
 import OpenSimSkybox from './OpenSimSkybox';
@@ -122,16 +122,16 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     sceneFolder.addColor(viewerState, 'backgroundColor').onChange(
       function(v: any){viewerState.setBackgroundColor(v); coloRef.current?.copy(v);}
     );
-    // sceneFolder.add(uiState, 'image', ['NoBackground', 'sky', 'canyon', 'pastures', 'desert', 'dark', 'city']).onChange(
-    //   function(v: any){uiState.setSkyboxImage(v);}
-    // );
+    sceneFolder.add(uiState, 'useSkybox', ['NoBackground', 'sky', 'canyon', 'pastures', 'desert', 'dark', 'city']).onChange(
+      function(v: any){uiState.setSkyboxImage(v);}
+    );
     sceneFolder.add(uiState, 'showGlobalFrame')
     const floorFolder = gui.addFolder("Floor");
     floorFolder.add(viewerState, 'floorHeight', -2, 2, .01).name("Height")
     floorFolder.add(viewerState, 'floorVisible')
-    // floorFolder.add(viewerState, 'floorTextureFile', { 'tile':0, 'wood-floor':1, 'Cobblestone':2, 'textureStone':3, 'grassy':4}).name("Texture").onChange(
-    //    function(v: any){viewerState.setFloorTextureIndex(v)}
-    // );
+    floorFolder.add(viewerState, 'textureIndex', { 'tile':0, 'wood-floor':1, 'Cobblestone':2, 'textureStone':3, 'grassy':4}).name("Texture").onChange(
+       function(v: any){viewerState.setFloorTextureIndex(v)}
+    );
     const lightFolder = gui.addFolder("Lights");
     lightFolder.add(viewerState, 'lightIntensity', 0, 2, .05).name("Intensity")
     lightFolder.addColor(viewerState, 'lightColor').name("Color")
@@ -145,7 +145,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     return () => {
         gui.destroy()
       }
-  }, [uiState]);
+   }, [uiState]);
   
   //console.log(urlParam);
   if (urlParam!== undefined) {
