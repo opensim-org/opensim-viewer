@@ -198,7 +198,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 <OpenSimControl/>
                 <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
 
-                <OpenSimSkySphere texturePath="death-valley.jpg" />
+                <OpenSimSkySphere texturePath="/death-valley.jpg" />
                 <OpenSimFloor />
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
               </Canvas>
