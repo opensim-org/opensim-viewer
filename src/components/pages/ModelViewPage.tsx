@@ -24,6 +24,7 @@ import { useModelContext } from "../../state/ModelUIStateContext";
 import { useParams } from 'react-router-dom';
 
 import OpenSimFloor from "./OpenSimFloor";
+import OpenSimSkySphere from './OpenSimSkySphere';
 import VideoRecorder from "../Components/VideoRecorder"
 import { ModelInfo } from '../../state/ModelUIState';
 
@@ -104,6 +105,8 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 
   React.useEffect(() => {
     const gui = new GUI()
+    gui.domElement.style.marginTop = '66px';
+    gui.domElement.style.marginRight = '-15px';
     const sceneFolder = gui.addFolder("Scene");
     sceneFolder.addColor(viewerState, 'backgroundColor').onChange(
       function(v: any){viewerState.setBackgroundColor(v); coloRef.current?.copy(v);}
@@ -194,6 +197,8 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 </GizmoHelper>
                 <OpenSimControl/>
                 <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
+
+                <OpenSimSkySphere texturePath="death-valley.jpg" />
                 <OpenSimFloor />
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
               </Canvas>
