@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, Suspense } from 'react';
 import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -9,12 +9,11 @@ import {
   GizmoViewport,
 } from "@react-three/drei";
 import viewerState from "../../state/ViewerState";
-import OpenSimControl from "../pages/OpenSimControl";
-import { Suspense } from "react";
-import FloatingControlsPanel from '../Components/FloatingControlsPanel';
+import OpenSimControl from '../Components/OpenSimControl';
 
+import FloatingControlsPanel from '../Components/FloatingControlsPanel';
 import DrawerMenu from "../Components/DrawerMenu";
-import OpenSimGUIScene from "../pages/OpenSimGUIScene";
+import OpenSimGUIScene from "../Components/OpenSimGUIScene";
 import { ModelUIState } from "../../state/ModelUIState";
 import { observer } from "mobx-react";
 import { MyModelContext } from "../../state/ModelUIStateContext";
@@ -27,7 +26,7 @@ import { ModelInfo } from '../../state/ModelUIState';
 import { GUI }from 'dat.gui';
 import { Color} from 'three';
 //import OpenSimLogo from './OpenSimLogo';
-import OpenSimSkybox from './OpenSimSkybox';
+import OpenSimSkybox from '../Components/OpenSimSkybox';
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
@@ -103,13 +102,13 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 
   useEffect(() => {
     // Create fresh WebSocket
-    const socket = new WebSocket('ws://127.0.0.1:8002/visEndpoint');
-    socket.onopen = () => { console.log("socket opened");}
-    socket.onmessage = function(evt) { 
-      //console.log(evt.data)
-      uiState.handleSocketMessage(evt.data);
-      uiState.setSocketHandle(socket);
-    };
+    // const socket = new WebSocket('ws://127.0.0.1:8002/visEndpoint');
+    // socket.onopen = () => { console.log("socket opened");}
+    // socket.onmessage = function(evt) { 
+    //   //console.log(evt.data)
+    //   uiState.handleSocketMessage(evt.data);
+    //   uiState.setSocketHandle(socket);
+    // };
     // Implement your WebSocket logic here
     return () => {
       //socket.disconnect();

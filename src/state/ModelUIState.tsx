@@ -18,6 +18,16 @@ export class ModelInfo {
     }
 }
 
+export class SnapshotProps {
+    size_choice: string
+    width: number
+    height: number
+    constructor(){
+        this.size_choice = "screen"
+        this.height = 600
+        this.width = 800
+    }
+}
 export class ModelUIState {
     currentModelPath: string
     scene: Scene | null
@@ -26,6 +36,7 @@ export class ModelUIState {
     zoom_inOut: number
     pending_key: string
     takeSnapshot: boolean
+    snapshotProps: SnapshotProps = new SnapshotProps()
     showGlobalFrame: boolean
     sceneTree: SceneTreeModel | null
     animating: boolean
@@ -402,6 +413,7 @@ export class ModelUIState {
     sendText(json: string) {
         if (this.debug)
             console.log(json);
+        if (this.socket !== null)
         this.socket!.send(json);
     }
     handleKey(key: string) {

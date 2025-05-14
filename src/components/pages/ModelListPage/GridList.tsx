@@ -8,7 +8,7 @@ import { useTheme } from '@mui/material'
 import { Bounds, Environment } from '@react-three/drei'
 import Typography from '@mui/material/Typography'
 
-import OpenSimControl from '../OpenSimControl'
+import OpenSimControl from '../../Components/OpenSimControl'
 import OpenSimScene from '../OpenSimScene'
 import { ModelMetadataType } from './ModelListPage'
 import { NavLink } from 'react-router-dom'
