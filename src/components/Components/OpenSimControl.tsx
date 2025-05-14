@@ -5,13 +5,14 @@ import { useModelContext } from '../../state/ModelUIStateContext';
 import { useFrame, useThree } from '@react-three/fiber'
 
 import viewerState from "../../state/ViewerState";
-import { Box3, Object3D, PerspectiveCamera, Vector3 } from 'three';
+import { Box3, Object3D, PerspectiveCamera, Vector2, Vector3 } from 'three';
 
 const OpenSimControl = () => {
     const {
         gl, // WebGL renderer
         camera,
-        controls
+        controls,
+        scene
     } = useThree()
 
    const curState = useModelContext();
@@ -42,14 +43,9 @@ const OpenSimControl = () => {
                 case 'f':
                 case 'F':
                     if (curState.selectedObject !== null)
-                        (controls as unknown as CameraControls).fitToBox(curState.selectedObject!, true)
+                        (controls as unknown as CameraControls).fitToSphere(curState.selectedObject!, true)
                     else {
-                        const useScene = curState.scene
-                        useScene?.traverse((object: Object3D)=>{
-                            if (object.type === "Group" && object.name === "OpenSimModels"){
-                                (controls as unknown as CameraControls).fitToBox(object, true)
-                            }
-                        })
+                        fitToModels(true);
                     }
                     break;
                 case 's':
@@ -60,23 +56,70 @@ const OpenSimControl = () => {
                 case 'R':
                     (controls as unknown as CameraControls).reset(true);
                     break;
-
+                case 'x':
+                case 'X':
+                    (controls as unknown as CameraControls).setLookAt(10, 0, 0, 0, 0, 0, false).then(()=>fitToModels(false));
+                    break
+                case 'y':
+                case 'Y':
+                    (controls as unknown as CameraControls).setLookAt(0, 10, 0, 0, 0, 0, false).then(()=>fitToModels(false));
+                    break;
+                case 'z':
+                case 'Z':
+                    (controls as unknown as CameraControls).setLookAt(0, 0, 10, 0, 0, 0, false).then(()=>fitToModels(false));
+                    break
             }
             curState.pending_key = "";
         }
         else if (curState.takeSnapshot){
-            const link = document.createElement('a')
-            link.setAttribute('download', viewerState.snapshotName + "." + viewerState.snapshotFormat)
-            link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
-            link.click()
-            curState.takeSnapshot = false;
+            if (curState.snapshotProps.size_choice==="screen"){
+                const link = document.createElement('a')
+                link.setAttribute('download', viewerState.snapshotName + "." + viewerState.snapshotFormat)
+                link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
+                link.click()
+                curState.takeSnapshot = false;
+            }
+            else {  // Custom
+                const originalSize = new Vector2 ();
+                gl.getSize (originalSize);
+                let renderWidth = curState.snapshotProps.width;
+                let renderHeight = curState.snapshotProps.height;
+                if (window.devicePixelRatio) {
+                    renderWidth /= window.devicePixelRatio;
+                    renderHeight /= window.devicePixelRatio;
+                }
+                resizeRenderer (renderWidth, renderHeight);
+                const link = document.createElement('a')
+                link.setAttribute('download', viewerState.snapshotName + "." + viewerState.snapshotFormat)
+                link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
+                link.click()
+                curState.takeSnapshot = false;
+                resizeRenderer (originalSize.width, originalSize.height);
+            }
         }
         if (curState.fitToBox !== null) {
             fitToBox(curState.fitToBox)
             curState.fitToBox = null
         }
+
+       function fitToModels(transition: boolean) {
+           const useScene = curState.scene;
+           useScene?.traverse((object: Object3D) => {
+               if (object.type === "Group" && object.name === "OpenSimModels") {
+                   (controls as unknown as CameraControls).fitToSphere(object, transition);
+               }
+           });
+       }
        })
 
+        function resizeRenderer (width:number, height:number)
+        {
+            if (window.devicePixelRatio) {
+                gl.setPixelRatio (window.devicePixelRatio);
+            }
+            gl.setSize (width, height);
+            gl.render (scene, camera);
+        }
 
     function completeTransform(e?: THREE.Event | undefined): void {
         if (curState.debug)
@@ -111,9 +154,13 @@ const OpenSimControl = () => {
         }
 
     }
+    function updateTarget(self: CameraControls): void {
+        console.log(controls)
+    }
+
     return <>
         {curState.draggable && <TransformControls object={curState.selectedObject!} onMouseUp={completeTransform}/>}
-        <CameraControls camera={camera} makeDefault />
+        <CameraControls camera={camera} makeDefault onUpdate={updateTarget}/>
         
     </>
 }

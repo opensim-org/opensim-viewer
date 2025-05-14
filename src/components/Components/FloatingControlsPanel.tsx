@@ -7,11 +7,11 @@ import './FloatingControlsPanel.css';
 import InfoIcon from '@mui/icons-material/Info';
 import ZoomOutTwoToneIcon from '@mui/icons-material/ZoomOutTwoTone';
 import ZoomInTwoToneIcon from '@mui/icons-material/ZoomInTwoTone';
-import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone';
 import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
 import { useModelContext } from '../../state/ModelUIStateContext';
 import viewerState from '../../state/ViewerState';
 import { ModelInfo } from '../../state/ModelUIState';
+import SnapShotModal from './SnapShotModal';
 
 interface FloatingControlsPanelProps {
   videoRecorderRef: any;
@@ -54,12 +54,7 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
         </Grid>
 
         <Grid item xs={6}>
-          <Tooltip title={t('bottomBar.snapshoot')}>
-            <IconButton color="primary" onClick={() => {
-              curState.setTakeSnapshot();}}>
-                <PhotoCameraTwoToneIcon />
-            </IconButton>
-          </Tooltip>
+            <SnapShotModal open={false}/>
         </Grid>
 
         <Grid item xs={6}>
@@ -87,6 +82,7 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
               </IconButton>
           </Tooltip>
         </Grid>
+
       </Grid>
 
       {isWindowOpen &&
