@@ -4,15 +4,15 @@ import { useRef } from 'react';
 import { Mesh, RepeatWrapping, TextureLoader } from 'three';
 import viewerState from '../../state/ViewerState';
 
-const OpenSimFloor = () => {
-    const floorTextures =  [ 
-        useLoader(TextureLoader, '/tile.jpg'),
-        useLoader(TextureLoader, '/wood-floor.jpg'),
-        useLoader(TextureLoader, '/Cobblestone.png'),
-        useLoader(TextureLoader, '/cement.jpg'),
-        useLoader(TextureLoader, '/grassy_d.png')
-    ]
-    var floorTexture = floorTextures[viewerState.textureIndex]
+interface OpenSimFloorProps {
+  texturePath?: string;
+}
+
+const OpenSimFloor = ({ texturePath }: OpenSimFloorProps) => {
+    const floorTexture = useLoader(
+      TextureLoader,
+      texturePath || viewerState.defaultFloorTextures[viewerState.textureIndex]
+    )
     floorTexture.wrapS = floorTexture.wrapT = RepeatWrapping;
     floorTexture.offset.set(0, 0);
     floorTexture.repeat.set(12, 12);
@@ -22,10 +22,14 @@ const OpenSimFloor = () => {
     return <>
         <mesh name='Floor' ref={floorRef} rotation-x={-Math.PI / 2} 
                 position-y={viewerState.floorHeight} visible={viewerState.floorVisible} receiveShadow >
-        <circleGeometry attach="geometry" args={[10, 64]} /> {/* Radius of 10, 64 segments */}
+        {viewerState.floorRound ? (
+          <circleGeometry args={[10, 64]} />
+        ) : (
+          <planeGeometry args={[20, 20]} />
+        )}
         <meshPhongMaterial attach="material" color={floorColor} map={floorTexture}/>
         </mesh>
     </>
-}
+};
 
 export default observer(OpenSimFloor)

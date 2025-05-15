@@ -2,14 +2,15 @@ import { useTexture } from '@react-three/drei';
 import { useRef } from 'react';
 import * as THREE from 'three';
 import { observer } from 'mobx-react';
+import viewerState from '../../state/ViewerState';
 
 interface SkySphereProps {
-  texturePath: string;
+  texturePath?: string;
 }
 
 const SkySphere: React.FC<SkySphereProps> = observer(({ texturePath }) => {
   // Load 360 sky texture
-  const skyTexture = useTexture(texturePath);
+  const skyTexture = useTexture(texturePath || viewerState.defaultSkyTextures[viewerState.skyTextureIndex]);
   const skySphereRef = useRef<THREE.Mesh>(null);
 
   const skyGeometry = new THREE.SphereGeometry(50, 60, 40);
@@ -25,6 +26,7 @@ const SkySphere: React.FC<SkySphereProps> = observer(({ texturePath }) => {
       geometry={skyGeometry}
       material={skyMaterial}
       renderOrder={-1} // Ensure it renders first as background
+      visible={viewerState.skyVisible}
     />
   );
 });

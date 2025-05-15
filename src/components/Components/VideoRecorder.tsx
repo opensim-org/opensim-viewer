@@ -70,7 +70,17 @@ function VideoRecorder(props :VideoRecorderViewProps) {
 
   useEffect(() => {
     const stream = gl.domElement.captureStream();
-    const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+    let options = { mimeType: 'video/webm;codecs=vp8,opus' };
+
+    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options = { mimeType: 'video/mp4;codecs=avc1,mp4a' };
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+            console.error("No compatible MIME type found.");
+            return;
+        }
+    }
+
+    const recorder = new MediaRecorder(stream, options);
 
     const startRecording = function() {
       viewerState.setIsRecordingVideo(true)
