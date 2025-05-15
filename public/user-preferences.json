@@ -2,9 +2,3 @@
   "sky-texture-path": "/builtin/skyTextures/death-valley-alberto.jpg",
   "floor-texture-path": "/builtin/floorTextures/Cobblestone.png"
 }
-
-Changed codec mediarecorder.
-Added json user preferences files.
-Added skybackground options to floating panel.
-Moved default textures to builtin folders.
-Added 360 photos license.
