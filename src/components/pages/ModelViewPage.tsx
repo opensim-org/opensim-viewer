@@ -27,6 +27,7 @@ import { GUI }from 'dat.gui';
 import { Color} from 'three';
 //import OpenSimLogo from './OpenSimLogo';
 import OpenSimSkybox from '../Components/OpenSimSkybox';
+import OpenSimHtmlLogo from '../Components/OpenSimLogo';
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
@@ -102,13 +103,13 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 
   useEffect(() => {
     // Create fresh WebSocket
-    // const socket = new WebSocket('ws://127.0.0.1:8002/visEndpoint');
-    // socket.onopen = () => { console.log("socket opened");}
-    // socket.onmessage = function(evt) { 
+    const socket = new WebSocket('ws://127.0.0.1:8002/visEndpoint');
+    socket.onopen = () => { console.log("socket opened");}
+    socket.onmessage = function(evt) { 
     //   //console.log(evt.data)
-    //   uiState.handleSocketMessage(evt.data);
-    //   uiState.setSocketHandle(socket);
-    // };
+       uiState.handleSocketMessage(evt.data);
+       uiState.setSocketHandle(socket);
+    };
     // Implement your WebSocket logic here
     return () => {
       //socket.disconnect();
@@ -217,6 +218,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 <OpenSimSkybox textureName={uiState.useSkybox} />
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
               </Canvas>
+              <OpenSimHtmlLogo/>
             </Suspense>
           </div>
         </Main>
