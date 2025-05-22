@@ -85,7 +85,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
 
     let curState = useModelContext();
     ///curState.scene = scene;
-
+    
     const sceneRef = useRef<THREE.Scene>()
     const lightRef = useRef<THREE.DirectionalLight | null>(null)
     const spotlightRef = useRef<THREE.SpotLight>(null)

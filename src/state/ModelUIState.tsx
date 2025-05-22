@@ -22,15 +22,18 @@ export class SnapshotProps {
     size_choice: string
     width: number
     height: number
+    preserve_aspect_ratio: boolean
     constructor(){
         this.size_choice = "screen"
         this.height = 600
         this.width = 800
+        this.preserve_aspect_ratio = true
     }
 }
 export class ModelUIState {
     currentModelPath: string
     scene: Scene | null
+    isGuiMode: boolean
     rotating: boolean
     zooming: boolean
     zoom_inOut: number
@@ -67,6 +70,7 @@ export class ModelUIState {
     ) {
         this.currentModelPath = currentModelPathState
         this.scene = null
+        this.isGuiMode = true
         this.rotating = rotatingState
         this.zooming = false
         this.zoom_inOut = 0.0
@@ -120,7 +124,13 @@ export class ModelUIState {
         })
         console.log("Created ModelUIState instance ", currentModelPathState)
     }
-
+    public toJSON() {
+        return {
+        showGlobalFrame: this.showGlobalFrame,
+        useSkybox: this.useSkybox,
+        cameras: this.cameras
+        };
+    }
     addModelFromPath(newJsonFile: string) {
         let oldPath = this.currentModelPath
         if (oldPath !== newJsonFile){
@@ -273,6 +283,21 @@ export class ModelUIState {
               console.error('An error occurred during parsing', error);
             }
           );
+    }
+    save(): void {
+        const theScene:Object3D = this.scene!;
+        // traverse scene to find environment group, export to json
+        // then add userData that contains Camera(s), other info
+        const envGroup = theScene.getObjectByName('OpenSimEnvironment');
+        if (envGroup) {
+            var json = envGroup.toJSON();
+            json["state"] = this.toJSON()
+            const blob = new Blob( [ JSON.stringify( json ) ], { type: 'application/json' } );
+            saveAs(blob, "my_environment.json");
+        }
+    }
+    restore(): void {
+
     }
     objectByUuid(uuid: string) {
         return this.nodeDictionary[uuid]

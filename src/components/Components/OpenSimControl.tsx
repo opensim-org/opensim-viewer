@@ -84,6 +84,11 @@ const OpenSimControl = () => {
                 gl.getSize (originalSize);
                 let renderWidth = curState.snapshotProps.width;
                 let renderHeight = curState.snapshotProps.height;
+                if (curState.snapshotProps.preserve_aspect_ratio){
+                      const canvasHeight = window.document.getElementById("canvas-element")?.clientHeight
+                      const canvasWidth = window.document.getElementById("canvas-element")?.clientWidth
+                    renderHeight = renderWidth *canvasHeight!/canvasWidth!
+                }
                 if (window.devicePixelRatio) {
                     renderWidth /= window.devicePixelRatio;
                     renderHeight /= window.devicePixelRatio;

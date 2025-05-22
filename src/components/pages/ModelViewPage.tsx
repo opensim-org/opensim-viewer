@@ -25,9 +25,10 @@ import { ModelInfo } from '../../state/ModelUIState';
 
 import { GUI }from 'dat.gui';
 import { Color} from 'three';
-//import OpenSimLogo from './OpenSimLogo';
+
 import OpenSimSkybox from '../Components/OpenSimSkybox';
 import OpenSimHtmlLogo from '../Components/OpenSimLogo';
+import OpenSimScene from './OpenSimScene';
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
@@ -103,17 +104,22 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 
   useEffect(() => {
     // Create fresh WebSocket
-    const socket = new WebSocket('ws://127.0.0.1:8002/visEndpoint');
-    socket.onopen = () => { console.log("socket opened");}
-    socket.onmessage = function(evt) { 
-    //   //console.log(evt.data)
-       uiState.handleSocketMessage(evt.data);
-       uiState.setSocketHandle(socket);
-    };
-    // Implement your WebSocket logic here
-    return () => {
-      //socket.disconnect();
-    };
+    if (uiState.isGuiMode) {
+      const socket = new WebSocket('ws://127.0.0.1:8002/visEndpoint');
+      socket.onopen = () => { console.log("socket opened");}
+      socket.onmessage = function(evt) { 
+      //   //console.log(evt.data)
+        uiState.handleSocketMessage(evt.data);
+        uiState.setSocketHandle(socket);
+      };
+      socket.onerror = function(evt) { 
+        uiState.isGuiMode = false;
+      }
+      // Implement your WebSocket logic here
+      return () => {
+        //socket.disconnect();
+      };
+    }
   }, [uiState]);
 
   React.useEffect(() => {
@@ -141,7 +147,8 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     cameraFolder.add(uiState, 'saveCamera');
     cameraFolder.add(uiState, 'restoreCamera');
     const environmentFolder = gui.addFolder("Environment");
-    environmentFolder.add(uiState, 'exportScene')
+    environmentFolder.add(uiState, 'save')
+    environmentFolder.add(uiState, 'restore')
     return () => {
         gui.destroy()
       }
@@ -206,10 +213,15 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   //   theme.palette.mode === "dark" ? ["#151518"] : ["#cccccc"]
                   // }
                 />
+                {uiState.isGuiMode?
                 <OpenSimGUIScene 
                   currentModelPath={uiState.currentModelPath}
                   supportControls={true}
-                />
+                />:
+                <OpenSimScene
+                  currentModelPath={uiState.currentModelPath}
+                  supportControls={true}
+                />}
                 <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
                   <GizmoViewport labelColor="white" axisHeadScale={1} />
                 </GizmoHelper>
