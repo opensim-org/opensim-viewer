@@ -7,6 +7,7 @@ import './FloatingControlsPanel.css';
 import InfoIcon from '@mui/icons-material/Info';
 import ZoomOutTwoToneIcon from '@mui/icons-material/ZoomOutTwoTone';
 import ZoomInTwoToneIcon from '@mui/icons-material/ZoomInTwoTone';
+import FitScreenTwoToneIcon from '@mui/icons-material/FitScreenTwoTone';
 import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
 import { useModelContext } from '../../state/ModelUIStateContext';
 import viewerState from '../../state/ViewerState';
@@ -32,7 +33,7 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
   return (
     <div className="floating-buttons-container" style={{top: props.top}}>
 
-      <Grid container spacing={-4} direction="row">
+      <Grid container spacing={-4} direction="column">
         <Grid item xs={6}>
           <Tooltip title={t('bottomBar.zoomIn')}>
             <IconButton color="primary" onClick={() => {
@@ -49,6 +50,15 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
               curState.setZoomFactor(0.9);
               curState.setZooming(true)}}>
                 <ZoomOutTwoToneIcon />
+            </IconButton>
+          </Tooltip>
+        </Grid>
+
+        <Grid item xs={6}>
+          <Tooltip title={t('bottomBar.fit')}>
+            <IconButton color="primary" onClick={() => {
+              curState.handleKey('F')}}>
+                <FitScreenTwoToneIcon />
             </IconButton>
           </Tooltip>
         </Grid>
