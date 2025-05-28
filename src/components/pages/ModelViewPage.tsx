@@ -99,7 +99,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
       setCanvasLeft(0);
       setFloatingButtonsContainerTop("12px")
     }
-    setBgndColor(viewerState.backgroundColor);
+    //setBgndColor(viewerState.backgroundColor);
   }, []);
 
   useEffect(() => {
@@ -126,17 +126,23 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     const gui = new GUI()
     const sceneFolder = gui.addFolder("Scene");
     sceneFolder.addColor(viewerState, 'backgroundColor').onChange(
-      function(v: any){viewerState.setBackgroundColor(v); coloRef.current?.copy(v);}
+      function(v: any){
+        viewerState.setBackgroundColor(v); coloRef.current?.copy(v);
+        uiState.setGuiKnobs(JSON.stringify(gui.getSaveObject()))
+      }
     );
     sceneFolder.add(uiState, 'useSkybox', ['NoBackground', 'sky', 'canyon', 'pastures', 'desert', 'dark', 'city']).onChange(
-      function(v: any){uiState.setSkyboxImage(v);}
+      function(v: any){uiState.setSkyboxImage(v); uiState.setGuiKnobs(JSON.stringify(gui.getSaveObject()))}
     );
     sceneFolder.add(uiState, 'showGlobalFrame')
     const floorFolder = gui.addFolder("Floor");
     floorFolder.add(viewerState, 'floorHeight', -2, 2, .01).name("Height")
-    floorFolder.add(viewerState, 'floorVisible')
+    floorFolder.add(viewerState, 'floorVisible').onChange(() => {uiState.setGuiKnobs(JSON.stringify(gui.getSaveObject()))})
     floorFolder.add(viewerState, 'textureIndex', { 'tile':0, 'wood-floor':1, 'Cobblestone':2, 'textureStone':3, 'grassy':4}).name("Texture").onChange(
-       function(v: any){viewerState.setFloorTextureIndex(v)}
+       function(v: any){
+        viewerState.setFloorTextureIndex(v)
+        uiState.setGuiKnobs(JSON.stringify(gui.getSaveObject()))
+      }
     );
     const lightFolder = gui.addFolder("Lights");
     lightFolder.add(viewerState, 'lightIntensity', 0, 2, .05).name("Intensity")
@@ -195,7 +201,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 top={floatingButtonsContainerTop}/>
               <Canvas 
                 id="canvas-element"
-                gl={{ preserveDrawingBuffer: true }}
+                gl={{ alpha: true, autoClearColor: true, preserveDrawingBuffer: true }}
                 shadows="soft"
                 style={{
                   width: canvasWidth,
@@ -207,12 +213,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
               >
               <fog attach="fog" color="lightgray" near={.01} far={50} />
 
-                <color  ref={coloRef}
-                  attach="background" args={[bgndColor.r, bgndColor.g, bgndColor.b]}
-                  // args={
-                  //   theme.palette.mode === "dark" ? ["#151518"] : ["#cccccc"]
-                  // }
-                />
                 {uiState.isGuiMode?
                 <OpenSimGUIScene 
                   currentModelPath={uiState.currentModelPath}

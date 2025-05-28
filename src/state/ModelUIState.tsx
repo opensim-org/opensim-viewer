@@ -63,6 +63,7 @@ export class ModelUIState {
     socket: WebSocket|null = null
     useSkybox: string
     fitToBox: Box3 | null
+    guiKnobs: string
     debug: boolean
     constructor(
         currentModelPathState: string,
@@ -95,6 +96,7 @@ export class ModelUIState {
         this.draggableTypes = ["Marker", "PathPoint", "Model"]
         this.useSkybox = "NoBackground"
         this.fitToBox = null
+        this.guiKnobs = ""
         this.debug = false
         makeObservable(this, {
             rotating: observable,
@@ -124,11 +126,15 @@ export class ModelUIState {
         })
         console.log("Created ModelUIState instance ", currentModelPathState)
     }
+    public setGuiKnobs(guiKnobs: string) {
+        this.guiKnobs = guiKnobs
+    }
     public toJSON() {
         return {
-        showGlobalFrame: this.showGlobalFrame,
-        useSkybox: this.useSkybox,
-        cameras: this.cameras
+            showGlobalFrame: this.showGlobalFrame,
+            useSkybox: this.useSkybox,
+            cameras: this.cameras,
+            guiKnobs: this.guiKnobs
         };
     }
     addModelFromPath(newJsonFile: string) {
@@ -449,5 +455,5 @@ export class ModelUIState {
     }
     fitCameraTo(objectbbox: Box3) {
         this.fitToBox = objectbbox;
-      }
+    }
 }
