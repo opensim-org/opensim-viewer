@@ -23,7 +23,7 @@ import { useParams } from 'react-router-dom';
 import VideoRecorder from "../Components/VideoRecorder"
 import { ModelInfo } from '../../state/ModelUIState';
 
-import { GUI }from 'dat.gui';
+import { GUI } from 'dat.gui';
 import { Color} from 'three';
 
 import OpenSimSkybox from '../Components/OpenSimSkybox';
@@ -128,20 +128,20 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     sceneFolder.addColor(viewerState, 'backgroundColor').onChange(
       function(v: any){
         viewerState.setBackgroundColor(v); coloRef.current?.copy(v);
-        uiState.setGuiKnobs(JSON.stringify(gui.getSaveObject()))
       }
     );
     sceneFolder.add(uiState, 'useSkybox', ['NoBackground', 'sky', 'canyon', 'pastures', 'desert', 'dark', 'city']).onChange(
-      function(v: any){uiState.setSkyboxImage(v); uiState.setGuiKnobs(JSON.stringify(gui.getSaveObject()))}
+      function(v: any){uiState.setSkyboxImage(v); 
+        }
     );
     sceneFolder.add(uiState, 'showGlobalFrame')
     const floorFolder = gui.addFolder("Floor");
     floorFolder.add(viewerState, 'floorHeight', -2, 2, .01).name("Height")
-    floorFolder.add(viewerState, 'floorVisible').onChange(() => {uiState.setGuiKnobs(JSON.stringify(gui.getSaveObject()))})
+    floorFolder.add(viewerState, 'floorVisible').onChange(() => {
+    })
     floorFolder.add(viewerState, 'textureIndex', { 'tile':0, 'wood-floor':1, 'Cobblestone':2, 'textureStone':3, 'grassy':4}).name("Texture").onChange(
        function(v: any){
         viewerState.setFloorTextureIndex(v)
-        uiState.setGuiKnobs(JSON.stringify(gui.getSaveObject()))
       }
     );
     const lightFolder = gui.addFolder("Lights");
