@@ -74,13 +74,21 @@ const OpenSimControl = () => {
         else if (curState.takeSnapshot){
             if (curState.snapshotProps.size_choice==="screen"){
                 const link = document.createElement('a')
-                let clearAlpha = gl.getClearAlpha ();
-                gl.setClearAlpha (0.0);
-                link.setAttribute('download', viewerState.snapshotName + "." + viewerState.snapshotFormat)
-                link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
-                link.click()
-                curState.takeSnapshot = false;
-                gl.setClearAlpha (clearAlpha);
+                if (curState.snapshotProps.transparent_background){
+                    let clearAlpha = gl.getClearAlpha ();
+                    gl.setClearAlpha (0.0);
+                    link.setAttribute('download', viewerState.snapshotName + "." + viewerState.snapshotFormat)
+                    link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
+                    link.click()
+                    curState.takeSnapshot = false;
+                    gl.setClearAlpha (clearAlpha);
+                }
+                else{
+                    link.setAttribute('download', viewerState.snapshotName + "." + viewerState.snapshotFormat)
+                    link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
+                    link.click()
+                    curState.takeSnapshot = false;
+                }
             }
             else {  // Custom
                 const originalSize = new Vector2 ();
@@ -98,9 +106,19 @@ const OpenSimControl = () => {
                 }
                 resizeRenderer (renderWidth, renderHeight);
                 const link = document.createElement('a')
-                link.setAttribute('download', viewerState.snapshotName + "." + viewerState.snapshotFormat)
-                link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
-                link.click()
+                if (curState.snapshotProps.transparent_background){
+                    let clearAlpha = gl.getClearAlpha ();
+                    gl.setClearAlpha (0.0);
+                    link.setAttribute('download', viewerState.snapshotName + "." + viewerState.snapshotFormat)
+                    link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
+                    link.click()
+                    gl.setClearAlpha (clearAlpha);
+                }
+                else {
+                    link.setAttribute('download', viewerState.snapshotName + "." + viewerState.snapshotFormat)
+                    link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
+                    link.click()
+                }
                 curState.takeSnapshot = false;
                 resizeRenderer (originalSize.width, originalSize.height);
             }

@@ -8,6 +8,7 @@ interface FormData {
   width: number;
   height: number;
   preserve_aspect_ratio: string;
+  transparent_background: string
 }
 
 
@@ -23,7 +24,8 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
     size_choice: curState.snapshotProps.size_choice,
     width: curState.snapshotProps.width,
     height: curState.snapshotProps.height,
-    preserve_aspect_ratio: curState.snapshotProps.preserve_aspect_ratio?"true":"false"
+    preserve_aspect_ratio: curState.snapshotProps.preserve_aspect_ratio?"true":"false",
+    transparent_background: curState.snapshotProps.transparent_background?"true":"false"
   };
   const [formData, setFormData] = React.useState(initialFormData);
 
@@ -38,6 +40,7 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
     curState.snapshotProps.width = formData.width
     curState.snapshotProps.height = formData.height
     curState.snapshotProps.preserve_aspect_ratio = formData.preserve_aspect_ratio==="true"
+    curState.snapshotProps.transparent_background= formData.transparent_background==="true"
     curState.takeSnapshot = true
   };
   const handleChange =  (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,7 +56,10 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
     formData.preserve_aspect_ratio = event.currentTarget.checked?'true':'false';
     setChanged(!changed)
   };
-
+  const handleTransparentChange =  (event: React.ChangeEvent<HTMLInputElement>) => {
+    formData.transparent_background = event.currentTarget.checked?'true':'false';
+    setChanged(!changed)
+  };
   return (
       <>
       <IconButton color="primary" onClick={() => {
@@ -106,6 +112,13 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
                     checked={formData.preserve_aspect_ratio==="true"} 
                     disabled={formData.size_choice==="screen"}
                     onChange={handleAspectRatioChange} />}
+                />
+                <FormControlLabel 
+                  label="Make background Transparent"
+                  control={<Checkbox name="transparent_background" 
+                    value={formData.transparent_background==="true"}
+                    checked={formData.transparent_background==="true"} 
+                    onChange={handleTransparentChange} />}
                 />
           </FormControl>
         </DialogContent>

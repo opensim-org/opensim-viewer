@@ -23,11 +23,13 @@ export class SnapshotProps {
     width: number
     height: number
     preserve_aspect_ratio: boolean
+    transparent_background: boolean
     constructor(){
         this.size_choice = "screen"
         this.height = 600
         this.width = 800
         this.preserve_aspect_ratio = true
+        this.transparent_background = false
     }
 }
 export class ModelUIState {
