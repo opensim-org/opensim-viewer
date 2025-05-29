@@ -11,6 +11,7 @@ import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
 import viewerState from '../../state/ViewerState'
 import { OpenSimLoader } from '../../state/OpenSimLoader';
 import OpenSimFloor from './OpenSimFloor';
+import { Select, useSelect } from '@react-three/drei';
 
 
 interface OpenSimSceneProps {
@@ -30,6 +31,8 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     const [startTime, setStartTime] = useState<number>(0)
     const [mixers, ] = useState<AnimationMixer[]>([])
     const [colorNodeMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
+    const [selected, setSelected] = useState([])
+    //const selected = useSelect().map((sel) => console.log(sel))
     const lightRef = useRef<THREE.DirectionalLight | null>(null)
     const spotlightRef = useRef<THREE.SpotLight>(null)
     const csRef = useRef<THREE.Group>(null)
@@ -50,7 +53,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     };
     //computeNormals(modelGroup as Group);
     const animations = modelGroup!.animations;
-
+    
     // Create layers so that draggable objects are on a few layers so intersections
     // can be filtered easily.
     const LayerMap = new Map([
@@ -347,6 +350,30 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     curState.setSelected("", true);
   }
 
+  function handleBoxSelect(selected: Object3D<THREE.Event>[]): void {
+    let default_box = new THREE.Box3()
+    let firstObjectFound = false;
+    for (let i = 0; i < selected.length; i++){
+      if (selected[i].visible){
+        if (!firstObjectFound){
+          default_box = new THREE.Box3().setFromObject(selected[i])
+          curState.setSelected(selected[i].uuid, true);
+        }
+        else { // Union boxes
+          const newBox = new THREE.Box3().setFromObject(selected[i]);
+          default_box.union(newBox)
+        }
+        firstObjectFound = true
+      }
+    }
+    if (firstObjectFound){
+      //const boxHelper = new THREE.Box3Helper(default_box)
+      //sceneRef.current!.add(boxHelper)
+      //curState.fitCameraTo(default_box);
+    }
+    console.log("Selected:", selected);
+  }
+
     // By the time we're here the model is guaranteed to be available
     return <>
       <group name='OpenSimEnvironment' ref={envRef}>
@@ -363,9 +390,12 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
               color={viewerState.lightColor} penumbra={0.2} />
         <OpenSimFloor />
       </group>
-      <group name='OpenSimModels' ref={modelsRef}  
-            onClick={(e)=>{ handleClick(e);}}
-            onPointerMissed={(e)=>{clearSelection();}} />
+      <Select multiple box onChangePointerUp={handleBoxSelect} >
+        <group name='OpenSimModels' ref={modelsRef}  
+              onClick={(e)=>{ handleClick(e);}}
+              onPointerMissed={(e)=>{clearSelection();}} 
+        />
+      </Select>
       <group name='WCS' ref={csRef}>
         <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.2]}>
             <cylinderGeometry args={[.005, .005, 0.4, 32]}/>
