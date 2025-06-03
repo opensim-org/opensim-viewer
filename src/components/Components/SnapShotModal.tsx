@@ -80,7 +80,7 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
                 value={formData.size_choice}
                 onChange={handleChange}
               >
-                <FormControlLabel value="screen" control={<Radio />} label="Screen Size" />
+                <FormControlLabel value="screen" control={<Radio />} label="Default Size" />
                 <FormControlLabel value="custom" control={<Radio />} label="Custom" />
               </RadioGroup>
               <TextField
