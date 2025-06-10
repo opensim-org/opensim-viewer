@@ -7,6 +7,7 @@ import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
 import { CommandFactory } from './commands/CommandFactory'
 import { saveAs } from 'file-saver';
 import { SkinnedMuscle } from './SkinnedMuscle'
+import ViewerState from './ViewerState'
 export class ModelInfo {
     model_name: string | null
     desc: string | null
@@ -67,6 +68,8 @@ export class ModelUIState {
     fitToBox: Box3 | null
     guiKnobs: string
     debug: boolean
+    viewerState: ViewerState
+
     constructor(
         currentModelPathState: string,
         rotatingState: boolean,
@@ -100,6 +103,7 @@ export class ModelUIState {
         this.fitToBox = null
         this.guiKnobs = ""
         this.debug = false
+        this.viewerState = new ViewerState('/builtin/leg39.json', '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false);
         makeObservable(this, {
             rotating: observable,
             currentModelPath: observable,

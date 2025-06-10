@@ -4,11 +4,12 @@ import InputLabel from '@mui/material/InputLabel';
 import { useTranslation } from 'react-i18next'
 import Button from '@mui/material/Button';
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
-import viewerState from '../../state/ViewerState';
+import { useModelContext } from '../../state/ModelUIStateContext';
 
 function FileView() {
   const { t } = useTranslation();
-
+   const viewerState = useModelContext().viewerState;
+   
     const downloadFile = () => {
       // Create a URL for the Blob
       const url = viewerState.currentModelPath;

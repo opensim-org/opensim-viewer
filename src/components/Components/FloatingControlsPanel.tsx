@@ -23,6 +23,7 @@ interface FloatingControlsPanelProps {
 function FloatingControlsPanel(props :FloatingControlsPanelProps) {
   const { t } = useTranslation();
   const curState = useModelContext();
+  const viewerState = curState.viewerState
   const [isWindowOpen, setIsWindowOpen] = useState(false);
 
 

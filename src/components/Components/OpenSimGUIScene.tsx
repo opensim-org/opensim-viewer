@@ -24,6 +24,8 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     // useGLTF suspends the component, it literally stops processing
     const { set, gl} = useThree();
     const { scene } = useThree();
+    const viewerState = useModelContext().viewerState;
+
     const sceneRef = useRef<THREE.Scene>(scene);
     const [sceneObjectMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
     const [useEffectRunning, setUseEffectRunning] = useState<boolean>(false)

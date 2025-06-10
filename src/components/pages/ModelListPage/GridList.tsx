@@ -9,7 +9,7 @@ import { Bounds, Environment } from '@react-three/drei'
 import Typography from '@mui/material/Typography'
 
 import OpenSimControl from '../../Components/OpenSimControl'
-import OpenSimScene from '../OpenSimScene'
+import OpenSimScene from '../../Components/OpenSimScene'
 import { ModelMetadataType } from './ModelListPage'
 import { NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'

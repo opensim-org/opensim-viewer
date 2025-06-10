@@ -4,7 +4,6 @@ import { useModelContext } from '../../state/ModelUIStateContext';
 
 import { useFrame, useThree } from '@react-three/fiber'
 
-import viewerState from "../../state/ViewerState";
 import { Box3, Object3D, PerspectiveCamera, Vector2, Vector3 } from 'three';
 
 const OpenSimControl = () => {
@@ -16,6 +15,7 @@ const OpenSimControl = () => {
     } = useThree()
 
    const curState = useModelContext();
+   const viewerState = useModelContext().viewerState;
 
    useFrame((_, delta) => {
         if (curState.pending_key !== "") {

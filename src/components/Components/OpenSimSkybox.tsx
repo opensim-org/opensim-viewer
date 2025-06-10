@@ -12,6 +12,7 @@ type skyboxProps = {
 const OpenSimSkybox = (props: skyboxProps) => {
     const { scene } = useThree();
     const curState = useModelContext();
+    const viewerState = curState.viewerState;
     const [currentTextureName, setTextureName] = useState<string>(props.textureName);
     const [currentTexture, setCurrentTexture] = useState<CubeTexture>()
     const loadTexture = (textureName: string) => {

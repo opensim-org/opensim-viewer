@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import viewerState from '../../state/ViewerState';
 import React, { useEffect, useState } from 'react'
 import { Auth } from 'aws-amplify';
+import { useModelContext } from '../../state/ModelUIStateContext';
 
 interface LogoutPageProps {
     isLoggedIn: boolean
@@ -12,14 +13,14 @@ interface LogoutPageProps {
 
 const LogoutPage: React.FC<LogoutPageProps> = ({ isLoggedIn }) => {
     const { t } = useTranslation();
-
+    const curState = useModelContext();
     const [errorMessage] = useState<string | null>('');
 
     useEffect(() => {
       const signOut = async () => {
         try {
           await Auth.signOut();
-          viewerState.setIsLoggedIn(false);
+          curState.viewerState.setIsLoggedIn(false);
         } catch (error) {
           console.error('Error during sign out:', error);
         }

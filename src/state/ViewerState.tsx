@@ -1,4 +1,4 @@
-import { makeObservable, observable, action } from 'mobx'
+import { makeObservable, observable, action, runInAction } from 'mobx'
 import { Color, Vector3 } from 'three'
 
 class ViewerState {
@@ -14,14 +14,22 @@ class ViewerState {
     recordedVideoFormat: string
     isRecordingVideo: boolean
     isProcessingVideo: boolean
-    isGuiMode: boolean
     user_uuid: string
+    // user preferences
+    // userPreferencesJsonPath: string = ''
+    // userPreferences: any = null
     // scene options
     backgroundColor: Color
     backgroundImage: string | null
     sceneLightPosition: Vector3
+    // sky options
+    skyTextureIndex: number
+    defaultSkyTextures: string[]
+    skyVisible: boolean
     // floor options
     textureIndex: number
+    defaultFloorTextures: string[]
+    floorRound: boolean
     floorVisible: boolean
     floorHeight: number
     // light
@@ -40,9 +48,12 @@ class ViewerState {
         recordedVideoName: string,
         recordedVideoFormat: string,
         isRecordingVideo: boolean,
-        isGuiMode: boolean,
         isProcessingVideo: boolean
     ) {
+        // this.userPreferences = observable({
+        //     skyTexturePath: '',
+        //     floorTexturePath: ''
+        // });
         this.currentModelPath = currentModelPathState
         this.featuredModelsFilePath = featuredModelsFilePathState
         this.dark = darkState
@@ -54,13 +65,28 @@ class ViewerState {
         this.recordedVideoName = recordedVideoName
         this.recordedVideoFormat = recordedVideoFormat
         this.isRecordingVideo = isRecordingVideo
-        this.isGuiMode = isGuiMode
         this.isProcessingVideo = isProcessingVideo
         this.user_uuid = ''
         this.backgroundColor = new Color(0.7, 0.7, 0.7)
         this.backgroundImage = null
+        this.skyTextureIndex = 0
+        this.defaultSkyTextures = [
+            '/assets/skyTextures/death-valley-alberto.jpg',
+            '/assets/skyTextures/San_Carlo_(Grantola)_-_photosphere_of_interior.jpg',
+            '/assets/skyTextures/Photosphere_in_Pozzolo_(Domaso)_2.jpg',
+            '/assets/skyTextures/Photosphere_VML4_between_Nessa_and_L\'Agnone_01.jpg',
+        ]
+        this.skyVisible = true
         this.textureIndex = 0
+        this.defaultFloorTextures = [
+            '/builtin/floorTextures/tile.jpg',
+            '/builtin/floorTextures/wood-floor.jpg',
+            '/builtin/floorTextures/Cobblestone.png',
+            '/builtin/floorTextures/cement.jpg',
+            '/builtin/floorTextures/grassy_d.png'
+        ]
         this.floorVisible = true
+        this.floorRound = false
         this.floorHeight = 0
         this.sceneLightPosition = new Vector3(0.5, 1.5, -0.5)
         this.lightIntensity = 0.25
@@ -85,11 +111,19 @@ class ViewerState {
             recordedVideoName: observable,
             recordedVideoFormat: observable,
             isRecordingVideo: observable,
-            isGuiMode: observable,
+            // userPreferencesJsonPath: observable,
+            // userPreferences: observable,
+            // setUserPreferencesJsonPath: action,
+            //loadUserPreferences: action,
             isProcessingVideo: observable,
             setIsProcessingVideo: action,
             setIsRecordingVideo: action,
+            defaultFloorTextures: observable,
+            // skyVisible: observable,
+            // skyTextureIndex: observable,
+            // setSkyTextureIndex: action,
             floorHeight: observable,
+            floorRound: observable,
             floorVisible: observable,
             textureIndex: observable,
             setFloorTextureIndex: action,
@@ -147,9 +181,6 @@ class ViewerState {
     setIsProcessingVideo(newState: boolean) {
         this.isProcessingVideo = newState
     }
-    setIsGuiMode(newState: boolean) {
-      this.isGuiMode = newState
-    }
     setIsRecordingVideo(newState: boolean) {
         this.isRecordingVideo = newState
     }
@@ -162,8 +193,34 @@ class ViewerState {
     setFloorTextureIndex(newIndex: number) {
         this.textureIndex = newIndex
     }
+    setSkyTextureIndex(newIndex: number) {
+        this.skyTextureIndex = newIndex
+    }
+    // setUserPreferencesJsonPath(path: string) {
+    //   this.userPreferencesJsonPath = path
+    // }
+
+    // async loadUserPreferences() {
+    //     try {
+    //         const response = await fetch(this.userPreferencesJsonPath);
+    //         if (!response.ok) throw new Error(`Failed to load preferences from ${this.userPreferencesJsonPath}`);
+    //         const data = await response.json();
+
+    //         runInAction(() => {
+    //             // Update the observable properties
+    //             if (data['sky-texture-path']) {
+    //                 this.userPreferences.skyTexturePath = data['sky-texture-path'];
+    //             }
+    //             if (data['floor-texture-path']) {
+    //                 this.userPreferences.floorTexturePath = data['floor-texture-path'];
+    //             }
+    //         });
+    //     } catch (error) {
+    //         console.error("Error loading user preferences:", error);
+    //     }
+    // }
 }
 
-const viewerState = new ViewerState('/builtin/leg39.json', '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, true, false)
+//const viewerState = new ViewerState('/builtin/leg39.json', '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false)
 
-export default viewerState
+export default ViewerState

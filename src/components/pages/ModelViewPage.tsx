@@ -10,7 +10,7 @@ import {
 } from "@react-three/drei";
 import viewerState from "../../state/ViewerState";
 import OpenSimControl from '../Components/OpenSimControl';
-
+import BottomBar from "../pages/BottomBar";
 import FloatingControlsPanel from '../Components/FloatingControlsPanel';
 import DrawerMenu from "../Components/DrawerMenu";
 import OpenSimGUIScene from "../Components/OpenSimGUIScene";
@@ -26,9 +26,9 @@ import { ModelInfo } from '../../state/ModelUIState';
 import { GUI } from 'dat.gui';
 import { Color} from 'three';
 
-import OpenSimSkybox from '../Components/OpenSimSkybox';
+import OpenSimSkySphere from '../Components/OpenSimSkySphere' 
 import OpenSimHtmlLogo from '../Components/OpenSimLogo';
-import OpenSimScene from './OpenSimScene';
+import OpenSimScene from  '../Components/OpenSimScene'
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
@@ -92,15 +92,15 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 
   React.useEffect(() => {
     // Change interface if we are in GUI mode.
-    if (viewerState.isGuiMode) {
+    if (uiState.isGuiMode) {
       setDisplaySideBar('none');
       setCanvasWidth('100%');
-      setCanvasHeight('calc(100vh - 30px)');
+      setCanvasHeight('calc(100vh - 68px)');
       setCanvasLeft(0);
       setFloatingButtonsContainerTop("12px")
     }
     //setBgndColor(viewerState.backgroundColor);
-  }, []);
+  }, [uiState.isGuiMode]);
 
   useEffect(() => {
     // Create fresh WebSocket
@@ -125,29 +125,30 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   React.useEffect(() => {
     const gui = new GUI()
     const sceneFolder = gui.addFolder("Scene");
-    sceneFolder.addColor(viewerState, 'backgroundColor').onChange(
+    sceneFolder.addColor(uiState.viewerState, 'backgroundColor').onChange(
       function(v: any){
-        viewerState.setBackgroundColor(v); coloRef.current?.copy(v);
+        uiState.viewerState.setBackgroundColor(v); coloRef.current?.copy(v);
       }
     );
-    sceneFolder.add(uiState, 'useSkybox', ['NoBackground', 'sky', 'canyon', 'pastures', 'desert', 'dark', 'city']).onChange(
-      function(v: any){uiState.setSkyboxImage(v); 
+    sceneFolder.add(uiState.viewerState, 'skyTextureIndex', {'death-valley':0, 'san-carlo':1, 'pozzolo':2, 'nessa_and_lagnone':3}).name("Texture").onChange(
+      function(v: any){uiState.viewerState.setSkyTextureIndex(v); 
         }
     );
     sceneFolder.add(uiState, 'showGlobalFrame')
     const floorFolder = gui.addFolder("Floor");
-    floorFolder.add(viewerState, 'floorHeight', -2, 2, .01).name("Height")
-    floorFolder.add(viewerState, 'floorVisible').onChange(() => {
+    floorFolder.add(uiState.viewerState, 'floorHeight', -2, 2, .01).name("Height")
+    floorFolder.add(uiState.viewerState, 'floorRound')
+    floorFolder.add(uiState.viewerState, 'floorVisible').onChange(() => {
     })
-    floorFolder.add(viewerState, 'textureIndex', { 'tile':0, 'wood-floor':1, 'Cobblestone':2, 'textureStone':3, 'grassy':4}).name("Texture").onChange(
+    floorFolder.add(uiState.viewerState, 'textureIndex', { 'tile':0, 'wood-floor':1, 'Cobblestone':2, 'textureStone':3, 'grassy':4}).name("Texture").onChange(
        function(v: any){
-        viewerState.setFloorTextureIndex(v)
+        uiState.viewerState.setFloorTextureIndex(v)
       }
     );
     const lightFolder = gui.addFolder("Lights");
-    lightFolder.add(viewerState, 'lightIntensity', 0, 2, .05).name("Intensity")
-    lightFolder.addColor(viewerState, 'lightColor').name("Color")
-    lightFolder.add(viewerState, 'spotLight')
+    lightFolder.add(uiState.viewerState, 'lightIntensity', 0, 2, .05).name("Intensity")
+    lightFolder.addColor(uiState.viewerState, 'lightColor').name("Color")
+    lightFolder.add(uiState.viewerState, 'spotLight')
 
     const cameraFolder = gui.addFolder("Camera");
     cameraFolder.add(uiState, 'saveCamera');
@@ -163,10 +164,10 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   //console.log(urlParam);
   if (urlParam!== undefined) {
     var decodedUrl = decodeURIComponent(urlParam);
-    viewerState.setCurrentModelPath(decodedUrl);
-    curState.setCurrentModelPath(viewerState.currentModelPath);
+    uiState.viewerState.setCurrentModelPath(decodedUrl);
+    curState.setCurrentModelPath(uiState.viewerState.currentModelPath);
     // If urlParam is not undefined, this means it is getting the model from S3 and not from local.
-    viewerState.setIsLocalUpload(false);
+    uiState.viewerState.setIsLocalUpload(false);
   }
   // else
   //   curState.setCurrentModelPath(viewerState.currentModelPath);
@@ -178,11 +179,13 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     // Always store same name.
     setSelectedTabName(name);
   }
+
   return (
     <MyModelContext.Provider value={uiState}>
       <Box component="div" sx={{ display: "flex" }}>
         <CssBaseline />
         <Main>
+          {!uiState.isGuiMode &&
           <div id="opensim-modelview-sidebar" style={{display: displaySideBar}}>
             <DrawerMenu
               menuOpen={menuOpen}
@@ -193,6 +196,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
               drawerContentWidth={drawerContentWidth}
             />
           </div>
+          }
           <div id="canvas-container">
             <Suspense fallback={null}>
               <FloatingControlsPanel
@@ -222,14 +226,22 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   currentModelPath={uiState.currentModelPath}
                   supportControls={true}
                 />}
-                <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
+                <GizmoHelper alignment="bottom-right" margin={[100, 100]} 
+                onClick={
+                  (e)=>console.log(e)
+                  }>
                   <GizmoViewport labelColor="white" axisHeadScale={1} />
                 </GizmoHelper>
                 <OpenSimControl/>
                 <Environment files="/assets/potsdamer_platz_1k.hdr"/>
-                <OpenSimSkybox textureName={uiState.useSkybox} />
+                <OpenSimSkySphere />
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
               </Canvas>
+              <BottomBar
+                ref={bottomBarRef}
+                animationPlaySpeed={1.0}
+                animating={uiState.animating}
+                animationList={uiState.animations}/>
               <OpenSimHtmlLogo/>
             </Suspense>
           </div>

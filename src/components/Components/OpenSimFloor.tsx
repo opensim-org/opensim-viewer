@@ -3,6 +3,7 @@ import { observer } from 'mobx-react';
 import { useRef } from 'react';
 import { Mesh, RepeatWrapping, TextureLoader } from 'three';
 import viewerState from '../../state/ViewerState';
+import { useModelContext } from '../../state/ModelUIStateContext';
 
 const OpenSimFloor = () => {
     const relativePath='/assets/images'
@@ -13,6 +14,8 @@ const OpenSimFloor = () => {
         useLoader(TextureLoader, relativePath + '/cement.jpg'),
         useLoader(TextureLoader, relativePath + '/grassy_d.png')
     ]
+    const viewerState = useModelContext().viewerState;
+    
     var floorTexture = floorTextures[viewerState.textureIndex]
     floorTexture.wrapS = floorTexture.wrapT = RepeatWrapping;
     floorTexture.offset.set(0, 0);
@@ -22,9 +25,13 @@ const OpenSimFloor = () => {
 
     return <>
         <mesh name='Floor' ref={floorRef} rotation-x={-Math.PI / 2} 
-                position-y={viewerState.floorHeight} visible={viewerState.floorVisible} receiveShadow >
-        <planeGeometry attach="geometry" args={[10, 10]} />
-        <meshPhongMaterial attach="material" color={floorColor} map={floorTexture}/>
+            position-y={viewerState.floorHeight} visible={viewerState.floorVisible} receiveShadow >
+            {viewerState.floorRound ? (
+            <circleGeometry args={[10, 64]} />
+            ) : (
+            <planeGeometry args={[20, 20]} />
+            )}
+            <meshPhongMaterial attach="material" color={floorColor} map={floorTexture}/>
         </mesh>
     </>
 }

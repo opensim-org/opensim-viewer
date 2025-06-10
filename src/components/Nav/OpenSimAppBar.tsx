@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import Drawer from '@mui/material/Drawer';
 import Hidden from '@mui/material/Hidden';
 import { Auth } from 'aws-amplify';
+import { useModelContext } from '../../state/ModelUIStateContext';
 
 interface OpenSimAppBarProps {
   dark: boolean;
@@ -31,6 +32,7 @@ interface OpenSimAppBarProps {
 
 const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn, isFullScreen, toggleFullscreen }) => {
   const { t } = useTranslation();
+  const curState = useModelContext();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const toggleDrawer = () => {
@@ -61,7 +63,7 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn, isFullS
       width: 'calc(100% - 60px)',
     }
   };
-  const url = encodeURIComponent(viewerState.currentModelPath);
+  const url = encodeURIComponent(curState.viewerState.currentModelPath);
   console.log(url);
   
   return (
@@ -97,10 +99,10 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn, isFullS
               color="inherit"
               sx={{ ml: 1 }}
               onClick={() => {
-                viewerState.setDark(!viewerState.dark);
+                curState.viewerState.setDark(!curState.viewerState.dark);
               }}
             >
-              {viewerState.dark ? <Brightness4Icon /> : <Brightness7Icon />}
+              {curState.viewerState.dark ? <Brightness4Icon /> : <Brightness7Icon />}
             </IconButton>
           </Tooltip>
 
@@ -168,9 +170,9 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn, isFullS
                 color="secondary"
                 sx={{ ml: 1 }}
                 onClick={() => {
-                  viewerState.setDark(!viewerState.dark);
+                  curState.viewerState.setDark(!curState.viewerState.dark);
                 }}>
-                {viewerState.dark ? <Brightness4Icon /> : <Brightness7Icon />}
+                {curState.viewerState.dark ? <Brightness4Icon /> : <Brightness7Icon />}
               </IconButton>
             </Tooltip>
           </Hidden>
