@@ -7,6 +7,7 @@ import {
   Environment,
   GizmoHelper,
   GizmoViewport,
+  OrbitControls,
 } from "@react-three/drei";
 import viewerState from "../../state/ViewerState";
 import OpenSimControl from '../Components/OpenSimControl';
@@ -130,7 +131,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
         uiState.viewerState.setBackgroundColor(v); coloRef.current?.copy(v);
       }
     );
-    sceneFolder.add(uiState.viewerState, 'skyTextureIndex', {'death-valley':0, 'san-carlo':1, 'pozzolo':2, 'nessa_and_lagnone':3}).name("Texture").onChange(
+    sceneFolder.add(uiState.viewerState, 'skyTextureIndex', {'no-background':-1,'death-valley':0, 'san-carlo':1, 'pozzolo':2, 'nessa_and_lagnone':3}).name("Texture").onChange(
       function(v: any){uiState.viewerState.setSkyTextureIndex(v); 
         }
     );
@@ -223,7 +224,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   supportControls={true}
                 />:
                 <OpenSimScene
-                  currentModelPath={uiState.currentModelPath}
+                  currentModelPath={uiState.viewerState.currentModelPath}
                   supportControls={true}
                 />}
                 <GizmoHelper alignment="bottom-right" margin={[100, 100]} 
@@ -232,7 +233,10 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   }>
                   <GizmoViewport labelColor="white" axisHeadScale={1} />
                 </GizmoHelper>
-                <OpenSimControl/>
+                {uiState.isGuiMode?
+                  <OpenSimControl/>:
+                  <OrbitControls/>
+                }
                 <Environment files="/assets/potsdamer_platz_1k.hdr"/>
                 <OpenSimSkySphere />
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>

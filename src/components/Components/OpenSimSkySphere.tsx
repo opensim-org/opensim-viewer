@@ -9,9 +9,10 @@ const SkySphere = () => {
   
   const viewerState = useModelContext().viewerState;
   // Load 360 sky texture
-  const skyTexture = useTexture(viewerState.defaultSkyTextures[viewerState.skyTextureIndex]);
+  const [skyTexture, setCurrentTexture] = useState<THREE.Texture>()
+  
   const skySphereRef = useRef<THREE.Mesh>(null);
-   const [currentTextureIndex, setTextureIndex] = useState<number>(viewerState.skyTextureIndex);
+  const [currentTextureIndex, setTextureIndex] = useState<number>(viewerState.skyTextureIndex);
 
   const skyGeometry = new THREE.SphereGeometry(20, 60, 40);
   const skyMaterial = new THREE.MeshBasicMaterial({
@@ -22,6 +23,8 @@ const SkySphere = () => {
   useFrame((state, delta) => {
     if (currentTextureIndex !== viewerState.skyTextureIndex) {
       setTextureIndex(viewerState.skyTextureIndex)
+      if (viewerState.skyTextureIndex >= 0)
+        setCurrentTexture(new THREE.TextureLoader().load(viewerState.defaultSkyTextures[viewerState.skyTextureIndex]));
     }
   });
   return (

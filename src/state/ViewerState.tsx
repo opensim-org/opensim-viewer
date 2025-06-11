@@ -69,14 +69,14 @@ class ViewerState {
         this.user_uuid = ''
         this.backgroundColor = new Color(0.7, 0.7, 0.7)
         this.backgroundImage = null
-        this.skyTextureIndex = 0
+        this.skyTextureIndex = -1
         this.defaultSkyTextures = [
             '/assets/skyTextures/death-valley-alberto.jpg',
             '/assets/skyTextures/San_Carlo_(Grantola)_-_photosphere_of_interior.jpg',
             '/assets/skyTextures/Photosphere_in_Pozzolo_(Domaso)_2.jpg',
             '/assets/skyTextures/Photosphere_VML4_between_Nessa_and_L\'Agnone_01.jpg',
         ]
-        this.skyVisible = true
+        this.skyVisible = false
         this.textureIndex = 0
         this.defaultFloorTextures = [
             '/builtin/floorTextures/tile.jpg',
@@ -195,6 +195,10 @@ class ViewerState {
     }
     setSkyTextureIndex(newIndex: number) {
         this.skyTextureIndex = newIndex
+        if (newIndex === -1) 
+            this.skyVisible = false
+        else
+            this.skyVisible = true
     }
     // setUserPreferencesJsonPath(path: string) {
     //   this.userPreferencesJsonPath = path
@@ -222,5 +226,4 @@ class ViewerState {
 }
 
 //const viewerState = new ViewerState('/builtin/leg39.json', '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false)
-
 export default ViewerState
