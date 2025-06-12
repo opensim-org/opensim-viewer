@@ -95,6 +95,12 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     // This useEffect loads the cameras and assign them to its respective states.
     useEffect(() => {
       const cameras = scene.getObjectsByProperty( 'isPerspectiveCamera', true )
+      console.log(`Number of cameras: ${cameras.length}`);
+        cameras.forEach((camera, index) => {
+          console.log(`Camera ${index + 1}:`);
+          console.log(`  Name: ${camera.name}`);
+          console.log(`  Type: ${camera.type}`);
+        });
       if (cameras.length > 0) {
         // Get the canvas element from the gl
         var canvas = gl.domElement;
@@ -298,16 +304,19 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     return <>
     <primitive object={scene} ref={sceneRef}
       onPointerDown={(e: any) => curState.setSelected(e.object.uuid)}
-      onPointerMissed={() => curState.setSelected("")}/>
-      <directionalLight ref={lightRef} position={[0.5, 1.5, -0.5]} 
-          intensity={viewerState.lightIntensity} color={viewerState.lightColor}
-        castShadow={true} 
-        shadow-camera-far={8}
-        shadow-camera-left={-2}
-        shadow-camera-right={2}
-        shadow-camera-top={2}
-        shadow-camera-bottom={-2}/>
-      <spotLight visible={viewerState.spotLight} ref={spotlightRef} position={[0.5, 2.5, -.05]} color={viewerState.lightColor}/>
+      onPointerMissed={() => curState.setSelected("")}
+      />
+      <group name="Illumination">
+        <directionalLight ref={lightRef} position={[0.5, 1.5, -0.5]}
+            intensity={viewerState.lightIntensity} color={viewerState.lightColor}
+          castShadow={true}
+          shadow-camera-far={8}
+          shadow-camera-left={-2}
+          shadow-camera-right={2}
+          shadow-camera-top={2}
+          shadow-camera-bottom={-2}/>
+        <spotLight visible={viewerState.spotLight} ref={spotlightRef} position={[0.5, 2.5, -.05]} color={viewerState.lightColor}/>
+      </group>
       </>
 }
 

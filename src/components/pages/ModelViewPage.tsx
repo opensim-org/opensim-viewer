@@ -28,6 +28,8 @@ import OpenSimSkySphere from './OpenSimSkySphere';
 import VideoRecorder from "../Components/VideoRecorder"
 import { ModelInfo } from '../../state/ModelUIState';
 
+import { useThree } from '@react-three/fiber';
+
 import GUI from 'lil-gui';
 import { Color} from 'three';
 
@@ -48,6 +50,51 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
     marginLeft: 0,
   }),
 }));
+
+function SceneTreeGUI() {
+  const { scene } = useThree();
+  const guiRef = useRef<GUI>();
+
+  useEffect(() => {
+    const gui = new GUI({ width: 250 });
+    guiRef.current = gui;
+    gui.domElement.style.position = 'absolute';
+    gui.domElement.style.top = '66px';
+    gui.domElement.style.left = '60px';
+    gui.domElement.style.zIndex = '1000';
+
+    document.body.appendChild(gui.domElement);
+
+    function addObjectToFolder(obj: THREE.Object3D, folder: GUI) {
+      const name = obj.name || obj.type;
+      if (obj.name !== "Scene") {
+        const objFolder = folder.addFolder(name);
+
+        if (obj.name !== "Group") {
+          objFolder.add({ visible: obj.visible }, 'visible').onChange((v: boolean) => {
+            obj.visible = v;
+          });
+        }
+
+        if (obj.children && obj.children.length > 0) {
+          obj.children.forEach(child => addObjectToFolder(child, objFolder));
+        }
+      }
+    }
+
+    const rootFolder = gui.addFolder('Scene Tree');
+
+    scene.children.forEach(obj => addObjectToFolder(obj, rootFolder));
+
+    rootFolder.open();
+
+    return () => {
+      gui.destroy();
+    };
+  }, [scene]);
+
+  return null;
+}
 
 interface ViewerProps {
   url?: string;
@@ -165,7 +212,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 videoRecorderRef={videoRecorderRef}
                 info={new ModelInfo(uiState.modelInfo.model_name, uiState.modelInfo.desc, uiState.modelInfo.authors)}
                 top={floatingButtonsContainerTop}/>
-              <Canvas 
+              <Canvas
                 id="canvas-element"
                 gl={{ preserveDrawingBuffer: true }}
                 shadows="soft"
@@ -177,6 +224,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 }}
                 camera={{ position: [1500, 2000, 1000], fov: 75, far: 10000 }}
               >
+              <SceneTreeGUI />
               <fog attach="fog" color="lightgray" near={1} far={10000} />
 
                 <color  ref={coloRef}
