@@ -2,12 +2,13 @@ import { makeObservable, observable, action } from 'mobx'
 import SceneTreeModel from '../helpers/SceneTreeModel'
 import { AnimationClip } from 'three/src/animation/AnimationClip'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
-import { Box3, Object3D, Scene } from 'three'
+import { Box3, Object3D, QuaternionKeyframeTrack, Scene, Vector3, VectorKeyframeTrack } from 'three'
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
 import { CommandFactory } from './commands/CommandFactory'
 import { saveAs } from 'file-saver';
 import { SkinnedMuscle } from './SkinnedMuscle'
 import ViewerState from './ViewerState'
+
 export class ModelInfo {
     model_name: string | null
     desc: string | null
@@ -50,6 +51,7 @@ export class ModelUIState {
     animations: AnimationClip[]
     currentAnimationIndex: number
     cameras: PerspectiveCamera[]
+    targets: Vector3[]
     currentCameraIndex: number
     selected: string
     deSelected: string
@@ -69,7 +71,7 @@ export class ModelUIState {
     guiKnobs: string
     debug: boolean
     viewerState: ViewerState
-
+    recordingKeyFrames: boolean
     constructor(
         currentModelPathState: string,
         rotatingState: boolean,
@@ -89,6 +91,7 @@ export class ModelUIState {
         this.animations = []
         this.currentAnimationIndex = -1
         this.cameras = []
+        this.targets = []
         this.currentCameraIndex = -1
         this.selected = ""
         this.deSelected = ""
@@ -103,6 +106,7 @@ export class ModelUIState {
         this.fitToBox = null
         this.guiKnobs = ""
         this.debug = false
+        this.recordingKeyFrames = false
         this.viewerState = new ViewerState('/builtin/leg39.json', '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false);
         makeObservable(this, {
             rotating: observable,
@@ -129,6 +133,7 @@ export class ModelUIState {
             setCurrentFrame: action,
             currentCameraIndex: observable,
             setCurrentCameraIndex: action,
+            addCamera: action,
         })
         console.log("Created ModelUIState instance ", currentModelPathState)
     }
@@ -188,6 +193,7 @@ export class ModelUIState {
             this.animations = []
             this.currentAnimationIndex = -1
             this.cameras = []
+            this.targets = []
             this.currentCameraIndex = -1
         }
     }
@@ -461,5 +467,38 @@ export class ModelUIState {
     }
     fitCameraTo(objectbbox: Box3) {
         this.fitToBox = objectbbox;
+    }
+    toggleRecordingKeyFrames() {
+        this.recordingKeyFrames = !this.recordingKeyFrames
+        if (!this.recordingKeyFrames) {
+            const duration = this.cameras.length
+            const positions: number[] = []
+            const orientations: number[] = []
+            const keyFrameTimes: number[] = []
+            for (let i=0; i< this.cameras.length; i++){
+                const cam = this.cameras[i]
+                cam.position.toArray(positions, 3*i)
+                cam.quaternion.toArray(orientations, 4*i)
+                keyFrameTimes.push(i)
+            }
+            // Create keyframetracks
+            const positionKF = new VectorKeyframeTrack( '.position', keyFrameTimes, positions );
+            const orientationKF = new QuaternionKeyframeTrack( '.quaternion', keyFrameTimes, orientations );
+
+            // Create an AnimationClip from saved KeyFrameCameras, add to ui
+            const camClip = new AnimationClip("camClip", duration, [positionKF, orientationKF])
+            this.animations.push(camClip)
+        }
+        else // If turning on recording, capture first camera key frame
+            this.pending_key = 'c'
+    }
+    addCamera(camera: PerspectiveCamera, target: Vector3) {
+        const camClone = camera.clone()
+        camClone.name = "Camera_"+this.cameras.length
+        this.cameras.push(camClone);
+        this.targets.push(target.clone())
+        console.log(camera)
+        console.log(target)
+
     }
 }

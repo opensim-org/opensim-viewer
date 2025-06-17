@@ -1,10 +1,12 @@
-import { TransformControls, CameraControls} from '@react-three/drei'
+import { TransformControls, CameraControls, OrbitControls} from '@react-three/drei'
 import { observer } from 'mobx-react'
 import { useModelContext } from '../../state/ModelUIStateContext';
 
 import { useFrame, useThree } from '@react-three/fiber'
 
 import { Box3, Object3D, PerspectiveCamera, Vector2, Vector3 } from 'three';
+import { useRef, useState } from 'react';
+import type CameraControlsImpl from 'camera-controls'
 
 const OpenSimControl = () => {
     const {
@@ -16,7 +18,9 @@ const OpenSimControl = () => {
 
    const curState = useModelContext();
    const viewerState = useModelContext().viewerState;
+   const controlsRef = useRef<CameraControlsImpl>(null)
 
+   const controlTarget = new Vector3(0., 0., 0.);
    useFrame((_, delta) => {
         if (curState.pending_key !== "") {
             switch (curState.pending_key) {
@@ -68,6 +72,12 @@ const OpenSimControl = () => {
                 case 'Z':
                     (controls as unknown as CameraControls).setLookAt(0, 0, 10, 0, 0, 0, false).then(()=>fitToModels(false));
                     break
+                case 'C':
+                case 'c':
+                    if (curState.recordingKeyFrames){
+                        (controls as unknown as CameraControls).getTarget(controlTarget)
+                        curState.addCamera( (controls as unknown as CameraControls).camera as PerspectiveCamera, controlTarget)
+                    }
             }
             curState.pending_key = "";
         }
@@ -126,6 +136,21 @@ const OpenSimControl = () => {
         if (curState.fitToBox !== null) {
             fitToBox(curState.fitToBox)
             curState.fitToBox = null
+        }
+        if (curState.currentCameraIndex!==-1) {
+            const nextCam = curState.cameras[curState.currentCameraIndex]
+            //camera.position.copy(nextCam.position);
+            //camera.rotation.copy(nextCam.rotation);
+            //camera.updateProjectionMatrix();
+            const target = curState.targets[curState.currentCameraIndex];
+            if (controlsRef.current) {
+                controlsRef.current.moveTo(nextCam.position.x, nextCam.position.y, nextCam.position.z)
+                controlsRef.current.setLookAt(
+                    nextCam.position.x, nextCam.position.y, nextCam.position.z,
+                    target.x, target.y, target.z, false)
+                controlsRef.current.update(delta)
+            }
+            curState.setCurrentCameraIndex(-1)
         }
 
        function fitToModels(transition: boolean) {
@@ -186,7 +211,7 @@ const OpenSimControl = () => {
 
     return <>
         {curState.draggable && <TransformControls object={curState.selectedObject!} onMouseUp={completeTransform}/>}
-        <CameraControls camera={camera} makeDefault onUpdate={updateTarget}/>
+        <CameraControls ref={controlsRef} camera={camera} makeDefault onUpdate={updateTarget}/>
         
     </>
 }

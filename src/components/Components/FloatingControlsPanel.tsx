@@ -8,6 +8,7 @@ import InfoIcon from '@mui/icons-material/Info';
 import ZoomOutTwoToneIcon from '@mui/icons-material/ZoomOutTwoTone';
 import ZoomInTwoToneIcon from '@mui/icons-material/ZoomInTwoTone';
 import FitScreenTwoToneIcon from '@mui/icons-material/FitScreenTwoTone';
+import AddAPhotoTwoToneIcon from '@mui/icons-material/AddAPhotoTwoTone';
 import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
 import { useModelContext } from '../../state/ModelUIStateContext';
 import viewerState from '../../state/ViewerState';
@@ -67,7 +68,14 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
         <Grid item xs={6}>
             <SnapShotModal open={false}/>
         </Grid>
-
+        <Grid item xs={6}>
+          <Tooltip title={t('bottomBar.fit')}>
+            <IconButton color="primary" onClick={() => {
+              curState.toggleRecordingKeyFrames()}}>
+                <AddAPhotoTwoToneIcon />
+            </IconButton>
+          </Tooltip>
+        </Grid>
         <Grid item xs={6}>
           <Tooltip title={t('bottomBar.record')}>
             <IconButton
