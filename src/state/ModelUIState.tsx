@@ -2,7 +2,7 @@ import { makeObservable, observable, action } from 'mobx'
 import SceneTreeModel from '../helpers/SceneTreeModel'
 import { AnimationClip } from 'three/src/animation/AnimationClip'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
-import { Box3, Object3D, QuaternionKeyframeTrack, Scene, Vector3, VectorKeyframeTrack } from 'three'
+import { Box3, Object3D, Scene, Vector3, VectorKeyframeTrack } from 'three'
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
 import { CommandFactory } from './commands/CommandFactory'
 import { saveAs } from 'file-saver';
@@ -34,6 +34,17 @@ export class SnapshotProps {
         this.transparent_background = false
     }
 }
+
+export class KeyFrameProps {
+    ktime: number
+    camera: PerspectiveCamera | null
+    target: Vector3 | null
+    constructor(camera: PerspectiveCamera| null, target: Vector3| null, time: number|null){
+        this.ktime = time===null?0. :time
+        this.camera = camera
+        this.target = target
+    }
+}
 export class ModelUIState {
     currentModelPath: string
     scene: Scene | null
@@ -52,6 +63,7 @@ export class ModelUIState {
     currentAnimationIndex: number
     cameras: PerspectiveCamera[]
     targets: Vector3[]
+    keyframes: KeyFrameProps[]
     currentCameraIndex: number
     selected: string
     deSelected: string
@@ -92,6 +104,7 @@ export class ModelUIState {
         this.currentAnimationIndex = -1
         this.cameras = []
         this.targets = []
+        this.keyframes = []
         this.currentCameraIndex = -1
         this.selected = ""
         this.deSelected = ""
@@ -119,9 +132,9 @@ export class ModelUIState {
             draggable: observable,
             setShowGlobalFrame: action,
             animationSpeed: observable,
-            setAnimationList: observable,
-            setAnimationSpeed: action,
             animations: observable,
+            setAnimationList: action,
+            setAnimationSpeed: action,
             cameras: observable,
             setCamerasList: action,
             selected: observable,
@@ -473,21 +486,23 @@ export class ModelUIState {
         if (!this.recordingKeyFrames) {
             const duration = this.cameras.length
             const positions: number[] = []
-            const orientations: number[] = []
+            const targets: number[] = []
             const keyFrameTimes: number[] = []
             for (let i=0; i< this.cameras.length; i++){
                 const cam = this.cameras[i]
+                const tgt = this.targets[i]
                 cam.position.toArray(positions, 3*i)
-                cam.quaternion.toArray(orientations, 4*i)
+                tgt.toArray(targets, 3*i)
                 keyFrameTimes.push(i)
+
             }
             // Create keyframetracks
             const positionKF = new VectorKeyframeTrack( '.position', keyFrameTimes, positions );
-            const orientationKF = new QuaternionKeyframeTrack( '.quaternion', keyFrameTimes, orientations );
+            const targetKF = new VectorKeyframeTrack( '.position', keyFrameTimes, targets );
 
             // Create an AnimationClip from saved KeyFrameCameras, add to ui
-            const camClip = new AnimationClip("camClip", duration, [positionKF, orientationKF])
-            this.animations.push(camClip)
+            const camClip = new AnimationClip("camClip", duration, [positionKF, targetKF])
+            this.setAnimationList(this.animations.concat(camClip))
         }
         else // If turning on recording, capture first camera key frame
             this.pending_key = 'c'
@@ -497,8 +512,8 @@ export class ModelUIState {
         camClone.name = "Camera_"+this.cameras.length
         this.cameras.push(camClone);
         this.targets.push(target.clone())
-        console.log(camera)
-        console.log(target)
-
+        const newKeyFrame = new KeyFrameProps(camClone, target.clone(), this.keyframes.length)
+        this.keyframes.push(newKeyFrame)
+        
     }
 }

@@ -223,7 +223,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   currentModelPath={uiState.currentModelPath}
                   supportControls={true}
                 />:
-                <OpenSimScene
+                <OpenSimGUIScene
                   currentModelPath={uiState.viewerState.currentModelPath}
                   supportControls={true}
                 />}

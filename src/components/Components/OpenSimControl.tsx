@@ -139,10 +139,10 @@ const OpenSimControl = () => {
         }
         if (curState.currentCameraIndex!==-1) {
             const nextCam = curState.cameras[curState.currentCameraIndex]
-            //camera.position.copy(nextCam.position);
-            //camera.rotation.copy(nextCam.rotation);
-            //camera.updateProjectionMatrix();
-            const target = curState.targets[curState.currentCameraIndex];
+            let target = curState.targets[curState.currentCameraIndex]
+            if (target === undefined) {
+                target = new Vector3(0, 0, 0)
+            }
             if (controlsRef.current) {
                 controlsRef.current.moveTo(nextCam.position.x, nextCam.position.y, nextCam.position.z)
                 controlsRef.current.setLookAt(

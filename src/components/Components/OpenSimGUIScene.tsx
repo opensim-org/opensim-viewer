@@ -8,11 +8,9 @@ import { observer } from 'mobx-react'
 
 import { useModelContext } from '../../state/ModelUIStateContext'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
-import viewerState from '../../state/ViewerState'
 import { OpenSimLoader } from '../../state/OpenSimLoader';
 import OpenSimFloor from './OpenSimFloor';
-import { Select, useSelect } from '@react-three/drei';
-
+import { CameraControls, Select, useSelect } from '@react-three/drei';
 
 interface OpenSimSceneProps {
     currentModelPath: string,
@@ -23,7 +21,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     // useGLTF suspends the component, it literally stops processing
     const { set, gl} = useThree();
-    const { scene } = useThree();
+    const { scene, camera, controls } = useThree();
     const viewerState = useModelContext().viewerState;
 
     const sceneRef = useRef<THREE.Scene>(scene);
@@ -33,17 +31,21 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     const [startTime, setStartTime] = useState<number>(0)
     const [mixers, ] = useState<AnimationMixer[]>([])
     const [colorNodeMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
-    const [selected, setSelected] = useState([])
+    //const [selected, setSelected] = useState([])
     //const selected = useSelect().map((sel) => console.log(sel))
     const lightRef = useRef<THREE.DirectionalLight | null>(null)
     const spotlightRef = useRef<THREE.SpotLight>(null)
     const csRef = useRef<THREE.Group>(null)
     const envRef = useRef<THREE.Group>(null)
     const bboxRef = useRef<THREE.BoxHelper>(null)
+    const camHelper = useRef<THREE.CameraHelper>(null)
     const modelsRef = useRef<THREE.Group>(null);
+    const targetRef = useRef<Object3D>(null)
+    const targetMixerRef = useRef<AnimationMixer>()
 
     const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
 
+    let curState = useModelContext();
     const modelGroup = useLoader(OpenSimLoader, currentModelPath)
     const computeNormals = (group: Group)=>{
       group.traverse((o) => {
@@ -54,43 +56,22 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     )
     };
     //computeNormals(modelGroup as Group);
-    const animations = modelGroup!.animations;
-    
-    // Create layers so that draggable objects are on a few layers so intersections
-    // can be filtered easily.
-    const LayerMap = new Map([
-      ["Mesh", 1],  // selectable
-      ["Force", 2],
-      ["World", 3],
-      ["Marker", 4], // selectable, draggable
-      ["ExpMarker", 5],
-      ["expForce", 6],
-      ["WrapSphere", 7],
-      ["WrapCylinder", 7],
-      ["WrapEllipsoid", 7],
-      ["WrapTorus", 7],
-      ["wrapObject", 7],
-      ["ContactSphere", 8],
-      ["ContactMesh", 8],
-      ["ContactHalfSpace", 8],
-      ["Model", 9], // draggable
-      ["Ground", 10],
-      ["PathPoint", 11] // selectable, draggable
-    ]);
-    
+    //const animations = modelGroup!.animations;
+    const allAnimations = curState.animations;
+
+    const collectAnimations = (group: Group)=>{
+      group.traverse((o) => {
+          const anims = o.animations
+          for (let i=0; i<anims.length; i++)
+            allAnimations.push(o.animations[i])
+      }
+    )
+    };
+    collectAnimations(modelGroup as Group)
+
+
     const mapObjectToLayer = (obj: Object3D)=>{
       obj.traverse((obj3d) => {
-      /*
-      let layerNum = 0
-      if (obj3d.userData !== null && obj3d.userData !== undefined &&
-          obj3d.userData.opensimType !== undefined) {
-        const possibleLayer = LayerMap.get(obj3d.userData.opensimType)
-
-        if (possibleLayer !== undefined)
-          layerNum = possibleLayer
-      }
-      obj3d.layers.set(layerNum)
-      */
       obj3d.castShadow = true
     })
   }
@@ -105,10 +86,10 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     }
     // eslint-disable-next-line no-mixed-operators
 
-    let curState = useModelContext();
+
     if (curState.scene === null)
       curState.scene = sceneRef.current;
-
+    curState.setAnimationList(allAnimations)
     // This useEffect loads the cameras and assign them to its respective states.
     useEffect(() => {
       if (modelsRef.current!==null) {
@@ -150,7 +131,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
       }
       lightRef.current!.color = viewerState.lightColor
       spotlightRef.current!.color = viewerState.lightColor
-    }, [curState, scene, gl.domElement.clientWidth, gl.domElement, set, modelGroup]);
+    }, [curState, scene, gl.domElement.clientWidth, gl.domElement, set, modelGroup, viewerState.lightColor]);
 
     
 
@@ -172,7 +153,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         setCurrentCamera(selectedCamera);
         set({ camera: selectedCamera });
 
-        animations.forEach((clip) => {
+        curState.animations.forEach((clip) => {
           clip.tracks.forEach((track) => {
             if (track.name.includes(selectedCamera.name)) {
               if (track.name.endsWith('.position')) {
@@ -215,7 +196,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           });
         });
       }
-    }, [currentCamera, set, curState.currentCameraIndex, curState.cameras, animations]);
+    }, [currentCamera, set, curState.currentCameraIndex, curState.cameras, curState.animations]);
 
 
     if (supportControls) {
@@ -229,12 +210,11 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     }
 
     // Make sure mixers match animations
-    if ((animations.length > 0 && mixers.length !==animations.length) ||
-        (animations.length > 0 && mixers.length > 0 && mixers[0].getRoot() !== scene)) {
+    if ((curState.animations.length > 0 && mixers.length !==curState.animations.length)) {
         mixers.length = 0
-        animations.forEach((clip) => {
-            const nextMixer = new AnimationMixer(scene)
-            nextMixer.clipAction(clip, scene)
+        curState.animations.forEach((clip) => {
+            const nextMixer = new AnimationMixer(camera)
+            nextMixer.clipAction(clip)
             mixers.push(nextMixer)
         });
         //setMixers(mixers)
@@ -244,18 +224,15 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     //console.log(camera.position)
     //console.log(camera.rotation)
       if (!useEffectRunning) {
-          if (curState !== undefined) {
-            if (supportControls ) {
-              if (curState.selected === "") {
-                bboxRef.current!.visible = false
-              }
-              else {
-                let selectedObject = sceneObjectMap.get(curState.selected)!
-                if (selectedObject !== undefined && selectedObject.type !== 'BoxHelper') {
-                    if (bboxRef.current !== null) {
-                      bboxRef.current.setFromObject(selectedObject);
-                      bboxRef.current!.visible = true
-                  }
+            if (curState.selected === "") {
+              bboxRef.current!.visible = false
+            }
+            else {
+              let selectedObject = sceneObjectMap.get(curState.selected)!
+              if (selectedObject !== undefined && selectedObject.type !== 'BoxHelper') {
+                  if (bboxRef.current !== null) {
+                    bboxRef.current.setFromObject(selectedObject);
+                    bboxRef.current!.visible = true
                 }
               }
             }
@@ -268,40 +245,56 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
                 mixers[oldIndex].stopAllAction()
               }
               setAnimationIndex(newAnimationIndex)
-              mixers[curState.currentAnimationIndex]?.clipAction(animations[curState.currentAnimationIndex]).play()
+              if (mixers.length -1 < newAnimationIndex) {
+                // create a mixer for the animation
+                const nextMixer = new AnimationMixer(camera)
+                targetMixerRef.current = new AnimationMixer(targetRef.current!);
+                const nextAnimation = curState.animations[curState.currentAnimationIndex];
+                const camClip = new THREE.AnimationClip('camMove', -1, [nextAnimation.tracks[0]])
+                nextMixer.clipAction(camClip, nextAnimation.name.startsWith("cam")?camera:scene)
+                mixers.push(nextMixer);
+                const targetClip = new THREE.AnimationClip('targetMove', -1, [nextAnimation.tracks[1]]);
+                targetMixerRef.current.clipAction(targetClip);
+                // (controls as unknown as CameraControls).moveTo(nextAnimation.tracks[0].values[0],
+                //   nextAnimation.tracks[0].values[1], nextAnimation.tracks[0].values[2], true);              
+              }
+              mixers[curState.currentAnimationIndex]?.clipAction(curState.animations[curState.currentAnimationIndex]).play()
             }
-            if (supportControls && curState.animating){
+            if (curState.animating){
               if (curState.currentAnimationIndex!==-1) {
-                let duration = mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).getClip().duration;
+                let duration = mixers[curState.currentAnimationIndex].clipAction(curState.animations[curState.currentAnimationIndex]).getClip().duration;
 
                 if(curState.currentFrame !== startTime) {
                   const framePercentage = curState.currentFrame / 100;
                   const currentTimeInSlider = duration * framePercentage;
-                  mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time =  currentTimeInSlider;
+                  mixers[curState.currentAnimationIndex].clipAction(curState.animations[curState.currentAnimationIndex]).time =  currentTimeInSlider;
                 }
-                const currentTime = mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time
-                mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
+                const currentTime = mixers[curState.currentAnimationIndex].clipAction(curState.animations[curState.currentAnimationIndex]).time
+                mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed);
+                targetMixerRef.current!.update(delta * curState.animationSpeed);
+                // update controls to fix target
+                //(controls as unknown as CameraControls).update(delta* curState.animationSpeed)
                 //console.log(duration)
                 // For material at index "key" setColor to nodes["value"].translation
                 applyAnimationColors();
                 curState.setCurrentFrame(Math.trunc((currentTime / duration) * 100))
                 setStartTime(Math.trunc((currentTime / duration) * 100))
               }
-            } else if (supportControls) {
+            } else {
               if (curState.currentAnimationIndex!==-1) {
                 if(curState.currentFrame !== startTime) {
-                  let duration = mixers[curState.currentAnimationIndex]?.clipAction(animations[curState.currentAnimationIndex]).getClip().duration;
+                  let duration = mixers[curState.currentAnimationIndex]?.clipAction(curState.animations[curState.currentAnimationIndex]).getClip().duration;
                   const framePercentage = curState.currentFrame / 100;
                   const currentTime = duration * framePercentage;
                   // For material at index "key" setColor to nodes["value"].translation
                   applyAnimationColors();
-                  mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time = currentTime;
+                  mixers[curState.currentAnimationIndex].clipAction(curState.animations[curState.currentAnimationIndex]).time = currentTime;
                   setStartTime(curState.currentFrame)
                   mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
                 }
               }
             }
-          }
+          
       }
     })
     // Next block would show bubble on selection with name
@@ -326,14 +319,14 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         if (supportControls) {
             curState.setCurrentModelPath(currentModelPath)
             /// curState.setSceneTree(new SceneTreeModel(scene))
-            curState.setAnimationList(animations)
+            ///curState.setAnimationList(animations)
         }
         return () => {
           curState.setSelected("", false)
           sceneObjectMap.clear();
           setUseEffectRunning(true)
         };
-      }, [scene, animations, supportControls, currentModelPath, curState, sceneObjectMap])
+      }, [scene, supportControls, currentModelPath, curState, sceneObjectMap])
 
     
   function handleClick(event: ThreeEvent<MouseEvent>): void {
@@ -373,7 +366,6 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
       //sceneRef.current!.add(boxHelper)
       //curState.fitCameraTo(default_box);
     }
-    console.log("Selected:", selected);
   }
 
     // By the time we're here the model is guaranteed to be available
@@ -413,6 +405,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         </mesh>
       </group>
       <boxHelper name='SelectionBox' ref={bboxRef} visible={false}/>
+      <object3D ref={targetRef} position={[0, 0, 0]} />
       </>
 }
 
