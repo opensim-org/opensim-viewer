@@ -484,7 +484,7 @@ export class ModelUIState {
     toggleRecordingKeyFrames() {
         this.recordingKeyFrames = !this.recordingKeyFrames
         if (!this.recordingKeyFrames) {
-            const duration = this.cameras.length
+            const duration = this.cameras.length-1
             const positions: number[] = []
             const targets: number[] = []
             const keyFrameTimes: number[] = []
