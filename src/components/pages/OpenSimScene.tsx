@@ -1,5 +1,6 @@
 import { useGLTF } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
+import { TransformControls } from '@react-three/drei'
 
 import * as THREE from 'three';
 
@@ -11,6 +12,9 @@ import SceneTreeModel from '../../helpers/SceneTreeModel'
 import { useModelContext } from '../../state/ModelUIStateContext'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
 import viewerState from '../../state/ViewerState'
+import { ModelUIState } from '../../state/ModelUIState'
+
+import { DirectionalLightHelper, SpotLightHelper } from 'three';
 
 interface OpenSimSceneProps {
     currentModelPath: string,
@@ -18,10 +22,15 @@ interface OpenSimSceneProps {
 }
 
 const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportControls }) => {
-
-    // useGLTF suspends the component, it literally stops processing
     const { scene, animations } = useGLTF(currentModelPath);
     const { set, gl} = useThree();
+
+    const dirLightHelperRef = useRef<DirectionalLightHelper | null>(null);
+    const spotLightHelperRef = useRef<SpotLightHelper | null>(null);
+
+    const [isDirectionalVisible, setDirectionalVisible] = useState(false);
+    const [isSpotVisible, setSpotVisible] = useState(false);
+
     const no_face_cull = (scene: Group)=>{
       if (scene) {
         scene.traverse((o)=>{
@@ -38,7 +47,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
       ["Mesh", 1],
       ["Force", 2],
       ["World", 3],
-      ["Marker", 4], 
+      ["Marker", 4],
       ["ExpMarker", 5],
       ["expForce", 6],
       ["WrapSphere", 7],
@@ -50,7 +59,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
       ["ContactMesh", 8],
       ["ContactHalfSpace", 8]
     ]);
-    
+
     const mapObjectToLayer = (obj3d: Object3D)=>{
       if (obj3d.userData !== null && obj3d.userData !== undefined &&
           obj3d.userData.opensimType !== undefined) {
@@ -89,18 +98,20 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     const sceneRef = useRef<THREE.Scene>()
     const lightRef = useRef<THREE.DirectionalLight | null>(null)
     const spotlightRef = useRef<THREE.SpotLight>(null)
+    const camerasGroupRef = useRef<THREE.Group>(null);
     const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
 
 
     // This useEffect loads the cameras and assign them to its respective states.
     useEffect(() => {
-      const cameras = scene.getObjectsByProperty( 'isPerspectiveCamera', true )
+      const cameras = scene.getObjectsByProperty('isPerspectiveCamera', true);
       console.log(`Number of cameras: ${cameras.length}`);
-        cameras.forEach((camera, index) => {
-          console.log(`Camera ${index + 1}:`);
-          console.log(`  Name: ${camera.name}`);
-          console.log(`  Type: ${camera.type}`);
-        });
+      cameras.forEach((camera, index) => {
+        console.log(`Camera ${index + 1}:`);
+        console.log(`  Name: ${camera.name}`);
+        console.log(`  Type: ${camera.type}`);
+      });
+
       if (cameras.length > 0) {
         // Get the canvas element from the gl
         var canvas = gl.domElement;
@@ -108,18 +119,30 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         var aspectRatio = canvas.clientWidth / canvas.clientHeight;
         // Set aspectRatio to cameras
         cameras.forEach(function(camera) {
-            const cameraPers = camera as PerspectiveCamera
-            cameraPers.aspect = aspectRatio;
-            cameraPers.updateProjectionMatrix();
+          const cameraPers = camera as PerspectiveCamera;
+          cameraPers.aspect = aspectRatio;
+          cameraPers.updateProjectionMatrix();
+
+          // Remove camera from its current parent if it has one
+          if (camera.parent) {
+            camera.parent.remove(camera);
+          }
+
+          // Add camera to the cameras group
+          if (camerasGroupRef.current) {
+            camerasGroupRef.current.add(camera);
+          }
         });
+
         // Update cameras list.
-        curState.setCamerasList(cameras.map(obj => obj as PerspectiveCamera))
+        curState.setCamerasList(cameras.map(obj => obj as PerspectiveCamera));
         // Set current camera and current index as 0
-        setCurrentCamera(cameras.length > 0 ? cameras[0] as PerspectiveCamera : new PerspectiveCamera())
-        curState.setCurrentCameraIndex(0)
+        setCurrentCamera(cameras.length > 0 ? cameras[0] as PerspectiveCamera : new PerspectiveCamera());
+        curState.setCurrentCameraIndex(0);
       }
-      lightRef.current!.color = viewerState.lightColor
-      spotlightRef.current!.color = viewerState.lightColor
+
+      lightRef.current!.color = viewerState.lightColor;
+      spotlightRef.current!.color = viewerState.lightColor;
     }, [curState, scene, gl.domElement.clientWidth, gl.domElement, set]);
 
     // This useEffect sets the current selected camera.
@@ -174,6 +197,31 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
       }
     }, [currentCamera, set, curState.currentCameraIndex, curState.cameras, animations]);
 
+    // This useeffect adds helpers to the lights.
+    useEffect(() => {
+      if (lightRef.current && scene) {
+        const helper = new DirectionalLightHelper(lightRef.current, 0.5);
+        dirLightHelperRef.current = helper;
+        scene.add(helper);
+      }
+
+      if (spotlightRef.current && scene) {
+        const helper = new SpotLightHelper(spotlightRef.current, viewerState.lightColor);
+        spotLightHelperRef.current = helper;
+        scene.add(helper);
+      }
+
+      return () => {
+        if (dirLightHelperRef.current) {
+          scene.remove(dirLightHelperRef.current);
+          dirLightHelperRef.current.dispose?.();
+        }
+        if (spotLightHelperRef.current) {
+          scene.remove(spotLightHelperRef.current);
+          spotLightHelperRef.current.dispose?.();
+        }
+      };
+    }, [scene, lightRef.current, spotlightRef.current]);
 
     if (supportControls) {
       scene.traverse((o) => {
@@ -278,6 +326,20 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
             }
           }
       }
+      if (lightRef.current) {
+        setDirectionalVisible(lightRef.current.visible);
+      }
+      if (spotlightRef.current) {
+        setSpotVisible(spotlightRef.current.visible);
+      }
+      if (dirLightHelperRef.current && lightRef.current) {
+        dirLightHelperRef.current.visible = lightRef.current.visible;
+        dirLightHelperRef.current.update();
+      }
+      if (spotLightHelperRef.current && spotlightRef.current) {
+        spotLightHelperRef.current.visible = spotlightRef.current.visible;
+        spotLightHelperRef.current.update();
+      }
     })
 
     useEffect(() => {
@@ -299,15 +361,25 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         };
       }, [scene, animations, supportControls, currentModelPath, curState, sceneObjectMap, objectSelectionBox])
 
-    
+
     // By the time we're here the model is guaranteed to be available
     return <>
     <primitive object={scene} ref={sceneRef}
       onPointerDown={(e: any) => curState.setSelected(e.object.uuid)}
       onPointerMissed={() => curState.setSelected("")}
       />
+
+      <group name="Cameras"  ref={camerasGroupRef}>
+
+      </group>
       <group name="Illumination">
-        <directionalLight ref={lightRef} position={[0.5, 1.5, -0.5]}
+        {lightRef.current && isDirectionalVisible && (
+          <TransformControls object={lightRef.current} mode="translate" />
+        )}
+        {spotlightRef.current && isSpotVisible && (
+          <TransformControls object={spotlightRef.current} mode="translate" />
+        )}
+        <directionalLight name="Directional Light" ref={lightRef} position={[0.5, 1.5, -0.5]}
             intensity={viewerState.lightIntensity} color={viewerState.lightColor}
           castShadow={true}
           shadow-camera-far={8}
@@ -315,7 +387,14 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
           shadow-camera-right={2}
           shadow-camera-top={2}
           shadow-camera-bottom={-2}/>
-        <spotLight visible={viewerState.spotLight} ref={spotlightRef} position={[0.5, 2.5, -.05]} color={viewerState.lightColor}/>
+        <spotLight name="Spot Light"
+          visible={viewerState.spotLight}
+            ref={spotlightRef}
+            position={[0.5, 2.5, -.05]}
+            color={viewerState.lightColor}
+            angle={Math.PI / 3}
+            distance={5}
+            penumbra={0.6}/>
       </group>
       </>
 }

@@ -162,6 +162,9 @@ class ViewerState {
     setFloorTextureIndex(newIndex: number) {
         this.textureIndex = newIndex
     }
+    setLightIntensity(newLight: number) {
+        this.lightIntensity = newLight
+    }
 }
 
 const viewerState = new ViewerState('/builtin/arm26_elbow_flex.gltf', '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false, false)

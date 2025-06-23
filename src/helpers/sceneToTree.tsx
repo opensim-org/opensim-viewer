@@ -1,0 +1,119 @@
+import * as THREE from 'three';
+
+export function convertSceneToTree(scene: THREE.Scene | null, camera: THREE.Camera | null) {
+  const traverse = (obj: any): any | null => {
+    let canEdit = true;
+    let id = obj.id;
+    let title = obj.name
+
+    let isModel = false;
+    if (obj.name === "Scene") {
+      title = "Model";
+      isModel = true;
+      canEdit = false;
+    }
+
+    let isGroup = false;
+    if (obj.type === "Group") {
+      isGroup = true;
+      canEdit = false;
+    }
+    console.log(obj.type)
+    let isLight = false;
+    if (obj.type.includes("Light"))
+      isLight = true;
+
+    let isSkySphere = false;
+    if (obj.name.includes("SkySphere"))
+      isSkySphere = true;
+
+    let isFloor = false;
+    if (obj.name.includes("Floor"))
+      isFloor = true;
+
+    let isAxes = false;
+    if (obj.type.includes("Axes"))
+      isAxes = true;
+
+    let isCamera = false;
+    if (obj.name.includes("Camera")) {
+      isCamera = true;
+      canEdit = false;
+    }
+
+    let children = null;
+    if (title !== "Model" && !obj.type.includes("TransformControls") && obj.type !== "Object3D") {
+      children = (obj.children || [])
+        .map(traverse)
+        .filter((child: any): child is NonNullable<typeof child> => child !== null);
+
+      // Add camera as child if this is the "Cameras" group
+      if (obj.type === "Group" && obj.name === "Cameras" && camera && !children.some((child:any) => child.isCamera)) {
+        const cameraNode = {
+          title: camera.name || "Default Camera",
+          subtitle: camera.type,
+          visible: camera.visible,
+          object3D: camera,
+          isGroup: false,
+          isLight: false,
+          isSkySphere: false,
+          isFloor: false,
+          isAxes: false,
+          isModel: false,
+          canEdit: false,
+          isCamera: true,
+          id: "default-camera",
+          type: obj.type,
+          children: []
+        };
+        children.push(cameraNode);
+
+        // Append "+" node
+        children.push({
+          title: "",
+          subtitle: "",
+          visible: true,
+          object3D: null,
+          isGroup: false,
+          isLight: false,
+          isSkySphere: false,
+          isFloor: false,
+          isAxes: false,
+          isModel: false,
+          isCamera: false,
+          canEdit: false,
+          isAddCameraButton: true,
+          id: "add-camera-node",
+          type: "AddButton",
+          children: [],
+        });
+        }
+
+    }
+
+    return {
+      title: title,
+      subtitle: obj.type,
+      visible: obj.visible,
+      object3D: obj,
+      isGroup: isGroup,
+      isLight: isLight,
+      isSkySphere: isSkySphere,
+      isFloor: isFloor,
+      isAxes: isAxes,
+      isModel: isModel,
+      canEdit: canEdit,
+      isCamera: isCamera,
+      id: id,
+      type: obj.type,
+      children: children
+    };
+  };
+
+  if (scene != null)
+    return scene.children
+      .map(traverse)
+      .filter((child): child is NonNullable<typeof child> => child !== null);
+  else
+    return [];
+}
