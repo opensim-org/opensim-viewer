@@ -2,7 +2,7 @@ import { makeObservable, observable, action } from 'mobx'
 import SceneTreeModel from '../helpers/SceneTreeModel'
 import { AnimationClip } from 'three/src/animation/AnimationClip'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
-import { Box3, Object3D, Scene, Vector3, VectorKeyframeTrack } from 'three'
+import { Box3, Object3D, QuaternionKeyframeTrack, Scene, Vector3, VectorKeyframeTrack } from 'three'
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
 import { CommandFactory } from './commands/CommandFactory'
 import { saveAs } from 'file-saver';
@@ -49,7 +49,6 @@ export class ModelUIState {
     currentModelPath: string
     scene: Scene | null
     isGuiMode: boolean
-    rotating: boolean
     zooming: boolean
     zoom_inOut: number
     pending_key: string
@@ -63,7 +62,7 @@ export class ModelUIState {
     currentAnimationIndex: number
     cameras: PerspectiveCamera[]
     targets: Vector3[]
-    keyframes: KeyFrameProps[]
+    startCameraIndex: number
     currentCameraIndex: number
     selected: string
     deSelected: string
@@ -85,13 +84,11 @@ export class ModelUIState {
     viewerState: ViewerState
     recordingKeyFrames: boolean
     constructor(
-        currentModelPathState: string,
-        rotatingState: boolean,
+        currentModelPathState: string
     ) {
         this.currentModelPath = currentModelPathState
         this.scene = null
         this.isGuiMode = true
-        this.rotating = rotatingState
         this.zooming = false
         this.zoom_inOut = 0.0
         this.pending_key = ""
@@ -104,7 +101,8 @@ export class ModelUIState {
         this.currentAnimationIndex = -1
         this.cameras = []
         this.targets = []
-        this.keyframes = []
+        //this.keyframes = []
+        this.startCameraIndex = -1
         this.currentCameraIndex = -1
         this.selected = ""
         this.deSelected = ""
@@ -120,13 +118,11 @@ export class ModelUIState {
         this.guiKnobs = ""
         this.debug = false
         this.recordingKeyFrames = false
-        this.viewerState = new ViewerState('/builtin/leg39.json', '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false);
+        this.viewerState = new ViewerState('', '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false);
         makeObservable(this, {
-            rotating: observable,
             currentModelPath: observable,
             zooming: observable,
             showGlobalFrame: observable,
-            setRotating: action,
             setCurrentModelPath: action,
             setZooming: action,
             draggable: observable,
@@ -210,9 +206,7 @@ export class ModelUIState {
             this.currentCameraIndex = -1
         }
     }
-    setRotating(newState: boolean) {
-        this.rotating = newState
-    }
+
     setZooming(newState: boolean) {
         this.zooming = newState
     }
@@ -487,33 +481,44 @@ export class ModelUIState {
             const duration = this.cameras.length-1
             const positions: number[] = []
             const targets: number[] = []
+            const orientations: number[] = []
             const keyFrameTimes: number[] = []
-            for (let i=0; i< this.cameras.length; i++){
+            for (let i=this.startCameraIndex; i< this.cameras.length; i++){
                 const cam = this.cameras[i]
                 const tgt = this.targets[i]
-                cam.position.toArray(positions, 3*i)
-                tgt.toArray(targets, 3*i)
-                keyFrameTimes.push(i)
+                cam.position.toArray(positions, 3*(i-this.startCameraIndex))
+                cam.quaternion.toArray(orientations, 4*(i-this.startCameraIndex))
+
+                tgt.toArray(targets, 3*(i-this.startCameraIndex))
+                keyFrameTimes.push((i-this.startCameraIndex))
 
             }
-            // Create keyframetracks
+            // Create 2 keyframetracks one for camera, 2nd for target
             const positionKF = new VectorKeyframeTrack( '.position', keyFrameTimes, positions );
-            const targetKF = new VectorKeyframeTrack( '.position', keyFrameTimes, targets );
+            const orientationKF = new QuaternionKeyframeTrack( '.quaternion', keyFrameTimes, orientations );
 
             // Create an AnimationClip from saved KeyFrameCameras, add to ui
-            const camClip = new AnimationClip("camClip", duration, [positionKF, targetKF])
+            const camClip = new AnimationClip("camClip_"+this.animations.length, duration, [positionKF, orientationKF])
             this.setAnimationList(this.animations.concat(camClip))
+
+            // const targetKF = new VectorKeyframeTrack( '.position', keyFrameTimes, targets );
+            // const targetClip = new AnimationClip("tgtClip", duration, [targetKF])
+            // this.setAnimationList(this.animations.concat(targetClip))
         }
-        else // If turning on recording, capture first camera key frame
+        else {// If turning on recording, capture first camera key frame
             this.pending_key = 'c'
+            this.startCameraIndex = this.cameras.length
+        }
     }
     addCamera(camera: PerspectiveCamera, target: Vector3) {
         const camClone = camera.clone()
         camClone.name = "Camera_"+this.cameras.length
         this.cameras.push(camClone);
         this.targets.push(target.clone())
-        const newKeyFrame = new KeyFrameProps(camClone, target.clone(), this.keyframes.length)
-        this.keyframes.push(newKeyFrame)
-        
+        // const newKeyFrame = new CameraKeyFrameProps(camClone, target.clone(), this.keyframes.length)
+        // this.keyframes.push(newKeyFrame)
+        // console.log("Adding Camera at p, q:")
+        // console.log(camera.position)
+        // console.log(camera.quaternion)
     }
 }

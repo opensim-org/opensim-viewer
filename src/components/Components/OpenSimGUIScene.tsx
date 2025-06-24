@@ -38,9 +38,8 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     const csRef = useRef<THREE.Group>(null)
     const envRef = useRef<THREE.Group>(null)
     const bboxRef = useRef<THREE.BoxHelper>(null)
-    const camHelper = useRef<THREE.CameraHelper>(null)
     const modelsRef = useRef<THREE.Group>(null);
-    const targetRef = useRef<Object3D>(null)
+    const targetRef = useRef<THREE.Mesh>(null)
     const targetMixerRef = useRef<AnimationMixer>()
 
     const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
@@ -222,7 +221,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     useFrame((state, delta) => {
     //console.log(camera.position)
-    //console.log(camera.rotation)
+    //console.log(camera.quaternion)
       if (!useEffectRunning) {
             if (curState.selected === "") {
               bboxRef.current!.visible = false
@@ -248,15 +247,22 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
               if (mixers.length -1 < newAnimationIndex) {
                 // create a mixer for the animation
                 const nextMixer = new AnimationMixer(camera)
-                targetMixerRef.current = new AnimationMixer(targetRef.current!);
+                // targetMixerRef.current = new AnimationMixer(targetRef.current!);
                 const nextAnimation = curState.animations[curState.currentAnimationIndex];
-                const camClip = new THREE.AnimationClip('camMove', -1, [nextAnimation.tracks[0]])
-                nextMixer.clipAction(camClip, nextAnimation.name.startsWith("cam")?camera:scene)
+                nextAnimation.tracks[0].setInterpolation(THREE.InterpolateLinear);
+                nextAnimation.tracks[1].setInterpolation(THREE.InterpolateLinear);
+                nextMixer.clipAction(nextAnimation, nextAnimation.name.startsWith("cam")?camera:scene);
                 mixers.push(nextMixer);
-                const targetClip = new THREE.AnimationClip('targetMove', -1, [nextAnimation.tracks[1]]);
-                targetMixerRef.current.clipAction(targetClip);
-                // (controls as unknown as CameraControls).moveTo(nextAnimation.tracks[0].values[0],
-                //   nextAnimation.tracks[0].values[1], nextAnimation.tracks[0].values[2], true);              
+                //const targetClip = new THREE.AnimationClip('targetMove', nextAnimation.duration, [nextAnimation.tracks[2]]);
+                //targetMixerRef.current.clipAction(targetClip, targetRef.current!).play();
+                
+                //(controls as unknown as CameraControls).enabled = true;
+                // (controls as unknown as CameraControls).setLookAt(nextAnimation.tracks[0].values[0],
+                //       nextAnimation.tracks[0].values[1], 
+                //       nextAnimation.tracks[0].values[2], 
+                //       nextAnimation.tracks[2].values[0],
+                //       nextAnimation.tracks[2].values[1], 
+                //       nextAnimation.tracks[2].values[2], true);
               }
               mixers[curState.currentAnimationIndex]?.clipAction(curState.animations[curState.currentAnimationIndex]).play()
             }
@@ -271,7 +277,9 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
                 }
                 const currentTime = mixers[curState.currentAnimationIndex].clipAction(curState.animations[curState.currentAnimationIndex]).time
                 mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed);
-                targetMixerRef.current!.update(delta * curState.animationSpeed);
+                //targetMixerRef.current!.update(delta * curState.animationSpeed);
+                //camera.lookAt(targetRef.current!.position)
+
                 // update controls to fix target
                 //(controls as unknown as CameraControls).update(delta* curState.animationSpeed)
                 //console.log(duration)
@@ -291,6 +299,8 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
                   mixers[curState.currentAnimationIndex].clipAction(curState.animations[curState.currentAnimationIndex]).time = currentTime;
                   setStartTime(curState.currentFrame)
                   mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
+                  //targetMixerRef.current!.update(delta * curState.animationSpeed);
+                  //camera.lookAt(targetRef.current!.position)
                 }
               }
             }
@@ -405,7 +415,10 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         </mesh>
       </group>
       <boxHelper name='SelectionBox' ref={bboxRef} visible={false}/>
-      <object3D ref={targetRef} position={[0, 0, 0]} />
+      <mesh ref={targetRef} position={[0, 0, 0]} >
+        <sphereGeometry args={[.002]} />
+        <meshStandardMaterial wireframe color="white" />
+      </mesh>
       </>
 }
 

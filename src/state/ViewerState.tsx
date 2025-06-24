@@ -36,6 +36,8 @@ class ViewerState {
     lightIntensity: number
     lightColor: Color
     spotLight: boolean
+    // toolbar options
+    rotating: boolean
     constructor(
         currentModelPathState: string,
         featuredModelsFilePathState: string,
@@ -92,6 +94,7 @@ class ViewerState {
         this.lightIntensity = 0.25
         this.lightColor = new Color(0.6, 0.6, 0.6)
         this.spotLight = false
+        this.rotating = false;
         makeObservable(this, {
             currentModelPath: observable,
             featuredModelsFilePath: observable,
@@ -132,6 +135,8 @@ class ViewerState {
             lightIntensity: observable,
             lightColor: observable,
             spotLight: observable,
+            rotating: observable,
+            setRotating: action
         })
     }
 
@@ -199,6 +204,9 @@ class ViewerState {
             this.skyVisible = false
         else
             this.skyVisible = true
+    }
+    setRotating(newState: boolean) {
+        this.rotating = newState
     }
     // setUserPreferencesJsonPath(path: string) {
     //   this.userPreferencesJsonPath = path

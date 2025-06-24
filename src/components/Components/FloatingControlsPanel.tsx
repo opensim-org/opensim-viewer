@@ -11,9 +11,9 @@ import FitScreenTwoToneIcon from '@mui/icons-material/FitScreenTwoTone';
 import AddAPhotoTwoToneIcon from '@mui/icons-material/AddAPhotoTwoTone';
 import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
 import { useModelContext } from '../../state/ModelUIStateContext';
-import { ModelInfo } from '../../state/ModelUIState';
 import SnapShotModal from './SnapShotModal';
 import { ToggleButton } from '@mui/material';
+import { ModelInfo } from '../../state/ModelUIState';
 
 interface FloatingControlsPanelProps {
   videoRecorderRef: any;
@@ -70,14 +70,12 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
         </Grid>
         <Grid item xs={6}>
           <Tooltip title={t('bottomBar.fit')}>
-            <ToggleButton 
+            <IconButton 
               color="primary"
-              selected={curState.recordingKeyFrames}
-              value={'Start Recording'}
               onClick={() => {
               curState.toggleRecordingKeyFrames()}}>
                 <AddAPhotoTwoToneIcon />
-            </ToggleButton>
+            </IconButton>
           </Tooltip>
         </Grid>
         <Grid item xs={6}>

@@ -9,20 +9,18 @@ import {
   GizmoViewport,
   OrbitControls,
 } from "@react-three/drei";
-import viewerState from "../../state/ViewerState";
 import OpenSimControl from '../Components/OpenSimControl';
 import BottomBar from "../pages/BottomBar";
 import FloatingControlsPanel from '../Components/FloatingControlsPanel';
 import DrawerMenu from "../Components/DrawerMenu";
 import OpenSimGUIScene from "../Components/OpenSimGUIScene";
-import { ModelUIState } from "../../state/ModelUIState";
+import { ModelInfo, ModelUIState } from "../../state/ModelUIState";
 import { observer } from "mobx-react";
 import { MyModelContext } from "../../state/ModelUIStateContext";
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { useParams } from 'react-router-dom';
 
 import VideoRecorder from "../Components/VideoRecorder"
-import { ModelInfo } from '../../state/ModelUIState';
 
 import { GUI } from 'dat.gui';
 import { Color} from 'three';
@@ -231,7 +229,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 onClick={
                   (e)=>console.log(e)
                   }>
-                  <GizmoViewport labelColor="white" axisHeadScale={1} />
+                  <GizmoViewport labelColor="transparent" />
                 </GizmoHelper>
                 {uiState.isGuiMode?
                   <OpenSimControl/>:

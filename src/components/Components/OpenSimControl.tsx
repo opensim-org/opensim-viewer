@@ -1,11 +1,11 @@
-import { TransformControls, CameraControls, OrbitControls} from '@react-three/drei'
+import { TransformControls, CameraControls} from '@react-three/drei'
 import { observer } from 'mobx-react'
 import { useModelContext } from '../../state/ModelUIStateContext';
 
 import { useFrame, useThree } from '@react-three/fiber'
 
 import { Box3, Object3D, PerspectiveCamera, Vector2, Vector3 } from 'three';
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import type CameraControlsImpl from 'camera-controls'
 
 const OpenSimControl = () => {
@@ -76,7 +76,7 @@ const OpenSimControl = () => {
                 case 'c':
                     if (curState.recordingKeyFrames){
                         (controls as unknown as CameraControls).getTarget(controlTarget)
-                        curState.addCamera( (controls as unknown as CameraControls).camera as PerspectiveCamera, controlTarget)
+                        curState.addCamera(camera as PerspectiveCamera, controlTarget)
                     }
             }
             curState.pending_key = "";
