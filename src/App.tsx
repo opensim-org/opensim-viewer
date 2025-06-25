@@ -12,7 +12,6 @@ import { ThemeProvider, CssBaseline } from '@mui/material'
 import appTheme from './Theme'
 import lightTheme from './LightTheme'
 import OpenSimAppBar from './components/Nav/OpenSimAppBar'
-import viewerState from './state/ViewerState'
 import { SnackbarProvider } from 'notistack'
 import { Amplify } from 'aws-amplify';
 import type { WithAuthenticatorProps } from '@aws-amplify/ui-react';
@@ -25,6 +24,7 @@ import { useTranslation } from 'react-i18next';
 import './App.css'
 
 import awsconfig from './aws-exports';
+import { useModelContext } from './state/ModelUIStateContext'
 Amplify.configure(awsconfig);
 
 const useDeviceOrientation = () => {
@@ -34,6 +34,8 @@ const useDeviceOrientation = () => {
 
 function App({ signOut, user }: WithAuthenticatorProps) {
   const { t } = useTranslation();
+  const viewerState = useModelContext().viewerState;
+  
   const isPortrait = useDeviceOrientation();
   const isSmallScreen = useMediaQuery('(max-width:600px)');
   const elementRef = useRef(null);
@@ -65,7 +67,7 @@ function App({ signOut, user }: WithAuthenticatorProps) {
       viewerState.setIsGuiMode(true)
       setDisplayAppBar('none')
     }
-  }, []);
+  }, [viewerState]);
 
     // On file system we'll have a folder per model containing cached/versioned gltf, possibly .osim file, data files, display 
     // preferences

@@ -2,16 +2,17 @@ import { useLoader} from '@react-three/fiber'
 import { observer } from 'mobx-react';
 import { useRef } from 'react';
 import { Mesh, RepeatWrapping, TextureLoader } from 'three';
-import viewerState from '../../state/ViewerState';
+import { useModelContext } from '../../state/ModelUIStateContext';
 
 interface OpenSimFloorProps {
   texturePath?: string;
 }
 
 const OpenSimFloor = ({ texturePath }: OpenSimFloorProps) => {
+    const viewerState = useModelContext().viewerState;
     const floorTexture = useLoader(
       TextureLoader,
-      texturePath || viewerState.defaultFloorTextures[viewerState.textureIndex]
+      viewerState.defaultFloorTextures[viewerState.textureIndex]
     )
     floorTexture.wrapS = floorTexture.wrapT = RepeatWrapping;
     floorTexture.offset.set(0, 0);

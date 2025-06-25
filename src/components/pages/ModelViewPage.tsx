@@ -9,7 +9,6 @@ import {
   GizmoHelper,
   GizmoViewport,
 } from "@react-three/drei";
-import viewerState from "../../state/ViewerState";
 import OpenSimControl from "../pages/OpenSimControl";
 import { Suspense } from "react";
 import BottomBar from "../pages/BottomBar";
@@ -93,18 +92,19 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 
   React.useEffect(() => {
     // Change interface if we are in GUI mode.
-    if (viewerState.isGuiMode) {
+    if (uiState.viewerState.isGuiMode) {
       setDisplaySideBar('none');
       setCanvasWidth('100%');
       setCanvasHeight('calc(100vh - 68px)');
       setCanvasLeft(0);
       setFloatingButtonsContainerTop("12px")
     }
-    setBgndColor(viewerState.backgroundColor);
-  }, []);
+    setBgndColor(uiState.viewerState.backgroundColor);
+  }, [uiState.viewerState.backgroundColor, uiState.viewerState.isGuiMode]);
 
   React.useEffect(() => {
     // Load user preferences
+    const viewerState = uiState.viewerState;
     viewerState.setUserPreferencesJsonPath('/user-preferences.json')
     viewerState.loadUserPreferences()
 
@@ -134,18 +134,18 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     return () => {
         gui.destroy()
       }
-  }, []);
+  }, [uiState.viewerState]);
 
   //console.log(urlParam);
   if (urlParam!== undefined) {
     var decodedUrl = decodeURIComponent(urlParam);
-    viewerState.setCurrentModelPath(decodedUrl);
-    curState.setCurrentModelPath(viewerState.currentModelPath);
+    uiState.viewerState.setCurrentModelPath(decodedUrl);
+    curState.setCurrentModelPath(uiState.viewerState.currentModelPath);
     // If urlParam is not undefined, this means it is getting the model from S3 and not from local.
-    viewerState.setIsLocalUpload(false);
+    uiState.viewerState.setIsLocalUpload(false);
   }
   else
-    curState.setCurrentModelPath(viewerState.currentModelPath);
+    curState.setCurrentModelPath(uiState.viewerState.currentModelPath);
   function toggleOpenMenu(name: string = "") {
     // If same name, or empty just toggle.
     if (name === selectedTabName || name === "") setMenuOpen(!menuOpen);
@@ -197,11 +197,11 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 />
                 <Bounds fit clip observe>
                   <OpenSimScene
-                    currentModelPath={viewerState.currentModelPath}
+                    currentModelPath={uiState.viewerState.currentModelPath}
                     supportControls={true}
                   />
                 </Bounds>
-                <Environment files="/builtin/potsdamer_platz_1k.hdr" />
+                <Environment files="/assets/potsdamer_platz_1k.hdr" />
                 <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
                   <GizmoViewport labelColor="white" axisHeadScale={1} />
                 </GizmoHelper>
@@ -209,15 +209,15 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
                 <OpenSimSkySphere
                   texturePath={
-                    viewerState.userPreferences?.skyTexturePath?.trim()
-                      ? viewerState.userPreferences.skyTexturePath
+                    uiState.viewerState.userPreferences?.skyTexturePath?.trim()
+                      ? uiState.viewerState.userPreferences.skyTexturePath
                       : undefined
                   }
                 />
                 <OpenSimFloor
                   texturePath={
-                    viewerState.userPreferences?.floorTexturePath?.trim()
-                      ? viewerState.userPreferences.floorTexturePath
+                    uiState.viewerState.userPreferences?.floorTexturePath?.trim()
+                      ? uiState.viewerState.userPreferences.floorTexturePath
                       : undefined
                   }
                 />

@@ -2,7 +2,6 @@ import * as React from "react";
 import { useEffect, useRef } from "react";
 
 import { observer } from "mobx-react";
-import viewerState from "../../state/ViewerState";
 
 import { useThree } from '@react-three/fiber';
 
@@ -12,6 +11,7 @@ import { fetchFile } from '@ffmpeg/util';
 import { useSnackbar } from 'notistack'
 
 import { useTranslation } from 'react-i18next'
+import { useModelContext } from "../../state/ModelUIStateContext";
 
 
 type VideoRecorderRef = {
@@ -25,6 +25,7 @@ type VideoRecorderViewProps = {
 
 function VideoRecorder(props :VideoRecorderViewProps) {
   const { t } = useTranslation();
+  const viewerState = useModelContext().viewerState;
   const { gl } = useThree();
   const ffmpegRef = useRef(new FFmpeg());
   const { enqueueSnackbar, closeSnackbar  } = useSnackbar();
@@ -120,7 +121,7 @@ function VideoRecorder(props :VideoRecorderViewProps) {
       startRecording,
       stopRecording,
     };
-  }, [props.videoRecorderRef, gl.domElement, enqueueSnackbar, closeSnackbar, t]);
+  }, [props.videoRecorderRef, gl.domElement, enqueueSnackbar, closeSnackbar, t, viewerState]);
 
   return null;
 }

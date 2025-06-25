@@ -10,7 +10,6 @@ import { observer } from 'mobx-react'
 import SceneTreeModel from '../../helpers/SceneTreeModel'
 import { useModelContext } from '../../state/ModelUIStateContext'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
-import viewerState from '../../state/ViewerState'
 
 interface OpenSimSceneProps {
     currentModelPath: string,
@@ -112,8 +111,8 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         setCurrentCamera(cameras.length > 0 ? cameras[0] as PerspectiveCamera : new PerspectiveCamera())
         curState.setCurrentCameraIndex(0)
       }
-      lightRef.current!.color = viewerState.lightColor
-      spotlightRef.current!.color = viewerState.lightColor
+      lightRef.current!.color = curState.viewerState.lightColor
+      spotlightRef.current!.color = curState.viewerState.lightColor
     }, [curState, scene, gl.domElement.clientWidth, gl.domElement, set]);
 
     // This useEffect sets the current selected camera.
@@ -300,14 +299,14 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
       onPointerDown={(e: any) => curState.setSelected(e.object.uuid)}
       onPointerMissed={() => curState.setSelected("")}/>
       <directionalLight ref={lightRef} position={[0.5, 1.5, -0.5]} 
-          intensity={viewerState.lightIntensity} color={viewerState.lightColor}
+          intensity={curState.viewerState.lightIntensity} color={curState.viewerState.lightColor}
         castShadow={true} 
         shadow-camera-far={8}
         shadow-camera-left={-2}
         shadow-camera-right={2}
         shadow-camera-top={2}
         shadow-camera-bottom={-2}/>
-      <spotLight visible={viewerState.spotLight} ref={spotlightRef} position={[0.5, 2.5, -.05]} color={viewerState.lightColor}/>
+      <spotLight visible={curState.viewerState.spotLight} ref={spotlightRef} position={[0.5, 2.5, -.05]} color={curState.viewerState.lightColor}/>
       </>
 }
 

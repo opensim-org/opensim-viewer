@@ -37,7 +37,7 @@ const GridList = ({ modelMetadata }: GridListProps) => {
                                     attach="background"
                                     args={theme.palette.mode === 'dark' ? ['#151518'] : ['#aaaaaa']}
                                 />
-                                <Environment files="/builtin/potsdamer_platz_1k.hdr"/>
+                                <Environment files="/assets/potsdamer_platz_1k.hdr"/>
                                 <Bounds fit clip>
                                     <OpenSimScene currentModelPath={element.path} supportControls={false}/>
                                 </Bounds>

@@ -1,7 +1,7 @@
 import { makeObservable, observable, action, runInAction } from 'mobx'
 import { Color, Vector3 } from 'three'
 
-class ViewerState {
+export class ViewerState {
     currentModelPath: string
     featuredModelsFilePath: string
     dark: boolean
@@ -74,19 +74,19 @@ class ViewerState {
         this.backgroundImage = null
         this.skyTextureIndex = 0
         this.defaultSkyTextures = [
-            '/builtin/skyTextures/death-valley-alberto.jpg',
-            '/builtin/skyTextures/San_Carlo_(Grantola)_-_photosphere_of_interior.jpg',
-            '/builtin/skyTextures/Photosphere_in_Pozzolo_(Domaso)_2.jpg',
-            '/builtin/skyTextures/Photosphere_VML4_between_Nessa_and_L\'Agnone_01.jpg',
+            '/assets/skyTextures/death-valley-alberto.jpg',
+            '/assets/skyTextures/San_Carlo_(Grantola)_-_photosphere_of_interior.jpg',
+            '/assets/skyTextures/Photosphere_in_Pozzolo_(Domaso)_2.jpg',
+            '/assets/skyTextures/Photosphere_VML4_between_Nessa_and_L\'Agnone_01.jpg',
         ]
         this.skyVisible = true
         this.textureIndex = 0
         this.defaultFloorTextures = [
-            '/builtin/floorTextures/tile.jpg',
-            '/builtin/floorTextures/wood-floor.jpg',
-            '/builtin/floorTextures/Cobblestone.png',
-            '/builtin/floorTextures/cement.jpg',
-            '/builtin/floorTextures/grassy_d.png'
+            '/assets/floorTextures/tile.jpg',
+            '/assets/floorTextures/wood-floor.jpg',
+            '/assets/floorTextures/Cobblestone.png',
+            '/assets/floorTextures/cement.jpg',
+            '/assets/floorTextures/grassy_d.png'
         ]
         this.floorVisible = true
         this.floorRound = false
@@ -136,6 +136,7 @@ class ViewerState {
             lightIntensity: observable,
             lightColor: observable,
             spotLight: observable,
+            setIsLocalUpload: action,
         })
     }
 
@@ -228,6 +229,4 @@ class ViewerState {
     }
 }
 
-const viewerState = new ViewerState('/builtin/arm26_elbow_flex.gltf', '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false, false)
-
-export default viewerState
+export default ViewerState

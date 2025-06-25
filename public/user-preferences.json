@@ -1,4 +1,4 @@
 {
-  "sky-texture-path": "/builtin/skyTextures/death-valley-alberto.jpg",
-  "floor-texture-path": "/builtin/floorTextures/Cobblestone.png"
+  "sky-texture-path": "/assets/skyTextures/death-valley-alberto.jpg",
+  "floor-texture-path": "/assets/floorTextures/Cobblestone.png"
 }

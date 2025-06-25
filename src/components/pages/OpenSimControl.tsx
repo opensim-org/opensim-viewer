@@ -5,8 +5,6 @@ import { useModelContext } from '../../state/ModelUIStateContext';
 import { useFrame, useThree } from '@react-three/fiber'
 import { Ref, useRef } from 'react'
 
-import viewerState from "../../state/ViewerState";
-
 const OpenSimControl = () => {
     const {
         gl, // WebGL renderer
@@ -26,7 +24,7 @@ const OpenSimControl = () => {
         }
         else if (curState.takeSnapshot){
             const link = document.createElement('a')
-            link.setAttribute('download', viewerState.snapshotName + "." + viewerState.snapshotFormat)
+            link.setAttribute('download', curState.viewerState.snapshotName + "." + curState.viewerState.snapshotFormat)
             link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
             link.click()
             curState.takeSnapshot = false;

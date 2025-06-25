@@ -3,11 +3,11 @@ import { observer } from 'mobx-react';
 import { useLocalObservable } from 'mobx-react-lite';
 import { Paper, Typography, LinearProgress } from '@mui/material';
 import { useTranslation } from 'react-i18next'
-import viewerState from '../../state/ViewerState';
 import { useNavigate, useLocation  } from 'react-router-dom';
 import { Storage } from "@aws-amplify/storage"
 import * as AWS from 'aws-sdk';
 import { useSnackbar } from 'notistack'
+import { useModelContext } from '../../state/ModelUIStateContext';
 
 
 AWS.config.update({
@@ -26,6 +26,8 @@ interface FileDropAreaProps {
 
 const FileDropArea: React.FC<FileDropAreaProps> =observer(({ paddingY = 16}) => {
   const { t } = useTranslation();
+  const viewerState = useModelContext().viewerState;
+  
   const navigate = useNavigate();
   const location = useLocation();
   const appState = viewerState;
