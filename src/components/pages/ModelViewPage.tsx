@@ -9,21 +9,21 @@ import {
   GizmoHelper,
   GizmoViewport,
 } from "@react-three/drei";
-import OpenSimControl from "../pages/OpenSimControl";
+import OpenSimControl from "../Components/OpenSimControl";
 import { Suspense } from "react";
 import BottomBar from "../pages/BottomBar";
 import FloatingControlsPanel from '../Components/FloatingControlsPanel';
 
 import DrawerMenu from "../Components/DrawerMenu";
-import OpenSimScene from "../pages/OpenSimScene";
+import OpenSimScene from "../Components/OpenSimScene";
 import { ModelUIState } from "../../state/ModelUIState";
 import { observer } from "mobx-react";
 import { MyModelContext } from "../../state/ModelUIStateContext";
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { useParams } from 'react-router-dom';
 
-import OpenSimFloor from "./OpenSimFloor";
-import OpenSimSkySphere from './OpenSimSkySphere';
+import OpenSimFloor from "../Components/OpenSimFloor";
+import OpenSimSkySphere from '../Components/OpenSimSkySphere';
 import VideoRecorder from "../Components/VideoRecorder"
 import { ModelInfo } from '../../state/ModelUIState';
 
