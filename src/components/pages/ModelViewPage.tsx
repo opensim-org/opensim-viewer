@@ -9,21 +9,21 @@ import {
   GizmoHelper,
   GizmoViewport,
 } from "@react-three/drei";
-import viewerState from "../../state/ViewerState";
-import OpenSimControl from "../pages/OpenSimControl";
+import OpenSimControl from "../Components/OpenSimControl";
 import { Suspense } from "react";
 import BottomBar from "../pages/BottomBar";
 import FloatingControlsPanel from '../Components/FloatingControlsPanel';
 
 import DrawerMenu from "../Components/DrawerMenu";
-import OpenSimScene from "../pages/OpenSimScene";
+import OpenSimScene from "../Components/OpenSimScene";
 import { ModelUIState } from "../../state/ModelUIState";
 import { observer } from "mobx-react";
 import { MyModelContext } from "../../state/ModelUIStateContext";
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { useParams } from 'react-router-dom';
 
-import OpenSimFloor from "./OpenSimFloor";
+import OpenSimFloor from "../Components/OpenSimFloor";
+import OpenSimSkySphere from '../Components/OpenSimSkySphere';
 import VideoRecorder from "../Components/VideoRecorder"
 import { ModelInfo } from '../../state/ModelUIState';
 
@@ -92,24 +92,36 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 
   React.useEffect(() => {
     // Change interface if we are in GUI mode.
-    if (viewerState.isGuiMode) {
+    if (uiState.viewerState.isGuiMode) {
       setDisplaySideBar('none');
       setCanvasWidth('100%');
       setCanvasHeight('calc(100vh - 68px)');
       setCanvasLeft(0);
       setFloatingButtonsContainerTop("12px")
     }
-    setBgndColor(viewerState.backgroundColor);
-  }, []);
+    setBgndColor(uiState.viewerState.backgroundColor);
+  }, [uiState.viewerState.backgroundColor, uiState.viewerState.isGuiMode]);
 
   React.useEffect(() => {
+    // Load user preferences
+    const viewerState = uiState.viewerState;
+    viewerState.setUserPreferencesJsonPath('/user-preferences.json')
+    viewerState.loadUserPreferences()
+
     const gui = new GUI()
+    gui.domElement.style.marginTop = '66px';
+    gui.domElement.style.marginRight = '-15px';
     const sceneFolder = gui.addFolder("Scene");
+    sceneFolder.add(viewerState, 'skyVisible')
+    sceneFolder.add(viewerState, 'skyTextureFile', { 'death-valley':0, 'san-carlo':1, 'pozzolo':2, 'nessa_and_lagnone':3}).name("Texture").onChange(
+      function(v: any){viewerState.setSkyTextureIndex(v)}
+    );
     sceneFolder.addColor(viewerState, 'backgroundColor').onChange(
       function(v: any){viewerState.setBackgroundColor(v); coloRef.current?.copy(v);}
     );
     const floorFolder = gui.addFolder("Floor");
     floorFolder.add(viewerState, 'floorHeight', -2, 2, .01).name("Height")
+    floorFolder.add(viewerState, 'floorRound')
     floorFolder.add(viewerState, 'floorVisible')
     floorFolder.add(viewerState, 'floorTextureFile', { 'tile':0, 'wood-floor':1, 'Cobblestone':2, 'textureStone':3, 'grassy':4}).name("Texture").onChange(
       function(v: any){viewerState.setFloorTextureIndex(v)}
@@ -118,21 +130,22 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     lightFolder.add(viewerState, 'lightIntensity', 0, 2, .05).name("Intensity")
     lightFolder.addColor(viewerState, 'lightColor').name("Color")
     lightFolder.add(viewerState, 'spotLight')
+
     return () => {
         gui.destroy()
       }
-  }, []);
-  
+  }, [uiState.viewerState]);
+
   //console.log(urlParam);
   if (urlParam!== undefined) {
     var decodedUrl = decodeURIComponent(urlParam);
-    viewerState.setCurrentModelPath(decodedUrl);
-    curState.setCurrentModelPath(viewerState.currentModelPath);
+    uiState.viewerState.setCurrentModelPath(decodedUrl);
+    curState.setCurrentModelPath(uiState.viewerState.currentModelPath);
     // If urlParam is not undefined, this means it is getting the model from S3 and not from local.
-    viewerState.setIsLocalUpload(false);
+    uiState.viewerState.setIsLocalUpload(false);
   }
   else
-    curState.setCurrentModelPath(viewerState.currentModelPath);
+    curState.setCurrentModelPath(uiState.viewerState.currentModelPath);
   function toggleOpenMenu(name: string = "") {
     // If same name, or empty just toggle.
     if (name === selectedTabName || name === "") setMenuOpen(!menuOpen);
@@ -162,7 +175,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 videoRecorderRef={videoRecorderRef}
                 info={new ModelInfo(uiState.modelInfo.model_name, uiState.modelInfo.desc, uiState.modelInfo.authors)}
                 top={floatingButtonsContainerTop}/>
-              <Canvas 
+              <Canvas
                 id="canvas-element"
                 gl={{ preserveDrawingBuffer: true }}
                 shadows="soft"
@@ -183,18 +196,31 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   // }
                 />
                 <Bounds fit clip observe>
-                  <OpenSimScene 
-                    currentModelPath={viewerState.currentModelPath}
+                  <OpenSimScene
+                    currentModelPath={uiState.viewerState.currentModelPath}
                     supportControls={true}
                   />
                 </Bounds>
-                <Environment files="/builtin/potsdamer_platz_1k.hdr" />
+                <Environment files="/assets/potsdamer_platz_1k.hdr" />
                 <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
                   <GizmoViewport labelColor="white" axisHeadScale={1} />
                 </GizmoHelper>
                 <OpenSimControl/>
                 <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
-                <OpenSimFloor />
+                <OpenSimSkySphere
+                  texturePath={
+                    uiState.viewerState.userPreferences?.skyTexturePath?.trim()
+                      ? uiState.viewerState.userPreferences.skyTexturePath
+                      : undefined
+                  }
+                />
+                <OpenSimFloor
+                  texturePath={
+                    uiState.viewerState.userPreferences?.floorTexturePath?.trim()
+                      ? uiState.viewerState.userPreferences.floorTexturePath
+                      : undefined
+                  }
+                />
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
               </Canvas>
               <BottomBar

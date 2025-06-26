@@ -3,6 +3,7 @@ import SceneTreeModel from '../helpers/SceneTreeModel'
 import { AnimationClip } from 'three/src/animation/AnimationClip'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
 import { Group } from 'three'
+import ViewerState from './ViewerState'
 
 export class ModelInfo {
     model_name: string | null
@@ -34,6 +35,7 @@ export class ModelUIState {
     cameraLayersMask: number
     currentFrame: number
     modelInfo: ModelInfo = new ModelInfo()
+    viewerState: ViewerState = new ViewerState('/builtin/arm26_elbow_flex.gltf', '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false, false)
     constructor(
         currentModelPathState: string,
         rotatingState: boolean,
