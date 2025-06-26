@@ -34,7 +34,7 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
   return (
     <div className="floating-buttons-container" style={{top: props.top}}>
 
-      <Grid container spacing={-4} direction="row">
+      <Grid container spacing={-4} direction="column">
         <Grid item xs={6}>
           <Tooltip title={t('bottomBar.zoomIn')}>
             <IconButton color="primary" onClick={() => {
