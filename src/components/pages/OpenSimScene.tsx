@@ -68,7 +68,6 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
           layerNum = 0
         obj3d.layers.set(layerNum)
         obj3d.castShadow = true
-        //console.log(obj3d.name, layerNum)
     }
   }
     no_face_cull(scene);
@@ -76,8 +75,6 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     const applyAnimationColors = ()=>{
       colorNodeMap.forEach((node)=>{
          if (node instanceof Mesh){
-          //console.log(node.material.color);
-          //console.log(node);
           const newColor = new Color(node.position.x, node.position.y, node.position.z);
           node.material.color = newColor
          }
@@ -100,7 +97,6 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     const spotlightRef = useRef<THREE.SpotLight>(null)
     const camerasGroupRef = useRef<THREE.Group>(null);
     const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
-
 
     // This useEffect loads the cameras and assign them to its respective states.
     useEffect(() => {
@@ -197,7 +193,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
       }
     }, [currentCamera, set, curState.currentCameraIndex, curState.cameras, animations]);
 
-    // This useeffect adds helpers to the lights.
+    // This useEffect adds helpers to the lights.
     useEffect(() => {
       if (lightRef.current && scene) {
         const helper = new DirectionalLightHelper(lightRef.current, 0.5);
@@ -263,8 +259,6 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     }
 
     useFrame((state, delta) => {
-    //console.log(camera.position)
-    //console.log(camera.rotation)
       if (!useEffectRunning) {
           if (curState !== undefined) {
             if (supportControls ) {
@@ -373,12 +367,6 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
 
       </group>
       <group name="Illumination">
-        {lightRef.current && isDirectionalVisible && (
-          <TransformControls object={lightRef.current} mode="translate" />
-        )}
-        {spotlightRef.current && isSpotVisible && (
-          <TransformControls object={spotlightRef.current} mode="translate" />
-        )}
         <directionalLight name="Directional Light" ref={lightRef} position={[0.5, 1.5, -0.5]}
             intensity={viewerState.lightIntensity} color={viewerState.lightColor}
           castShadow={true}

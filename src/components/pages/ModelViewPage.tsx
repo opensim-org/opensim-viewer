@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useLayoutEffect } from 'react';
 import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -16,10 +16,11 @@ import BottomBar from "../pages/BottomBar";
 import FloatingControlsPanel from '../Components/FloatingControlsPanel';
 
 import { PerspectiveCamera, OrthographicCamera, CameraHelper } from 'three';
+import CameraPreview from "../Components/CameraPreview"
 import AddCameraDialog from "../Components/AddCameraDialog"
 import NodeSettingsDialog from "../Components/NodeSettingsDialog";
 import SceneTreeBridge from "../Components/SceneTreeBridge"
-import SceneTreeSortable from "../Components/SceneTreeSortable"
+import SceneTreeSortable, { SceneTreeSortableHandle } from "../Components/SceneTreeSortable"
 import DrawerMenu from "../Components/DrawerMenu";
 import OpenSimScene from "../pages/OpenSimScene";
 import { ModelUIState } from "../../state/ModelUIState";
@@ -35,6 +36,10 @@ import { ModelInfo } from '../../state/ModelUIState';
 
 // import GUI from 'lil-gui';
 import { Color} from 'three';
+import { TransformControls, OrbitControls } from "@react-three/drei";
+
+import TranslateIcon from '@mui/icons-material/OpenWith';
+import RotateIcon from '@mui/icons-material/RotateRight';
 
 import {
   Dialog,
@@ -71,7 +76,7 @@ const addNewCamera = (
   uiState: ModelUIState,
   camerasGroup: THREE.Group,
   onSceneUpdated: () => void
-) => {
+): THREE.PerspectiveCamera => {
   const aspect = 800 / 600;
   const camera = new PerspectiveCamera(50, aspect, 0.1, 50);
 
@@ -88,11 +93,10 @@ const addNewCamera = (
   uiState.setCamerasList([...uiState.cameras, camera]);
   uiState.setSelected(camera.uuid);
 
-  // Notify that the scene was updated
   onSceneUpdated();
+
+  return camera;
 };
-
-
 
 interface ViewerProps {
   url?: string;
@@ -115,6 +119,20 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const [addCameraDialogOpen, setAddCameraDialogOpen] = useState(false);
 
   const [sceneVersion, setSceneVersion] = useState(0);
+
+  const treeRef = useRef<SceneTreeSortableHandle>(null);
+  const [treeWidth, setTreeWidth] = useState(0);
+
+  useLayoutEffect(() => {
+    const el = treeRef.current?.getWidth ? treeRef.current : null;
+    if (!el) return;
+
+    const ro = new ResizeObserver(() =>
+      setTreeWidth(treeRef.current?.getWidth() ?? 0)
+    );
+    ro.observe(el as unknown as Element);   // observe the wrapper div
+    return () => ro.disconnect();
+  }, []);
 
   function handleSettingsClick(node: any, updateNode: (node: any) => void) {
     setSelectedNode(node);
@@ -140,6 +158,8 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 
   const [scene, setScene] = useState<THREE.Scene | null>(null);
   const [camera, setCamera] = useState<THREE.Camera | null>(null);
+  const [transformTarget, setTransformTarget] = useState<THREE.Object3D | null>(null);
+  const [transformMode, setTransformMode] = useState<'translate' | 'rotate'>('translate');
 
   useEffect(() => {
     if (bottomBarRef.current) {
@@ -147,9 +167,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
       setHeightBottomBar(bottomBarRef.current.offsetHeight);
 
       setCanvasHeight("calc(100vh - 68px - " + heightBottomBar + "px)");
-
-      // Do something with heightBottomBar if needed
-      console.log('Height of BottomBar:', heightBottomBar);
     }
   }, []);
 
@@ -188,16 +205,17 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 //      }
   }, []);
 
-  //console.log(urlParam);
   if (urlParam!== undefined) {
     var decodedUrl = decodeURIComponent(urlParam);
     viewerState.setCurrentModelPath(decodedUrl);
     curState.setCurrentModelPath(viewerState.currentModelPath);
+
     // If urlParam is not undefined, this means it is getting the model from S3 and not from local.
     viewerState.setIsLocalUpload(false);
   }
   else
     curState.setCurrentModelPath(viewerState.currentModelPath);
+
   function toggleOpenMenu(name: string = "") {
     // If same name, or empty just toggle.
     if (name === selectedTabName || name === "") setMenuOpen(!menuOpen);
@@ -206,6 +224,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     // Always store same name.
     setSelectedTabName(name);
   }
+
   return (
     <MyModelContext.Provider value={uiState}>
       <Box component="div" sx={{ display: "flex" }}>
@@ -262,7 +281,45 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 <OpenSimSkySphere texturePath="death-valley.jpg" />
                 <OpenSimFloor />
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
+
+
+                {transformTarget && (
+                  <>
+                      <TransformControls object={transformTarget} mode={transformMode} />
+                  </>
+                )}
+
+                <CameraPreview selectedCameraUuid={uiState.selected} marginRight={treeWidth}/>
+
               </Canvas>
+
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: heightBottomBar + 20,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  zIndex: 1001,
+                  display: 'flex',
+                  flexDirection: 'row',
+                  gap: '12px',
+                }}
+              >
+                <Button
+                  variant={transformMode === 'translate' ? 'contained' : 'outlined'}
+                  onClick={() => setTransformMode('translate')}
+                  size="small"
+                >
+                  <TranslateIcon />
+                </Button>
+                <Button
+                  variant={transformMode === 'rotate' ? 'contained' : 'outlined'}
+                  onClick={() => setTransformMode('rotate')}
+                  size="small"
+                >
+                  <RotateIcon />
+                </Button>
+              </div>
 
               <NodeSettingsDialog
                 open={dialogOpen}
@@ -272,14 +329,14 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 updateNodeFn={updateNodeFn}
               />
 
-
               <AddCameraDialog
                 open={addCameraDialogOpen}
                 onClose={() => setAddCameraDialogOpen(false)}
                 onAddCamera={(name) => {
                   const camerasGroup = scene?.getObjectByName("Cameras") as THREE.Group;
                   if (camerasGroup) {
-                    addNewCamera(name, uiState, camerasGroup, () => setSceneVersion(v => v + 1));
+                    const newCam = addNewCamera(name, uiState, camerasGroup, () => setSceneVersion(v => v + 1));
+                    setTransformTarget(newCam);
                   }
                 }}
                 scene={scene}
@@ -295,12 +352,15 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
               {scene && camera && (
               <div style={{ position: 'absolute', top: 66, right: 0, zIndex: 1000 }}>
                 <SceneTreeSortable
+                  ref={treeRef}
                   scene={scene}
                   sceneVersion={sceneVersion}
                   camera={camera}
                   height={canvasHeight}
                   onSettingsClick={handleSettingsClick}
                   onAddCameraClick={setAddCameraDialogOpen}
+                  setTransformTargetFunction={setTransformTarget}
+                  onWidthChange={setTreeWidth}
                 />
               </div>
             )}
