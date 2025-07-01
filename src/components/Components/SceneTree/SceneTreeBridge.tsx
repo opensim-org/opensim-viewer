@@ -1,6 +1,5 @@
 import React from 'react';
 import { useThree } from '@react-three/fiber';
-import type { PerspectiveCamera } from 'three';
 
 export function SceneTreeBridge({
   onSceneReady,
@@ -14,7 +13,7 @@ export function SceneTreeBridge({
   React.useEffect(() => {
     onSceneReady(scene);
     onCameraReady(camera);
-  }, [scene, camera]);
+  }, [scene, camera, onSceneReady, onCameraReady]);
 
   return null; // nothing is rendered inside Canvas
 }

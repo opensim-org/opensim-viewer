@@ -7,10 +7,9 @@ import React, {
 } from 'react';
 import SortableTree from '@nosferatu500/react-sortable-tree';
 import '@nosferatu500/react-sortable-tree/style.css';
-import { convertSceneToTree } from '../../helpers/sceneToTree';
+import { convertSceneToTree } from '../../../helpers/sceneToTree';
 import FileExplorerTheme from '@nosferatu500/theme-file-explorer';
 import {
-  Box,
   IconButton,
   useTheme,
   Theme,
@@ -28,10 +27,9 @@ import GridOnIcon from '@mui/icons-material/GridOn';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 
-import { useModelContext } from '../../state/ModelUIStateContext';
-import { ModelUIState } from '../../state/ModelUIState';
+import { useModelContext } from '../../../state/ModelUIStateContext';
+import { ModelUIState } from '../../../state/ModelUIState';
 
 import './SceneTreeSortable.css';
 
@@ -87,7 +85,7 @@ export const SceneTreeSortable = forwardRef<
     useEffect(() => {
       const w = isOpen ? PANEL_WIDTH : 0;
       onWidthChange?.(w);
-    }, [isOpen]);
+    }, [isOpen, onWidthChange]);
 
     useImperativeHandle(
       ref,
@@ -114,7 +112,6 @@ export const SceneTreeSortable = forwardRef<
     }, [scene, camera, sceneVersion]);
 
     const panelBg = alpha(theme.palette.background.paper, 0.9);
-    const selectedBg = alpha(theme.palette.primary.main, 0.15);
     const panelPadding = isOpen ? theme.spacing(1) : 0;
 
     return (

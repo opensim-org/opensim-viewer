@@ -14,12 +14,12 @@ import { Suspense } from "react";
 import BottomBar from "../pages/BottomBar";
 import FloatingControlsPanel from '../Components/FloatingControlsPanel';
 
-import { PerspectiveCamera, OrthographicCamera, CameraHelper } from 'three';
+import { PerspectiveCamera, CameraHelper } from 'three';
 import CameraPreview from "../Components/CameraPreview"
-import AddCameraDialog from "../Components/AddCameraDialog"
-import NodeSettingsDialog from "../Components/NodeSettingsDialog";
-import SceneTreeBridge from "../Components/SceneTreeBridge"
-import SceneTreeSortable, { SceneTreeSortableHandle } from "../Components/SceneTreeSortable"
+import AddCameraDialog from "../Components/Dialogs/AddCameraDialog"
+import NodeSettingsDialog from "../Components/Dialogs/NodeSettingsDialog";
+import SceneTreeBridge from "../Components/SceneTree/SceneTreeBridge"
+import SceneTreeSortable, { SceneTreeSortableHandle } from "../Components/SceneTree/SceneTreeSortable"
 import DrawerMenu from "../Components/DrawerMenu";
 import OpenSimScene from "../Components/OpenSimScene";
 import { ModelUIState } from "../../state/ModelUIState";
@@ -35,19 +35,12 @@ import { ModelInfo } from '../../state/ModelUIState';
 
 // import GUI from 'lil-gui';
 import { Color} from 'three';
-import { TransformControls, OrbitControls } from "@react-three/drei";
+import { TransformControls } from "@react-three/drei";
 
 import TranslateIcon from '@mui/icons-material/OpenWith';
 import RotateIcon from '@mui/icons-material/RotateRight';
 
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  TextField,
-  FormControlLabel,
-  Checkbox,
-  DialogActions,
   Button
 } from "@mui/material";
 

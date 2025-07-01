@@ -4,7 +4,7 @@ import {
   Button, TextField
 } from "@mui/material";
 import * as THREE from 'three';
-import { ModelUIState } from '../../state/ModelUIState';
+import { ModelUIState } from '../../../state/ModelUIState';
 
 interface AddCameraDialogProps {
   open: boolean;

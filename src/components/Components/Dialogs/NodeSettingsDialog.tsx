@@ -9,7 +9,6 @@ import {
   DialogActions,
   Button,
 } from "@mui/material";
-import viewerState from "../../state/ViewerState";
 
 
 interface NodeSettingsDialogProps {
