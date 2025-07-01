@@ -1,7 +1,7 @@
 import { makeObservable, observable, action } from 'mobx'
 import SceneTreeModel from '../helpers/SceneTreeModel'
 import { AnimationClip } from 'three/src/animation/AnimationClip'
-import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
+import { Camera } from 'three'
 import { Light } from 'three'
 import { Group } from 'three'
 import ViewerState from './ViewerState'
@@ -29,7 +29,7 @@ export class ModelUIState {
     animationSpeed: number
     animations: AnimationClip[]
     currentAnimationIndex: number
-    cameras: PerspectiveCamera[]
+    cameras: Camera[]
     lights: Light[]
     currentCameraIndex: number
     selected: string
@@ -135,7 +135,7 @@ export class ModelUIState {
     setAnimationList(animations: AnimationClip[]) {
         this.animations=animations
     }
-    setCamerasList(cameras: PerspectiveCamera[]) {
+    setCamerasList(cameras: Camera[]) {
         this.cameras=cameras
     }
     setLightsList(lights: Light[]) {

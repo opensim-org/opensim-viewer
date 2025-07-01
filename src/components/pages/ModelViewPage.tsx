@@ -14,7 +14,6 @@ import { Suspense } from "react";
 import BottomBar from "../pages/BottomBar";
 import FloatingControlsPanel from '../Components/FloatingControlsPanel';
 
-import { PerspectiveCamera, CameraHelper } from 'three';
 import CameraPreview from "../Components/CameraPreview"
 import AddCameraDialog from "../Components/Dialogs/AddCameraDialog"
 import AddLightDialog from "../Components/Dialogs/AddLightDialog"
@@ -29,7 +28,16 @@ import { MyModelContext } from "../../state/ModelUIStateContext";
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { useParams } from 'react-router-dom';
 
-import { DirectionalLightHelper, SpotLightHelper, PointLightHelper, DirectionalLight, SpotLight, PointLight} from 'three';
+import { DirectionalLightHelper,
+  SpotLightHelper,
+  PointLightHelper,
+  DirectionalLight,
+  SpotLight,
+  PointLight,
+  CameraHelper,
+  Camera,
+  PerspectiveCamera,
+  OrthographicCamera} from 'three';
 
 import OpenSimFloor from "../Components/OpenSimFloor";
 import OpenSimSkySphere from '../Components/OpenSimSkySphere';
@@ -66,18 +74,43 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   }),
 }));
 
-const addNewCamera = (
+export const addNewCamera = (
   name: string = 'NewCamera',
+  type: 'PerspectiveCamera' | 'OrthographicCamera' = 'PerspectiveCamera',
   uiState: ModelUIState,
   camerasGroup: THREE.Group,
   onSceneUpdated: () => void
-): THREE.PerspectiveCamera => {
-  const aspect = 800 / 600;
-  const camera = new PerspectiveCamera(50, aspect, 0.1, 50);
+): THREE.Camera => {
+  let camera: Camera;
 
-  camera.name = name;
-  camera.position.set(0, 0, 0);
-  camera.updateProjectionMatrix();
+  if (type === 'PerspectiveCamera') {
+    const aspect = 800 / 600; // You may want to make this dynamic
+    camera = new PerspectiveCamera(50, aspect, 0.1, 100);
+
+    camera.name = name;
+    camera.position.set(0, 1, 2);
+    (camera as PerspectiveCamera).updateProjectionMatrix();
+  } else {
+    // Orthographic frustum (left, right, top, bottom, near, far)
+    const frustumSize = 2;
+    const aspect = 800 / 600; // Or get this from your renderer/canvas
+    const width = frustumSize * aspect;
+    const height = frustumSize;
+
+    camera = new OrthographicCamera(
+      -width / 2,
+      width / 2,
+      height / 2,
+      -height / 2,
+      0.1,
+      50
+    );
+
+    camera.name = name;
+    camera.position.set(0, 1, 2);
+    (camera as OrthographicCamera).updateProjectionMatrix();
+  }
+
 
   const helper = new CameraHelper(camera);
   helper.name = `${name}_Helper`;
@@ -398,10 +431,10 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
               <AddCameraDialog
                 open={addCameraDialogOpen}
                 onClose={() => setAddCameraDialogOpen(false)}
-                onAddCamera={(name) => {
+                onAddCamera={(name:any, type:any) => {
                   const camerasGroup = scene?.getObjectByName("Cameras") as THREE.Group;
                   if (camerasGroup) {
-                    const newCam = addNewCamera(name, uiState, camerasGroup, () => setSceneVersion(v => v + 1));
+                    const newCam = addNewCamera(name, type, uiState, camerasGroup, () => setSceneVersion(v => v + 1));
                     setTransformTarget(newCam);
                   }
                 }}
