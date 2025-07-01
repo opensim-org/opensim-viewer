@@ -9,7 +9,13 @@ import SortableTree from '@nosferatu500/react-sortable-tree';
 import '@nosferatu500/react-sortable-tree/style.css';
 import { convertSceneToTree } from '../../helpers/sceneToTree';
 import FileExplorerTheme from '@nosferatu500/theme-file-explorer';
-import { IconButton } from '@mui/material';
+import {
+  Box,
+  IconButton,
+  useTheme,
+  Theme,
+  alpha,
+} from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
 import PersonIcon from '@mui/icons-material/Person';
 import FolderIcon from '@mui/icons-material/Folder';
@@ -28,6 +34,8 @@ import { useModelContext } from '../../state/ModelUIStateContext';
 import { ModelUIState } from '../../state/ModelUIState';
 
 import './SceneTreeSortable.css';
+
+const PANEL_WIDTH = 300;
 
 interface SceneTreeSortableProps {
   scene: THREE.Scene | null;
@@ -63,6 +71,8 @@ export const SceneTreeSortable = forwardRef<
     },
     ref,
   ) => {
+    const theme = useTheme<Theme>();
+
     const [treeData, setTreeData] = useState<any[]>([]);
     const [isOpen, setIsOpen] = useState(true);
     const [selectedPath, setSelectedPath] = useState<number[] | null>(null);
@@ -75,7 +85,7 @@ export const SceneTreeSortable = forwardRef<
 
 
     useEffect(() => {
-      const w = isOpen ? 300 : 0;
+      const w = isOpen ? PANEL_WIDTH : 0;
       onWidthChange?.(w);
     }, [isOpen]);
 
@@ -84,7 +94,7 @@ export const SceneTreeSortable = forwardRef<
       () => ({
         getWidth: () =>
           isOpen
-            ? 300
+            ? PANEL_WIDTH
             : 0,
         open: () => setIsOpen(true),
         close: () => setIsOpen(false),
@@ -103,6 +113,10 @@ export const SceneTreeSortable = forwardRef<
       setTreeData(convertSceneToTree(scene, camera));
     }, [scene, camera, sceneVersion]);
 
+    const panelBg = alpha(theme.palette.background.paper, 0.9);
+    const selectedBg = alpha(theme.palette.primary.main, 0.15);
+    const panelPadding = isOpen ? theme.spacing(1) : 0;
+
     return (
       <div
         ref={outerDivRef}
@@ -118,13 +132,13 @@ export const SceneTreeSortable = forwardRef<
         {/* sliding panel */}
         <div
           style={{
-            width: isOpen ? '300px' : '0px',
+            width: isOpen ? `${PANEL_WIDTH}px` : '0px',
             overflow: 'hidden',
             height,
-            background: 'rgba(255,255,255,0.9)',
-            padding: isOpen ? '8px' : '0px',
+            backgroundColor: panelBg,
+            padding: panelPadding,
             transition: 'width 0.3s ease, padding 0.3s ease',
-            boxShadow: isOpen ? '0 0 10px rgba(0,0,0,0.3)' : 'none',
+            boxShadow: isOpen ? (theme.shadows[4] as string) : 'none',
             display: 'flex',
             flexDirection: 'column',
           }}
@@ -138,7 +152,7 @@ export const SceneTreeSortable = forwardRef<
                 top: '50%',
                 transform: 'translateY(-50%)',
                 zIndex: 10,
-                background: 'white',
+                background: alpha(theme.palette.background.paper, 0.9),
                 borderRadius: '50%',
                 boxShadow: '0 0 4px rgba(0,0,0,0.3)',
               }}
@@ -241,7 +255,7 @@ export const SceneTreeSortable = forwardRef<
               top: '50%',
               transform: 'translateY(-50%)',
               zIndex: 10,
-              background: 'white',
+              background: alpha(theme.palette.background.paper, 0.9),
               borderRadius: '50%',
               boxShadow: '0 0 4px rgba(0,0,0,0.3)',
             }}
