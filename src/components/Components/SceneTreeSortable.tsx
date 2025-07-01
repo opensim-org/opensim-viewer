@@ -157,6 +157,8 @@ export const SceneTreeSortable = forwardRef<
               const isSelected = selectedPath?.join('.') === path.join('.');
 
               return {
+                style: isSelected ? { background: 'rgba(25,118,210,0.15)' } : undefined,
+
                 className: isSelected ? 'rst__rowSelected' : undefined,
                 onClick: (e: React.MouseEvent) => {
                   e.stopPropagation();
