@@ -147,8 +147,8 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         }
 
       }
-      lightRef.current!.color = curState.viewerState.lightColor
-      spotlightRef.current!.color = curState.viewerState.lightColor
+//      lightRef.current!.color = curState.viewerState.lightColor
+//      spotlightRef.current!.color = curState.viewerState.lightColor
     }, [curState, scene, gl.domElement.clientWidth, gl.domElement, set, camera]);
 
     // This useEffect sets the current selected camera.
@@ -373,26 +373,16 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
       onPointerMissed={() => curState.setSelected("")}
       />
 
-      <group name="Cameras"  ref={camerasGroupRef}>
-
-      </group>
+      <group name="Cameras" ref={camerasGroupRef}></group>
       <group name="Illumination">
         <directionalLight name="Directional Light" ref={lightRef} position={[0.5, 1.5, -0.5]}
-            intensity={curState.viewerState.lightIntensity} color={curState.viewerState.lightColor}
+          intensity={curState.viewerState.lightIntensity} color={curState.viewerState.lightColor}
           castShadow={true}
           shadow-camera-far={8}
           shadow-camera-left={-2}
           shadow-camera-right={2}
           shadow-camera-top={2}
           shadow-camera-bottom={-2}/>
-        <spotLight name="Spot Light"
-          visible={curState.viewerState.spotLight}
-            ref={spotlightRef}
-            position={[0.5, 2.5, -.05]}
-            color={curState.viewerState.lightColor}
-            angle={Math.PI / 3}
-            distance={5}
-            penumbra={0.6}/>
       </group>
       </>
 }

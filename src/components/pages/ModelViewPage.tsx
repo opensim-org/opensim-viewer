@@ -17,6 +17,7 @@ import FloatingControlsPanel from '../Components/FloatingControlsPanel';
 import { PerspectiveCamera, CameraHelper } from 'three';
 import CameraPreview from "../Components/CameraPreview"
 import AddCameraDialog from "../Components/Dialogs/AddCameraDialog"
+import AddLightDialog from "../Components/Dialogs/AddLightDialog"
 import NodeSettingsDialog from "../Components/Dialogs/NodeSettingsDialog";
 import SceneTreeBridge from "../Components/SceneTree/SceneTreeBridge"
 import SceneTreeSortable, { SceneTreeSortableHandle } from "../Components/SceneTree/SceneTreeSortable"
@@ -27,6 +28,8 @@ import { observer } from "mobx-react";
 import { MyModelContext } from "../../state/ModelUIStateContext";
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { useParams } from 'react-router-dom';
+
+import { DirectionalLightHelper, SpotLightHelper, PointLightHelper, DirectionalLight, SpotLight, PointLight} from 'three';
 
 import OpenSimFloor from "../Components/OpenSimFloor";
 import OpenSimSkySphere from '../Components/OpenSimSkySphere';
@@ -90,6 +93,58 @@ const addNewCamera = (
   return camera;
 };
 
+export const addNewLight = (
+  name: string = 'NewLight',
+  type: 'DirectionalLight' | 'PointLight' | 'SpotLight' = 'SpotLight',
+  uiState: ModelUIState,
+  lightsGroup: THREE.Group,
+  onSceneUpdated: () => void
+): THREE.Light => {
+  let light: THREE.Light;
+  let helper: THREE.Object3D | undefined;
+
+  switch (type) {
+    case 'DirectionalLight': {
+      const dir = new DirectionalLight(0xffffff, 1);
+      dir.target.position.set(0, 0, -1);
+      light = dir;
+      helper = new DirectionalLightHelper(dir);
+      lightsGroup.add(dir.target);
+      break;
+    }
+    case 'PointLight': {
+      const point = new PointLight(0xffffff, 1, 0, 2);
+      light = point;
+      helper = new PointLightHelper(point);
+      break;
+    }
+    case 'SpotLight':
+    default: {
+      const spot = new SpotLight(0xffffff, 1, 0, Math.PI / 6, 0.2, 1);
+      light = spot;
+      helper = new SpotLightHelper(spot);
+      lightsGroup.add(spot.target);
+      break;
+    }
+  }
+
+  light.name = name;
+  light.position.set(2, 2, 2);
+
+  lightsGroup.add(light);
+  if (helper) {
+    helper.name = `${name}_Helper`;
+    lightsGroup.add(helper);
+  }
+
+  uiState.setLightsList?.([...uiState.lights, light]);
+  uiState.setSelected(light.uuid);
+
+  onSceneUpdated();
+
+  return light;
+};
+
 interface ViewerProps {
   url?: string;
   embedded?: boolean;
@@ -109,6 +164,8 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const [updateNodeFn, setUpdateNodeFn] = useState<((node: any) => void) | null>(null);
 
   const [addCameraDialogOpen, setAddCameraDialogOpen] = useState(false);
+
+  const [addLightDialogOpen, setAddLightDialogOpen] = useState(false);
 
   const [sceneVersion, setSceneVersion] = useState(0);
 
@@ -264,10 +321,10 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   // }
                 />
 
-                  <OpenSimScene
-                    currentModelPath={uiState.viewerState.currentModelPath}
-                    supportControls={true}
-                  />
+                <OpenSimScene
+                  currentModelPath={uiState.viewerState.currentModelPath}
+                  supportControls={true}
+                />
                 <Environment files="/assets/potsdamer_platz_1k.hdr" />
 
                 <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
@@ -352,6 +409,20 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 uiState={uiState}
               />
 
+              <AddLightDialog
+                open={addLightDialogOpen}
+                onClose={() => setAddLightDialogOpen(false)}
+                onAddLight={(name:any, type:any) => {
+                  const lightsGroup = scene?.getObjectByName("Illumination") as THREE.Group;
+                  if (lightsGroup) {
+                    const newLight = addNewLight(name, type, uiState, lightsGroup, () => setSceneVersion(v => v + 1));
+                    setTransformTarget(newLight);
+                  }
+                }}
+                scene={scene}
+                uiState={uiState}
+              />
+
               <BottomBar
                 ref={bottomBarRef}
                 animationPlaySpeed={1.0}
@@ -368,6 +439,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   height={canvasHeight}
                   onSettingsClick={handleSettingsClick}
                   onAddCameraClick={setAddCameraDialogOpen}
+                  onAddLightClick={setAddLightDialogOpen}
                   setTransformTargetFunction={setTransformTarget}
                   onWidthChange={setTreeWidth}
                 />

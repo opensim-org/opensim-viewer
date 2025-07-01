@@ -42,6 +42,7 @@ interface SceneTreeSortableProps {
   sceneVersion?: number;
   onSettingsClick?: (node: any, updateNode: (updatedNode: any) => void) => void;
   onAddCameraClick?: (node: any) => void;
+  onAddLightClick?: (node: any) => void;
   setTransformTargetFunction?: (func: any) => void;
   onWidthChange?: (w: number) => void;
 }
@@ -64,6 +65,7 @@ export const SceneTreeSortable = forwardRef<
       sceneVersion,
       onSettingsClick,
       onAddCameraClick,
+      onAddLightClick,
       setTransformTargetFunction,
       onWidthChange
     },
@@ -194,6 +196,8 @@ export const SceneTreeSortable = forwardRef<
                   ? [<GridOnIcon key="floor" style={{ marginRight: 10, fontSize: 16 }} />]
                   : node.isAddCameraButton
                   ? []
+                  : node.isAddLightButton
+                  ? []
                   : [<HelpOutlineIcon key="unknown" style={{ marginRight: 10, fontSize: 16 }} />],
                 buttons: [
                   node.canEdit && (
@@ -214,7 +218,7 @@ export const SceneTreeSortable = forwardRef<
                       alignItems: 'center',
                     }}
                   >
-                    {node.title || node.subtitle}
+                    {node.title} {node.subtitle && node.subtitle !== "Group" ? "(" + node.subtitle + ")" : ""}
                     {node.canEdit && (
                       <input
                         type="checkbox"
@@ -231,6 +235,15 @@ export const SceneTreeSortable = forwardRef<
                       <IconButton
                         size="small"
                         onClick={() => onAddCameraClick?.(true)}
+                        style={{ padding: '4px', marginLeft: '4px' }}
+                      >
+                        <AddIcon fontSize="small" />
+                      </IconButton>
+                    )}
+                    {node.isAddLightButton && (
+                      <IconButton
+                        size="small"
+                        onClick={() => onAddLightClick?.(true)}
                         style={{ padding: '4px', marginLeft: '4px' }}
                       >
                         <AddIcon fontSize="small" />

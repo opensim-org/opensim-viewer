@@ -44,11 +44,35 @@ export function convertSceneToTree(scene: THREE.Scene | null, camera: THREE.Came
 
     let children = null;
     if (!obj.type.includes("TransformControls") && !obj.type.includes("Helper") && obj.type !== "Object3D") {
-      if ((obj.type === "Group" && obj.children.length > 0) || (obj.type === "Group" && obj.name === "Cameras")) {
+
+      if ((obj.type === "Group" && obj.children.length > 0) || (obj.type === "Group" && obj.name === "Cameras")|| (obj.type === "Group" && obj.name === "Illumination")) {
         if (title !== "Model" && obj.children) {
           children = (obj.children || [])
             .map(traverse)
             .filter((child: any): child is NonNullable<typeof child> => child !== null);
+        }
+
+        if (obj.type === "Group" && obj.name === "Illumination") {
+          // Append "+" node
+          children.push({
+            title: "",
+            subtitle: "",
+            visible: true,
+            object3D: null,
+            isGroup: false,
+            isLight: false,
+            isSkySphere: false,
+            isFloor: false,
+            isAxes: false,
+            isModel: false,
+            isCamera: false,
+            canEdit: false,
+            isAddCameraButton: false,
+            isAddLightButton: true,
+            id: "add-light-node",
+            type: "AddButton",
+            children: [],
+          });
         }
 
         // Add camera as child if this is the "Cameras" group
@@ -88,6 +112,7 @@ export function convertSceneToTree(scene: THREE.Scene | null, camera: THREE.Came
               isCamera: false,
               canEdit: false,
               isAddCameraButton: true,
+              isAddLightButton: false,
               id: "add-camera-node",
               type: "AddButton",
               children: [],
