@@ -201,6 +201,9 @@ export class ViewerState {
     setFloorTextureIndex(newIndex: number) {
         this.textureIndex = newIndex
     }
+    setLightIntensity(newLight: number) {
+        this.lightIntensity = newLight
+    }
     setSkyTextureIndex(newIndex: number) {
         this.skyTextureIndex = newIndex
     }

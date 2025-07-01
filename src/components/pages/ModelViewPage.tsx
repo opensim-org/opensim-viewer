@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useLayoutEffect } from 'react';
 import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -14,6 +14,12 @@ import { Suspense } from "react";
 import BottomBar from "../pages/BottomBar";
 import FloatingControlsPanel from '../Components/FloatingControlsPanel';
 
+import { PerspectiveCamera, OrthographicCamera, CameraHelper } from 'three';
+import CameraPreview from "../Components/CameraPreview"
+import AddCameraDialog from "../Components/AddCameraDialog"
+import NodeSettingsDialog from "../Components/NodeSettingsDialog";
+import SceneTreeBridge from "../Components/SceneTreeBridge"
+import SceneTreeSortable, { SceneTreeSortableHandle } from "../Components/SceneTreeSortable"
 import DrawerMenu from "../Components/DrawerMenu";
 import OpenSimScene from "../Components/OpenSimScene";
 import { ModelUIState } from "../../state/ModelUIState";
@@ -27,8 +33,24 @@ import OpenSimSkySphere from '../Components/OpenSimSkySphere';
 import VideoRecorder from "../Components/VideoRecorder"
 import { ModelInfo } from '../../state/ModelUIState';
 
-import GUI from 'lil-gui';
+// import GUI from 'lil-gui';
 import { Color} from 'three';
+import { TransformControls, OrbitControls } from "@react-three/drei";
+
+import TranslateIcon from '@mui/icons-material/OpenWith';
+import RotateIcon from '@mui/icons-material/RotateRight';
+
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  TextField,
+  FormControlLabel,
+  Checkbox,
+  DialogActions,
+  Button
+} from "@mui/material";
+
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
@@ -48,6 +70,33 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   }),
 }));
 
+const addNewCamera = (
+  name: string = 'NewCamera',
+  uiState: ModelUIState,
+  camerasGroup: THREE.Group,
+  onSceneUpdated: () => void
+): THREE.PerspectiveCamera => {
+  const aspect = 800 / 600;
+  const camera = new PerspectiveCamera(50, aspect, 0.1, 50);
+
+  camera.name = name;
+  camera.position.set(0, 0, 0);
+  camera.updateProjectionMatrix();
+
+  const helper = new CameraHelper(camera);
+  helper.name = `${name}_Helper`;
+
+  camerasGroup.add(camera);
+  camerasGroup.add(helper);
+
+  uiState.setCamerasList([...uiState.cameras, camera]);
+  uiState.setSelected(camera.uuid);
+
+  onSceneUpdated();
+
+  return camera;
+};
+
 interface ViewerProps {
   url?: string;
   embedded?: boolean;
@@ -61,6 +110,34 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   // TODO: Move to a general styles file?
   const leftMenuWidth = 60;
   const drawerContentWidth = 250;
+
+  const [selectedNode, setSelectedNode] = useState<any>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [updateNodeFn, setUpdateNodeFn] = useState<((node: any) => void) | null>(null);
+
+  const [addCameraDialogOpen, setAddCameraDialogOpen] = useState(false);
+
+  const [sceneVersion, setSceneVersion] = useState(0);
+
+  const treeRef = useRef<SceneTreeSortableHandle>(null);
+  const [treeWidth, setTreeWidth] = useState(0);
+
+  useLayoutEffect(() => {
+    const el = treeRef.current?.getWidth ? treeRef.current : null;
+    if (!el) return;
+
+    const ro = new ResizeObserver(() =>
+      setTreeWidth(treeRef.current?.getWidth() ?? 0)
+    );
+    ro.observe(el as unknown as Element);   // observe the wrapper div
+    return () => ro.disconnect();
+  }, []);
+
+  function handleSettingsClick(node: any, updateNode: (node: any) => void) {
+    setSelectedNode(node);
+    setUpdateNodeFn(() => updateNode); // Store update function
+    setDialogOpen(true);
+  }
 
   const [heightBottomBar, setHeightBottomBar] = useState(0);
 
@@ -78,15 +155,17 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const [floatingButtonsContainerTop, setFloatingButtonsContainerTop] = useState("80px");
   const [bgndColor, setBgndColor] = useState<Color>(new Color(0.7, 0.7, 0.7));
 
+  const [scene, setScene] = useState<THREE.Scene | null>(null);
+  const [camera, setCamera] = useState<THREE.Camera | null>(null);
+  const [transformTarget, setTransformTarget] = useState<THREE.Object3D | null>(null);
+  const [transformMode, setTransformMode] = useState<'translate' | 'rotate'>('translate');
+
   useEffect(() => {
     if (bottomBarRef.current) {
       const heightBottomBar = bottomBarRef.current.offsetHeight;
       setHeightBottomBar(bottomBarRef.current.offsetHeight);
 
       setCanvasHeight("calc(100vh - 68px - " + heightBottomBar + "px)");
-
-      // Do something with heightBottomBar if needed
-      console.log('Height of BottomBar:', heightBottomBar);
     }
   }, []);
 
@@ -108,35 +187,28 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     viewerState.setUserPreferencesJsonPath('/user-preferences.json')
     viewerState.loadUserPreferences()
 
-    const gui = new GUI()
-    gui.domElement.style.marginTop = '66px';
-    gui.domElement.style.marginRight = '-15px';
-    const sceneFolder = gui.addFolder("Scene");
-    sceneFolder.add(viewerState, 'skyVisible')
-    sceneFolder.add(viewerState, 'skyTextureFile', { 'death-valley':0, 'san-carlo':1, 'pozzolo':2, 'nessa_and_lagnone':3}).name("Texture").onChange(
-      function(v: any){viewerState.setSkyTextureIndex(v)}
-    );
-    sceneFolder.addColor(viewerState, 'backgroundColor').onChange(
-      function(v: any){viewerState.setBackgroundColor(v); coloRef.current?.copy(v);}
-    );
-    const floorFolder = gui.addFolder("Floor");
-    floorFolder.add(viewerState, 'floorHeight', -2, 2, .01).name("Height")
-    floorFolder.add(viewerState, 'floorRound')
-    floorFolder.add(viewerState, 'floorVisible')
-    floorFolder.add(viewerState, 'floorTextureFile', { 'tile':0, 'wood-floor':1, 'Cobblestone':2, 'textureStone':3, 'grassy':4}).name("Texture").onChange(
-      function(v: any){viewerState.setFloorTextureIndex(v)}
-    );
-    const lightFolder = gui.addFolder("Lights");
-    lightFolder.add(viewerState, 'lightIntensity', 0, 2, .05).name("Intensity")
-    lightFolder.addColor(viewerState, 'lightColor').name("Color")
-    lightFolder.add(viewerState, 'spotLight')
-
-    return () => {
-        gui.destroy()
-      }
+//    const gui = new GUI()
+//    gui.domElement.style.marginTop = '66px';
+//    gui.domElement.style.marginRight = '-15px';
+//    const sceneFolder = gui.addFolder("Scene");
+//    sceneFolder.addColor(viewerState, 'backgroundColor').onChange(
+//      function(v: any){viewerState.setBackgroundColor(v); coloRef.current?.copy(v);}
+//    );
+//    const floorFolder = gui.addFolder("Floor");
+//    floorFolder.add(viewerState, 'floorHeight', -2, 2, .01).name("Height")
+//    floorFolder.add(viewerState, 'floorVisible')
+//    floorFolder.add(viewerState, 'floorTextureFile', { 'tile':0, 'wood-floor':1, 'Cobblestone':2, 'textureStone':3, 'grassy':4}).name("Texture").onChange(
+//      function(v: any){viewerState.setFloorTextureIndex(v)}
+//    );
+//    const lightFolder = gui.addFolder("Lights");
+//    lightFolder.add(viewerState, 'lightIntensity', 0, 2, .05).name("Intensity")
+//    lightFolder.addColor(viewerState, 'lightColor').name("Color")
+//    lightFolder.add(viewerState, 'spotLight')
+//    return () => {
+//        gui.destroy()
+//      }
   }, [uiState.viewerState]);
 
-  //console.log(urlParam);
   if (urlParam!== undefined) {
     var decodedUrl = decodeURIComponent(urlParam);
     uiState.viewerState.setCurrentModelPath(decodedUrl);
@@ -146,6 +218,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   }
   else
     curState.setCurrentModelPath(uiState.viewerState.currentModelPath);
+
   function toggleOpenMenu(name: string = "") {
     // If same name, or empty just toggle.
     if (name === selectedTabName || name === "") setMenuOpen(!menuOpen);
@@ -154,6 +227,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     // Always store same name.
     setSelectedTabName(name);
   }
+
   return (
     <MyModelContext.Provider value={uiState}>
       <Box component="div" sx={{ display: "flex" }}>
@@ -187,6 +261,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 }}
                 camera={{ position: [1500, 2000, 1000], fov: 75, far: 10000 }}
               >
+              <SceneTreeBridge onSceneReady={setScene} onCameraReady={setCamera} />
               <fog attach="fog" color="lightgray" near={1} far={10000} />
 
                 <color  ref={coloRef}
@@ -195,13 +270,13 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   //   theme.palette.mode === "dark" ? ["#151518"] : ["#cccccc"]
                   // }
                 />
-                <Bounds fit clip observe>
+
                   <OpenSimScene
                     currentModelPath={uiState.viewerState.currentModelPath}
                     supportControls={true}
                   />
-                </Bounds>
                 <Environment files="/assets/potsdamer_platz_1k.hdr" />
+
                 <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
                   <GizmoViewport labelColor="white" axisHeadScale={1} />
                 </GizmoHelper>
@@ -222,12 +297,89 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   }
                 />
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
+
+
+                {transformTarget && (
+                  <>
+                      <TransformControls object={transformTarget} mode={transformMode} />
+                  </>
+                )}
+
+                <CameraPreview selectedCameraUuid={uiState.selected} marginRight={treeWidth}/>
+
               </Canvas>
+
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: heightBottomBar + 20,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  zIndex: 1001,
+                  display: 'flex',
+                  flexDirection: 'row',
+                  gap: '12px',
+                }}
+              >
+                <Button
+                  variant={transformMode === 'translate' ? 'contained' : 'outlined'}
+                  onClick={() => setTransformMode('translate')}
+                  size="small"
+                >
+                  <TranslateIcon />
+                </Button>
+                <Button
+                  variant={transformMode === 'rotate' ? 'contained' : 'outlined'}
+                  onClick={() => setTransformMode('rotate')}
+                  size="small"
+                >
+                  <RotateIcon />
+                </Button>
+              </div>
+
+              <NodeSettingsDialog
+                open={dialogOpen}
+                onClose={() => setDialogOpen(false)}
+                selectedNode={selectedNode}
+                setSelectedNode={setSelectedNode}
+                updateNodeFn={updateNodeFn}
+              />
+
+              <AddCameraDialog
+                open={addCameraDialogOpen}
+                onClose={() => setAddCameraDialogOpen(false)}
+                onAddCamera={(name) => {
+                  const camerasGroup = scene?.getObjectByName("Cameras") as THREE.Group;
+                  if (camerasGroup) {
+                    const newCam = addNewCamera(name, uiState, camerasGroup, () => setSceneVersion(v => v + 1));
+                    setTransformTarget(newCam);
+                  }
+                }}
+                scene={scene}
+                uiState={uiState}
+              />
+
               <BottomBar
                 ref={bottomBarRef}
                 animationPlaySpeed={1.0}
                 animating={uiState.animating}
                 animationList={uiState.animations}/>
+
+              {scene && camera && (
+              <div style={{ position: 'absolute', top: 66, right: 0, zIndex: 1000 }}>
+                <SceneTreeSortable
+                  ref={treeRef}
+                  scene={scene}
+                  sceneVersion={sceneVersion}
+                  camera={camera}
+                  height={canvasHeight}
+                  onSettingsClick={handleSettingsClick}
+                  onAddCameraClick={setAddCameraDialogOpen}
+                  setTransformTargetFunction={setTransformTarget}
+                  onWidthChange={setTreeWidth}
+                />
+              </div>
+            )}
             </Suspense>
           </div>
         </Main>
