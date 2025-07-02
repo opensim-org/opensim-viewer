@@ -10,7 +10,7 @@ import { useModelContext } from '../../state/ModelUIStateContext'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
 import { OpenSimLoader } from '../../state/OpenSimLoader';
 import OpenSimFloor from './OpenSimFloor';
-import { CameraControls, Select, useSelect } from '@react-three/drei';
+import { Select, useSelect } from '@react-three/drei';
 
 interface OpenSimSceneProps {
     currentModelPath: string,

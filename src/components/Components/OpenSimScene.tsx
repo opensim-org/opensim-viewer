@@ -1,18 +1,14 @@
-import { useGLTF } from '@react-three/drei'
 import { useFrame, useThree, useLoader } from '@react-three/fiber'
 
 import * as THREE from 'three';
 
 import { useEffect, useRef, useState } from 'react'
-import { AnimationMixer, BoxHelper, Color, Group, Mesh, Object3D} from 'three'
+import { AnimationMixer, BoxHelper, Color, Mesh, Object3D} from 'three'
 import { observer } from 'mobx-react'
 
-import SceneTreeModel from '../../helpers/SceneTreeModel'
 import { useModelContext } from '../../state/ModelUIStateContext'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
-import viewerState from '../../state/ViewerState'
 import OpenSimFloor from './OpenSimFloor';
-import { Select, useSelect } from '@react-three/drei';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 interface OpenSimSceneProps {
