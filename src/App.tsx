@@ -1,31 +1,32 @@
-import HomePage from './components/pages/HomePage'
-import AboutPage from './components/pages/AboutPage'
-import ModelListPage from './components/pages/ModelListPage/ModelListPage'
 import ModelViewPage from './components/pages/ModelViewPage'
-import LoginPage from './components/pages/LoginPage'
-import LogoutPage from './components/pages/LogoutPage'
-import RegisterPage from './components/pages/RegisterPage'
-import Chart from './components/pages/Chart'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { observer } from 'mobx-react'
-import { ThemeProvider, CssBaseline } from '@mui/material'
-import appTheme from './Theme'
-import lightTheme from './LightTheme'
-import OpenSimAppBar from './components/Nav/OpenSimAppBar'
 import viewerState from './state/ViewerState'
-import { SnackbarProvider } from 'notistack'
-import { Amplify } from 'aws-amplify';
+//import { Amplify } from 'aws-amplify';
 import type { WithAuthenticatorProps } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
-import { useMediaQuery } from '@mui/material';
+import { CssBaseline, ThemeProvider, useMediaQuery } from '@mui/material';
 import { useMediaQuery as useResponsiveQuery } from 'react-responsive';
 import screenfull from 'screenfull';
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import './App.css'
+import appTheme from './Theme'
+import lightTheme from './LightTheme'
 
-import awsconfig from './aws-exports';
-Amplify.configure(awsconfig);
+import { SnackbarProvider } from 'notistack';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import OpenSimAppBar from './components/Nav/OpenSimAppBar';
+import Chart from './components/pages/Chart';
+import RegisterPage from './components/pages/RegisterPage';
+import LogoutPage from './components/pages/LogoutPage';
+import LoginPage from './components/pages/LoginPage';
+import HomePage from './components/pages/HomePage';
+import AboutPage from './components/pages/AboutPage';
+import ModelListPage from './components/pages/ModelListPage/ModelListPage';
+import { useModelContext } from './state/ModelUIStateContext';
+
+// import awsconfig from './aws-exports';
+// Amplify.configure(awsconfig);
 
 const useDeviceOrientation = () => {
   const isPortrait = useResponsiveQuery({ query: '(orientation: portrait)' });
@@ -38,7 +39,8 @@ function App({ signOut, user }: WithAuthenticatorProps) {
   const isSmallScreen = useMediaQuery('(max-width:600px)');
   const elementRef = useRef(null);
   const [ displayAppBar, setDisplayAppBar ] = useState('inherit');
-
+  const curState = useModelContext();
+  const viewerState = curState.viewerState;
   const toggleFullscreen = () => {
     if (screenfull.isEnabled) {
       if (elementRef.current) {
@@ -62,7 +64,6 @@ function App({ signOut, user }: WithAuthenticatorProps) {
 
     // Set gui mode if parameter is present.
     if (cssParam === 'gui') {
-      viewerState.setIsGuiMode(true)
       setDisplayAppBar('none')
     }
   }, []);
@@ -83,6 +84,7 @@ function App({ signOut, user }: WithAuthenticatorProps) {
         <ThemeProvider theme={viewerState.dark ? appTheme : lightTheme}>
           <SnackbarProvider>
             <CssBaseline />
+            {curState.isGuiMode? <ModelViewPage/>:
             <BrowserRouter>
                 <div className="App" style={{ width: '100%', overflow: 'auto', backgroundColor: viewerState.dark ? appTheme.palette.background.default : lightTheme.palette.background.default}} ref={elementRef}>
                     <div id="opensim-appbar-visibility" style={{display: displayAppBar}}>
@@ -120,6 +122,7 @@ function App({ signOut, user }: WithAuthenticatorProps) {
                     </div>
                 </div>
             </BrowserRouter>
+            }
           </SnackbarProvider>
         </ThemeProvider>
     )

@@ -12,6 +12,7 @@ import { fetchFile } from '@ffmpeg/util';
 import { useSnackbar } from 'notistack'
 
 import { useTranslation } from 'react-i18next'
+import { useModelContext } from "../../state/ModelUIStateContext";
 
 
 type VideoRecorderRef = {
@@ -26,6 +27,8 @@ type VideoRecorderViewProps = {
 function VideoRecorder(props :VideoRecorderViewProps) {
   const { t } = useTranslation();
   const { gl } = useThree();
+  const curState = useModelContext();
+  
   const ffmpegRef = useRef(new FFmpeg());
   const { enqueueSnackbar, closeSnackbar  } = useSnackbar();
 
@@ -73,7 +76,7 @@ function VideoRecorder(props :VideoRecorderViewProps) {
     const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
 
     const startRecording = function() {
-      viewerState.setIsRecordingVideo(true)
+      curState.viewerState.setIsRecordingVideo(true)
       enqueueSnackbar(t('snackbars.recording_video'), {variant: 'info', anchorOrigin: { horizontal: "right", vertical: "bottom"}, persist: true})
       recorder.start();
     };
@@ -81,6 +84,7 @@ function VideoRecorder(props :VideoRecorderViewProps) {
     const stopRecording = function() {
       recorder.stop()
       closeSnackbar()
+      const viewerState = curState.viewerState
       viewerState.setIsRecordingVideo(false)
       recorder.addEventListener('dataavailable', async (evt) => {
         const url = URL.createObjectURL(evt.data);
@@ -110,7 +114,7 @@ function VideoRecorder(props :VideoRecorderViewProps) {
       startRecording,
       stopRecording,
     };
-  }, [props.videoRecorderRef, gl.domElement, enqueueSnackbar, closeSnackbar, t]);
+  }, [props.videoRecorderRef, gl.domElement, enqueueSnackbar, closeSnackbar, t, curState.viewerState]);
 
   return null;
 }

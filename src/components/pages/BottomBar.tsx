@@ -37,6 +37,7 @@ const BottomBar = React.forwardRef(function CustomContent(
     const bottomBarRef = useRef(null);
     const { t } = useTranslation();
     const curState = useModelContext();
+    const viewerState = curState.viewerState
     const [speed, setSpeed] = useState(1.0);
     const [play, setPlay] = useState(false);
     const [selectedAnim, setSelectedAnim] = useState<string | undefined>("");
@@ -237,9 +238,9 @@ const BottomBar = React.forwardRef(function CustomContent(
             <Tooltip title={t('bottomBar.autoRotate')}>
               <ToggleButton
                 color="primary"
-                selected={curState.rotating}
+                selected={viewerState.rotating}
                 value={'Rotate'}
-                onClick={() => curState.setRotating(!curState.rotating)}>
+                onClick={() => viewerState.setRotating(!viewerState.rotating)}>
                   <ThreeSixtyTwoToneIcon />
               </ToggleButton>
             </Tooltip>

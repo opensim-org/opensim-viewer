@@ -9,11 +9,13 @@ import {
   TextField,
 } from '@mui/material';
 
-import viewerState from "../../state/ViewerState";
+import { useModelContext } from '../../state/ModelUIStateContext';
 
 function RecordView() {
   const { t } = useTranslation();
-
+  const curState = useModelContext();
+  const viewerState = curState.viewerState;
+  
   const handleVideoFormatChange = (event:any) => {
     viewerState.setRecordedVideoFormat(event.target.value)
   };

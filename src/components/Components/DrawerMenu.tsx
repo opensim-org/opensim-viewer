@@ -24,7 +24,7 @@ import Tooltip from '@mui/material/Tooltip';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 
-import viewerState from '../../state/ViewerState'
+import { useModelContext } from '../../state/ModelUIStateContext';
 
 const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -48,7 +48,7 @@ type DrawerMenuProps = {
 function DrawerMenu(props :DrawerMenuProps) {
   const { t } = useTranslation();
   const theme = useTheme();
-
+   const viewerState = useModelContext().viewerState;
   const isExtraSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('xs'));
   const isSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('sm'));
   const isMediumScreen = useMediaQuery((theme:any) => theme.breakpoints.only('md'));

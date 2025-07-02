@@ -1,16 +1,15 @@
 {
   "name": "opensim-viewer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "proxy": "http://localhost:8000",
+  "homepage": ".",
   "dependencies": {
     "@aws-amplify/ui-react": "^5.3.1",
     "@aws-sdk/client-lambda": "^3.436.0",
     "@aws-sdk/client-s3": "^3.433.0",
     "@aws-sdk/s3-request-presigner": "^3.433.0",
     "@babel/plugin-proposal-private-property-in-object": "^7.21.0-placeholder-for-preset-env.2",
-    "@emotion/react": "^11.10.6",
-    "@emotion/styled": "^11.10.6",
     "@ffmpeg/ffmpeg": "^0.12.7",
     "@ffmpeg/util": "^0.12.1",
     "@mui/icons-material": "^5.11.11",
@@ -31,9 +30,11 @@
     "aws-sdk": "^2.1488.0",
     "axios": "^1.4.0",
     "chartjs-wrapper": "^1.0.50",
+    "file-saver": "^2.0.5",
     "i18next": "^22.4.15",
     "i18next-browser-languagedetector": "^7.0.1",
     "jest": "^29.5.0",
+    "lil-gui": "^0.19.2",
     "mobx": "^6.9.0",
     "mobx-react": "^7.6.0",
     "notistack": "^3.0.1",
@@ -81,8 +82,11 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.0-placeholder-for-preset-env.2",
+    "@types/dat.gui": "^0.7.13",
+    "@types/file-saver": "^2.0.7",
     "@types/react": "^18.0.28",
-    "@types/react-dom": "^18.0.11"
+    "@types/react-dom": "^18.0.11",
+    "dat.gui": "^0.7.9"
   },
   "jest": {
     "moduleNameMapper": {
