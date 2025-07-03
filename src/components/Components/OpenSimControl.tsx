@@ -1,12 +1,14 @@
-import { TransformControls, CameraControls} from '@react-three/drei'
+import { TransformControls, CameraControls, OrbitControls} from '@react-three/drei'
+import { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
+
 import { observer } from 'mobx-react'
 import { useModelContext } from '../../state/ModelUIStateContext';
 
 import { useFrame, useThree } from '@react-three/fiber'
 
-import { Box3, Object3D, PerspectiveCamera, Vector2, Vector3 } from 'three';
+import THREE, { Box3, Object3D, PerspectiveCamera, Sphere, Vector2, Vector3 } from 'three';
 import { useRef } from 'react';
-import type CameraControlsImpl from 'camera-controls'
+
 
 const OpenSimControl = () => {
     const {
@@ -18,64 +20,113 @@ const OpenSimControl = () => {
 
    const curState = useModelContext();
    const viewerState = useModelContext().viewerState;
-   const controlsRef = useRef<CameraControlsImpl>(null)
+   const controlsRef = useRef<OrbitControlsImpl | null>(null)
 
    const controlTarget = new Vector3(0., 0., 0.);
+   function implementDolly(amount: number) {
+        if (controlsRef.current) {
+            const target = controlsRef.current.target
+            const direction = new Vector3()
+            direction.subVectors(target, camera.position).normalize()
+            camera.position.addScaledVector(direction, amount)
+            controlsRef.current.update();
+       }
+   }
+   function implementTruck(amount: number) {
+    if (controlsRef.current) {
+      const controls = controlsRef.current
+
+      // Define truck direction (e.g., rightward along camera's local X axis)
+      const truckDirection = new Vector3()
+      camera.getWorldDirection(truckDirection)
+      truckDirection.cross(camera.up).normalize() // right vector
+
+      const speed = amount
+      const offset = truckDirection.multiplyScalar(speed)
+
+      camera.position.add(offset)
+      controls.target.add(offset)
+      controls.update()
+    }
+   }
+    function implementTruckUpDn(amount: number) {
+        if (controlsRef.current) {
+        const controls = controlsRef.current
+
+        // Define truck direction (e.g., rightward along camera's local X axis)
+        const truckDirection = new Vector3()
+        camera.getWorldDirection(truckDirection)
+        truckDirection.cross(new Vector3(1, 0, 0)).normalize() // fwd vector
+
+        const speed = amount
+        const offset = truckDirection.multiplyScalar(speed)
+
+        camera.position.add(offset)
+        controls.target.add(offset)
+        controls.update()
+        }
+    }
+   function implementFitToSphere(object:Object3D) {
+        if (controlsRef.current) {
+            const box = new Box3().setFromObject(object)
+            const sphere = box.getBoundingSphere(new Sphere())
+
+            // Position camera
+            const fov = (camera as PerspectiveCamera).fov * Math.PI / 180
+            const distance = (sphere.radius * 1.1) / Math.sin(fov / 2)
+
+            const direction = new Vector3()
+            .subVectors(camera.position, controlsRef.current.target)
+            .normalize()
+
+            camera.position.copy(sphere.center).add(direction.multiplyScalar(distance))
+            controlsRef.current.target.copy(sphere.center)
+            controlsRef.current.update()
+        }
+   }
    useFrame((_, delta) => {
         if (curState.pending_key !== "") {
             switch (curState.pending_key) {
                 case 'i':
                 case 'I':
-                    (controls as unknown as CameraControls).dolly(0.5, true)
+                    implementDolly(0.1)
                     break;
                 case 'o':
                 case 'O':
-                    (controls as unknown as CameraControls).dolly(-0.5, true)
+                    implementDolly(-0.1)
                     break;
                 case 'ArrowLeft':
-                    (controls as unknown as CameraControls).truck(0.2, 0.0, true)
+                    implementTruck(0.2)
                     break;
                 case 'ArrowRight':
-                    (controls as unknown as CameraControls).truck(-0.2, 0.0, true)
+                    implementTruck(-0.2)
                     break;
                 case 'ArrowUp':
-                    (controls as unknown as CameraControls).truck(0.0, 0.2, true)
+                    implementTruckUpDn(0.2)
                     break;
                 case 'ArrowDown':
-                    (controls as unknown as CameraControls).truck(0.0, -0.2, true)
+                    implementTruckUpDn(-0.2)
                     break;
                 case 'f':
                 case 'F':
                     if (curState.selectedObject !== null)
-                        (controls as unknown as CameraControls).fitToSphere(curState.selectedObject!, true)
+                        implementFitToSphere(curState.selectedObject!)
                     else {
                         fitToModels(true);
                     }
                     break;
-                case 's':
-                case 'S':
-                    (controls as unknown as CameraControls).saveState();
-                    break;
-                case 'r':
-                case 'R':
-                    (controls as unknown as CameraControls).reset(true);
-                    break;
-                case 'x':
-                case 'X':
-                    (controls as unknown as CameraControls).setLookAt(10, 0, 0, 0, 0, 0, false).then(()=>fitToModels(false));
-                    break
-                case 'y':
-                case 'Y':
-                    (controls as unknown as CameraControls).setLookAt(0, 10, 0, 0, 0, 0, false).then(()=>fitToModels(false));
-                    break;
-                case 'z':
-                case 'Z':
-                    (controls as unknown as CameraControls).setLookAt(0, 0, 10, 0, 0, 0, false).then(()=>fitToModels(false));
-                    break
+                // case 's':
+                // case 'S':
+                //     (controls as unknown as CameraControls).saveState();
+                //     break;
+                // case 'r':
+                // case 'R':
+                //     (controls as unknown as CameraControls).reset(true);
+                //     break;
                 case 'C':
                 case 'c':
-                    if (curState.recordingKeyFrames){
-                        (controls as unknown as CameraControls).getTarget(controlTarget)
+                    if (curState.recordingKeyFrames && controlsRef.current){
+                        const controlTarget = controlsRef.current.target
                         curState.addCamera(camera as PerspectiveCamera, controlTarget)
                     }
             }
@@ -144,11 +195,12 @@ const OpenSimControl = () => {
                 target = new Vector3(0, 0, 0)
             }
             if (controlsRef.current) {
-                controlsRef.current.moveTo(nextCam.position.x, nextCam.position.y, nextCam.position.z)
-                controlsRef.current.setLookAt(
-                    nextCam.position.x, nextCam.position.y, nextCam.position.z,
-                    target.x, target.y, target.z, false)
-                controlsRef.current.update(delta)
+                camera.position.copy(nextCam.position)
+                controlsRef.current.target.copy(target)
+                // controlsRef.current.setLookAt(
+                //     nextCam.position.x, nextCam.position.y, nextCam.position.z,
+                //     target.x, target.y, target.z, false)
+                controlsRef.current.update()
             }
             curState.setCurrentCameraIndex(-1)
         }
@@ -157,20 +209,20 @@ const OpenSimControl = () => {
            const useScene = curState.scene;
            useScene?.traverse((object: Object3D) => {
                if (object.type === "Group" && object.name === "OpenSimModels") {
-                   (controls as unknown as CameraControls).fitToSphere(object, transition);
+                   implementFitToSphere(object);
                }
            });
        }
        })
 
-        function resizeRenderer (width:number, height:number)
-        {
-            if (window.devicePixelRatio) {
-                gl.setPixelRatio (window.devicePixelRatio);
-            }
-            gl.setSize (width, height);
-            gl.render (scene, camera);
+    function resizeRenderer (width:number, height:number)
+    {
+        if (window.devicePixelRatio) {
+            gl.setPixelRatio (window.devicePixelRatio);
         }
+        gl.setSize (width, height);
+        gl.render (scene, camera);
+    }
 
     function completeTransform(e?: THREE.Event | undefined): void {
         if (curState.debug)
@@ -200,18 +252,15 @@ const OpenSimControl = () => {
         newPos.addVectors(center, dir);
 
         if (controls) {
-            (controls as unknown as CameraControls).moveTo(newPos.x, newPos.y, newPos.z, true);
-            (controls as unknown as CameraControls).setTarget(center.x, center.y, center.z, true);
+            camera.position.copy(newPos);
+            controlsRef.current!.target.copy(center)
         }
 
-    }
-    function updateTarget(self: CameraControls): void {
-        console.log(controls)
     }
 
     return <>
         {curState.draggable && <TransformControls object={curState.selectedObject!} onMouseUp={completeTransform}/>}
-        <CameraControls ref={controlsRef} camera={camera} makeDefault onUpdate={updateTarget}/>
+        <OrbitControls ref={controlsRef} camera={camera} makeDefault />
         
     </>
 }

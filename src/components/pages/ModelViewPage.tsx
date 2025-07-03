@@ -229,7 +229,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 onClick={
                   (e)=>console.log(e)
                   }>
-                  <GizmoViewport labelColor="transparent" />
+                  <GizmoViewport labelColor="white" />
                 </GizmoHelper>
                 {uiState.isGuiMode?
                   <OpenSimControl/>:
