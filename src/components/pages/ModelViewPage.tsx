@@ -86,7 +86,6 @@ export const addNewCamera = (
 
     camera.name = name;
     camera.position.set(0, 1, 2);
-    camera.layers.enableAll();
     (camera as PerspectiveCamera).updateProjectionMatrix();
   } else {
     // Orthographic frustum (left, right, top, bottom, near, far)
@@ -106,7 +105,6 @@ export const addNewCamera = (
 
     camera.name = name;
     camera.position.set(0, 1, 2);
-    camera.layers.enableAll();
     (camera as OrthographicCamera).updateProjectionMatrix();
   }
 
@@ -122,6 +120,7 @@ export const addNewCamera = (
 
   onSceneUpdated();
 
+  camera.layers.enableAll()
   return camera;
 };
 
