@@ -367,23 +367,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 </GizmoHelper>
                 <OpenSimControl/>
                 <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
-                <OpenSimSkySphere
-                  texturePath={
-                    uiState.viewerState.userPreferences?.skyTexturePath?.trim()
-                      ? uiState.viewerState.userPreferences.skyTexturePath
-                      : undefined
-                  }
-                />
-                <OpenSimFloor
-                  texturePath={
-                    uiState.viewerState.userPreferences?.floorTexturePath?.trim()
-                      ? uiState.viewerState.userPreferences.floorTexturePath
-                      : undefined
-                  }
-                />
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
-
-
                 {transformTarget && (
                   <>
                       <TransformControls object={transformTarget} mode={transformMode} />
