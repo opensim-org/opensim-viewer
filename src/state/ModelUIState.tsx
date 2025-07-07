@@ -98,10 +98,10 @@ export class ModelUIState {
             this.cameraLayersMask = -1
             this.animating = false
             this.animationSpeed = 1
-			      this.animations = []
+            this.animations = []
             this.currentAnimationIndex = -1
-			      this.cameras = []
-			      this.lights = []
+            this.cameras = []
+            this.lights = []
             this.currentCameraIndex = -1
         }
     }
