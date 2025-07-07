@@ -4,7 +4,6 @@ import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import { Canvas } from "@react-three/fiber";
 import {
-  Bounds,
   Environment,
   GizmoHelper,
   GizmoViewport,
@@ -39,8 +38,6 @@ import { DirectionalLightHelper,
   PerspectiveCamera,
   OrthographicCamera} from 'three';
 
-import OpenSimFloor from "../Components/OpenSimFloor";
-import OpenSimSkySphere from '../Components/OpenSimSkySphere';
 import VideoRecorder from "../Components/VideoRecorder"
 import { ModelInfo } from '../../state/ModelUIState';
 

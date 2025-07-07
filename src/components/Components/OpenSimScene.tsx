@@ -1,5 +1,5 @@
 import { useGLTF } from '@react-three/drei'
-import { useFrame, useThree } from '@react-three/fiber'
+import { useFrame, useLoader, useThree } from '@react-three/fiber'
 import { TransformControls } from '@react-three/drei'
 
 import * as THREE from 'three';
@@ -18,6 +18,7 @@ import { ModelUIState } from '../../state/ModelUIState'
 import { DirectionalLightHelper, SpotLightHelper } from 'three';
 import OpenSimFloor from './OpenSimFloor';
 import OpenSimSkySphere from './OpenSimSkySphere';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 interface OpenSimSceneProps {
     currentModelPath: string,
@@ -25,6 +26,7 @@ interface OpenSimSceneProps {
 }
 
 const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportControls }) => {
+    //const modelGroup = useLoader(GLTFLoader, currentModelPath)
     const { scene, animations } = useGLTF(currentModelPath);
 
     const { set, gl, camera} = useThree();
@@ -394,13 +396,13 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
                     : undefined
             }
         />
-        <OpenSimSkySphere
+        {supportControls && <OpenSimSkySphere
           texturePath={
             curState.viewerState.userPreferences?.skyTexturePath?.trim()
               ? curState.viewerState.userPreferences.skyTexturePath
               : undefined
           }
-        />
+        />}
       </group>
     </>
 }

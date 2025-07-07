@@ -1,22 +1,97 @@
 import { OrbitControls, CameraControls } from '@react-three/drei'
 import { observer } from 'mobx-react'
 import { useModelContext } from '../../state/ModelUIStateContext';
+import { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 
 import { useFrame, useThree } from '@react-three/fiber'
-import { Ref, useRef } from 'react'
+import { Ref, useEffect, useRef } from 'react'
+import { Box3, Object3D, PerspectiveCamera, Sphere, Vector3 } from 'three';
 
 const OpenSimControl = () => {
     const {
         gl, // WebGL renderer
         camera,
+        controls,
+        scene
     } = useThree()
 
-    const ref = useRef<CameraControls>();
-    const curState = useModelContext();
+   const curState = useModelContext();
+   const viewerState = useModelContext().viewerState;
+   const controlsRef = useRef<OrbitControlsImpl | null>(null)
+   function implementDolly(amount: number) {
+        if (controlsRef.current) {
+            const target = controlsRef.current.target
+            const direction = new Vector3()
+            direction.subVectors(target, camera.position).normalize()
+            camera.position.addScaledVector(direction, amount)
+            controlsRef.current.update();
+       }
+   }
+   function implementTruck(amount: number) {
+    if (controlsRef.current) {
+      const controls = controlsRef.current
 
+      // Define truck direction (e.g., rightward along camera's local X axis)
+      const truckDirection = new Vector3()
+      camera.getWorldDirection(truckDirection)
+      truckDirection.cross(camera.up).normalize() // right vector
+
+      const speed = amount
+      const offset = truckDirection.multiplyScalar(speed)
+
+      camera.position.add(offset)
+      controls.target.add(offset)
+      controls.update()
+    }
+   }
+    function implementTruckUpDn(amount: number) {
+        if (controlsRef.current) {
+        const controls = controlsRef.current
+
+        // Define truck direction (e.g., rightward along camera's local X axis)
+        const truckDirection = new Vector3()
+        camera.getWorldDirection(truckDirection)
+        truckDirection.cross(new Vector3(1, 0, 0)).normalize() // fwd vector
+
+        const speed = amount
+        const offset = truckDirection.multiplyScalar(speed)
+
+        camera.position.add(offset)
+        controls.target.add(offset)
+        controls.update()
+        }
+    }
+    function implementFitToSphere(object:Object3D) {
+        if (controlsRef.current) {
+            const box = new Box3().setFromObject(object)
+            const sphere = box.getBoundingSphere(new Sphere())
+
+            // Position camera
+            const fov = (camera as PerspectiveCamera).fov * Math.PI / 180
+            const distance = (sphere.radius * 1.1) / Math.sin(fov / 2)
+
+            const direction = new Vector3()
+            .subVectors(camera.position, controlsRef.current.target)
+            .normalize()
+
+            camera.position.copy(sphere.center).add(direction.multiplyScalar(distance))
+            controlsRef.current.target.copy(sphere.center)
+            controlsRef.current.update()
+        }
+   }
+   function fitToModels() {
+        const useScene = curState.scene;
+        useScene?.traverse((object: Object3D) => {
+            if (object.type === "Group" && (object.name === "OpenSimModels" || object.name === "Scene")) {
+                implementFitToSphere(object);
+            }
+        });
+    }
+   useEffect(() => {
+        fitToModels();
+   })
     useFrame((_, delta) => {
         if (curState.zooming){
-            console.log(delta)
             let zoomFactor = curState.zoom_inOut;
             camera.zoom *= zoomFactor;
             camera.updateProjectionMatrix();
@@ -41,8 +116,7 @@ const OpenSimControl = () => {
       })
     //console.log(viewerState.rotating);
     return <>
-        <OrbitControls autoRotate autoRotateSpeed={curState.rotating ? 2 : 0.0} makeDefault  />
-        <CameraControls enabled={false} ref={(ref as unknown) as Ref<CameraControls> | undefined}/>
+        <OrbitControls ref={controlsRef} camera={camera} autoRotate autoRotateSpeed={curState.rotating ? 2 : 0.0} makeDefault  />
     </>
 }
 
