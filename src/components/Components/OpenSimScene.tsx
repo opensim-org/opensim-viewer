@@ -16,6 +16,8 @@ import viewerState from '../../state/ViewerState'
 import { ModelUIState } from '../../state/ModelUIState'
 
 import { DirectionalLightHelper, SpotLightHelper } from 'three';
+import OpenSimFloor from './OpenSimFloor';
+import OpenSimSkySphere from './OpenSimSkySphere';
 
 interface OpenSimSceneProps {
     currentModelPath: string,
@@ -27,6 +29,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
 
     const { set, gl, camera} = useThree();
 
+    const envRef = useRef<THREE.Group>(null)
     const dirLightHelperRef = useRef<DirectionalLightHelper | null>(null);
     const spotLightHelperRef = useRef<SpotLightHelper | null>(null);
 
@@ -372,19 +375,34 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
       onPointerDown={(e: any) => curState.setSelected(e.object.uuid)}
       onPointerMissed={() => curState.setSelected("")}
       />
-
-      <group name="Cameras" ref={camerasGroupRef}></group>
-      <group name="Illumination">
-        <directionalLight name="Directional Light" ref={lightRef} position={[0.5, 1.5, -0.5]}
-          intensity={curState.viewerState.lightIntensity} color={curState.viewerState.lightColor}
-          castShadow={true}
-          shadow-camera-far={8}
-          shadow-camera-left={-2}
-          shadow-camera-right={2}
-          shadow-camera-top={2}
-          shadow-camera-bottom={-2}/>
+      <group name='OpenSimEnvironment' ref={envRef}>
+          <group name="Cameras" ref={camerasGroupRef}></group>
+          <group name="Illumination">
+            <directionalLight name="Directional Light" ref={lightRef} position={[0.5, 1.5, -0.5]}
+              intensity={curState.viewerState.lightIntensity} color={curState.viewerState.lightColor}
+              castShadow={true}
+              shadow-camera-far={8}
+              shadow-camera-left={-2}
+              shadow-camera-right={2}
+              shadow-camera-top={2}
+              shadow-camera-bottom={-2}/>
+          </group>
+        <OpenSimFloor                   
+            texturePath={
+                  curState.viewerState.userPreferences?.floorTexturePath?.trim()
+                    ? curState.viewerState.userPreferences.floorTexturePath
+                    : undefined
+            }
+        />
+        <OpenSimSkySphere
+          texturePath={
+            curState.viewerState.userPreferences?.skyTexturePath?.trim()
+              ? curState.viewerState.userPreferences.skyTexturePath
+              : undefined
+          }
+        />
       </group>
-      </>
+    </>
 }
 
 export default observer(OpenSimScene)
