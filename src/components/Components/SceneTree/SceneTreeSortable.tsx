@@ -15,7 +15,8 @@ import {
   Theme,
   alpha,
 } from '@mui/material';
-import SettingsIcon from '@mui/icons-material/Settings';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import PersonIcon from '@mui/icons-material/Person';
 import FolderIcon from '@mui/icons-material/Folder';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
@@ -216,6 +217,12 @@ export const SceneTreeSortable = forwardRef<
                   if (node.type?.includes('Camera')) uiState.setSelected(node.uuid);
                   if (setTransformTargetFunction)
                     setTransformTargetFunction(scene?.getObjectById(node.id));
+
+                  if (node.canEdit) {
+                    handleSettingsClick(node, path);
+                  } else {
+                    setSettingsNode(null); // clear settings if not editable
+                  }
                 },
                 icons: node.isModel
                   ? [<PersonIcon key="model" style={{ marginRight: 10, fontSize: 16 }} />]
@@ -236,17 +243,6 @@ export const SceneTreeSortable = forwardRef<
                   : node.isAddLightButton
                   ? []
                   : [<HelpOutlineIcon key="unknown" style={{ marginRight: 10, fontSize: 16 }} />],
-                buttons: [
-                  node.canEdit && (
-                    <IconButton
-                      key="settings"
-                      size="small"
-                      onClick={() => handleSettingsClick?.(node, path)}
-                    >
-                      <SettingsIcon fontSize="small" />
-                    </IconButton>
-                  ),
-                ],
                 title: (
                   <span
                     style={{
@@ -257,16 +253,22 @@ export const SceneTreeSortable = forwardRef<
                   >
                     {node.title} {node.subtitle && node.subtitle !== "Group" ? "(" + node.subtitle + ")" : ""}
                     {node.canEdit && (
-                      <input
-                        type="checkbox"
-                        checked={node.visible}
-                        onChange={(e) => {
-                          node.visible = e.target.checked;
-                          node.object3D.visible = e.target.checked;
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          node.visible = !node.visible;
+                          node.object3D.visible = node.visible;
                           setTreeData([...treeData]);
                         }}
                         style={{ marginLeft: 8 }}
-                      />
+                      >
+                        {node.visible ? (
+                          <VisibilityIcon fontSize="small" />
+                        ) : (
+                          <VisibilityOffIcon fontSize="small" />
+                        )}
+                      </IconButton>
                     )}
                     {node.isAddCameraButton && (
                       <IconButton
