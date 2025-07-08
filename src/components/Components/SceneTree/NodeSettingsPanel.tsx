@@ -4,18 +4,22 @@ import {
   FormControlLabel,
   Checkbox,
   Typography,
+  MenuItem,
 } from "@mui/material";
+import { ModelUIState } from '../../../state/ModelUIState';
 
 interface NodeSettingsPanelProps {
   selectedNode: any;
   setSelectedNode: (node: any) => void;
   updateNodeFn: ((node: any) => void) | null;
+  uiState: ModelUIState;
 }
 
 const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = ({
   selectedNode,
   setSelectedNode,
   updateNodeFn,
+  uiState,
 }) => {
   if (!selectedNode) {
     return (
@@ -297,6 +301,54 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = ({
             }}
             style={{ marginTop: 16 }}
           />
+        </>
+      )}
+
+      {(selectedNode?.type === "Floor" || selectedNode?.isFloor) && (
+        <>
+          <TextField
+            label="Height"
+            type="number"
+            fullWidth
+            inputProps={{ min: -2, max: 2, step: 0.01 }}
+            value={
+              uiState.viewerState.floorHeight ??
+              0
+            }
+            onChange={(e) => {
+              const newY = parseFloat(e.target.value);
+
+              if (selectedNode.object3D) {
+                selectedNode.object3D.position.y = newY;
+              }
+
+              uiState.viewerState.setFloorHeight(newY);
+
+              patch({ floorHeight: newY });
+            }}
+            style={{ marginTop: 16 }}
+          />
+
+          <TextField
+            select
+            label="Texture"
+            fullWidth
+            value={
+              uiState.viewerState.textureIndex ?? 0
+            }
+            onChange={(e) => {
+              const idx = parseInt(e.target.value, 10);
+              uiState.viewerState.setFloorTextureIndex?.(idx);
+              patch({ floorTextureFile: idx });
+            }}
+            style={{ marginTop: 16 }}
+          >
+            <MenuItem value={0}>Tile</MenuItem>
+            <MenuItem value={1}>Wood floor</MenuItem>
+            <MenuItem value={2}>Cobblestone</MenuItem>
+            <MenuItem value={3}>Stone</MenuItem>
+            <MenuItem value={4}>Grassy</MenuItem>
+          </TextField>
         </>
       )}
 

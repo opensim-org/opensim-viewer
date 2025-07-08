@@ -299,6 +299,7 @@ export const SceneTreeSortable = forwardRef<
             selectedNode={settingsNode}
             setSelectedNode={setSettingsNode}
             updateNodeFn={updateNodeFn}
+            uiState={uiState}
           />
         </div>
       </div>

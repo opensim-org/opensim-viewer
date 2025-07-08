@@ -201,6 +201,9 @@ export class ViewerState {
     setFloorTextureIndex(newIndex: number) {
         this.textureIndex = newIndex
     }
+    setFloorHeight(newHeight: number) {
+        this.floorHeight = newHeight
+    }
     setLightIntensity(newLight: number) {
         this.lightIntensity = newLight
     }
