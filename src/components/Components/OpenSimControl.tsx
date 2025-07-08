@@ -1,10 +1,10 @@
-import { OrbitControls, CameraControls } from '@react-three/drei'
+import { OrbitControls } from '@react-three/drei'
 import { observer } from 'mobx-react'
 import { useModelContext } from '../../state/ModelUIStateContext';
 import { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 
 import { useFrame, useThree } from '@react-three/fiber'
-import { Ref, useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Box3, Object3D, PerspectiveCamera, Sphere, Vector3 } from 'three';
 
 const OpenSimControl = () => {
@@ -17,6 +17,7 @@ const OpenSimControl = () => {
 
    const curState = useModelContext();
    const viewerState = useModelContext().viewerState;
+   const [cameraIndex, setCameraIndex] = useState<number>(-1)
    const controlsRef = useRef<OrbitControlsImpl | null>(null)
    function implementDolly(amount: number) {
         if (controlsRef.current) {
@@ -89,7 +90,9 @@ const OpenSimControl = () => {
     }
    useEffect(() => {
         fitToModels();
-   })
+        setCameraIndex(curState.currentCameraIndex)
+   }, [curState.currentCameraIndex])
+
     useFrame((_, delta) => {
         if (curState.zooming){
             let zoomFactor = curState.zoom_inOut;
@@ -112,6 +115,16 @@ const OpenSimControl = () => {
                 else
                     camera.layers.disable(layernumber)
             }
+        }
+        if (cameraIndex !== curState.currentCameraIndex){
+            setCameraIndex(curState.currentCameraIndex);
+            // Copy properties into default camera
+            const newCamera = curState.cameras[curState.currentCameraIndex]
+            camera.position.copy(newCamera.position)
+            camera.quaternion.copy(newCamera.quaternion)
+            camera.zoom = (newCamera as PerspectiveCamera).zoom;
+            camera.updateProjectionMatrix();
+            controlsRef.current!.update()
         }
       })
     //console.log(viewerState.rotating);
