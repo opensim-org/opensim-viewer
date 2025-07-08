@@ -389,13 +389,13 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
               shadow-camera-top={2}
               shadow-camera-bottom={-2}/>
           </group>
-        <OpenSimFloor                   
+        {supportControls && <OpenSimFloor                   
             texturePath={
                   curState.viewerState.userPreferences?.floorTexturePath?.trim()
                     ? curState.viewerState.userPreferences.floorTexturePath
                     : undefined
             }
-        />
+        />}
         {supportControls && <OpenSimSkySphere
           texturePath={
             curState.viewerState.userPreferences?.skyTexturePath?.trim()
