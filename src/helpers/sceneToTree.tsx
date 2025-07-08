@@ -37,9 +37,9 @@ export function convertSceneToTree(scene: THREE.Scene | null, camera: THREE.Came
       isAxes = true;
 
     let isCamera = false;
-    if (obj.name.includes("Camera")) {
+    if (obj.type.includes("Camera")) {
       isCamera = true;
-      canEdit = false;
+      canEdit = true;
     }
 
     let children = null;
@@ -78,25 +78,6 @@ export function convertSceneToTree(scene: THREE.Scene | null, camera: THREE.Came
         // Add camera as child if this is the "Cameras" group
         if (obj.type === "Group" && obj.name === "Cameras" && camera) {
           if (obj.children) {
-            const cameraNode = {
-              title: camera.name || "Default Camera",
-              subtitle: camera.type,
-              visible: camera.visible,
-              object3D: camera,
-              isGroup: false,
-              isLight: false,
-              isSkySphere: false,
-              isFloor: false,
-              isAxes: false,
-              isModel: false,
-              canEdit: false,
-              isCamera: true,
-              id: "default-camera",
-              type: obj.type,
-              children: []
-            };
-            children.unshift(cameraNode);
-
             // Append "+" node
             children.push({
               title: "",

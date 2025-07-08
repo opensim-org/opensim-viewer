@@ -33,6 +33,12 @@ import { ModelUIState } from '../../../state/ModelUIState';
 
 import './SceneTreeSortable.css';
 
+import NodeSettingsPanel from "./NodeSettingsPanel";
+
+import {
+  changeNodeAtPath,
+} from '@nosferatu500/react-sortable-tree';
+
 const PANEL_WIDTH = 300;
 
 interface SceneTreeSortableProps {
@@ -40,7 +46,6 @@ interface SceneTreeSortableProps {
   camera: THREE.Camera | null;
   height: string;
   sceneVersion?: number;
-  onSettingsClick?: (node: any, updateNode: (updatedNode: any) => void) => void;
   onAddCameraClick?: (node: any) => void;
   onAddLightClick?: (node: any) => void;
   setTransformTargetFunction?: (func: any) => void;
@@ -63,7 +68,6 @@ export const SceneTreeSortable = forwardRef<
       camera,
       height,
       sceneVersion,
-      onSettingsClick,
       onAddCameraClick,
       onAddLightClick,
       setTransformTargetFunction,
@@ -76,6 +80,9 @@ export const SceneTreeSortable = forwardRef<
     const [treeData, setTreeData] = useState<any[]>([]);
     const [isOpen, setIsOpen] = useState(true);
     const [selectedPath, setSelectedPath] = useState<number[] | null>(null);
+
+    const [settingsNode, setSettingsNode] = useState<any>(null);
+    const [updateNodeFn, setUpdateNodeFn] = useState<((n: any) => void) | null>(null);
 
     const curState = useModelContext();
     const [uiState] = useState<ModelUIState>(curState);
@@ -102,12 +109,40 @@ export const SceneTreeSortable = forwardRef<
       [isOpen],
     );
 
+    const [settingsPath, setSettingsPath] = useState<number[] | null>(null);
+
+    function handleSettingsClick(node: any, path: number[]) {
+      // remember which node we’re editing
+      setSettingsNode(node);
+      setSettingsPath(path);
+
+      // build a node‑specific updater and give it to the panel
+      const updateNode = (updatedNode: any) => {
+        if (!path) return;
+        const newTree = changeNodeAtPath({
+          treeData,
+          path,
+          getNodeKey: ({ treeIndex }) => treeIndex,
+          newNode: updatedNode,
+        });
+        setTreeData(newTree);
+        setSettingsNode(updatedNode);
+      };
+
+      setUpdateNodeFn(() => updateNode);
+    }
+
     function updateNode(updatedNode: any) {
       const newTreeData = treeData.map((node) =>
         node.id === updatedNode.id ? updatedNode : node,
       );
       setTreeData(newTreeData);
     }
+
+    const openSettings = (node: any) => {
+      setSettingsNode(node);
+      setUpdateNodeFn(() => updateNode);
+    };
 
     useEffect(() => {
       setTreeData(convertSceneToTree(scene, camera));
@@ -161,6 +196,8 @@ export const SceneTreeSortable = forwardRef<
             </IconButton>
           )}
 
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+        <div style={{ flex: '0 0 50%', overflow: 'auto' }}>
           <SortableTree
             treeData={treeData}
             onChange={setTreeData}
@@ -204,7 +241,7 @@ export const SceneTreeSortable = forwardRef<
                     <IconButton
                       key="settings"
                       size="small"
-                      onClick={() => onSettingsClick?.(node, updateNode)}
+                      onClick={() => handleSettingsClick?.(node, path)}
                     >
                       <SettingsIcon fontSize="small" />
                     </IconButton>
@@ -254,6 +291,15 @@ export const SceneTreeSortable = forwardRef<
               };
             }}
           />
+          </div>
+         <div style={{ flex: '0 0 50%', borderTop: '1px solid #ddd' }}>
+          <NodeSettingsPanel
+            selectedNode={settingsNode}
+            setSelectedNode={setSettingsNode}
+            updateNodeFn={updateNodeFn}
+          />
+        </div>
+      </div>
         </div>
 
         {!isOpen && (
