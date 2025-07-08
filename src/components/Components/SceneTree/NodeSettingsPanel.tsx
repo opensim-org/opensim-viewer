@@ -7,6 +7,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import { ModelUIState } from '../../../state/ModelUIState';
+import { observer } from 'mobx-react-lite';
 
 interface NodeSettingsPanelProps {
   selectedNode: any;
@@ -15,7 +16,7 @@ interface NodeSettingsPanelProps {
   uiState: ModelUIState;
 }
 
-const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = ({
+const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
   selectedNode,
   setSelectedNode,
   updateNodeFn,
@@ -349,6 +350,68 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = ({
             <MenuItem value={3}>Stone</MenuItem>
             <MenuItem value={4}>Grassy</MenuItem>
           </TextField>
+
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={uiState.viewerState.floorRound ?? true}
+                onChange={(e) => {
+                  uiState.viewerState.setFloorRound(e.target.checked)
+                }}
+              />
+            }
+            label="Round Floor"
+            style={{ marginTop: 16 }}
+          />
+        </>
+      )}
+
+
+      {(selectedNode?.type === "SkySphere" || selectedNode?.isSkySphere) && (
+        <>
+          <TextField
+            label="Height"
+            type="number"
+            fullWidth
+            inputProps={{ min: -2, max: 2, step: 0.01 }}
+            value={
+              uiState.viewerState.floorHeight ??
+              0
+            }
+            onChange={(e) => {
+              const newY = parseFloat(e.target.value);
+
+              if (selectedNode.object3D) {
+                selectedNode.object3D.position.y = newY;
+              }
+
+              uiState.viewerState.setFloorHeight(newY);
+
+              patch({ floorHeight: newY });
+            }}
+            style={{ marginTop: 16 }}
+          />
+
+          <TextField
+            select
+            label="Texture"
+            fullWidth
+            value={
+              uiState.viewerState.textureIndex ?? 0
+            }
+            onChange={(e) => {
+              const idx = parseInt(e.target.value, 10);
+              uiState.viewerState.setFloorTextureIndex?.(idx);
+              patch({ floorTextureFile: idx });
+            }}
+            style={{ marginTop: 16 }}
+          >
+            <MenuItem value={0}>Tile</MenuItem>
+            <MenuItem value={1}>Wood floor</MenuItem>
+            <MenuItem value={2}>Cobblestone</MenuItem>
+            <MenuItem value={3}>Stone</MenuItem>
+            <MenuItem value={4}>Grassy</MenuItem>
+          </TextField>
         </>
       )}
 
@@ -356,6 +419,6 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = ({
 
 
   );
-};
+});
 
 export default NodeSettingsPanel;
