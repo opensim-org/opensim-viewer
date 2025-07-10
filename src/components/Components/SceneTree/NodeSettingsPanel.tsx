@@ -8,6 +8,7 @@ import {
 } from "@mui/material";
 import { ModelUIState } from '../../../state/ModelUIState';
 import { observer } from 'mobx-react-lite';
+import { Color } from 'three'
 
 interface NodeSettingsPanelProps {
   selectedNode: any;
@@ -73,13 +74,14 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             label="Color"
             type="color"
             fullWidth
-            value={selectedNode.color ?? selectedNode.object3D?.color?.getStyle?.() ?? "#ffffff"}
-            onChange={(e) =>
+            value={selectedNode.color ?? selectedNode.object3D?.color.getHexString() ?? "#ffffff"}
+            onChange={(e) => {
+              const colorStr = e.target.value;
               patch({
-                color: e.target.value,
-                object3DProps: { color: { set: e.target.value } },
-              })
-            }
+                color: colorStr,
+                object3DProps: { color: new Color(colorStr) },
+              });
+            }}
             style={{ marginTop: 16 }}
           />
           <TextField
@@ -128,6 +130,20 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
 
       {selectedNode?.type === "DirectionalLight" && (
         <>
+        <TextField
+            label="Color"
+            type="color"
+            fullWidth
+            value={selectedNode.color ?? `#${selectedNode.object3D.color.getHexString()}` ?? "#ffffff"}
+            onChange={(e) => {
+              const colorStr = e.target.value;
+              patch({
+                color: colorStr,
+                object3DProps: { color: new Color(colorStr) },
+              });
+            }}
+            style={{ marginTop: 16 }}
+          />
           <TextField
             label="Intensity"
             type="number"
