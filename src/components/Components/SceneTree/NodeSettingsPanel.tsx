@@ -356,7 +356,6 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             onChange={(e) => {
               const idx = parseInt(e.target.value, 10);
               uiState.viewerState.setFloorTextureIndex?.(idx);
-              patch({ floorTextureFile: idx });
             }}
             style={{ marginTop: 16 }}
           >
@@ -385,48 +384,24 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
 
       {(selectedNode?.type === "SkySphere" || selectedNode?.isSkySphere) && (
         <>
-          <TextField
-            label="Height"
-            type="number"
-            fullWidth
-            inputProps={{ min: -2, max: 2, step: 0.01 }}
-            value={
-              uiState.viewerState.floorHeight ??
-              0
-            }
-            onChange={(e) => {
-              const newY = parseFloat(e.target.value);
-
-              if (selectedNode.object3D) {
-                selectedNode.object3D.position.y = newY;
-              }
-
-              uiState.viewerState.setFloorHeight(newY);
-
-              patch({ floorHeight: newY });
-            }}
-            style={{ marginTop: 16 }}
-          />
 
           <TextField
             select
             label="Texture"
             fullWidth
             value={
-              uiState.viewerState.textureIndex ?? 0
+              uiState.viewerState.skyTextureIndex ?? 0
             }
             onChange={(e) => {
               const idx = parseInt(e.target.value, 10);
-              uiState.viewerState.setFloorTextureIndex?.(idx);
-              patch({ floorTextureFile: idx });
+              uiState.viewerState.setSkyTextureIndex?.(idx);
             }}
             style={{ marginTop: 16 }}
           >
-            <MenuItem value={0}>Tile</MenuItem>
-            <MenuItem value={1}>Wood floor</MenuItem>
-            <MenuItem value={2}>Cobblestone</MenuItem>
-            <MenuItem value={3}>Stone</MenuItem>
-            <MenuItem value={4}>Grassy</MenuItem>
+            <MenuItem value={0}>Death Valley</MenuItem>
+            <MenuItem value={1}>San Carlo</MenuItem>
+            <MenuItem value={2}>Pozzolo</MenuItem>
+            <MenuItem value={3}>Agnone</MenuItem>
           </TextField>
         </>
       )}
