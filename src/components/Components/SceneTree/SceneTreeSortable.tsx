@@ -91,6 +91,34 @@ export const SceneTreeSortable = forwardRef<
     // outer wrapper of the whole panel
     const outerDivRef = useRef<HTMLDivElement>(null);
 
+    function applyTreeToScene(tree: any[]) {
+      function applyNode(node: any, parentObject: THREE.Object3D) {
+        const object = node.object3D;
+        if (!object) return;
+
+        // Remove from previous parent
+        if (object.parent && object.parent !== parentObject) {
+          object.parent.remove(object);
+        }
+
+        // Add to new parent
+        if (object.parent !== parentObject) {
+          parentObject.add(object);
+        }
+
+        // Recursively handle children
+        if (node.children && node.children.length > 0) {
+          node.children.forEach((childNode: any) => {
+            applyNode(childNode, object);
+          });
+        }
+      }
+
+      // Start applying from scene root
+      tree.forEach((node) => {
+        applyNode(node, scene!);
+      });
+    }
 
     useEffect(() => {
       const w = isOpen ? PANEL_WIDTH : 0;
@@ -201,7 +229,10 @@ export const SceneTreeSortable = forwardRef<
         <div style={{ flex: '0 0 50%', overflow: 'auto' }}>
           <SortableTree
             treeData={treeData}
-            onChange={setTreeData}
+            onChange={(newTreeData) => {
+              setTreeData(newTreeData);
+              applyTreeToScene(newTreeData);
+            }}
             theme={FileExplorerTheme}
             canDrag={({ node }) => !node.isAddCameraButton}
             generateNodeProps={({ node, path }) => {
