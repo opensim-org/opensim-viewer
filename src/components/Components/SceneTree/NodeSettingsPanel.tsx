@@ -85,6 +85,19 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             style={{ marginTop: 16 }}
           />
           <TextField
+            label="Intensity"
+            type="number"
+            fullWidth
+            value={selectedNode.intensity ?? selectedNode.object3D?.intensity ?? 0.25}
+            onChange={(e) =>
+              patch({
+                intensity: parseFloat(e.target.value),
+                object3DProps: { intensity: parseFloat(e.target.value) },
+              })
+            }
+            style={{ marginTop: 16 }}
+          />
+          <TextField
             label="Angle (rad)"
             type="number"
             fullWidth
@@ -94,6 +107,65 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               patch({
                 angle: parseFloat(e.target.value),
                 object3DProps: { angle: parseFloat(e.target.value) },
+              })
+            }
+            style={{ marginTop: 16 }}
+          />
+          <TextField
+            label="Distance"
+            type="number"
+            fullWidth
+            value={selectedNode.distance ?? selectedNode.object3D?.distance ?? 5}
+            onChange={(e) =>
+              patch({
+                distance: parseFloat(e.target.value),
+                object3DProps: { distance: parseFloat(e.target.value) },
+              })
+            }
+            style={{ marginTop: 16 }}
+          />
+          <TextField
+            label="Penumbra"
+            type="number"
+            fullWidth
+            inputProps={{ min: 0, max: 1, step: 0.01 }}
+            value={selectedNode.penumbra ?? selectedNode.object3D?.penumbra ?? 0.6}
+            onChange={(e) =>
+              patch({
+                penumbra: parseFloat(e.target.value),
+                object3DProps: { penumbra: parseFloat(e.target.value) },
+              })
+            }
+            style={{ marginTop: 16 }}
+          />
+        </>
+      )}
+
+      {selectedNode?.type === "PointLight" && (
+        <>
+          <TextField
+            label="Color"
+            type="color"
+            fullWidth
+            value={selectedNode.color ?? selectedNode.object3D?.color.getHexString() ?? "#ffffff"}
+            onChange={(e) => {
+              const colorStr = e.target.value;
+              patch({
+                color: colorStr,
+                object3DProps: { color: new Color(colorStr) },
+              });
+            }}
+            style={{ marginTop: 16 }}
+          />
+          <TextField
+            label="Intensity"
+            type="number"
+            fullWidth
+            value={selectedNode.intensity ?? selectedNode.object3D?.intensity ?? 0.25}
+            onChange={(e) =>
+              patch({
+                intensity: parseFloat(e.target.value),
+                object3DProps: { intensity: parseFloat(e.target.value) },
               })
             }
             style={{ marginTop: 16 }}
