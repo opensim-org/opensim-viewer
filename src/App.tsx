@@ -1,6 +1,5 @@
 import ModelViewPage from './components/pages/ModelViewPage'
 import { observer } from 'mobx-react'
-import viewerState from './state/ViewerState'
 //import { Amplify } from 'aws-amplify';
 import type { WithAuthenticatorProps } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
@@ -35,6 +34,7 @@ const useDeviceOrientation = () => {
 
 function App({ signOut, user }: WithAuthenticatorProps) {
   const { t } = useTranslation();
+
   const isPortrait = useDeviceOrientation();
   const isSmallScreen = useMediaQuery('(max-width:600px)');
   const elementRef = useRef(null);
@@ -66,7 +66,7 @@ function App({ signOut, user }: WithAuthenticatorProps) {
     if (cssParam === 'gui') {
       setDisplayAppBar('none')
     }
-  }, []);
+  }, [viewerState]);
 
     // On file system we'll have a folder per model containing cached/versioned gltf, possibly .osim file, data files, display 
     // preferences

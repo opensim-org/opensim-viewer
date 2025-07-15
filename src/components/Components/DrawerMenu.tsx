@@ -46,9 +46,9 @@ type DrawerMenuProps = {
 }
 
 function DrawerMenu(props :DrawerMenuProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation();  
   const theme = useTheme();
-   const viewerState = useModelContext().viewerState;
+  const viewerState = useModelContext().viewerState;
   const isExtraSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('xs'));
   const isSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('sm'));
   const isMediumScreen = useMediaQuery((theme:any) => theme.breakpoints.only('md'));

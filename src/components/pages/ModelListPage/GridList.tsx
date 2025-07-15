@@ -9,7 +9,7 @@ import { Bounds, Environment } from '@react-three/drei'
 import Typography from '@mui/material/Typography'
 
 import OpenSimControl from '../../Components/OpenSimControl'
-import OpenSimScene from '../../Components/OpenSimScene'
+import OpenSimScene  from '../../Components/OpenSimScene'
 import { ModelMetadataType } from './ModelListPage'
 import { NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -37,7 +37,7 @@ const GridList = ({ modelMetadata }: GridListProps) => {
                                     attach="background"
                                     args={theme.palette.mode === 'dark' ? ['#151518'] : ['#aaaaaa']}
                                 />
-                                <Environment files="/builtin/potsdamer_platz_1k.hdr"/>
+                                <Environment files="/assets/potsdamer_platz_1k.hdr"/>
                                 <Bounds fit clip>
                                     <OpenSimScene currentModelPath={element.path} supportControls={false}/>
                                 </Bounds>

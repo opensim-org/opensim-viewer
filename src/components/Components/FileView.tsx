@@ -8,8 +8,8 @@ import { useModelContext } from '../../state/ModelUIStateContext';
 
 function FileView() {
   const { t } = useTranslation();
-   const viewerState = useModelContext().viewerState;
-   
+  const curState = useModelContext();
+  const viewerState = curState.viewerState;
     const downloadFile = () => {
       // Create a URL for the Blob
       const url = viewerState.currentModelPath;

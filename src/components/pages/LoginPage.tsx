@@ -3,7 +3,6 @@ import { NavLink } from 'react-router-dom'
 import { Container, Typography, TextField, Button } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import viewerState from '../../state/ViewerState';
 import { Auth  } from 'aws-amplify';
 import { useModelContext } from '../../state/ModelUIStateContext';
 
@@ -13,6 +12,8 @@ interface LoginPageProps {
 
 const LoginPage: React.FC<LoginPageProps> = ({ isLoggedIn }) => {
     const { t } = useTranslation();
+    const viewerState = useModelContext().viewerState;
+    
     const navigate = useNavigate();
     const curState = useModelContext();
     

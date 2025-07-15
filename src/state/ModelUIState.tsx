@@ -1,7 +1,8 @@
 import { makeObservable, observable, action } from 'mobx'
 import SceneTreeModel from '../helpers/SceneTreeModel'
 import { AnimationClip } from 'three/src/animation/AnimationClip'
-import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
+import { Camera, PerspectiveCamera } from 'three'
+import { Light } from 'three'
 import { Box3, Object3D, QuaternionKeyframeTrack, Scene, Vector3, VectorKeyframeTrack } from 'three'
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
 import { CommandFactory } from './commands/CommandFactory'
@@ -46,7 +47,6 @@ export class KeyFrameProps {
     }
 }
 export class ModelUIState {
-    currentModelPath: string
     scene: Scene | null
     isGuiMode: boolean
     zooming: boolean
@@ -60,7 +60,8 @@ export class ModelUIState {
     animationSpeed: number
     animations: AnimationClip[]
     currentAnimationIndex: number
-    cameras: PerspectiveCamera[]
+    cameras: Camera[]
+    lights: Light[]
     targets: Vector3[]
     startCameraIndex: number
     currentCameraIndex: number
@@ -72,6 +73,7 @@ export class ModelUIState {
     currentFrame: number
     last_message_uuid: string
     modelInfo: ModelInfo = new ModelInfo()
+    viewerState: ViewerState
     modelDictionary: { [key: string]: Object3D } = {}
     nodeDictionary: { [key: string]: Object3D } = {}
     selectableTypes: string[] = []
@@ -81,12 +83,10 @@ export class ModelUIState {
     fitToBox: Box3 | null
     guiKnobs: string
     debug: boolean
-    viewerState: ViewerState
     recordingKeyFrames: boolean
     constructor(
         currentModelPathState: string
     ) {
-        this.currentModelPath = currentModelPathState
         this.scene = null
         this.isGuiMode = true
         this.zooming = false
@@ -100,6 +100,7 @@ export class ModelUIState {
         this.animations = []
         this.currentAnimationIndex = -1
         this.cameras = []
+        this.lights = []
         this.targets = []
         //this.keyframes = []
         this.startCameraIndex = -1
@@ -118,9 +119,8 @@ export class ModelUIState {
         this.guiKnobs = ""
         this.debug = false
         this.recordingKeyFrames = false
-        this.viewerState = new ViewerState('', '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false);
+        this.viewerState = new ViewerState(currentModelPathState, '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false);
         makeObservable(this, {
-            currentModelPath: observable,
             zooming: observable,
             showGlobalFrame: observable,
             setCurrentModelPath: action,
@@ -132,6 +132,7 @@ export class ModelUIState {
             setAnimationList: action,
             setAnimationSpeed: action,
             cameras: observable,
+            lights: observable,
             setCamerasList: action,
             selected: observable,
             setSelected: action,
@@ -158,9 +159,9 @@ export class ModelUIState {
         };
     }
     addModelFromPath(newJsonFile: string) {
-        let oldPath = this.currentModelPath
+        let oldPath = this.viewerState.currentModelPath
         if (oldPath !== newJsonFile){
-            this.currentModelPath = newJsonFile
+            this.viewerState.currentModelPath = newJsonFile
             this.sceneTree = null;
             this.cameraLayersMask = -1
             this.animating = false
@@ -192,15 +193,17 @@ export class ModelUIState {
     }
     
     setCurrentModelPath(newPath: string) {
-        let oldPath = this.currentModelPath
+        let oldPath = this.viewerState.currentModelPath
         if (oldPath !== newPath){
-            this.currentModelPath = newPath
+            this.viewerState.currentModelPath = newPath
             this.sceneTree = null;
             this.cameraLayersMask = -1
             this.animating = false
             this.animationSpeed = 1
             this.animations = []
             this.currentAnimationIndex = -1
+            this.cameras = []
+            this.lights = []
             this.cameras = []
             this.targets = []
             this.currentCameraIndex = -1
@@ -242,8 +245,11 @@ export class ModelUIState {
     setAnimationList(animations: AnimationClip[]) {
         this.animations=animations
     }
-    setCamerasList(cameras: PerspectiveCamera[]) {
+    setCamerasList(cameras: Camera[]) {
         this.cameras=cameras
+    }
+    setLightsList(lights: Light[]) {
+      this.lights = lights
     }
     setAnimationSpeed(newSpeed: number) {
         this.animationSpeed = newSpeed
@@ -254,7 +260,7 @@ export class ModelUIState {
     restoreCamera() {
         this.handleKey('r')
     }
-    setSelected(uuid: string, notifyGUI: boolean) {
+    setSelected(uuid: string, notifyGUI: boolean = false) {
         if (this.selected !== uuid) {
             this.deSelected = this.selected
             this.selected = uuid

@@ -2,7 +2,6 @@ import * as React from "react";
 import { useEffect, useRef } from "react";
 
 import { observer } from "mobx-react";
-import viewerState from "../../state/ViewerState";
 
 import { useThree } from '@react-three/fiber';
 
@@ -26,6 +25,7 @@ type VideoRecorderViewProps = {
 
 function VideoRecorder(props :VideoRecorderViewProps) {
   const { t } = useTranslation();
+  const viewerState = useModelContext().viewerState;
   const { gl } = useThree();
   const curState = useModelContext();
   
@@ -114,7 +114,7 @@ function VideoRecorder(props :VideoRecorderViewProps) {
       startRecording,
       stopRecording,
     };
-  }, [props.videoRecorderRef, gl.domElement, enqueueSnackbar, closeSnackbar, t, curState.viewerState]);
+  }, [props.videoRecorderRef, gl.domElement, enqueueSnackbar, closeSnackbar, t, viewerState]);
 
   return null;
 }

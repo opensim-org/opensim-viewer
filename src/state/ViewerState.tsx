@@ -1,7 +1,7 @@
 import { makeObservable, observable, action, runInAction } from 'mobx'
 import { Color, Vector3 } from 'three'
 
-class ViewerState {
+export class ViewerState {
     currentModelPath: string
     featuredModelsFilePath: string
     dark: boolean
@@ -16,8 +16,8 @@ class ViewerState {
     isProcessingVideo: boolean
     user_uuid: string
     // user preferences
-    // userPreferencesJsonPath: string = ''
-    // userPreferences: any = null
+    userPreferencesJsonPath: string = ''
+    userPreferences: any = null
     // scene options
     backgroundColor: Color
     backgroundImage: string | null
@@ -52,10 +52,10 @@ class ViewerState {
         isRecordingVideo: boolean,
         isProcessingVideo: boolean
     ) {
-        // this.userPreferences = observable({
-        //     skyTexturePath: '',
-        //     floorTexturePath: ''
-        // });
+        this.userPreferences = observable({
+            skyTexturePath: '',
+            floorTexturePath: ''
+        });
         this.currentModelPath = currentModelPathState
         this.featuredModelsFilePath = featuredModelsFilePathState
         this.dark = darkState
@@ -81,11 +81,11 @@ class ViewerState {
         this.skyVisible = false
         this.textureIndex = 0
         this.defaultFloorTextures = [
-            '/builtin/floorTextures/tile.jpg',
-            '/builtin/floorTextures/wood-floor.jpg',
-            '/builtin/floorTextures/Cobblestone.png',
-            '/builtin/floorTextures/cement.jpg',
-            '/builtin/floorTextures/grassy_d.png'
+            '/assets/floorTextures/tile.jpg',
+            '/assets/floorTextures/wood-floor.jpg',
+            '/assets/floorTextures/Cobblestone.png',
+            '/assets/floorTextures/cement.jpg',
+            '/assets/floorTextures/grassy_d.png'
         ]
         this.floorVisible = true
         this.floorRound = false
@@ -114,10 +114,10 @@ class ViewerState {
             recordedVideoName: observable,
             recordedVideoFormat: observable,
             isRecordingVideo: observable,
-            // userPreferencesJsonPath: observable,
-            // userPreferences: observable,
-            // setUserPreferencesJsonPath: action,
-            //loadUserPreferences: action,
+            userPreferencesJsonPath: observable,
+            userPreferences: observable,
+            setUserPreferencesJsonPath: action,
+            loadUserPreferences: action,
             isProcessingVideo: observable,
             setIsProcessingVideo: action,
             setIsRecordingVideo: action,
@@ -135,6 +135,7 @@ class ViewerState {
             lightIntensity: observable,
             lightColor: observable,
             spotLight: observable,
+            setIsLocalUpload: action,
             rotating: observable,
             setRotating: action
         })
@@ -198,6 +199,9 @@ class ViewerState {
     setFloorTextureIndex(newIndex: number) {
         this.textureIndex = newIndex
     }
+    setLightIntensity(newLight: number) {
+        this.lightIntensity = newLight
+    }
     setSkyTextureIndex(newIndex: number) {
         this.skyTextureIndex = newIndex
         if (newIndex === -1) 
@@ -208,30 +212,29 @@ class ViewerState {
     setRotating(newState: boolean) {
         this.rotating = newState
     }
-    // setUserPreferencesJsonPath(path: string) {
-    //   this.userPreferencesJsonPath = path
-    // }
+    setUserPreferencesJsonPath(path: string) {
+      this.userPreferencesJsonPath = path
+    }
 
-    // async loadUserPreferences() {
-    //     try {
-    //         const response = await fetch(this.userPreferencesJsonPath);
-    //         if (!response.ok) throw new Error(`Failed to load preferences from ${this.userPreferencesJsonPath}`);
-    //         const data = await response.json();
+    async loadUserPreferences() {
+        try {
+            const response = await fetch(this.userPreferencesJsonPath);
+            if (!response.ok) throw new Error(`Failed to load preferences from ${this.userPreferencesJsonPath}`);
+            const data = await response.json();
 
-    //         runInAction(() => {
-    //             // Update the observable properties
-    //             if (data['sky-texture-path']) {
-    //                 this.userPreferences.skyTexturePath = data['sky-texture-path'];
-    //             }
-    //             if (data['floor-texture-path']) {
-    //                 this.userPreferences.floorTexturePath = data['floor-texture-path'];
-    //             }
-    //         });
-    //     } catch (error) {
-    //         console.error("Error loading user preferences:", error);
-    //     }
-    // }
+            runInAction(() => {
+                // Update the observable properties
+                if (data['sky-texture-path']) {
+                    this.userPreferences.skyTexturePath = data['sky-texture-path'];
+                }
+                if (data['floor-texture-path']) {
+                    this.userPreferences.floorTexturePath = data['floor-texture-path'];
+                }
+            });
+        } catch (error) {
+            console.error("Error loading user preferences:", error);
+        }
+    }
 }
 
-//const viewerState = new ViewerState('/builtin/leg39.json', '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false)
 export default ViewerState

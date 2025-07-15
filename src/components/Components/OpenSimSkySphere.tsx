@@ -1,34 +1,30 @@
 import { useTexture } from '@react-three/drei';
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import * as THREE from 'three';
-import { useModelContext } from '../../state/ModelUIStateContext';
 import { observer } from 'mobx-react';
-import { useFrame } from '@react-three/fiber';
+import { useModelContext } from '../../state/ModelUIStateContext';
 
-const SkySphere = () => {  
-  
-  const viewerState = useModelContext().viewerState;
+interface SkySphereProps {
+  texturePath?: string;
+}
+
+const SkySphere: React.FC<SkySphereProps> = observer(({ texturePath }) => {
   // Load 360 sky texture
-  const [skyTexture, setCurrentTexture] = useState<THREE.Texture>()
-  
+  const curState = useModelContext();
+  const viewerState = curState.viewerState
+  const skyTexture = useTexture(viewerState.defaultSkyTextures[viewerState.skyTextureIndex]);
   const skySphereRef = useRef<THREE.Mesh>(null);
-  const [currentTextureIndex, setTextureIndex] = useState<number>(viewerState.skyTextureIndex);
 
-  const skyGeometry = new THREE.SphereGeometry(20, 60, 40);
+  const skyGeometry = new THREE.SphereGeometry(50, 60, 40);
   const skyMaterial = new THREE.MeshBasicMaterial({
     map: skyTexture,
     side: THREE.BackSide,
     depthWrite: false,
   });
-  useFrame((state, delta) => {
-    if (currentTextureIndex !== viewerState.skyTextureIndex) {
-      setTextureIndex(viewerState.skyTextureIndex)
-      if (viewerState.skyTextureIndex >= 0)
-        setCurrentTexture(new THREE.TextureLoader().load(viewerState.defaultSkyTextures[viewerState.skyTextureIndex]));
-    }
-  });
+
   return (
     <mesh
+      name="SkySphere"
       ref={skySphereRef}
       geometry={skyGeometry}
       material={skyMaterial}
@@ -36,6 +32,6 @@ const SkySphere = () => {
       visible={viewerState.skyVisible}
     />
   );
-};
+});
 
-export default observer(SkySphere);
+export default SkySphere;

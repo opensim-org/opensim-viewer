@@ -3,7 +3,6 @@ import { observer } from 'mobx-react';
 import { useLocalObservable } from 'mobx-react-lite';
 import { Paper, Typography, LinearProgress } from '@mui/material';
 import { useTranslation } from 'react-i18next'
-import viewerState from '../../state/ViewerState';
 import { useNavigate, useLocation  } from 'react-router-dom';
 import { Storage } from "@aws-amplify/storage"
 import * as AWS from 'aws-sdk';

@@ -14,7 +14,6 @@ import ThreeDRotationIcon from '@mui/icons-material/ThreeDRotation';
 import GridViewIcon from '@mui/icons-material/GridView';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
-import viewerState from '../../state/ViewerState';
 import { NavLink } from 'react-router-dom';
 import Tooltip from '@mui/material/Tooltip';
 import { useTranslation } from 'react-i18next';
@@ -33,6 +32,8 @@ interface OpenSimAppBarProps {
 const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn, isFullScreen, toggleFullscreen }) => {
   const { t } = useTranslation();
   const curState = useModelContext();
+  const viewerState = curState.viewerState;
+  
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const toggleDrawer = () => {
@@ -54,7 +55,7 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn, isFullS
     };
 
     checkIsUserLoggedIn();
-  }, [isLoggedIn]);
+  }, [isLoggedIn, viewerState]);
 */
   const styles = {
     drawer: {
