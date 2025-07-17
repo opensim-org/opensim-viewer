@@ -366,7 +366,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 camera={{ position: [.2, .1, .2], fov: 50 }}
               >
               <Environment files="/assets/potsdamer_platz_1k.hdr"/>
-              {/* <SceneTreeBridge onSceneReady={setScene} onCameraReady={setCamera} /> */}
+              <SceneTreeBridge onSceneReady={setScene} onCameraReady={setCamera} />
               <fog attach="fog" color="lightgray" near={1} far={10000} />
 
                 {uiState.isGuiMode?
@@ -393,7 +393,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   </>
                 )}
 
-                {/* <CameraPreview selectedCameraUuid={uiState.selected} marginRight={treeWidth}/> */}
+                <CameraPreview selectedCameraUuid={uiState.selected} marginRight={treeWidth}/>
 
               </Canvas>
 

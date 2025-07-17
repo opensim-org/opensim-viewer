@@ -38,6 +38,7 @@ export class ViewerState {
     spotLight: boolean
     // toolbar options
     rotating: boolean
+    pending_key: string
     constructor(
         currentModelPathState: string,
         featuredModelsFilePathState: string,
@@ -95,6 +96,7 @@ export class ViewerState {
         this.lightColor = new Color(0.6, 0.6, 0.6)
         this.spotLight = false
         this.rotating = false;
+        this.pending_key = ""
         makeObservable(this, {
             currentModelPath: observable,
             featuredModelsFilePath: observable,
@@ -211,6 +213,9 @@ export class ViewerState {
     }
     setRotating(newState: boolean) {
         this.rotating = newState
+    }
+    handleKey(key: string) {
+        this.pending_key = key
     }
     setUserPreferencesJsonPath(path: string) {
       this.userPreferencesJsonPath = path

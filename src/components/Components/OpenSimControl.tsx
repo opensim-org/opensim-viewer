@@ -33,23 +33,23 @@ const OpenSimControl = () => {
        }
    }
    function implementTruck(amount: number) {
-    if (controlsRef.current) {
-      const controls = controlsRef.current
+        if (controlsRef.current) {
+        const controls = controlsRef.current
 
-      // Define truck direction (e.g., rightward along camera's local X axis)
-      const truckDirection = new Vector3()
-      camera.getWorldDirection(truckDirection)
-      truckDirection.cross(camera.up).normalize() // right vector
+        // Define truck direction (e.g., rightward along camera's local X axis)
+        const truckDirection = new Vector3()
+        camera.getWorldDirection(truckDirection)
+        truckDirection.cross(camera.up).normalize() // right vector
 
-      const speed = amount
-      const offset = truckDirection.multiplyScalar(speed)
+        const speed = amount
+        const offset = truckDirection.multiplyScalar(speed)
 
-      camera.position.add(offset)
-      controls.target.add(offset)
-      controls.update()
-    }
+        camera.position.add(offset)
+        controls.target.add(offset)
+        controls.update()
+        }
    }
-    function implementTruckUpDn(amount: number) {
+   function implementTruckUpDn(amount: number) {
         if (controlsRef.current) {
         const controls = controlsRef.current
 
@@ -65,7 +65,7 @@ const OpenSimControl = () => {
         controls.target.add(offset)
         controls.update()
         }
-    }
+   }
    function implementFitToSphere(object:Object3D) {
         if (controlsRef.current) {
             const box = new Box3().setFromObject(object)
@@ -85,8 +85,8 @@ const OpenSimControl = () => {
         }
    }
    useFrame((_, delta) => {
-        if (curState.pending_key !== "") {
-            switch (curState.pending_key) {
+        if (viewerState.pending_key !== "") {
+            switch (viewerState.pending_key) {
                 case 'i':
                 case 'I':
                     implementDolly(0.1)
@@ -130,7 +130,7 @@ const OpenSimControl = () => {
                         curState.addCamera(camera as PerspectiveCamera, controlTarget)
                     }
             }
-            curState.pending_key = "";
+            viewerState.pending_key = "";
         }
         else if (curState.takeSnapshot){
             if (curState.snapshotProps.size_choice==="screen"){
@@ -261,20 +261,9 @@ const OpenSimControl = () => {
     return <>
         {curState.draggable && <TransformControls object={curState.selectedObject!} onMouseUp={completeTransform}/>}
         <OrbitControls ref={controlsRef} camera={camera} makeDefault />
-        
     </>
 }
 /*
-export default observer(OpenSimControl)
-import { OrbitControls } from '@react-three/drei'
-import { observer } from 'mobx-react'
-import { useModelContext } from '../../state/ModelUIStateContext';
-import { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
-
-import { useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useRef, useState } from 'react'
-import { Box3, Object3D, PerspectiveCamera, Sphere, Vector3 } from 'three';
-
 const OpenSimControl = () => {
     const {
         gl, // WebGL renderer
@@ -287,67 +276,7 @@ const OpenSimControl = () => {
    const viewerState = useModelContext().viewerState;
    const [cameraIndex, setCameraIndex] = useState<number>(-1)
    const controlsRef = useRef<OrbitControlsImpl | null>(null)
-   function implementDolly(amount: number) {
-        if (controlsRef.current) {
-            const target = controlsRef.current.target
-            const direction = new Vector3()
-            direction.subVectors(target, camera.position).normalize()
-            camera.position.addScaledVector(direction, amount)
-            controlsRef.current.update();
-       }
-   }
-   function implementTruck(amount: number) {
-    if (controlsRef.current) {
-      const controls = controlsRef.current
 
-      // Define truck direction (e.g., rightward along camera's local X axis)
-      const truckDirection = new Vector3()
-      camera.getWorldDirection(truckDirection)
-      truckDirection.cross(camera.up).normalize() // right vector
-
-      const speed = amount
-      const offset = truckDirection.multiplyScalar(speed)
-
-      camera.position.add(offset)
-      controls.target.add(offset)
-      controls.update()
-    }
-   }
-    function implementTruckUpDn(amount: number) {
-        if (controlsRef.current) {
-        const controls = controlsRef.current
-
-        // Define truck direction (e.g., rightward along camera's local X axis)
-        const truckDirection = new Vector3()
-        camera.getWorldDirection(truckDirection)
-        truckDirection.cross(new Vector3(1, 0, 0)).normalize() // fwd vector
-
-        const speed = amount
-        const offset = truckDirection.multiplyScalar(speed)
-
-        camera.position.add(offset)
-        controls.target.add(offset)
-        controls.update()
-        }
-    }
-    function implementFitToSphere(object:Object3D) {
-        if (controlsRef.current) {
-            const box = new Box3().setFromObject(object)
-            const sphere = box.getBoundingSphere(new Sphere())
-
-            // Position camera
-            const fov = (camera as PerspectiveCamera).fov * Math.PI / 180
-            const distance = (sphere.radius * 1.1) / Math.sin(fov / 2)
-
-            const direction = new Vector3()
-            .subVectors(camera.position, controlsRef.current.target)
-            .normalize()
-
-            camera.position.copy(sphere.center).add(direction.multiplyScalar(distance))
-            controlsRef.current.target.copy(sphere.center)
-            controlsRef.current.update()
-        }
-   }
    function fitToModels() {
         const useScene = curState.scene;
         useScene?.traverse((object: Object3D) => {

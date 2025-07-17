@@ -51,7 +51,6 @@ export class ModelUIState {
     isGuiMode: boolean
     zooming: boolean
     zoom_inOut: number
-    pending_key: string
     takeSnapshot: boolean
     snapshotProps: SnapshotProps = new SnapshotProps()
     showGlobalFrame: boolean
@@ -91,7 +90,6 @@ export class ModelUIState {
         this.isGuiMode = true
         this.zooming = false
         this.zoom_inOut = 0.0
-        this.pending_key = ""
         this.takeSnapshot = false
         this.showGlobalFrame = false
         this.sceneTree = null
@@ -217,10 +215,10 @@ export class ModelUIState {
         this.zoom_inOut = inOut
         if (this.zooming){
             if (inOut > 1.) {
-                this.handleKey('i')
+                this.viewerState.handleKey('i')
             }
             else {
-                this.handleKey('o')
+                this.viewerState.handleKey('o')
             }
         }
     }
@@ -253,12 +251,6 @@ export class ModelUIState {
     }
     setAnimationSpeed(newSpeed: number) {
         this.animationSpeed = newSpeed
-    }
-    saveCamera() {
-        this.handleKey('s')
-    }
-    restoreCamera() {
-        this.handleKey('r')
     }
     setSelected(uuid: string, notifyGUI: boolean = false) {
         if (this.selected !== uuid) {
@@ -472,9 +464,6 @@ export class ModelUIState {
         if (this.socket !== null)
         this.socket!.send(json);
     }
-    handleKey(key: string) {
-        this.pending_key = key
-    }
     setSkyboxImage(skyboxName: string) {
         this.useSkybox = skyboxName
     }
@@ -512,7 +501,7 @@ export class ModelUIState {
             // this.setAnimationList(this.animations.concat(targetClip))
         }
         else {// If turning on recording, capture first camera key frame
-            this.pending_key = 'c'
+            this.viewerState.pending_key = 'c'
             this.startCameraIndex = this.cameras.length
         }
     }

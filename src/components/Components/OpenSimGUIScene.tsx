@@ -3,7 +3,7 @@ import { ThreeEvent, useFrame, useLoader, useThree } from '@react-three/fiber'
 import * as THREE from 'three';
 
 import { useEffect, useRef, useState } from 'react'
-import { AnimationMixer, Color, Group, Mesh, Object3D} from 'three'
+import { AnimationMixer, Color, DirectionalLightHelper, Group, Mesh, Object3D, SpotLightHelper} from 'three'
 import { observer } from 'mobx-react'
 
 import { useModelContext } from '../../state/ModelUIStateContext'
@@ -21,6 +21,8 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     // useGLTF suspends the component, it literally stops processing
     const { set, gl} = useThree();
+    const dirLightHelperRef = useRef<DirectionalLightHelper | null>(null);
+    const spotLightHelperRef = useRef<SpotLightHelper | null>(null);
     const { scene, camera, controls } = useThree();
     const viewerState = useModelContext().viewerState;
 
@@ -39,8 +41,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     const envRef = useRef<THREE.Group>(null)
     const bboxRef = useRef<THREE.BoxHelper>(null)
     const modelsRef = useRef<THREE.Group>(null);
-    const targetRef = useRef<THREE.Mesh>(null)
-    const targetMixerRef = useRef<AnimationMixer>()
+    const camerasGroupRef = useRef<THREE.Group>(null);
 
     const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
 
@@ -121,6 +122,10 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             const cameraPers = camera as PerspectiveCamera
             cameraPers.aspect = aspectRatio;
             cameraPers.updateProjectionMatrix();
+                      // Add camera to the cameras group
+            if (camerasGroupRef.current) {
+              camerasGroupRef.current.add(camera);
+            }
         });
         // Update cameras list.
         curState.setCamerasList(cameras.map(obj => obj as PerspectiveCamera))
@@ -128,21 +133,21 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         setCurrentCamera(cameras.length > 0 ? cameras[0] as PerspectiveCamera : new PerspectiveCamera())
         curState.setCurrentCameraIndex(0)
       }
-      lightRef.current!.color = viewerState.lightColor
-      spotlightRef.current!.color = viewerState.lightColor
+      // lightRef.current!.color = viewerState.lightColor
+      // spotlightRef.current!.color = viewerState.lightColor
     }, [curState, scene, gl.domElement.clientWidth, gl.domElement, set, modelGroup, viewerState.lightColor]);
 
     
 
     useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
-          curState.handleKey(event.key);
+          viewerState.handleKey(event.key);
       };
       window.addEventListener('keydown', handleKeyDown);
       return () => {
         window.removeEventListener('keydown', handleKeyDown);
       };
-    }, [curState]);
+    }, [viewerState]);
   
   
     // This useEffect sets the current selected camera.
@@ -218,6 +223,31 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         });
         //setMixers(mixers)
     }
+    // This useEffect adds helpers to the lights.
+    useEffect(() => {
+      if (lightRef.current && scene) {
+        const helper = new DirectionalLightHelper(lightRef.current, 0.5);
+        dirLightHelperRef.current = helper;
+        scene.add(helper);
+      }
+
+      if (spotlightRef.current && scene) {
+        const helper = new SpotLightHelper(spotlightRef.current, curState.viewerState.lightColor);
+        spotLightHelperRef.current = helper;
+        scene.add(helper);
+      }
+
+      return () => {
+        if (dirLightHelperRef.current) {
+          scene.remove(dirLightHelperRef.current);
+          dirLightHelperRef.current.dispose?.();
+        }
+        if (spotLightHelperRef.current) {
+          scene.remove(spotLightHelperRef.current);
+          spotLightHelperRef.current.dispose?.();
+        }
+      };
+    }, [scene, curState.viewerState.lightColor]);
 
     useFrame((state, delta) => {
     //console.log(camera.position)
@@ -380,45 +410,39 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     // By the time we're here the model is guaranteed to be available
     return <>
-      <group name='OpenSimEnvironment' ref={envRef}>
-        <directionalLight ref={lightRef} position={[0.5, 1.5, -0.5]} 
-            intensity={viewerState.lightIntensity} color={viewerState.lightColor}
-          castShadow={true}
-          shadow-camera-far={8}
-          shadow-camera-left={-2}
-          shadow-camera-right={2}
-          shadow-camera-top={2}
-          shadow-camera-bottom={-2}/>
-        <spotLight name='SpotLight' visible={viewerState.spotLight} 
-              ref={spotlightRef} position={[0.5, 1.5, -.05]} 
-              color={viewerState.lightColor} penumbra={0.2} />
+      <group name='OpenSim Environment' ref={envRef}>
+          <group name="Cameras" ref={camerasGroupRef}></group>
+          <group name="Illumination">
+            <directionalLight name="Directional Light" ref={lightRef} position={[0.5, 1.5, -0.5]}
+              intensity={curState.viewerState.lightIntensity} color={curState.viewerState.lightColor}
+              castShadow={true}
+              shadow-camera-far={8}
+              shadow-camera-left={-2}
+              shadow-camera-right={2}
+              shadow-camera-top={2}
+              shadow-camera-bottom={-2}/>
+          </group>
         <OpenSimFloor />
-      </group>
-      <Select multiple box onChangePointerUp={handleBoxSelect} >
-        <group name='OpenSimModels' ref={modelsRef}  
-              onClick={(e)=>{ handleClick(e);}}
-              onPointerMissed={(e)=>{clearSelection();}} 
-        />
-      </Select>
-      <group name='WCS' ref={csRef}>
-        <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.2]}>
+        <group name='WCS' ref={csRef} visible={curState.showGlobalFrame}>
+          <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.2]}>
+              <cylinderGeometry args={[.005, .005, 0.4, 32]}/>
+              <meshStandardMaterial color="blue" />
+          </mesh>
+          <mesh rotation={[0, 0, 0]}  position={[0, 0.2, 0]}>
             <cylinderGeometry args={[.005, .005, 0.4, 32]}/>
-            <meshStandardMaterial color="blue" />
-        </mesh>
-        <mesh rotation={[0, 0, 0]}  position={[0, 0.2, 0]}>
-          <cylinderGeometry args={[.005, .005, 0.4, 32]}/>
-          <meshStandardMaterial color="green" />
-        </mesh>
-        <mesh rotation={[0, 0, Math.PI / 2]}  position={[0.2, 0, 0]}>
-          <cylinderGeometry args={[.005, .005, 0.4, 32]}/>
-          <meshStandardMaterial color="red" />
-        </mesh>
+            <meshStandardMaterial color="green" />
+          </mesh>
+          <mesh rotation={[0, 0, Math.PI / 2]}  position={[0.2, 0, 0]}>
+            <cylinderGeometry args={[.005, .005, 0.4, 32]}/>
+            <meshStandardMaterial color="red" />
+          </mesh>
+        </group>
       </group>
+      <group name='Models' ref={modelsRef}  
+            onClick={(e)=>{ handleClick(e);}}
+            onPointerMissed={(e)=>{clearSelection();}} 
+      />
       <boxHelper name='SelectionBox' ref={bboxRef} visible={false}/>
-      <mesh ref={targetRef} position={[0, 0, 0]} >
-        <sphereGeometry args={[.002]} />
-        <meshStandardMaterial wireframe color="white" />
-      </mesh>
       </>
 }
 

@@ -60,7 +60,7 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
         <Grid item xs={6}>
           <Tooltip title={t('bottomBar.fit')}>
             <IconButton color="primary" onClick={() => {
-              curState.handleKey('F')}}>
+              viewerState.handleKey('F')}}>
                 <FitScreenTwoToneIcon />
             </IconButton>
           </Tooltip>
