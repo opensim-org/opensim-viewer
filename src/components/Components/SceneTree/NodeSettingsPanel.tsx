@@ -393,7 +393,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
         </>
       )}
 
-      {(selectedNode?.type === "Floor" || selectedNode?.isFloor) && (
+      {(selectedNode?.nodeType === "floor") && (
         <>
           <TextField
             label="Height"
@@ -454,7 +454,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
       )}
 
 
-      {(selectedNode?.type === "SkySphere" || selectedNode?.isSkySphere) && (
+      {(selectedNode?.nodeType === "skySphere") && (
         <>
 
           <TextField

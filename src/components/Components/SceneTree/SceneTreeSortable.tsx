@@ -234,7 +234,7 @@ export const SceneTreeSortable = forwardRef<
               applyTreeToScene(newTreeData);
             }}
             theme={FileExplorerTheme}
-            canDrag={({ node }) => !node.isAddCameraButton}
+            canDrag={({ node }) => !(node.nodeType === "addCameraButton")}
             generateNodeProps={({ node, path }) => {
               const isSelected = selectedPath?.join('.') === path.join('.');
 
@@ -245,7 +245,7 @@ export const SceneTreeSortable = forwardRef<
                 onClick: (e: React.MouseEvent) => {
                   e.stopPropagation();
                   setSelectedPath(path);
-                  if (node.type?.includes('Camera')) uiState.setSelected(node.uuid);
+                  if (node.nodeType === ('camera')) uiState.setSelected(node.uuid);
                   if (setTransformTargetFunction)
                     setTransformTargetFunction(scene?.getObjectById(node.id));
 
@@ -255,25 +255,20 @@ export const SceneTreeSortable = forwardRef<
                     setSettingsNode(null); // clear settings if not editable
                   }
                 },
-                icons: node.isModel
-                  ? [<PersonIcon key="model" style={{ marginRight: 10, fontSize: 16 }} />]
-                  : node.isGroup
-                  ? [<FolderIcon key="group" style={{ marginRight: 10, fontSize: 16 }} />]
-                  : node.isCamera
-                  ? [<CameraAltIcon key="camera" style={{ marginRight: 10, fontSize: 16 }} />]
-                  : node.isLight
-                  ? [<LightbulbIcon key="light" style={{ marginRight: 10, fontSize: 16 }} />]
-                  : node.isAxes
-                  ? [<ThreeDRotationIcon key="axes" style={{ marginRight: 10, fontSize: 16 }} />]
-                  : node.isSkySphere
-                  ? [<PublicIcon key="sky" style={{ marginRight: 10, fontSize: 16 }} />]
-                  : node.isFloor
-                  ? [<GridOnIcon key="floor" style={{ marginRight: 10, fontSize: 16 }} />]
-                  : node.isAddCameraButton
-                  ? []
-                  : node.isAddLightButton
-                  ? []
-                  : [<HelpOutlineIcon key="unknown" style={{ marginRight: 10, fontSize: 16 }} />],
+                icons: (() => {
+                  switch (node.nodeType) {
+                    case "model": return [<PersonIcon key="model" />];
+                    case "group": return [<FolderIcon key="group" />];
+                    case "camera": return [<CameraAltIcon key="camera" />];
+                    case "addCameraButton": return [];
+                    case "light": return [<LightbulbIcon key="light" />];
+                    case "addLightButton": return [];
+                    case "axes": return [<ThreeDRotationIcon key="axes" />];
+                    case "skySphere": return [<PublicIcon key="sky" />];
+                    case "floor": return [<GridOnIcon key="floor" />];
+                    default: return [<HelpOutlineIcon key="unknown" />];
+                  }
+                })(),
                 title: (
                   <span
                     style={{
@@ -283,39 +278,30 @@ export const SceneTreeSortable = forwardRef<
                     }}
                   >
                     {node.title} {node.subtitle && node.subtitle !== "Group" ? "(" + node.subtitle + ")" : ""}
-                    {node.canEdit && (
+                    {!(node.type === "Group") && !(node.title === "Scene") && !(node.type === "AddButton") && (
                       <IconButton
                         size="small"
                         onClick={(e) => {
                           e.stopPropagation();
-                          node.visible = !node.visible;
-                          node.object3D.visible = node.visible;
+                          node.object3D.visible = !node.object3D.visible;
                           setTreeData([...treeData]);
                         }}
                         style={{ marginLeft: 8 }}
                       >
-                        {node.visible ? (
+                        {node.object3D.visible ? (
                           <VisibilityIcon fontSize="small" />
                         ) : (
                           <VisibilityOffIcon fontSize="small" />
                         )}
                       </IconButton>
                     )}
-                    {node.isAddCameraButton && (
-                      <IconButton
-                        size="small"
-                        onClick={() => onAddCameraClick?.(true)}
-                        style={{ padding: '4px', marginLeft: '4px' }}
-                      >
+                    {node.nodeType === "addCameraButton" && (
+                      <IconButton onClick={() => onAddCameraClick?.(true)}>
                         <AddIcon fontSize="small" />
                       </IconButton>
                     )}
-                    {node.isAddLightButton && (
-                      <IconButton
-                        size="small"
-                        onClick={() => onAddLightClick?.(true)}
-                        style={{ padding: '4px', marginLeft: '4px' }}
-                      >
+                    {node.nodeType === "addLightButton" && (
+                      <IconButton onClick={() => onAddLightClick?.(true)}>
                         <AddIcon fontSize="small" />
                       </IconButton>
                     )}
