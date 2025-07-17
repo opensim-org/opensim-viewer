@@ -359,7 +359,9 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   </>
                 )}
 
-                <CameraPreview selectedCameraUuid={uiState.selected} marginRight={treeWidth}/>
+                {uiState.selected && (
+                  <CameraPreview selectedCameraUuid={uiState.selected} marginRight={treeWidth} />
+                )}
 
               </Canvas>
 

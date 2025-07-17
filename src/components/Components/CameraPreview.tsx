@@ -44,7 +44,6 @@ export const CameraPreview: React.FC<Props> = ({
     }
   }, [scene, selectedCameraUuid]);
 
-
   useFrame(() => {
     const cam = currentCam.current ?? fallbackCam.current;
     if (!cam) return;
