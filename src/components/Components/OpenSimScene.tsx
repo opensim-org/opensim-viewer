@@ -212,6 +212,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     useEffect(() => {
       if (lightRef.current && scene) {
         const helper = new DirectionalLightHelper(lightRef.current, 0.5);
+        helper.name = "Directional Light_Helper"
         dirLightHelperRef.current = helper;
         scene.add(helper);
       }
@@ -240,8 +241,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
           if (o.name.startsWith("ColorNode")) {
             colorNodeMap.set(o.uuid, o);
           }
-          }
-      )
+        })
 
       if (objectSelectionBox !== null) {
         objectSelectionBox.visible = false;

@@ -4,7 +4,7 @@ import SortableTree, { changeNodeAtPath } from '@nosferatu500/react-sortable-tre
 import FileExplorerTheme from '@nosferatu500/theme-file-explorer';
 import '@nosferatu500/react-sortable-tree/style.css';
 
-import { IconButton, useTheme, Theme, alpha } from '@mui/material';
+import {  Menu, MenuItem, Dialog, DialogTitle, DialogActions, Button, IconButton, useTheme, Theme, alpha } from '@mui/material';
 
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
@@ -96,7 +96,13 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
     const [settingsNode, setSettingsNode] = useState<any>(null);
     const [updateNodeFn, setUpdateNodeFn] = useState<((n: any) => void) | null>(null);
 
+    const [contextMenu, setContextMenu] = useState<{ mouseX: number; mouseY: number; node: any; path: number[] } | null>(null);
+    const [nodeToDelete, setNodeToDelete] = useState<{ node: any; path: number[] } | null>(null);
+
     const outerDivRef = useRef<HTMLDivElement>(null);
+
+    const typesExcludedFromRemove = ['skySphere', 'floor', 'axes', 'group', 'model'];
+
 
     useImperativeHandle(ref, () => ({
       getWidth: () => (isOpen ? PANEL_WIDTH : 0),
@@ -218,6 +224,16 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                         setSettingsNode(null);
                       }
                     },
+                    onContextMenu: (e: React.MouseEvent) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setContextMenu({
+                        mouseX: e.clientX - 2,
+                        mouseY: e.clientY - 4,
+                        node,
+                        path,
+                      });
+                    },
                     icons: [icon],
                     title: (
                       <span style={{ marginLeft: 10, display: 'inline-flex', alignItems: 'center' }}>
@@ -253,6 +269,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                 setSelectedNode={setSettingsNode}
                 updateNodeFn={updateNodeFn}
                 uiState={uiState as ModelUIState}
+                scene={scene}
               />
             </div>
           </div>
@@ -277,6 +294,78 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
             <ChevronLeftIcon />
           </IconButton>
         )}
+
+        {/* Context Menu */}
+        <Menu
+          open={!!contextMenu}
+          onClose={() => setContextMenu(null)}
+          anchorReference="anchorPosition"
+          anchorPosition={
+            contextMenu
+              ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+              : undefined
+          }
+        >
+          <MenuItem onClick={() => { onAddCameraClick?.(contextMenu?.node); setContextMenu(null); }}>
+            Add Camera
+          </MenuItem>
+          <MenuItem onClick={() => { onAddLightClick?.(contextMenu?.node); setContextMenu(null); }}>
+            Add Light
+          </MenuItem>
+
+          {/* Conditionally render Remove Node */}
+          {contextMenu && !typesExcludedFromRemove.includes(contextMenu.node.nodeType) && (
+            <MenuItem
+              onClick={() => {
+                setNodeToDelete({ node: contextMenu.node, path: contextMenu.path });
+                setContextMenu(null);
+              }}
+            >
+              Remove Node
+            </MenuItem>
+          )}
+        </Menu>
+
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={!!nodeToDelete} onClose={() => setNodeToDelete(null)}>
+          <DialogTitle>Are you sure you want to remove this node?</DialogTitle>
+          <DialogActions>
+            <Button onClick={() => setNodeToDelete(null)}>Cancel</Button>
+            <Button
+              color="error"
+              onClick={() => {
+                if (!nodeToDelete) return;
+                const { path, node } = nodeToDelete;
+
+                // Remove helper if exists
+                const helper = scene?.getObjectByName(`${node.object3D?.name}_Helper`);
+                if (helper && helper.parent) {
+                  helper.parent.remove(helper);
+                }
+
+                // Remove object3D from scene
+                if (node.object3D && node.object3D.parent) {
+                  node.object3D.parent.remove(node.object3D);
+                }
+
+                const newTree = changeNodeAtPath({
+                  treeData,
+                  path,
+                  getNodeKey: ({ treeIndex }) => treeIndex,
+                  newNode: null,
+                });
+
+                setTreeData(newTree);
+                setNodeToDelete(null);
+              }}
+            >
+              Remove
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+
       </div>
     );
   }

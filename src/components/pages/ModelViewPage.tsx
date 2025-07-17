@@ -107,7 +107,6 @@ export const addNewCamera = (
     (camera as OrthographicCamera).updateProjectionMatrix();
   }
 
-
   const helper = new CameraHelper(camera);
   helper.name = `${name}_Helper`;
 

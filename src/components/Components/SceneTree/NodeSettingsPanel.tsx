@@ -15,6 +15,7 @@ interface NodeSettingsPanelProps {
   setSelectedNode: (node: any) => void;
   updateNodeFn: ((node: any) => void) | null;
   uiState: ModelUIState;
+  scene?: THREE.Scene | null
 }
 
 const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
@@ -22,6 +23,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
   setSelectedNode,
   updateNodeFn,
   uiState,
+  scene
 }) => {
   if (!selectedNode) {
     return (
@@ -64,7 +66,14 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
         label="Name"
         fullWidth
         value={selectedNode.title ?? selectedNode.object3D?.name ?? ""}
-        onChange={(e) => patch({ title: e.target.value })}
+        onChange={(e) => {
+          const current_name = selectedNode.title ?? selectedNode.object3D?.name ?? ""
+          const helper = scene?.getObjectByName(current_name);
+          if (helper) {
+            helper.name = e.target.value + "_Helper"
+          }
+          patch({ title: e.target.value })}
+        }
         style={{ marginBottom: 16 }}
       />
 
