@@ -5,16 +5,12 @@ export class TreeNode
   public parent: TreeNode|null; 
   public children: TreeNode[] = [];
   public name: string;
-  public id: string;
   public threeObject: Object3D|null;
-  static maxId=0
   constructor(parent: TreeNode|null, threeObj: Object3D|null, recur: boolean) 
   {
     this.parent = parent; 
     this.name=(threeObj===null)?"":(threeObj.name!==""?threeObj.name:threeObj.type);
     this.threeObject = threeObj;
-    this.id = `${TreeNode.maxId}`;
-    TreeNode.maxId = TreeNode.maxId+1;
 
     if (recur && threeObj !== null && !(threeObj.name==="WCS")){
       // construct 
