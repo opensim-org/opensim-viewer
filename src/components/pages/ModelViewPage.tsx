@@ -305,12 +305,9 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   if (urlParam!== undefined) {
     var decodedUrl = decodeURIComponent(urlParam);
     uiState.viewerState.setCurrentModelPath(decodedUrl);
-    curState.setCurrentModelPath(uiState.viewerState.currentModelPath);
     // If urlParam is not undefined, this means it is getting the model from S3 and not from local.
     uiState.viewerState.setIsLocalUpload(false);
   }
-  else
-    curState.setCurrentModelPath(uiState.viewerState.currentModelPath);
 
   function toggleOpenMenu(name: string = "") {
     // If same name, or empty just toggle.
@@ -368,10 +365,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   currentModelPath={uiState.viewerState.currentModelPath}
                   supportControls={true}
                 />}
-                <GizmoHelper alignment="bottom-right" margin={[100, 100]} 
-                onClick={
-                  (e)=>console.log(e)
-                  }>
+                <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
                   <GizmoViewport labelColor="white" />
                 </GizmoHelper>
                 <OpenSimControl/>
