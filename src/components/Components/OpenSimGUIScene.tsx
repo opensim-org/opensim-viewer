@@ -10,7 +10,6 @@ import { useModelContext } from '../../state/ModelUIStateContext'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
 import { OpenSimLoader } from '../../state/OpenSimLoader';
 import OpenSimFloor from './OpenSimFloor';
-import { Select, useSelect } from '@react-three/drei';
 
 interface OpenSimSceneProps {
     currentModelPath: string,
@@ -23,7 +22,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     const { set, gl} = useThree();
     const dirLightHelperRef = useRef<DirectionalLightHelper | null>(null);
     const spotLightHelperRef = useRef<SpotLightHelper | null>(null);
-    const { scene, camera, controls } = useThree();
+    const { scene, camera } = useThree();
     const viewerState = useModelContext().viewerState;
 
     const sceneRef = useRef<THREE.Scene>(scene);
@@ -47,14 +46,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     let curState = useModelContext();
     const modelGroup = useLoader(OpenSimLoader, currentModelPath)
-    const computeNormals = (group: Group)=>{
-      group.traverse((o) => {
-        if (o.type === "Mesh"){
-          (o as Mesh).geometry.computeVertexNormals()
-        }
-      }
-    )
-    };
+
     //computeNormals(modelGroup as Group);
     //const animations = modelGroup!.animations;
     const allAnimations = curState.animations;
@@ -357,7 +349,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         //console.log("OpenSimScene.useEffect called ", curState.currentModelPath)
         setUseEffectRunning(false)
         if (supportControls) {
-            curState.setCurrentModelPath(currentModelPath)
+            ///curState.setCurrentModelPath(currentModelPath)
             /// curState.setSceneTree(new SceneTreeModel(scene))
             ///curState.setAnimationList(animations)
         }
