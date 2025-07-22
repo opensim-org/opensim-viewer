@@ -353,7 +353,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         //console.log("OpenSimScene.useEffect called ", curState.currentModelPath)
         setUseEffectRunning(false)
         if (supportControls) {
-            curState.setCurrentModelPath(currentModelPath)
+            ///curState.setCurrentModelPath(currentModelPath)
             ///curState.setSceneTree(new SceneTreeModel(scene))
             curState.setAnimationList(animations)
         }

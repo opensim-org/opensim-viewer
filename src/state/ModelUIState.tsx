@@ -120,7 +120,6 @@ export class ModelUIState {
         makeObservable(this, {
             zooming: observable,
             showGlobalFrame: observable,
-            setCurrentModelPath: action,
             setZooming: action,
             draggable: observable,
             setShowGlobalFrame: action,
@@ -177,24 +176,6 @@ export class ModelUIState {
         return Object.keys(this.modelDictionary).length;
     }
     
-    setCurrentModelPath(newPath: string) {
-        let oldPath = this.viewerState.currentModelPath
-        if (oldPath !== newPath){
-            this.viewerState.currentModelPath = newPath
-            this.sceneTree = null;
-            this.cameraLayersMask = -1
-            this.animating = false
-            this.animationSpeed = 1
-            this.animations = []
-            this.currentAnimationIndex = -1
-            this.cameras = []
-            this.lights = []
-            this.cameras = []
-            this.targets = []
-            this.currentCameraIndex = -1
-        }
-    }
-
     setZooming(newState: boolean) {
         this.zooming = newState
     }

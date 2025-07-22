@@ -208,7 +208,9 @@ const OpenSimControl = () => {
        function fitToModels(transition: boolean) {
            const useScene = curState.scene;
            useScene?.traverse((object: Object3D) => {
-               if (object.type === "Group" && object.name === "OpenSimModels") {
+               if ((object.type === "Group" && object.name === "OpenSimModels") ||
+                (object.type === "Group" && object.name === "Models")
+               ) {
                    implementFitToSphere(object);
                }
            });

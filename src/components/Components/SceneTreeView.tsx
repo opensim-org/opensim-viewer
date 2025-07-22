@@ -6,7 +6,7 @@ import { observer } from 'mobx-react';
 import { useModelContext } from '../../state/ModelUIStateContext';
 import SceneTreeModelGUI from '../../helpers/SceneTreeModelGUI';
 import { TreeItem } from '@mui/x-tree-view/TreeItem';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 
 function MinusSquare(props: SvgIconProps) {
@@ -16,16 +16,16 @@ function MinusSquare(props: SvgIconProps) {
         <path d="M22.047 22.074v0 0-20.147 0h-20.12v0 20.147 0h20.12zM22.047 24h-20.12q-.803 0-1.365-.562t-.562-1.365v-20.147q0-.776.562-1.351t1.365-.575h20.147q.776 0 1.351.575t.575 1.351v20.147q0 .803-.575 1.365t-1.378.562v0zM17.873 11.023h-11.826q-.375 0-.669.281t-.294.682v0q0 .401.294 .682t.669.281h11.826q.375 0 .669-.281t.294-.682v0q0-.401-.294-.682t-.669-.281z" />
       </SvgIcon>
     );
-  }
+}
 
-  function PlusSquare(props: SvgIconProps) {
-    return (
-      <SvgIcon fontSize="inherit" style={{ width: 14, height: 14 }} {...props}>
-        {/* tslint:disable-next-line: max-line-length */}
-        <path d="M22.047 22.074v0 0-20.147 0h-20.12v0 20.147 0h20.12zM22.047 24h-20.12q-.803 0-1.365-.562t-.562-1.365v-20.147q0-.776.562-1.351t1.365-.575h20.147q.776 0 1.351.575t.575 1.351v20.147q0 .803-.575 1.365t-1.378.562v0zM17.873 12.977h-4.923v4.896q0 .401-.281.682t-.682.281v0q-.375 0-.669-.281t-.294-.682v-4.896h-4.923q-.401 0-.682-.294t-.281-.669v0q0-.401.281-.682t.682-.281h4.923v-4.896q0-.401.294-.682t.669-.281v0q.401 0 .682.281t.281.682v4.896h4.923q.401 0 .682.281t.281.682v0q0 .375-.281.669t-.682.294z" />
-      </SvgIcon>
-    );
-  }
+function PlusSquare(props: SvgIconProps) {
+  return (
+    <SvgIcon fontSize="inherit" style={{ width: 14, height: 14 }} {...props}>
+      {/* tslint:disable-next-line: max-line-length */}
+      <path d="M22.047 22.074v0 0-20.147 0h-20.12v0 20.147 0h20.12zM22.047 24h-20.12q-.803 0-1.365-.562t-.562-1.365v-20.147q0-.776.562-1.351t1.365-.575h20.147q.776 0 1.351.575t.575 1.351v20.147q0 .803-.575 1.365t-1.378.562v0zM17.873 12.977h-4.923v4.896q0 .401-.281.682t-.682.281v0q-.375 0-.669-.281t-.294-.682v-4.896h-4.923q-.401 0-.682-.294t-.281-.669v0q0-.401.281-.682t.682-.281h4.923v-4.896q0-.401.294-.682t.669-.281v0q.401 0 .682.281t.281.682v4.896h4.923q.401 0 .682.281t.281.682v0q0 .375-.281.669t-.682.294z" />
+    </SvgIcon>
+  );
+}
 
   function CloseSquare(props: SvgIconProps) {
     return (
@@ -42,7 +42,7 @@ function MinusSquare(props: SvgIconProps) {
   }
 
 const renderTree = (nodes: TreeNode): JSX.Element => (
-  <TreeItem key={nodes.id} nodeId={nodes.id} label={nodes.name}>
+  <TreeItem key={nodes.threeObject!.uuid} nodeId={nodes.threeObject!.uuid} label={nodes.name}>
     {Array.isArray(nodes.children)
       ? nodes.children.map((child) => renderTree(child))
       : null}
@@ -50,24 +50,23 @@ const renderTree = (nodes: TreeNode): JSX.Element => (
 );
 
 const SceneTreeView  = ()  => {
-  const curState = useModelContext();
+    const curState = useModelContext();
 
-   function createTreeItemForNode(anode: TreeNode, index: number) {
-        let computeId = (3+index);
-        let threeObj = anode.threeObject;
-        //console.log(threeObj);
-        return <SceneTreeItem nodeId={threeObj!.uuid} label={anode.name} key={computeId} />
-    }
     const handleSelect = async (event: any, node: any) => {
       //console.log('nodeId: ', node)
       curState.setSelected(node as string, false);
     }
+
     const sTree = curState.sceneTree
     if (sTree === null && curState.scene !== null) {
       // console.log(curState.scene);
       curState.setSceneTree(new SceneTreeModelGUI(curState.scene!));
-      
     }
+
+    useEffect(() => {
+      curState.setSceneTree(new SceneTreeModelGUI(curState.scene!));
+    }, [curState, curState.sceneTree])
+
     return (
         <TreeView
             aria-label="file system navigator"
