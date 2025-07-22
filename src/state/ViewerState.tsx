@@ -111,6 +111,8 @@ export class ViewerState {
             setRecordedVideoName: action,
             setRecordedVideoFormat: action,
             setIsLoggedIn: action,
+            setFloorHeight: action,
+            setFloorRound: action,
             snapshotName: observable,
             snapshotFormat: observable,
             recordedVideoName: observable,
@@ -200,6 +202,12 @@ export class ViewerState {
     }
     setFloorTextureIndex(newIndex: number) {
         this.textureIndex = newIndex
+    }
+    setFloorHeight(newHeight: number) {
+        this.floorHeight = newHeight
+    }
+    setFloorRound(isRound: boolean) {
+      this.floorRound = isRound
     }
     setLightIntensity(newLight: number) {
         this.lightIntensity = newLight

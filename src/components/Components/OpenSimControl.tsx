@@ -320,6 +320,10 @@ const OpenSimControl = () => {
             camera.position.copy(newCamera.position)
             camera.quaternion.copy(newCamera.quaternion)
             camera.zoom = (newCamera as PerspectiveCamera).zoom;
+            (camera as PerspectiveCamera).fov = (newCamera as PerspectiveCamera).fov;
+            (camera as PerspectiveCamera).near = (newCamera as PerspectiveCamera).near;
+            (camera as PerspectiveCamera).far = (newCamera as PerspectiveCamera).far;
+
             camera.updateProjectionMatrix();
             controlsRef.current!.update()
         }

@@ -1,9 +1,13 @@
-import TreeView from '@mui/lab/TreeView'; 
+import { TreeView } from '@mui/x-tree-view/TreeView'; 
 import SvgIcon, { SvgIconProps } from '@mui/material/SvgIcon';
 import SceneTreeItem from './SceneTreeItem';
 import SceneTreeModel, { TreeNode } from '../../helpers/SceneTreeModel';
 import { observer } from 'mobx-react';
 import { useModelContext } from '../../state/ModelUIStateContext';
+import SceneTreeModelGUI from '../../helpers/SceneTreeModelGUI';
+import { TreeItem } from '@mui/x-tree-view/TreeItem';
+import { useState } from 'react';
+
 
 function MinusSquare(props: SvgIconProps) {
     return (
@@ -37,9 +41,18 @@ function MinusSquare(props: SvgIconProps) {
     );
   }
 
+const renderTree = (nodes: TreeNode): JSX.Element => (
+  <TreeItem key={nodes.id} nodeId={nodes.id} label={nodes.name}>
+    {Array.isArray(nodes.children)
+      ? nodes.children.map((child) => renderTree(child))
+      : null}
+  </TreeItem>
+);
+
 const SceneTreeView  = ()  => {
   const curState = useModelContext();
-    function createTreeItemForNode(anode: TreeNode, index: number) {
+
+   function createTreeItemForNode(anode: TreeNode, index: number) {
         let computeId = (3+index);
         let threeObj = anode.threeObject;
         //console.log(threeObj);
@@ -52,10 +65,9 @@ const SceneTreeView  = ()  => {
     const sTree = curState.sceneTree
     if (sTree === null && curState.scene !== null) {
       // console.log(curState.scene);
-      ///curState.setSceneTree(new SceneTreeModel(curState.scene!));
+      curState.setSceneTree(new SceneTreeModelGUI(curState.scene!));
+      
     }
-    const meshesNode = (sTree === null)? null: sTree.rootNode?.children[0]
-    const meshesArray = (sTree === null)? null: meshesNode?.children;
     return (
         <TreeView
             aria-label="file system navigator"
@@ -66,11 +78,7 @@ const SceneTreeView  = ()  => {
             onNodeSelect={handleSelect}
             selected={curState.selected}
         >
-            <SceneTreeItem  nodeId="1" label={sTree?.rootNode?.name} key={1} >
-                <SceneTreeItem  nodeId="2" label={sTree?.rootNode?.children[0].name} key={2}>
-                    {meshesArray?.map(createTreeItemForNode, meshesArray)}
-                </SceneTreeItem>
-            </SceneTreeItem>
+        {renderTree(curState.sceneTree?.rootNode!) }
         </TreeView>
     );
 }

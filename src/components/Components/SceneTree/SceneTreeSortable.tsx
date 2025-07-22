@@ -1,21 +1,13 @@
-import React, {
-  useEffect,
-  useState,
-  useRef,
-  forwardRef,
-  useImperativeHandle,
-} from 'react';
-import SortableTree from '@nosferatu500/react-sortable-tree';
-import '@nosferatu500/react-sortable-tree/style.css';
-import { convertSceneToTree } from '../../../helpers/sceneToTree';
+import React, { useEffect, useState, useRef, forwardRef, useImperativeHandle } from 'react';
+
+import SortableTree, { changeNodeAtPath } from '@nosferatu500/react-sortable-tree';
 import FileExplorerTheme from '@nosferatu500/theme-file-explorer';
-import {
-  IconButton,
-  useTheme,
-  Theme,
-  alpha,
-} from '@mui/material';
-import SettingsIcon from '@mui/icons-material/Settings';
+import '@nosferatu500/react-sortable-tree/style.css';
+
+import { IconButton, useTheme, Theme, alpha } from '@mui/material';
+
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import PersonIcon from '@mui/icons-material/Person';
 import FolderIcon from '@mui/icons-material/Folder';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
@@ -28,8 +20,11 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
+import { convertSceneToTree } from '../../../helpers/sceneToTree';
 import { useModelContext } from '../../../state/ModelUIStateContext';
 import { ModelUIState } from '../../../state/ModelUIState';
+
+import NodeSettingsPanel from "./NodeSettingsPanel";
 
 import './SceneTreeSortable.css';
 
@@ -40,7 +35,6 @@ interface SceneTreeSortableProps {
   camera: THREE.Camera | null;
   height: string;
   sceneVersion?: number;
-  onSettingsClick?: (node: any, updateNode: (updatedNode: any) => void) => void;
   onAddCameraClick?: (node: any) => void;
   onAddLightClick?: (node: any) => void;
   setTransformTargetFunction?: (func: any) => void;
@@ -53,68 +47,97 @@ export interface SceneTreeSortableHandle {
   close: () => void;
 }
 
-export const SceneTreeSortable = forwardRef<
-  SceneTreeSortableHandle,
-  SceneTreeSortableProps
->(
-  (
-    {
+const iconMap: Record<string, JSX.Element> = {
+  model: <PersonIcon />,
+  group: <FolderIcon />,
+  camera: <CameraAltIcon />,
+  light: <LightbulbIcon />,
+  axes: <ThreeDRotationIcon />,
+  skySphere: <PublicIcon />,
+  floor: <GridOnIcon />,
+  unknown: <HelpOutlineIcon />,
+  addCameraButton: <> </>,
+  addLightButton: <> </>,
+};
+
+function applyTreeToScene(tree: any[], scene: THREE.Scene) {
+  const applyNode = (node: any, parent: THREE.Object3D) => {
+    const object = node.object3D;
+    if (!object) return;
+
+    if (object.parent && object.parent !== parent) object.parent.remove(object);
+    if (object.parent !== parent) parent.add(object);
+
+    node.children?.forEach((child: any) => applyNode(child, object));
+  };
+
+  tree.forEach((node) => applyNode(node, scene));
+}
+
+export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSortableProps>(
+  ({
       scene,
       camera,
       height,
       sceneVersion,
-      onSettingsClick,
       onAddCameraClick,
       onAddLightClick,
       setTransformTargetFunction,
-      onWidthChange
+      onWidthChange,
     },
-    ref,
+    ref
   ) => {
     const theme = useTheme<Theme>();
+    const uiState = useModelContext();
 
     const [treeData, setTreeData] = useState<any[]>([]);
-    const [isOpen, setIsOpen] = useState(true);
+    const [isOpen, setIsOpen] = useState(false);
     const [selectedPath, setSelectedPath] = useState<number[] | null>(null);
+    const [settingsNode, setSettingsNode] = useState<any>(null);
+    const [updateNodeFn, setUpdateNodeFn] = useState<((n: any) => void) | null>(null);
 
-    const curState = useModelContext();
-    const [uiState] = useState<ModelUIState>(curState);
-
-    // outer wrapper of the whole panel
     const outerDivRef = useRef<HTMLDivElement>(null);
 
+    useImperativeHandle(ref, () => ({
+      getWidth: () => (isOpen ? PANEL_WIDTH : 0),
+      open: () => setIsOpen(true),
+      close: () => setIsOpen(false),
+    }), [isOpen]);
 
     useEffect(() => {
-      const w = isOpen ? PANEL_WIDTH : 0;
-      onWidthChange?.(w);
-    }, [isOpen, onWidthChange]);
-
-    useImperativeHandle(
-      ref,
-      () => ({
-        getWidth: () =>
-          isOpen
-            ? PANEL_WIDTH
-            : 0,
-        open: () => setIsOpen(true),
-        close: () => setIsOpen(false),
-      }),
-      [isOpen],
-    );
-
-    function updateNode(updatedNode: any) {
-      const newTreeData = treeData.map((node) =>
-        node.id === updatedNode.id ? updatedNode : node,
-      );
-      setTreeData(newTreeData);
-    }
+      onWidthChange?.(isOpen ? PANEL_WIDTH : 0);
+    }, [isOpen]);
 
     useEffect(() => {
-      setTreeData(convertSceneToTree(scene, camera));
+      if (scene && camera) {
+        const treeNodes = convertSceneToTree(scene, camera);
+        setTreeData(treeNodes);
+      }
     }, [scene, camera, sceneVersion]);
 
+    const handleSettingsClick = (node: any, path: number[]) => {
+      setSettingsNode(node);
+
+      const updateNode = (updatedNode: any) => {
+        const newTree = changeNodeAtPath({
+          treeData,
+          path,
+          getNodeKey: ({ treeIndex }) => treeIndex,
+          newNode: updatedNode,
+        });
+        setTreeData(newTree);
+        setSettingsNode(updatedNode);
+      };
+
+      setUpdateNodeFn(() => updateNode);
+    };
+
+    const handleVisibilityToggle = (node: any) => {
+      node.object3D.visible = !node.object3D.visible;
+      setTreeData([...treeData]);
+    };
+
     const panelBg = alpha(theme.palette.background.paper, 0.9);
-    const panelPadding = isOpen ? theme.spacing(1) : 0;
 
     return (
       <div
@@ -128,20 +151,21 @@ export const SceneTreeSortable = forwardRef<
           flexDirection: 'row',
         }}
       >
-        {/* sliding panel */}
+        {/* Sliding Panel */}
         <div
           style={{
-            width: isOpen ? `${PANEL_WIDTH}px` : '0px',
+            width: isOpen ? PANEL_WIDTH : 0,
             overflow: 'hidden',
             height,
             backgroundColor: panelBg,
-            padding: panelPadding,
+            padding: isOpen ? theme.spacing(1) : 0,
             transition: 'width 0.3s ease, padding 0.3s ease',
             boxShadow: isOpen ? (theme.shadows[4] as string) : 'none',
             display: 'flex',
             flexDirection: 'column',
           }}
         >
+          {/* Close Button */}
           {isOpen && (
             <IconButton
               onClick={() => setIsOpen(false)}
@@ -151,7 +175,7 @@ export const SceneTreeSortable = forwardRef<
                 top: '50%',
                 transform: 'translateY(-50%)',
                 zIndex: 10,
-                background: alpha(theme.palette.background.paper, 0.9),
+                background: panelBg,
                 borderRadius: '50%',
                 boxShadow: '0 0 4px rgba(0,0,0,0.3)',
               }}
@@ -161,111 +185,89 @@ export const SceneTreeSortable = forwardRef<
             </IconButton>
           )}
 
-          <SortableTree
-            treeData={treeData}
-            onChange={setTreeData}
-            theme={FileExplorerTheme}
-            canDrag={({ node }) => !node.isAddCameraButton}
-            generateNodeProps={({ node, path }) => {
-              const isSelected = selectedPath?.join('.') === path.join('.');
+          {/* Tree View + Settings */}
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+            <div style={{ flex: 1, overflow: 'auto' }}>
+              <SortableTree
+                treeData={treeData}
+                onChange={(newData) => {
+                  setTreeData(newData);
+                  if (scene) applyTreeToScene(newData, scene);
+                }}
+                generateNodeProps={({ node, path }) => {
+                  const isSelected = selectedPath?.join('.') === path.join('.');
+                  const icon = iconMap[node.nodeType] || iconMap.unknown;
 
-              return {
-                style: isSelected ? { background: 'rgba(25,118,210,0.15)' } : undefined,
+                  return {
+                    style: isSelected ? { background: 'rgba(25,118,210,0.15)' } : undefined,
+                    className: isSelected ? 'rst__rowSelected' : undefined,
+                    onClick: (e: React.MouseEvent) => {
+                      e.stopPropagation();
+                      setSelectedPath(path);
 
-                className: isSelected ? 'rst__rowSelected' : undefined,
-                onClick: (e: React.MouseEvent) => {
-                  e.stopPropagation();
-                  setSelectedPath(path);
-                  if (node.type?.includes('Camera')) uiState.setSelected(node.uuid);
-                  if (setTransformTargetFunction)
-                    setTransformTargetFunction(scene?.getObjectById(node.id));
-                },
-                icons: node.isModel
-                  ? [<PersonIcon key="model" style={{ marginRight: 10, fontSize: 16 }} />]
-                  : node.isGroup
-                  ? [<FolderIcon key="group" style={{ marginRight: 10, fontSize: 16 }} />]
-                  : node.isCamera
-                  ? [<CameraAltIcon key="camera" style={{ marginRight: 10, fontSize: 16 }} />]
-                  : node.isLight
-                  ? [<LightbulbIcon key="light" style={{ marginRight: 10, fontSize: 16 }} />]
-                  : node.isAxes
-                  ? [<ThreeDRotationIcon key="axes" style={{ marginRight: 10, fontSize: 16 }} />]
-                  : node.isSkySphere
-                  ? [<PublicIcon key="sky" style={{ marginRight: 10, fontSize: 16 }} />]
-                  : node.isFloor
-                  ? [<GridOnIcon key="floor" style={{ marginRight: 10, fontSize: 16 }} />]
-                  : node.isAddCameraButton
-                  ? []
-                  : node.isAddLightButton
-                  ? []
-                  : [<HelpOutlineIcon key="unknown" style={{ marginRight: 10, fontSize: 16 }} />],
-                buttons: [
-                  node.canEdit && (
-                    <IconButton
-                      key="settings"
-                      size="small"
-                      onClick={() => onSettingsClick?.(node, updateNode)}
-                    >
-                      <SettingsIcon fontSize="small" />
-                    </IconButton>
-                  ),
-                ],
-                title: (
-                  <span
-                    style={{
-                      marginLeft: 10,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                    }}
-                  >
-                    {node.title} {node.subtitle && node.subtitle !== "Group" ? "(" + node.subtitle + ")" : ""}
-                    {node.canEdit && (
-                      <input
-                        type="checkbox"
-                        checked={node.visible}
-                        onChange={(e) => {
-                          node.visible = e.target.checked;
-                          node.object3D.visible = e.target.checked;
-                          setTreeData([...treeData]);
-                        }}
-                        style={{ marginLeft: 8 }}
-                      />
-                    )}
-                    {node.isAddCameraButton && (
-                      <IconButton
-                        size="small"
-                        onClick={() => onAddCameraClick?.(true)}
-                        style={{ padding: '4px', marginLeft: '4px' }}
-                      >
-                        <AddIcon fontSize="small" />
-                      </IconButton>
-                    )}
-                    {node.isAddLightButton && (
-                      <IconButton
-                        size="small"
-                        onClick={() => onAddLightClick?.(true)}
-                        style={{ padding: '4px', marginLeft: '4px' }}
-                      >
-                        <AddIcon fontSize="small" />
-                      </IconButton>
-                    )}
-                  </span>
-                ),
-              };
-            }}
-          />
+                      if (node.nodeType === 'camera')
+                        uiState.setSelected(node.uuid);
+                      else
+                        uiState.setSelected("")
+
+                      setTransformTargetFunction?.(scene?.getObjectById(node.id));
+                      if (!(node.type === "Group") && !(node.type === "AddButton") && !(node.title === "Model")) {
+                        handleSettingsClick(node, path)
+                      } else {
+                        setSettingsNode(null);
+                      }
+                    },
+                    icons: [icon],
+                    title: (
+                      <span style={{ marginLeft: 10, display: 'inline-flex', alignItems: 'center' }}>
+                        {node.title}
+                        {node.subtitle && node.subtitle !== 'Group' && ` (${node.subtitle})`}
+
+                        {node.object3D && node.type !== 'Group' && node.title !== 'Scene' && (
+                          <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleVisibilityToggle(node); }} style={{ marginLeft: 8 }}>
+                            {node.object3D.visible ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
+                          </IconButton>
+                        )}
+
+                        {node.nodeType === 'addCameraButton' && (
+                          <IconButton onClick={() => onAddCameraClick?.(node)}>
+                            <AddIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                        {node.nodeType === 'addLightButton' && (
+                          <IconButton onClick={() => onAddLightClick?.(node)}>
+                            <AddIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                      </span>
+                    ),
+                  };
+                }}
+              />
+            </div>
+
+            <div style={{ flex: '0 0 50%', borderTop: '1px solid #ddd' }}>
+              <NodeSettingsPanel
+                selectedNode={settingsNode}
+                setSelectedNode={setSettingsNode}
+                updateNodeFn={updateNodeFn}
+                uiState={uiState as ModelUIState}
+              />
+            </div>
+          </div>
         </div>
 
+        {/* Open Button */}
         {!isOpen && (
           <IconButton
             onClick={() => setIsOpen(true)}
             style={{
               position: 'absolute',
-              right: '0px',
+              right: 0,
               top: '50%',
               transform: 'translateY(-50%)',
               zIndex: 10,
-              background: alpha(theme.palette.background.paper, 0.9),
+              background: panelBg,
               borderRadius: '50%',
               boxShadow: '0 0 4px rgba(0,0,0,0.3)',
             }}
@@ -276,7 +278,7 @@ export const SceneTreeSortable = forwardRef<
         )}
       </div>
     );
-  },
+  }
 );
 
 export default SceneTreeSortable;

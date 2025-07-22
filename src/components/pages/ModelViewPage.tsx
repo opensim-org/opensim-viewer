@@ -15,7 +15,6 @@ import FloatingControlsPanel from '../Components/FloatingControlsPanel';
 import CameraPreview from "../Components/CameraPreview"
 import AddCameraDialog from "../Components/Dialogs/AddCameraDialog"
 import AddLightDialog from "../Components/Dialogs/AddLightDialog"
-import NodeSettingsDialog from "../Components/Dialogs/NodeSettingsDialog";
 import SceneTreeBridge from "../Components/SceneTree/SceneTreeBridge"
 import SceneTreeSortable, { SceneTreeSortableHandle } from "../Components/SceneTree/SceneTreeSortable"
 import DrawerMenu from "../Components/DrawerMenu";
@@ -53,6 +52,7 @@ import RotateIcon from '@mui/icons-material/RotateRight';
 import {
   Button
 } from "@mui/material";
+import SceneTreeView from '../Components/SceneTreeView';
 
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
@@ -192,10 +192,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const leftMenuWidth = 60;
   const drawerContentWidth = 250;
 
-  const [selectedNode, setSelectedNode] = useState<any>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [updateNodeFn, setUpdateNodeFn] = useState<((node: any) => void) | null>(null);
-
   const [addCameraDialogOpen, setAddCameraDialogOpen] = useState(false);
 
   const [addLightDialogOpen, setAddLightDialogOpen] = useState(false);
@@ -215,12 +211,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     ro.observe(el as unknown as Element);   // observe the wrapper div
     return () => ro.disconnect();
   }, []);
-
-  function handleSettingsClick(node: any, updateNode: (node: any) => void) {
-    setSelectedNode(node);
-    setUpdateNodeFn(() => updateNode); // Store update function
-    setDialogOpen(true);
-  }
 
   const [heightBottomBar, setHeightBottomBar] = useState(0);
 
@@ -393,7 +383,9 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   </>
                 )}
 
-                <CameraPreview selectedCameraUuid={uiState.selected} marginRight={treeWidth}/>
+                {uiState.selected && (
+                  <CameraPreview selectedCameraUuid={uiState.selected} marginRight={treeWidth} />
+                )}
 
               </Canvas>
 
@@ -424,14 +416,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   <RotateIcon />
                 </Button>
               </div>
-
-              <NodeSettingsDialog
-                open={dialogOpen}
-                onClose={() => setDialogOpen(false)}
-                selectedNode={selectedNode}
-                setSelectedNode={setSelectedNode}
-                updateNodeFn={updateNodeFn}
-              />
 
               <AddCameraDialog
                 open={addCameraDialogOpen}
@@ -467,22 +451,36 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 animating={uiState.animating}
                 animationList={uiState.animations}/>
 
-              {scene && camera && (
-              <div style={{ position: 'absolute', top: 66, right: 0, zIndex: 1000 }}>
-                <SceneTreeSortable
-                  ref={treeRef}
-                  scene={scene}
-                  sceneVersion={sceneVersion}
-                  camera={camera}
-                  height={canvasHeight}
-                  onSettingsClick={handleSettingsClick}
-                  onAddCameraClick={setAddCameraDialogOpen}
-                  onAddLightClick={setAddLightDialogOpen}
-                  setTransformTargetFunction={setTransformTarget}
-                  onWidthChange={setTreeWidth}
-                />
-              </div>
-            )}
+{scene && camera && (
+  <div
+    style={{
+      position: "absolute",
+      top: 66,
+      right: 0,
+      zIndex: 1000,
+      height: canvasHeight,          // full canvas height
+      width: treeWidth || 250,       // whatever width the tree reports (fallback 250 px)
+      display: "flex",
+      flexDirection: "column",
+    }}
+  >
+    <div style={{ flex: "1 1 50%", overflowY: "auto" }}>
+      {/* <SceneTreeSortable
+        ref={treeRef}
+        scene={scene}
+        sceneVersion={sceneVersion}
+        camera={camera}
+        height="100%"
+        onAddCameraClick={setAddCameraDialogOpen}
+        onAddLightClick={setAddLightDialogOpen}
+        setTransformTargetFunction={setTransformTarget}
+        onWidthChange={setTreeWidth}
+      /> */}
+      <SceneTreeView/>
+    </div>
+  </div>
+)}
+
 
           </div>
         </Main>

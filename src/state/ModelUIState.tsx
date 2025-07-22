@@ -9,6 +9,7 @@ import { CommandFactory } from './commands/CommandFactory'
 import { saveAs } from 'file-saver';
 import { SkinnedMuscle } from './SkinnedMuscle'
 import ViewerState from './ViewerState'
+import SceneTreeModelGUI from '../helpers/SceneTreeModelGUI'
 
 export class ModelInfo {
     model_name: string | null
@@ -54,7 +55,7 @@ export class ModelUIState {
     takeSnapshot: boolean
     snapshotProps: SnapshotProps = new SnapshotProps()
     showGlobalFrame: boolean
-    sceneTree: SceneTreeModel | null
+    sceneTree: SceneTreeModelGUI | null
     animating: boolean
     animationSpeed: number
     animations: AnimationClip[]
@@ -80,7 +81,6 @@ export class ModelUIState {
     socket: WebSocket|null = null
     useSkybox: string
     fitToBox: Box3 | null
-    guiKnobs: string
     debug: boolean
     recordingKeyFrames: boolean
     constructor(
@@ -114,7 +114,6 @@ export class ModelUIState {
         this.draggableTypes = ["Marker", "PathPoint", "Model"]
         this.useSkybox = "NoBackground"
         this.fitToBox = null
-        this.guiKnobs = ""
         this.debug = false
         this.recordingKeyFrames = false
         this.viewerState = new ViewerState(currentModelPathState, '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false);
@@ -145,29 +144,16 @@ export class ModelUIState {
         })
         console.log("Created ModelUIState instance ", currentModelPathState)
     }
-    public setGuiKnobs(guiKnobs: string) {
-        this.guiKnobs = guiKnobs
-    }
-    public toJSON() {
-        return {
-            showGlobalFrame: this.showGlobalFrame,
-            useSkybox: this.useSkybox,
-            cameras: this.cameras,
-            guiKnobs: this.guiKnobs
-        };
-    }
+
     addModelFromPath(newJsonFile: string) {
         let oldPath = this.viewerState.currentModelPath
         if (oldPath !== newJsonFile){
             this.viewerState.currentModelPath = newJsonFile
-            this.sceneTree = null;
             this.cameraLayersMask = -1
             this.animating = false
             this.animationSpeed = 1
             this.animations = []
             this.currentAnimationIndex = -1
-            this.cameras = []
-            this.currentCameraIndex = -1
         }
     }
 
@@ -178,6 +164,7 @@ export class ModelUIState {
         modelGroup.traverse((o) => {
             this.nodeDictionary[o.uuid] =  o;
         });
+        //this.sceneTree!.addModel(modelGroup);
     }
     addObjectToMap(object:Object3D) {
         this.nodeDictionary[object.uuid] =  object
@@ -237,7 +224,7 @@ export class ModelUIState {
     setShowGlobalFrame(newState: boolean) {
         this.showGlobalFrame = newState 
     }
-    setSceneTree(newTree: SceneTreeModel) {
+    setSceneTree(newTree: SceneTreeModelGUI) {
         this.sceneTree = newTree
     }
     setAnimationList(animations: AnimationClip[]) {
@@ -311,10 +298,9 @@ export class ModelUIState {
         const theScene:Object3D = this.scene!;
         // traverse scene to find environment group, export to json
         // then add userData that contains Camera(s), other info
-        const envGroup = theScene.getObjectByName('OpenSimEnvironment');
+        const envGroup = theScene.getObjectByName('OpenSim Environment');
         if (envGroup) {
             var json = envGroup.toJSON();
-            json["state"] = this.toJSON()
             const blob = new Blob( [ JSON.stringify( json ) ], { type: 'application/json' } );
             saveAs(blob, "my_environment.json");
         }
@@ -397,6 +383,8 @@ export class ModelUIState {
                 if (this.modelDictionary[modeltoClose]!== undefined){
                     this.modelDictionary[modeltoClose].removeFromParent()
                     delete this.modelDictionary[modeltoClose]
+                    // update scene tree
+                    this.sceneTree!.removeModel(modeltoClose);
                 }
                 break;
             case "Select" :
