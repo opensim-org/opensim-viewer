@@ -1,10 +1,9 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useLayoutEffect } from 'react';
 import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import { Canvas } from "@react-three/fiber";
 import {
-  Bounds,
   Environment,
   GizmoHelper,
   GizmoViewport,
@@ -14,6 +13,11 @@ import { Suspense } from "react";
 import BottomBar from "../pages/BottomBar";
 import FloatingControlsPanel from '../Components/FloatingControlsPanel';
 
+import CameraPreview from "../Components/CameraPreview"
+import AddCameraDialog from "../Components/Dialogs/AddCameraDialog"
+import AddLightDialog from "../Components/Dialogs/AddLightDialog"
+import SceneTreeBridge from "../Components/SceneTree/SceneTreeBridge"
+import SceneTreeSortable, { SceneTreeSortableHandle } from "../Components/SceneTree/SceneTreeSortable"
 import DrawerMenu from "../Components/DrawerMenu";
 import OpenSimScene from "../Components/OpenSimScene";
 import { ModelUIState } from "../../state/ModelUIState";
@@ -22,13 +26,31 @@ import { MyModelContext } from "../../state/ModelUIStateContext";
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { useParams } from 'react-router-dom';
 
-import OpenSimFloor from "../Components/OpenSimFloor";
-import OpenSimSkySphere from '../Components/OpenSimSkySphere';
+import { DirectionalLightHelper,
+  SpotLightHelper,
+  PointLightHelper,
+  DirectionalLight,
+  SpotLight,
+  PointLight,
+  CameraHelper,
+  Camera,
+  PerspectiveCamera,
+  OrthographicCamera} from 'three';
+
 import VideoRecorder from "../Components/VideoRecorder"
 import { ModelInfo } from '../../state/ModelUIState';
 
-import GUI from 'lil-gui';
+// import GUI from 'lil-gui';
 import { Color} from 'three';
+import { TransformControls } from "@react-three/drei";
+
+import TranslateIcon from '@mui/icons-material/OpenWith';
+import RotateIcon from '@mui/icons-material/RotateRight';
+
+import {
+  Button
+} from "@mui/material";
+
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
@@ -48,6 +70,110 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   }),
 }));
 
+export const addNewCamera = (
+  name: string = 'NewCamera',
+  type: 'PerspectiveCamera' | 'OrthographicCamera' = 'PerspectiveCamera',
+  uiState: ModelUIState,
+  parent: any,
+  onSceneUpdated: () => void
+): THREE.Camera => {
+  let camera: Camera;
+
+  if (type === 'PerspectiveCamera') {
+    const aspect = 800 / 600; // You may want to make this dynamic
+    camera = new PerspectiveCamera(50, aspect, 0.1, 100);
+
+    camera.name = name;
+    camera.position.set(0, 1, 2);
+    (camera as PerspectiveCamera).updateProjectionMatrix();
+  } else {
+    // Orthographic frustum (left, right, top, bottom, near, far)
+    const frustumSize = 2;
+    const aspect = 800 / 600; // Or get this from your renderer/canvas
+    const width = frustumSize * aspect;
+    const height = frustumSize;
+
+    camera = new OrthographicCamera(
+      -width / 2,
+      width / 2,
+      height / 2,
+      -height / 2,
+      0.1,
+      50
+    );
+
+    camera.name = name;
+    camera.position.set(0, 1, 2);
+    (camera as OrthographicCamera).updateProjectionMatrix();
+  }
+
+  const helper = new CameraHelper(camera);
+  helper.name = `${name}_Helper`;
+
+  parent?.object3D?.add(camera);
+  parent?.object3D?.add(helper);
+
+  uiState.setCamerasList([...uiState.cameras, camera]);
+  uiState.setSelected(camera.uuid);
+
+  onSceneUpdated();
+
+  camera.layers.enableAll()
+  return camera;
+};
+
+export const addNewLight = (
+  name: string = 'NewLight',
+  type: 'DirectionalLight' | 'PointLight' | 'SpotLight' = 'SpotLight',
+  uiState: ModelUIState,
+  parent: any,
+  onSceneUpdated: () => void
+): THREE.Light => {
+  let light: THREE.Light;
+  let helper: THREE.Object3D | undefined;
+
+  switch (type) {
+    case 'DirectionalLight': {
+      const dir = new DirectionalLight(0xffffff, 1);
+      dir.target.position.set(0, 0, -1);
+      light = dir;
+      helper = new DirectionalLightHelper(dir);
+      parent?.object3D?.add(dir.target);
+      break;
+    }
+    case 'PointLight': {
+      const point = new PointLight(0xffffff, 1, 0, 2);
+      light = point;
+      helper = new PointLightHelper(point);
+      break;
+    }
+    case 'SpotLight':
+    default: {
+      const spot = new SpotLight(0xffffff, 1, 0, Math.PI / 6, 0.2, 1);
+      light = spot;
+      helper = new SpotLightHelper(spot);
+      parent?.object3D?.add(spot.target);
+      break;
+    }
+  }
+
+  light.name = name;
+  light.position.set(2, 2, 2);
+
+  parent?.object3D?.add(light);
+  if (helper) {
+    helper.name = `${name}_Helper`;
+    parent?.object3D?.add(helper);
+  }
+
+  uiState.setLightsList?.([...uiState.lights, light]);
+  uiState.setSelected(light.uuid);
+
+  onSceneUpdated();
+
+  return light;
+};
+
 interface ViewerProps {
   url?: string;
   embedded?: boolean;
@@ -61,6 +187,26 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   // TODO: Move to a general styles file?
   const leftMenuWidth = 60;
   const drawerContentWidth = 250;
+
+  const [addCameraDialogOpen, setAddCameraDialogOpen] = useState(false);
+
+  const [addLightDialogOpen, setAddLightDialogOpen] = useState(false);
+
+  const [sceneVersion, setSceneVersion] = useState(0);
+
+  const treeRef = useRef<SceneTreeSortableHandle>(null);
+  const [treeWidth, setTreeWidth] = useState(0);
+
+  useLayoutEffect(() => {
+    const el = treeRef.current?.getWidth ? treeRef.current : null;
+    if (!el) return;
+
+    const ro = new ResizeObserver(() =>
+      setTreeWidth(treeRef.current?.getWidth() ?? 0)
+    );
+    ro.observe(el as unknown as Element);   // observe the wrapper div
+    return () => ro.disconnect();
+  }, []);
 
   const [heightBottomBar, setHeightBottomBar] = useState(0);
 
@@ -78,15 +224,17 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const [floatingButtonsContainerTop, setFloatingButtonsContainerTop] = useState("80px");
   const [bgndColor, setBgndColor] = useState<Color>(new Color(0.7, 0.7, 0.7));
 
+  const [scene, setScene] = useState<THREE.Scene | null>(null);
+  const [camera, setCamera] = useState<THREE.Camera | null>(null);
+  const [transformTarget, setTransformTarget] = useState<THREE.Object3D | null>(null);
+  const [transformMode, setTransformMode] = useState<'translate' | 'rotate'>('translate');
+
   useEffect(() => {
     if (bottomBarRef.current) {
       const heightBottomBar = bottomBarRef.current.offsetHeight;
       setHeightBottomBar(bottomBarRef.current.offsetHeight);
 
       setCanvasHeight("calc(100vh - 68px - " + heightBottomBar + "px)");
-
-      // Do something with heightBottomBar if needed
-      console.log('Height of BottomBar:', heightBottomBar);
     }
   }, []);
 
@@ -108,35 +256,28 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     viewerState.setUserPreferencesJsonPath('/user-preferences.json')
     viewerState.loadUserPreferences()
 
-    const gui = new GUI()
-    gui.domElement.style.marginTop = '66px';
-    gui.domElement.style.marginRight = '-15px';
-    const sceneFolder = gui.addFolder("Scene");
-    sceneFolder.add(viewerState, 'skyVisible')
-    sceneFolder.add(viewerState, 'skyTextureFile', { 'death-valley':0, 'san-carlo':1, 'pozzolo':2, 'nessa_and_lagnone':3}).name("Texture").onChange(
-      function(v: any){viewerState.setSkyTextureIndex(v)}
-    );
-    sceneFolder.addColor(viewerState, 'backgroundColor').onChange(
-      function(v: any){viewerState.setBackgroundColor(v); coloRef.current?.copy(v);}
-    );
-    const floorFolder = gui.addFolder("Floor");
-    floorFolder.add(viewerState, 'floorHeight', -2, 2, .01).name("Height")
-    floorFolder.add(viewerState, 'floorRound')
-    floorFolder.add(viewerState, 'floorVisible')
-    floorFolder.add(viewerState, 'floorTextureFile', { 'tile':0, 'wood-floor':1, 'Cobblestone':2, 'textureStone':3, 'grassy':4}).name("Texture").onChange(
-      function(v: any){viewerState.setFloorTextureIndex(v)}
-    );
-    const lightFolder = gui.addFolder("Lights");
-    lightFolder.add(viewerState, 'lightIntensity', 0, 2, .05).name("Intensity")
-    lightFolder.addColor(viewerState, 'lightColor').name("Color")
-    lightFolder.add(viewerState, 'spotLight')
-
-    return () => {
-        gui.destroy()
-      }
+//    const gui = new GUI()
+//    gui.domElement.style.marginTop = '66px';
+//    gui.domElement.style.marginRight = '-15px';
+//    const sceneFolder = gui.addFolder("Scene");
+//    sceneFolder.addColor(viewerState, 'backgroundColor').onChange(
+//      function(v: any){viewerState.setBackgroundColor(v); coloRef.current?.copy(v);}
+//    );
+//    const floorFolder = gui.addFolder("Floor");
+//    floorFolder.add(viewerState, 'floorHeight', -2, 2, .01).name("Height")
+//    floorFolder.add(viewerState, 'floorVisible')
+//    floorFolder.add(viewerState, 'floorTextureFile', { 'tile':0, 'wood-floor':1, 'Cobblestone':2, 'textureStone':3, 'grassy':4}).name("Texture").onChange(
+//      function(v: any){viewerState.setFloorTextureIndex(v)}
+//    );
+//    const lightFolder = gui.addFolder("Lights");
+//    lightFolder.add(viewerState, 'lightIntensity', 0, 2, .05).name("Intensity")
+//    lightFolder.addColor(viewerState, 'lightColor').name("Color")
+//    lightFolder.add(viewerState, 'spotLight')
+//    return () => {
+//        gui.destroy()
+//      }
   }, [uiState.viewerState]);
 
-  //console.log(urlParam);
   if (urlParam!== undefined) {
     var decodedUrl = decodeURIComponent(urlParam);
     uiState.viewerState.setCurrentModelPath(decodedUrl);
@@ -146,6 +287,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   }
   else
     curState.setCurrentModelPath(uiState.viewerState.currentModelPath);
+
   function toggleOpenMenu(name: string = "") {
     // If same name, or empty just toggle.
     if (name === selectedTabName || name === "") setMenuOpen(!menuOpen);
@@ -154,6 +296,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     // Always store same name.
     setSelectedTabName(name);
   }
+
   return (
     <MyModelContext.Provider value={uiState}>
       <Box component="div" sx={{ display: "flex" }}>
@@ -187,6 +330,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 }}
                 camera={{ position: [1500, 2000, 1000], fov: 75, far: 10000 }}
               >
+              <SceneTreeBridge onSceneReady={setScene} onCameraReady={setCamera} />
               <fog attach="fog" color="lightgray" near={1} far={10000} />
 
                 <color  ref={coloRef}
@@ -195,39 +339,119 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   //   theme.palette.mode === "dark" ? ["#151518"] : ["#cccccc"]
                   // }
                 />
-                <Bounds fit clip observe>
-                  <OpenSimScene
-                    currentModelPath={uiState.viewerState.currentModelPath}
-                    supportControls={true}
-                  />
-                </Bounds>
+
+                <OpenSimScene
+                  currentModelPath={uiState.viewerState.currentModelPath}
+                  supportControls={true}
+                />
                 <Environment files="/assets/potsdamer_platz_1k.hdr" />
+
                 <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
                   <GizmoViewport labelColor="white" axisHeadScale={1} />
                 </GizmoHelper>
                 <OpenSimControl/>
                 <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
-                <OpenSimSkySphere
-                  texturePath={
-                    uiState.viewerState.userPreferences?.skyTexturePath?.trim()
-                      ? uiState.viewerState.userPreferences.skyTexturePath
-                      : undefined
-                  }
-                />
-                <OpenSimFloor
-                  texturePath={
-                    uiState.viewerState.userPreferences?.floorTexturePath?.trim()
-                      ? uiState.viewerState.userPreferences.floorTexturePath
-                      : undefined
-                  }
-                />
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
+                {transformTarget && (
+                  <>
+                      <TransformControls object={transformTarget} mode={transformMode} />
+                  </>
+                )}
+
+                {uiState.selected && (
+                  <CameraPreview selectedCameraUuid={uiState.selected} marginRight={treeWidth} />
+                )}
+
               </Canvas>
+
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: heightBottomBar + 20,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  zIndex: 1001,
+                  display: 'flex',
+                  flexDirection: 'row',
+                  gap: '12px',
+                }}
+              >
+                <Button
+                  variant={transformMode === 'translate' ? 'contained' : 'outlined'}
+                  onClick={() => setTransformMode('translate')}
+                  size="small"
+                >
+                  <TranslateIcon />
+                </Button>
+                <Button
+                  variant={transformMode === 'rotate' ? 'contained' : 'outlined'}
+                  onClick={() => setTransformMode('rotate')}
+                  size="small"
+                >
+                  <RotateIcon />
+                </Button>
+              </div>
+
+              <AddCameraDialog
+                open={addCameraDialogOpen}
+                onClose={() => setAddCameraDialogOpen(false)}
+                onAddCamera={(name:any, type:any) => {
+                  const newCam = addNewCamera(name, type, uiState, treeRef.current?.selectedNode() ?? null, () => setSceneVersion(v => v + 1));
+                  setTransformTarget(newCam);
+                }}
+                scene={scene}
+                uiState={uiState}
+                parent={treeRef.current?.selectedNode() ?? null}
+              />
+
+              <AddLightDialog
+                open={addLightDialogOpen}
+                onClose={() => setAddLightDialogOpen(false)}
+                onAddLight={(name:any, type:any) => {
+                    const newLight = addNewLight(name, type, uiState, treeRef.current?.selectedNode() ?? null, () => setSceneVersion(v => v + 1));
+                    setTransformTarget(newLight);
+                }}
+                scene={scene}
+                uiState={uiState}
+                parent={treeRef.current?.selectedNode() ?? null}
+              />
+
               <BottomBar
                 ref={bottomBarRef}
                 animationPlaySpeed={1.0}
                 animating={uiState.animating}
                 animationList={uiState.animations}/>
+
+{scene && camera && (
+  <div
+    style={{
+      position: "absolute",
+      top: 66,
+      right: 0,
+      zIndex: 1000,
+      height: canvasHeight,          // full canvas height
+      width: treeWidth || 250,       // whatever width the tree reports (fallback 250 px)
+      display: "flex",
+      flexDirection: "column",
+    }}
+  >
+    <div style={{ flex: "1 1 50%", overflowY: "auto" }}>
+      <SceneTreeSortable
+        ref={treeRef}
+        scene={scene}
+        sceneVersion={sceneVersion}
+        camera={camera}
+        /* let it stretch to parent height */
+        height="100%"
+        onAddCameraClick={setAddCameraDialogOpen}
+        onAddLightClick={setAddLightDialogOpen}
+        setTransformTargetFunction={setTransformTarget}
+        onWidthChange={setTreeWidth}
+      />
+    </div>
+  </div>
+)}
+
             </Suspense>
           </div>
         </Main>
