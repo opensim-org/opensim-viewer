@@ -45,6 +45,7 @@ export interface SceneTreeSortableHandle {
   getWidth: () => number;
   open: () => void;
   close: () => void;
+  selectedNode: () => any;
 }
 
 const iconMap: Record<string, JSX.Element> = {
@@ -108,7 +109,8 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
       getWidth: () => (isOpen ? PANEL_WIDTH : 0),
       open: () => setIsOpen(true),
       close: () => setIsOpen(false),
-    }), [isOpen]);
+      selectedNode: () => settingsNode,
+    }), [isOpen, settingsNode]);
 
     useEffect(() => {
       onWidthChange?.(isOpen ? PANEL_WIDTH : 0);
@@ -212,6 +214,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                       e.stopPropagation();
                       setSelectedPath(path);
 
+                      setSettingsNode(node);
                       if (node.nodeType === 'camera')
                         uiState.setSelected(node.uuid);
                       else
@@ -220,13 +223,23 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                       setTransformTargetFunction?.(scene?.getObjectById(node.id));
                       if (!(node.type === "Group") && !(node.type === "AddButton") && !(node.title === "Model")) {
                         handleSettingsClick(node, path)
-                      } else {
-                        setSettingsNode(null);
                       }
                     },
                     onContextMenu: (e: React.MouseEvent) => {
                       e.preventDefault();
                       e.stopPropagation();
+                      setSelectedPath(path);
+
+                      setSettingsNode(node);
+                      if (node.nodeType === 'camera')
+                        uiState.setSelected(node.uuid);
+                      else
+                        uiState.setSelected("")
+
+                      setTransformTargetFunction?.(scene?.getObjectById(node.id));
+                      if (!(node.type === "Group") && !(node.type === "AddButton") && !(node.title === "Model")) {
+                        handleSettingsClick(node, path)
+                      }
                       setContextMenu({
                         mouseX: e.clientX - 2,
                         mouseY: e.clientY - 4,
@@ -247,12 +260,12 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                         )}
 
                         {node.nodeType === 'addCameraButton' && (
-                          <IconButton onClick={() => onAddCameraClick?.(node)}>
+                          <IconButton onClick={() => onAddCameraClick?.(true)}>
                             <AddIcon fontSize="small" />
                           </IconButton>
                         )}
                         {node.nodeType === 'addLightButton' && (
-                          <IconButton onClick={() => onAddLightClick?.(node)}>
+                          <IconButton onClick={() => onAddLightClick?.(true)}>
                             <AddIcon fontSize="small" />
                           </IconButton>
                         )}

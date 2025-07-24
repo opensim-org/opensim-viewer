@@ -2,8 +2,6 @@ import * as THREE from 'three';
 
 function determineNodeType(obj: THREE.Object3D): string {
   if (obj.name === "Scene") return "model";
-  if (obj.type === "Group" && obj.name === "Cameras") return "group";
-  if (obj.type === "Group" && obj.name === "Illumination") return "group";
   if (obj.type === "Group") return "group";
   if (obj.type.includes("Light")) return "light";
   if (obj.name.includes("SkySphere")) return "skySphere";
@@ -13,70 +11,60 @@ function determineNodeType(obj: THREE.Object3D): string {
   return "unknown";
 }
 
-function createAddNodeButton(type: "Camera" | "Light") {
-  return {
-    title: "",
-    subtitle: "",
-    object3D: null,
-    nodeType: `add${type}Button` as const,
-    id: `add$-{type}-node` as const,
-    type: "AddButton",
-    children: [],
-  };
+function getValidChildren(obj: THREE.Object3D, traverse: any) {
+  return obj.children
+    .filter(child => child.type.includes("Camera") || child.type.includes("Light"))
+    .map(traverse)
+    .filter((child: any) => child !== null);
 }
 
 export function convertSceneToTree(scene: THREE.Scene | null, camera: THREE.Camera | null) {
   const traverse = (obj: any): any | null => {
     const nodeType = determineNodeType(obj);
-
-    let id = obj.id;
-    let title = obj.name
-    let uuid = obj.uuid
-
-    if (obj.name === "Scene") {
-      title = "Model";
-    }
-
+    const { id, uuid } = obj;
+    let title = obj.name === "Scene" ? "Model" : obj.name;
     let children = null;
-    if (!obj.type.includes("TransformControls") && !obj.type.includes("Helper") && obj.type !== "Object3D") {
 
-      if ((obj.type === "Group" && obj.children.length > 0) || (obj.type === "Group" && obj.name === "Cameras")|| (obj.type === "Group" && obj.name === "Illumination")) {
-        if (title !== "Model" && obj.children) {
-          children = (obj.children || [])
-            .map(traverse)
-            .filter((child: any) => child !== null);
-        }
+    const shouldProcess =
+      (!obj.type.includes("TransformControls") &&
+      !obj.type.includes("Helper") &&
+      obj.type !== "Object3D") &&
+      !(obj.type === "Group" && obj.name === "" && obj.children.length === 0);
 
-        if (obj.type === "Group" && obj.name === "Illumination") {
-          children.push(createAddNodeButton("Light"))
-        }
+    if (!shouldProcess) return null;
 
-        // Add camera as child if this is the "Cameras" group
-        if (obj.type === "Group" && obj.name === "Cameras" && camera) {
-          if (obj.children) {
-            children.push(createAddNodeButton("Camera"))
-          }
+    const isGroup = obj.type === "Group";
+    const isModel = title === "Model";
+
+    if (obj.children?.length > 0) {
+      if (isGroup) {
+        if (!isModel) {
+          children = obj.children.map(traverse).filter((child: any) => child !== null);
+        } else {
+          const validChildren = getValidChildren(obj, traverse);
+          if (validChildren.length > 0) children = validChildren;
         }
+      } else {
+        const validChildren = getValidChildren(obj, traverse);
+        if (validChildren.length > 0) children = validChildren;
       }
-
-      return {
-        title: title,
-        subtitle: obj.type,
-        object3D: obj,
-        nodeType: nodeType,
-        id: id,
-        uuid: uuid,
-        type: obj.type,
-        children: children
-      };
     }
-    return null
+
+    return {
+      title,
+      subtitle: obj.type,
+      object3D: obj,
+      nodeType,
+      id,
+      uuid,
+      type: obj.type,
+      children,
+    };
   };
 
-  if (scene != null)
-    return scene.children
-      .map(traverse)
-      .filter((child:any) => child !== null);
-  else
-    return [];
+  if (!scene) return [];
+
+  const tree = scene.children.map(traverse).filter((child: any) => child !== null);
+
+  return tree;
 }

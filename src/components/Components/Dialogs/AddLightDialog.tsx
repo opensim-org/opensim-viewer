@@ -10,12 +10,13 @@ import Autocomplete from '@mui/material/Autocomplete';
 interface AddLightDialogProps {
   open: boolean;
   onClose: () => void;
-  onAddLight: (name: string | undefined, type: any, uiState: ModelUIState, lightsGroup: THREE.Group) => void;
+  onAddLight: (name: string | undefined, type: any, uiState: ModelUIState, parent: THREE.Object3D | null) => void;
   scene: THREE.Scene | null;
   uiState: ModelUIState;
+  parent: THREE.Object3D | null;
 }
 
-const AddLightDialog: React.FC<AddLightDialogProps> = ({ open, onClose, onAddLight, scene, uiState }) => {
+const AddLightDialog: React.FC<AddLightDialogProps> = ({ open, onClose, onAddLight, scene, uiState, parent }) => {
   const [lightName, setLightName] = useState("NewLight");
   const [lightType, setLightType] = useState("SpotLight")
 
@@ -53,10 +54,8 @@ const AddLightDialog: React.FC<AddLightDialogProps> = ({ open, onClose, onAddLig
         <Button
           onClick={() => {
               if (scene) {
-                const lightsGroup = scene.getObjectByName('Illumination') as THREE.Group;
-                if (lightsGroup) {
-                  onAddLight(lightName.trim() || "NewLight", lightType.trim() || "SpotLight", uiState, lightsGroup);
-                }
+                onAddLight(lightName.trim() || "NewLight", lightType.trim() || "SpotLight", uiState, parent);
+
                 onClose();
               }
             }
