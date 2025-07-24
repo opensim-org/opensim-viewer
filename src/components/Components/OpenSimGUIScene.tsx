@@ -102,6 +102,8 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         else {
           curState.fitCameraTo(modelbbox);
         }
+        // mark scene version changed so that listeners can update
+        curState.viewerState.sceneVersion+=1;
       }
       const cameras = scene.getObjectsByProperty( 'isPerspectiveCamera', true )
       if (cameras.length > 0) {

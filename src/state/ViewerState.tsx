@@ -39,6 +39,8 @@ export class ViewerState {
     // toolbar options
     rotating: boolean
     pending_key: string
+    // update control
+    sceneVersion: number
     constructor(
         currentModelPathState: string,
         featuredModelsFilePathState: string,
@@ -97,6 +99,7 @@ export class ViewerState {
         this.spotLight = false
         this.rotating = false;
         this.pending_key = ""
+        this.sceneVersion = 0
         makeObservable(this, {
             currentModelPath: observable,
             featuredModelsFilePath: observable,

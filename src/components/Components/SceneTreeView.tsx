@@ -51,6 +51,7 @@ const renderTree = (nodes: TreeNode): JSX.Element => (
 
 const SceneTreeView  = ()  => {
     const curState = useModelContext();
+    const [treeVersion, setTreeVersion] = useState(0);
 
     const handleSelect = async (event: any, node: any) => {
       //console.log('nodeId: ', node)
@@ -64,8 +65,12 @@ const SceneTreeView  = ()  => {
     }
 
     useEffect(() => {
-      curState.setSceneTree(new SceneTreeModelGUI(curState.scene!));
-    }, [curState, curState.sceneTree])
+      if (treeVersion <curState.viewerState.sceneVersion){
+        curState.setSceneTree(new SceneTreeModelGUI(curState.scene!));
+        console.log('SceneTreeView useEffect called');
+        setTreeVersion(curState.viewerState.sceneVersion);
+      }
+    }, [curState, curState.viewerState.sceneVersion, treeVersion])
 
     return (
         <TreeView

@@ -366,6 +366,7 @@ export class ModelUIState {
                     delete this.modelDictionary[modeltoClose]
                     // update scene tree
                     this.sceneTree!.removeModel(modeltoClose);
+                    this.viewerState.sceneVersion= this.viewerState.sceneVersion+1;
                 }
                 break;
             case "Select" :
