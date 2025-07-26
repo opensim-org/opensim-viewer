@@ -1,5 +1,5 @@
 import { makeObservable, observable, action, runInAction } from 'mobx'
-import { Color, Vector3 } from 'three'
+import { Color, Vector3, Camera } from 'three'
 
 export class ViewerState {
     currentModelPath: string
@@ -37,6 +37,8 @@ export class ViewerState {
     lightIntensity: number
     lightColor: Color
     spotLight: boolean
+    // cameras
+    cameras: Camera[]
     constructor(
         currentModelPathState: string,
         featuredModelsFilePathState: string,
@@ -95,6 +97,7 @@ export class ViewerState {
         this.lightIntensity = 0.25
         this.lightColor = new Color(0.6, 0.6, 0.6)
         this.spotLight = false
+        this.cameras = []
         makeObservable(this, {
             currentModelPath: observable,
             featuredModelsFilePath: observable,
@@ -139,6 +142,8 @@ export class ViewerState {
             lightColor: observable,
             spotLight: observable,
             setIsLocalUpload: action,
+            cameras: observable,
+            setCamerasList: action
         })
     }
 
@@ -218,7 +223,9 @@ export class ViewerState {
     setUserPreferencesJsonPath(path: string) {
       this.userPreferencesJsonPath = path
     }
-
+    setCamerasList(cameras: Camera[]) {
+        this.cameras=cameras
+    }
     async loadUserPreferences() {
         try {
             const response = await fetch(this.userPreferencesJsonPath);

@@ -78,42 +78,16 @@ export const addNewCamera = (
   onSceneUpdated: () => void
 ): THREE.Camera => {
   let camera: Camera;
-
-  if (type === 'PerspectiveCamera') {
-    const aspect = 800 / 600; // You may want to make this dynamic
-    camera = new PerspectiveCamera(50, aspect, 0.1, 100);
-
-    camera.name = name;
-    camera.position.set(0, 1, 2);
-    (camera as PerspectiveCamera).updateProjectionMatrix();
-  } else {
-    // Orthographic frustum (left, right, top, bottom, near, far)
-    const frustumSize = 2;
-    const aspect = 800 / 600; // Or get this from your renderer/canvas
-    const width = frustumSize * aspect;
-    const height = frustumSize;
-
-    camera = new OrthographicCamera(
-      -width / 2,
-      width / 2,
-      height / 2,
-      -height / 2,
-      0.1,
-      50
-    );
-
-    camera.name = name;
-    camera.position.set(0, 1, 2);
-    (camera as OrthographicCamera).updateProjectionMatrix();
-  }
-
+  camera = uiState.viewerState.cameras[0].clone();
+  console.log("current Camera", uiState.viewerState.cameras[0].toJSON())
+  camera.name = name;
   const helper = new CameraHelper(camera);
   helper.name = `${name}_Helper`;
 
   parent?.object3D?.add(camera);
   parent?.object3D?.add(helper);
 
-  uiState.setCamerasList([...uiState.cameras, camera]);
+  uiState.viewerState.setCamerasList([...uiState.viewerState.cameras, camera]);
   uiState.setSelected(camera.uuid);
 
   onSceneUpdated();
@@ -256,26 +230,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     viewerState.setUserPreferencesJsonPath('/user-preferences.json')
     viewerState.loadUserPreferences()
 
-//    const gui = new GUI()
-//    gui.domElement.style.marginTop = '66px';
-//    gui.domElement.style.marginRight = '-15px';
-//    const sceneFolder = gui.addFolder("Scene");
-//    sceneFolder.addColor(viewerState, 'backgroundColor').onChange(
-//      function(v: any){viewerState.setBackgroundColor(v); coloRef.current?.copy(v);}
-//    );
-//    const floorFolder = gui.addFolder("Floor");
-//    floorFolder.add(viewerState, 'floorHeight', -2, 2, .01).name("Height")
-//    floorFolder.add(viewerState, 'floorVisible')
-//    floorFolder.add(viewerState, 'floorTextureFile', { 'tile':0, 'wood-floor':1, 'Cobblestone':2, 'textureStone':3, 'grassy':4}).name("Texture").onChange(
-//      function(v: any){viewerState.setFloorTextureIndex(v)}
-//    );
-//    const lightFolder = gui.addFolder("Lights");
-//    lightFolder.add(viewerState, 'lightIntensity', 0, 2, .05).name("Intensity")
-//    lightFolder.addColor(viewerState, 'lightColor').name("Color")
-//    lightFolder.add(viewerState, 'spotLight')
-//    return () => {
-//        gui.destroy()
-//      }
   }, [uiState.viewerState]);
 
   if (urlParam!== undefined) {

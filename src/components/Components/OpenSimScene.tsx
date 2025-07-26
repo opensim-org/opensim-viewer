@@ -127,16 +127,16 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         });
 
         // Update cameras list.
-        curState.setCamerasList(cameras.map(obj => obj as PerspectiveCamera));
+        curState.viewerState.setCamerasList(cameras.map(obj => obj as PerspectiveCamera));
         // Set current camera and current index as 0
         setCurrentCamera(cameras.length > 0 ? cameras[0] as PerspectiveCamera : new PerspectiveCamera());
         curState.setCurrentCameraIndex(0);
       }
       else { // use the default camera, call it DefaultCam
-        if (curState.cameras.length === 0){
+        if (curState.viewerState.cameras.length === 0){
           const cam = camera as PerspectiveCamera;  // Provided by the library
           cam.name = "Default Camera"
-          curState.setCamerasList([cam])
+          curState.viewerState.setCamerasList([cam])
           curState.setCurrentCameraIndex(0)
         }
       }
@@ -144,8 +144,8 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
 
     // This useEffect sets the current selected camera.
     useEffect(() => {
-      if (curState.cameras.length > 0 && currentCamera) {
-        const selectedCamera = curState.cameras[curState.currentCameraIndex] as PerspectiveCamera;
+      if (curState.viewerState.cameras.length > 0 && currentCamera) {
+        const selectedCamera = curState.viewerState.cameras[curState.currentCameraIndex] as PerspectiveCamera;
         setCurrentCamera(selectedCamera);
         set({ camera: selectedCamera });
 
@@ -192,7 +192,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
           });
         });
       }
-    }, [currentCamera, set, curState.currentCameraIndex, curState.cameras, animations]);
+    }, [currentCamera, set, curState.currentCameraIndex, curState.viewerState.cameras, animations]);
 
     // This useEffect adds helpers to the lights.
     useEffect(() => {

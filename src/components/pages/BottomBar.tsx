@@ -30,6 +30,9 @@ interface BottomBarProps {
   animationBounds?: number[];
 }
 
+
+type CameraAttachmentType = 'fixed' | 'animated';
+
 const BottomBar = React.forwardRef(function CustomContent(
     props: BottomBarProps,
     ref,
@@ -41,6 +44,7 @@ const BottomBar = React.forwardRef(function CustomContent(
     const [play, setPlay] = useState(false);
     const [selectedAnim, setSelectedAnim] = useState<string | undefined>("");
     const [selectedCam, setSelectedCam] = useState<string | undefined>("");
+    const [cameraAttachmentType, setCameraAttachmentType] = useState<CameraAttachmentType>('fixed');
 
     const isExtraSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('xs'));
     const isSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('sm'));
@@ -49,6 +53,10 @@ const BottomBar = React.forwardRef(function CustomContent(
     const minWidthSlider = isExtraSmallScreen ? 150 : isSmallScreen ? 175 : isMediumScreen ? 250 : 300; // Adjust values as needed
     const maxWidthTime = 45;
 
+    const handleCameraAttachmentChangeEvent = (event: SelectChangeEvent) => {
+      const targetName = event.target.value as CameraAttachmentType
+      setCameraAttachmentType(targetName);
+    };
 
     const handleAnimationChange = useCallback((animationName: string, animate: boolean) => {
       const targetName = animationName
@@ -70,7 +78,7 @@ const BottomBar = React.forwardRef(function CustomContent(
       const targetName = cameraName
       setSelectedCam(cameraName);
 
-        const idx = curState.cameras.findIndex((value: Camera, index: number)=>{return (value.name === targetName)})
+        const idx = curState.viewerState.cameras.findIndex((value: Camera, index: number)=>{return (value.name === targetName)})
         if (idx !== -1) {
             curState.setCurrentCameraIndex(idx)
         }
@@ -123,17 +131,52 @@ const BottomBar = React.forwardRef(function CustomContent(
     }, [curState.animations, handleAnimationChange]);
 
     useEffect(() => {
-      if (curState.cameras.length > 0) {
-        setSelectedCam(curState.cameras[0].name)
-        handleCameraChange(curState.cameras[0].name)
+      if (curState.viewerState.cameras.length > 0) {
+        setSelectedCam(curState.viewerState.cameras[0].name)
+        handleCameraChange(curState.viewerState.cameras[0].name)
       }
-    }, [curState.cameras, handleCameraChange]);
+    }, [curState.viewerState.cameras, handleCameraChange]);
 
     return (
       <Container ref={(ref as any) || bottomBarRef}>
 
         <Grid container spacing={1} justifyContent="center">
-
+          <Grid item>
+            <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
+              <Select
+                labelId="camera-type-label"
+                label="Attachment"
+                value={cameraAttachmentType}
+                onChange={handleCameraAttachmentChangeEvent}
+              >
+                <MenuItem value="fixed">Fixed</MenuItem>
+                <MenuItem value="animated">Animated</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          {/// camera selection
+          }
+          { curState.viewerState.cameras.length < 1 ? null : (
+          <Grid item>
+            <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 150 }}>
+              <Select
+                labelId="simple-select-standard-label"
+                label={t('visualizationControl.camera')}
+                value={selectedCam?.toString()}
+                onChange={handleCameraChangeEvent}
+                disabled={curState.viewerState.cameras.length < 1}>
+                  {curState.viewerState.cameras.map(cam => (
+                    <MenuItem key={cam.name} value={cam.name}>
+                      {cam.name}
+                    </MenuItem>
+                  ))}
+                visibility={false}
+              </Select>
+            </FormControl>
+          </Grid>
+          )}
+          {/// animation selection
+          }
           { curState.animations.length < 1 ? null : (
           <Grid item>
             <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
@@ -152,27 +195,8 @@ const BottomBar = React.forwardRef(function CustomContent(
             </FormControl>
           </Grid>
           )}
-
-          { curState.cameras.length < 1 ? null : (
-          <Grid item>
-            <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
-              <Select
-                labelId="simple-select-standard-label"
-                label={t('visualizationControl.camera')}
-                value={selectedCam?.toString()}
-                onChange={handleCameraChangeEvent}
-                disabled={curState.cameras.length < 1}>
-                  {curState.cameras.map(cam => (
-                    <MenuItem key={cam.name} value={cam.name}>
-                      {cam.name}
-                    </MenuItem>
-                  ))}
-                visibility={false}
-              </Select>
-            </FormControl>
-          </Grid>
-          )}
-
+          {/// animation speed
+          }
           <Grid item>
             <FormControl margin="dense" size="small" variant="standard">
               <Select
@@ -189,7 +213,8 @@ const BottomBar = React.forwardRef(function CustomContent(
               </Select>
             </FormControl>
           </Grid>
-
+          {/// toggle play
+          }
           <Grid item>
             <FormControl margin="dense" size="small" variant="standard">
               <IconButton
@@ -202,7 +227,8 @@ const BottomBar = React.forwardRef(function CustomContent(
               </IconButton>
             </FormControl>
           </Grid>
-
+          {/// slider
+          }
           <Grid item>
             <FormControl margin="dense" size="small" sx={{minWidth: minWidthSlider}}>
               <NonAnimatedSlider
@@ -214,7 +240,8 @@ const BottomBar = React.forwardRef(function CustomContent(
                 disabled={curState.animations.length < 1}/>
             </FormControl>
           </Grid>
-
+          {/// frame number
+          }
           <Grid item>
             <FormControl margin="dense" size="small" variant="filled">
               <Input

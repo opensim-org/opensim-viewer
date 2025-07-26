@@ -119,7 +119,7 @@ const OpenSimControl = () => {
         if (cameraIndex !== curState.currentCameraIndex){
             setCameraIndex(curState.currentCameraIndex);
             // Copy properties into default camera
-            const newCamera = curState.cameras[curState.currentCameraIndex]
+            const newCamera = curState.viewerState.cameras[curState.currentCameraIndex]
             camera.position.copy(newCamera.position)
             camera.quaternion.copy(newCamera.quaternion)
             camera.zoom = (newCamera as PerspectiveCamera).zoom;
