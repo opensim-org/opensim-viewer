@@ -1,4 +1,4 @@
-import { Grid, Container, IconButton, ToggleButton, FormControl, Slider, SelectChangeEvent, Input, MenuItem, Select } from '@mui/material';
+import { Grid, Container, IconButton, ToggleButton, FormControl, Slider, SelectChangeEvent, Input, MenuItem, Select, InputLabel } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useState, useEffect } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -57,6 +57,12 @@ const BottomBar = React.forwardRef(function CustomContent(
       const targetName = event.target.value as CameraAttachmentType
       setCameraAttachmentType(targetName);
     };
+
+    const handleCameraTargetChangeEvent = (event: SelectChangeEvent) => {
+      const targetName = event.target.value as CameraAttachmentType
+      setCameraAttachmentType(targetName);
+    };
+
 
     const handleAnimationChange = useCallback((animationName: string, animate: boolean) => {
       const targetName = animationName
@@ -143,8 +149,10 @@ const BottomBar = React.forwardRef(function CustomContent(
         <Grid container spacing={1} justifyContent="center">
           <Grid item>
             <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
+              <InputLabel id="camera-type-label">Attachment</InputLabel>
               <Select
                 labelId="camera-type-label"
+                id="attach-select"
                 label="Attachment"
                 value={cameraAttachmentType}
                 onChange={handleCameraAttachmentChangeEvent}
@@ -154,11 +162,29 @@ const BottomBar = React.forwardRef(function CustomContent(
               </Select>
             </FormControl>
           </Grid>
+          <Grid item>
+            <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 120 }}>
+              <InputLabel id="camera-target-label">Lookat</InputLabel>
+              <Select
+                labelId="camera-target-label"
+                label="Lookat"
+                value={"Ground"}
+                onChange={handleCameraTargetChangeEvent}
+              >
+              {curState.viewerState.cameras.map(cam => (
+                    <MenuItem key={cam.name} value={cam.name}>
+                      {cam.name}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+          </Grid>
           {/// camera selection
           }
           { curState.viewerState.cameras.length < 1 ? null : (
           <Grid item>
             <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 150 }}>
+              <InputLabel id="simple-select-standard-label">Camera</InputLabel>
               <Select
                 labelId="simple-select-standard-label"
                 label={t('visualizationControl.camera')}
