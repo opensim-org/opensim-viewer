@@ -117,7 +117,7 @@ export const addNewCamera = (
   camerasGroup.add(camera);
   camerasGroup.add(helper);
 
-  uiState.setCamerasList([...uiState.cameras, camera]);
+  uiState.viewerState.setCamerasList([...uiState.viewerState.cameras, camera]);
   uiState.setSelected(camera.uuid);
 
   onSceneUpdated();
@@ -130,7 +130,7 @@ export const addNewLight = (
   name: string = 'NewLight',
   type: 'DirectionalLight' | 'PointLight' | 'SpotLight' = 'SpotLight',
   uiState: ModelUIState,
-  lightsGroup: THREE.Group,
+  parent: any,
   onSceneUpdated: () => void
 ): THREE.Light => {
   let light: THREE.Light;
@@ -142,7 +142,7 @@ export const addNewLight = (
       dir.target.position.set(0, 0, -1);
       light = dir;
       helper = new DirectionalLightHelper(dir);
-      lightsGroup.add(dir.target);
+      parent?.object3D?.add(dir.target);
       break;
     }
     case 'PointLight': {
@@ -156,7 +156,7 @@ export const addNewLight = (
       const spot = new SpotLight(0xffffff, 1, 0, Math.PI / 6, 0.2, 1);
       light = spot;
       helper = new SpotLightHelper(spot);
-      lightsGroup.add(spot.target);
+      parent?.object3D?.add(spot.target);
       break;
     }
   }
@@ -164,10 +164,10 @@ export const addNewLight = (
   light.name = name;
   light.position.set(2, 2, 2);
 
-  lightsGroup.add(light);
+  parent?.object3D?.add(light);
   if (helper) {
     helper.name = `${name}_Helper`;
-    lightsGroup.add(helper);
+    parent?.object3D?.add(helper);
   }
 
   uiState.setLightsList?.([...uiState.lights, light]);
@@ -280,26 +280,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     viewerState.setUserPreferencesJsonPath('/user-preferences.json')
     viewerState.loadUserPreferences()
 
-//    const gui = new GUI()
-//    gui.domElement.style.marginTop = '66px';
-//    gui.domElement.style.marginRight = '-15px';
-//    const sceneFolder = gui.addFolder("Scene");
-//    sceneFolder.addColor(viewerState, 'backgroundColor').onChange(
-//      function(v: any){viewerState.setBackgroundColor(v); coloRef.current?.copy(v);}
-//    );
-//    const floorFolder = gui.addFolder("Floor");
-//    floorFolder.add(viewerState, 'floorHeight', -2, 2, .01).name("Height")
-//    floorFolder.add(viewerState, 'floorVisible')
-//    floorFolder.add(viewerState, 'floorTextureFile', { 'tile':0, 'wood-floor':1, 'Cobblestone':2, 'textureStone':3, 'grassy':4}).name("Texture").onChange(
-//      function(v: any){viewerState.setFloorTextureIndex(v)}
-//    );
-//    const lightFolder = gui.addFolder("Lights");
-//    lightFolder.add(viewerState, 'lightIntensity', 0, 2, .05).name("Intensity")
-//    lightFolder.addColor(viewerState, 'lightColor').name("Color")
-//    lightFolder.add(viewerState, 'spotLight')
-//    return () => {
-//        gui.destroy()
-//      }
   }, [uiState.viewerState]);
 
   if (urlParam!== undefined) {
@@ -415,28 +395,24 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 open={addCameraDialogOpen}
                 onClose={() => setAddCameraDialogOpen(false)}
                 onAddCamera={(name:any, type:any) => {
-                  const camerasGroup = scene?.getObjectByName("Cameras") as THREE.Group;
-                  if (camerasGroup) {
-                    const newCam = addNewCamera(name, type, uiState, camerasGroup, () => setSceneVersion(v => v + 1));
-                    setTransformTarget(newCam);
-                  }
+                  const newCam = addNewCamera(name, type, uiState, treeRef.current?.selectedNode() ?? null, () => setSceneVersion(v => v + 1));
+                  setTransformTarget(newCam);
                 }}
                 scene={scene}
                 uiState={uiState}
+                parent={treeRef.current?.selectedNode() ?? null}
               />
 
               <AddLightDialog
                 open={addLightDialogOpen}
                 onClose={() => setAddLightDialogOpen(false)}
                 onAddLight={(name:any, type:any) => {
-                  const lightsGroup = scene?.getObjectByName("Illumination") as THREE.Group;
-                  if (lightsGroup) {
-                    const newLight = addNewLight(name, type, uiState, lightsGroup, () => setSceneVersion(v => v + 1));
+                    const newLight = addNewLight(name, type, uiState, treeRef.current?.selectedNode() ?? null, () => setSceneVersion(v => v + 1));
                     setTransformTarget(newLight);
-                  }
                 }}
                 scene={scene}
                 uiState={uiState}
+                parent={treeRef.current?.selectedNode() ?? null}
               />
 
               <BottomBar

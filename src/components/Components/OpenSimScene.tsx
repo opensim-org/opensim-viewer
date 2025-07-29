@@ -100,7 +100,6 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     const [objectSelectionBox, setObjectSelectionBox] = useState<BoxHelper | null>(new BoxHelper(scene));
     let curState = useModelContext();
 
-    const camerasGroupRef = useRef<THREE.Group>(null);
     const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
 
     // This useEffect loads the cameras and assign them to its respective states.
@@ -123,41 +122,28 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
           const cameraPers = camera as PerspectiveCamera;
           cameraPers.aspect = aspectRatio;
           cameraPers.updateProjectionMatrix();
-
-          // Remove camera from its current parent if it has one
-          if (camera.parent) {
-            camera.parent.remove(camera);
-          }
-
-          // Add camera to the cameras group
-          if (camerasGroupRef.current) {
-            camerasGroupRef.current.add(camera);
-          }
         });
 
         // Update cameras list.
-        curState.setCamerasList(cameras.map(obj => obj as PerspectiveCamera));
+        curState.viewerState.setCamerasList(cameras.map(obj => obj as PerspectiveCamera));
         // Set current camera and current index as 0
         setCurrentCamera(cameras.length > 0 ? cameras[0] as PerspectiveCamera : new PerspectiveCamera());
         curState.setCurrentCameraIndex(0);
       }
       else { // use the default camera, call it DefaultCam
-        if (curState.cameras.length === 0){
+        if (curState.viewerState.cameras.length === 0){
           const cam = camera as PerspectiveCamera;  // Provided by the library
           cam.name = "Default Camera"
-          curState.setCamerasList([cam])
+          curState.viewerState.setCamerasList([cam])
           curState.setCurrentCameraIndex(0)
         }
-
       }
-//      lightRef.current!.color = curState.viewerState.lightColor
-//      spotlightRef.current!.color = curState.viewerState.lightColor
     }, [curState, scene, gl.domElement.clientWidth, gl.domElement, set, camera]);
 
     // This useEffect sets the current selected camera.
     useEffect(() => {
-      if (curState.cameras.length > 0 && currentCamera) {
-        const selectedCamera = curState.cameras[curState.currentCameraIndex] as PerspectiveCamera;
+      if (curState.viewerState.cameras.length > 0 && currentCamera) {
+        const selectedCamera = curState.viewerState.cameras[curState.currentCameraIndex] as PerspectiveCamera;
         setCurrentCamera(selectedCamera);
         set({ camera: selectedCamera });
 
@@ -204,12 +190,13 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
           });
         });
       }
-    }, [currentCamera, set, curState.currentCameraIndex, curState.cameras, animations]);
+    }, [currentCamera, set, curState.currentCameraIndex, curState.viewerState.cameras, animations]);
 
     // This useEffect adds helpers to the lights.
     useEffect(() => {
       if (lightRef.current && scene) {
         const helper = new DirectionalLightHelper(lightRef.current, 0.5);
+        helper.name = "Directional Light_Helper"
         dirLightHelperRef.current = helper;
         scene.add(helper);
       }
@@ -238,8 +225,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
           if (o.name.startsWith("ColorNode")) {
             colorNodeMap.set(o.uuid, o);
           }
-          }
-      )
+        })
 
       if (objectSelectionBox !== null) {
         objectSelectionBox.visible = false;
@@ -376,17 +362,14 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
       onPointerMissed={() => curState.setSelected("", false)}
       />
       <group name='OpenSim Environment' ref={envRef}>
-          <group name="Cameras" ref={camerasGroupRef}></group>
-          <group name="Illumination">
-            <directionalLight name="Directional Light" ref={lightRef} position={[0.5, 1.5, -0.5]}
-              intensity={curState.viewerState.lightIntensity} color={curState.viewerState.lightColor}
-              castShadow={true}
-              shadow-camera-far={8}
-              shadow-camera-left={-2}
-              shadow-camera-right={2}
-              shadow-camera-top={2}
-              shadow-camera-bottom={-2}/>
-          </group>
+          <directionalLight name="Directional Light" ref={lightRef} position={[0.5, 1.5, -0.5]}
+            intensity={curState.viewerState.lightIntensity} color={curState.viewerState.lightColor}
+            castShadow={true}
+            shadow-camera-far={8}
+            shadow-camera-left={-2}
+            shadow-camera-right={2}
+            shadow-camera-top={2}
+            shadow-camera-bottom={-2}/>
         {supportControls && <OpenSimFloor                   
             texturePath={
                   curState.viewerState.userPreferences?.floorTexturePath?.trim()

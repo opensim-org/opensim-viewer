@@ -132,6 +132,17 @@ const OpenSimControl = () => {
             }
             viewerState.pending_key = "";
         }
+        else if (curState.viewerState.lookAtTarget!=="") {
+            // get world position for object by uuid
+            const obj3d = curState.objectByUuid(curState.viewerState.lookAtTarget);
+            const worldPos = new Vector3();
+            obj3d.getWorldPosition(worldPos);
+            if (controls) {
+                camera.lookAt(worldPos);
+                controlsRef.current!.target.copy(worldPos)
+            }
+            curState.viewerState.lookAtTarget = ""
+        }
         else if (curState.takeSnapshot){
             if (curState.snapshotProps.size_choice==="screen"){
                 const link = document.createElement('a')
@@ -189,7 +200,7 @@ const OpenSimControl = () => {
             curState.fitToBox = null
         }
         if (curState.currentCameraIndex!==-1) {
-            const nextCam = curState.cameras[curState.currentCameraIndex]
+            const nextCam = curState.viewerState.cameras[curState.currentCameraIndex]
             let target = curState.targets[curState.currentCameraIndex]
             if (target === undefined) {
                 target = new Vector3(0, 0, 0)
@@ -318,7 +329,7 @@ const OpenSimControl = () => {
         if (cameraIndex !== curState.currentCameraIndex){
             setCameraIndex(curState.currentCameraIndex);
             // Copy properties into default camera
-            const newCamera = curState.cameras[curState.currentCameraIndex]
+            const newCamera = curState.viewerState.cameras[curState.currentCameraIndex]
             camera.position.copy(newCamera.position)
             camera.quaternion.copy(newCamera.quaternion)
             camera.zoom = (newCamera as PerspectiveCamera).zoom;

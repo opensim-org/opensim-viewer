@@ -7,6 +7,7 @@ import { useModelContext } from '../../state/ModelUIStateContext';
 import SceneTreeModelGUI from '../../helpers/SceneTreeModelGUI';
 import { TreeItem } from '@mui/x-tree-view/TreeItem';
 import { useEffect, useState } from 'react';
+import TargetListModel from '../../helpers/TargetListModel';
 
 
 function MinusSquare(props: SvgIconProps) {
@@ -62,13 +63,18 @@ const SceneTreeView  = ()  => {
     if (sTree === null && curState.scene !== null) {
       // console.log(curState.scene);
       curState.setSceneTree(new SceneTreeModelGUI(curState.scene!));
+      curState.viewerState.setTargetList(new TargetListModel(curState.scene!).getTargets());
+      setTreeVersion(curState.viewerState.sceneVersion);
+      console.log("TreeVersion", treeVersion)
     }
 
     useEffect(() => {
       if (treeVersion <curState.viewerState.sceneVersion){
         curState.setSceneTree(new SceneTreeModelGUI(curState.scene!));
+        curState.viewerState.setTargetList(new TargetListModel(curState.scene!).getTargets());
         console.log('SceneTreeView useEffect called');
         setTreeVersion(curState.viewerState.sceneVersion);
+        console.log("TreeVersion", treeVersion)
       }
     }, [curState, curState.viewerState.sceneVersion, treeVersion])
 

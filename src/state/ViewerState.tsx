@@ -1,5 +1,5 @@
 import { makeObservable, observable, action, runInAction } from 'mobx'
-import { Color, Vector3 } from 'three'
+import { Color, Vector3, Camera, Object3D } from 'three'
 
 export class ViewerState {
     currentModelPath: string
@@ -41,6 +41,11 @@ export class ViewerState {
     pending_key: string
     // update control
     sceneVersion: number
+    // cameras
+    cameras: Camera[]
+    // targets
+    targets: Object3D[]
+    lookAtTarget: string
     constructor(
         currentModelPathState: string,
         featuredModelsFilePathState: string,
@@ -100,6 +105,9 @@ export class ViewerState {
         this.rotating = false;
         this.pending_key = ""
         this.sceneVersion = 0
+        this.cameras = []
+        this.targets = []
+        this.lookAtTarget = ""
         makeObservable(this, {
             currentModelPath: observable,
             featuredModelsFilePath: observable,
@@ -144,7 +152,10 @@ export class ViewerState {
             spotLight: observable,
             setIsLocalUpload: action,
             rotating: observable,
-            setRotating: action
+            setRotating: action,
+            cameras: observable,
+            setCamerasList: action,
+            setTargetList: action
         })
     }
 
@@ -231,7 +242,15 @@ export class ViewerState {
     setUserPreferencesJsonPath(path: string) {
       this.userPreferencesJsonPath = path
     }
-
+    setCamerasList(cameras: Camera[]) {
+        this.cameras=cameras
+    }
+    setTargetList(targets: Object3D[]){
+        this.targets = targets
+    }
+    setLookAtTarget(target_uuid: string) {
+      this.lookAtTarget = target_uuid
+    }
     async loadUserPreferences() {
         try {
             const response = await fetch(this.userPreferencesJsonPath);

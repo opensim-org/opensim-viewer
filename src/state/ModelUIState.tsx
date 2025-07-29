@@ -60,7 +60,6 @@ export class ModelUIState {
     animationSpeed: number
     animations: AnimationClip[]
     currentAnimationIndex: number
-    cameras: Camera[]
     lights: Light[]
     targets: Vector3[]
     startCameraIndex: number
@@ -97,7 +96,6 @@ export class ModelUIState {
         this.animationSpeed = 1.0
         this.animations = []
         this.currentAnimationIndex = -1
-        this.cameras = []
         this.lights = []
         this.targets = []
         //this.keyframes = []
@@ -127,9 +125,7 @@ export class ModelUIState {
             animations: observable,
             setAnimationList: action,
             setAnimationSpeed: action,
-            cameras: observable,
             lights: observable,
-            setCamerasList: action,
             selected: observable,
             setSelected: action,
             sceneTree: observable,
@@ -153,6 +149,8 @@ export class ModelUIState {
             this.animationSpeed = 1
             this.animations = []
             this.currentAnimationIndex = -1
+            this.lights = []
+            this.currentCameraIndex = -1
         }
     }
 
@@ -211,14 +209,14 @@ export class ModelUIState {
     setAnimationList(animations: AnimationClip[]) {
         this.animations=animations
     }
-    setCamerasList(cameras: Camera[]) {
-        this.cameras=cameras
-    }
     setLightsList(lights: Light[]) {
       this.lights = lights
     }
     setAnimationSpeed(newSpeed: number) {
         this.animationSpeed = newSpeed
+    }
+    getGuiMode() {
+        return this.isGuiMode;
     }
     setSelected(uuid: string, notifyGUI: boolean = false) {
         if (this.selected !== uuid) {
@@ -443,13 +441,13 @@ export class ModelUIState {
     toggleRecordingKeyFrames() {
         this.recordingKeyFrames = !this.recordingKeyFrames
         if (!this.recordingKeyFrames) {
-            const duration = this.cameras.length-1
+            const duration = this.viewerState.cameras.length-1
             const positions: number[] = []
             const targets: number[] = []
             const orientations: number[] = []
             const keyFrameTimes: number[] = []
-            for (let i=this.startCameraIndex; i< this.cameras.length; i++){
-                const cam = this.cameras[i]
+            for (let i=this.startCameraIndex; i< this.viewerState.cameras.length; i++){
+                const cam = this.viewerState.cameras[i]
                 const tgt = this.targets[i]
                 cam.position.toArray(positions, 3*(i-this.startCameraIndex))
                 cam.quaternion.toArray(orientations, 4*(i-this.startCameraIndex))
@@ -472,13 +470,13 @@ export class ModelUIState {
         }
         else {// If turning on recording, capture first camera key frame
             this.viewerState.pending_key = 'c'
-            this.startCameraIndex = this.cameras.length
+            this.startCameraIndex = this.viewerState.cameras.length
         }
     }
     addCamera(camera: PerspectiveCamera, target: Vector3) {
         const camClone = camera.clone()
-        camClone.name = "Camera_"+this.cameras.length
-        this.cameras.push(camClone);
+        camClone.name = "Camera_"+this.viewerState.cameras.length
+        this.viewerState.cameras.push(camClone);
         this.targets.push(target.clone())
         // const newKeyFrame = new CameraKeyFrameProps(camClone, target.clone(), this.keyframes.length)
         // this.keyframes.push(newKeyFrame)

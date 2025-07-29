@@ -122,7 +122,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             }
         });
         // Update cameras list.
-        curState.setCamerasList(cameras.map(obj => obj as PerspectiveCamera))
+        curState.viewerState.setCamerasList(cameras.map(obj => obj as PerspectiveCamera))
         // Set current camera and current index as 0
         setCurrentCamera(cameras.length > 0 ? cameras[0] as PerspectiveCamera : new PerspectiveCamera())
         curState.setCurrentCameraIndex(0)
@@ -146,8 +146,8 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
   
     // This useEffect sets the current selected camera.
     useEffect(() => {
-      if (curState.cameras.length > 0 && currentCamera) {
-        const selectedCamera = curState.cameras[curState.currentCameraIndex] as PerspectiveCamera;
+      if (curState.viewerState.cameras.length > 0 && currentCamera) {
+        const selectedCamera = curState.viewerState.cameras[curState.currentCameraIndex] as PerspectiveCamera;
         setCurrentCamera(selectedCamera);
         set({ camera: selectedCamera });
 
@@ -194,7 +194,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           });
         });
       }
-    }, [currentCamera, set, curState.currentCameraIndex, curState.cameras, curState.animations]);
+    }, [currentCamera, set, curState.currentCameraIndex, curState.viewerState.cameras, curState.animations]);
 
 
     if (supportControls) {
