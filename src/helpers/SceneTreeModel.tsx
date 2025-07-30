@@ -21,7 +21,9 @@ export class TreeNode
     for (let i = 0; i < threeObj.children.length; i++) {
       // Skip over helpers
       if (!this.excludeFromSceneTree(threeObj, i)) {
-        const nextChildNode = new TreeNode(this, threeObj.children[i], recur);
+        const isBody = (threeObj.name==="/ground") || 
+          (threeObj.type ==="Group" && threeObj.name.startsWith("/bodyset/"))
+        const nextChildNode = new TreeNode(this, threeObj.children[i], recur && !isBody);
         this.children.push(nextChildNode);
         //console.log("adding node for ", threeObj.children[i].name, " to parent node");
       }
@@ -30,6 +32,7 @@ export class TreeNode
 
   private excludeFromSceneTree(threeObj: Object3D, i: number) {
     return (threeObj.children[i].type.includes('Helper') ||
+            threeObj.children[i].name==="Com" ||
             (threeObj.userData!== undefined && threeObj.userData.opensimType==="Model"));
   }
 
