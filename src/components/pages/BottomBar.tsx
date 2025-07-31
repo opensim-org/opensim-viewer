@@ -31,7 +31,7 @@ interface BottomBarProps {
 }
 
 
-type CameraAttachmentType = 'fixed' | 'animated' | 'follow';
+type CameraAttachmentType = 'fixed' | 'dolly';
 
 const BottomBar = React.forwardRef(function CustomContent(
     props: BottomBarProps,
@@ -150,7 +150,7 @@ const BottomBar = React.forwardRef(function CustomContent(
 
         <Grid container spacing={1} justifyContent="center">
           <Grid item>
-            {/// Fixed or Animated
+            {/// Fixed or Dolly
             }
             <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
               <InputLabel id="camera-type-label">Attachment</InputLabel>
@@ -162,40 +162,13 @@ const BottomBar = React.forwardRef(function CustomContent(
                 onChange={handleCameraAttachmentChangeEvent}
               >
                 <MenuItem value="fixed">Fixed</MenuItem>
-                <MenuItem value="animated">Animated</MenuItem>
-                <MenuItem value="follow.x">Follow X</MenuItem>
-                <MenuItem value="follow.y">Follow Y</MenuItem>
-                <MenuItem value="follow.z">Follow Z</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item>
-            {/// Targets (blank or Frame)
-            }
-            <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 120 }}>
-              <InputLabel id="camera-target-label">LookAt</InputLabel>
-              <Select
-                name="target-select"
-                labelId="camera-target-label"
-                label="LookAt"
-                defaultValue=""
-                value={cameraTargetName}
-                onChange={handleCameraTargetChangeEvent}
-              >
-              {curState.viewerState.targets.map(tgt => (
-                    <MenuItem value={tgt.uuid}>
-                      {tgt.name.lastIndexOf("/")===-1?
-                        tgt.name:
-                        tgt.name.slice(tgt.name.lastIndexOf("/")+1)
-                      }
-                    </MenuItem>
-                  ))}
+                <MenuItem value="dolly">Moving</MenuItem>
               </Select>
             </FormControl>
           </Grid>
           {/// camera selection
           }
-          { curState.viewerState.cameras.length < 1 ? null : (
+          { cameraAttachmentType==='dolly'|| curState.viewerState.cameras.length < 1 ? null : (
           <Grid item>
             <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 150 }}>
               <InputLabel id="simple-select-standard-label">Camera</InputLabel>
