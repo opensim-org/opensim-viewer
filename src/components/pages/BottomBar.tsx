@@ -11,6 +11,7 @@ import { AnimationClip} from 'three';
 import { useTranslation } from 'react-i18next';
 import { useModelContext } from '../../state/ModelUIStateContext';
 import { Camera } from 'three/src/cameras/Camera'
+import DollyEditorDialog from '../Components/DollyEditorDialog';
 import React, { useCallback, useRef } from 'react';
 
 const NonAnimatedSlider = styled(Slider)(({ theme } : {theme:any}) => ({
@@ -47,6 +48,7 @@ const BottomBar = React.forwardRef(function CustomContent(
     const [selectedCam, setSelectedCam] = useState<string | undefined>("");
     const [cameraAttachmentType, setCameraAttachmentType] = useState<CameraAttachmentType>('fixed');
     const [cameraTargetName, setCameraTargetName] = useState<string>("")
+    const [dollyEditorOpen, setDollyEditorOpen] = useState(false);
     const isExtraSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('xs'));
     const isSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('sm'));
     const isMediumScreen = useMediaQuery((theme:any) => theme.breakpoints.only('md'));
@@ -130,7 +132,7 @@ const BottomBar = React.forwardRef(function CustomContent(
     };
 
     useEffect(() => {
-      console.log("use-effect1 BottomBar")
+      //console.log("use-effect1 BottomBar")
       if (curState.animations.length > 0) {
         setSelectedAnim(curState.animations[0].name)
         handleAnimationChange(curState.animations[0].name, false)
@@ -138,7 +140,6 @@ const BottomBar = React.forwardRef(function CustomContent(
     }, [curState.animations, handleAnimationChange]);
 
     useEffect(() => {
-      console.log("use-effect2 BottomBar")
       if (curState.viewerState.cameras.length > 0) {
         setSelectedCam(curState.viewerState.cameras[0].name)
         handleCameraChange(curState.viewerState.cameras[0].name)
@@ -286,7 +287,12 @@ const BottomBar = React.forwardRef(function CustomContent(
             </Tooltip>
           </Grid>
         </Grid>
+        <DollyEditorDialog
+                open={dollyEditorOpen}
+                onClose={()=>{}}
+                uiState={curState}
 
+         />
 
       </Container>
     )

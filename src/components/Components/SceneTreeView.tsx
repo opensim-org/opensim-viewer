@@ -35,7 +35,7 @@ const NodeWithContextMenu: React.FC<{ label: string, obj: Object3D | null }> = (
   };
 
   const handleLookAt = () => {
-    curState.viewerState.setLookAtTarget(thisObj!.uuid);
+    curState.viewerState.setLookAtTarget(thisObj===null?"":thisObj.uuid);
     setContextMenu(null);
   };
 
