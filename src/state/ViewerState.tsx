@@ -1,5 +1,5 @@
 import { makeObservable, observable, action, runInAction } from 'mobx'
-import { Color, Vector3, Camera, Object3D } from 'three'
+import { Color, Vector3, Camera, Object3D, AnimationClip } from 'three'
 
 export class ViewerState {
     currentModelPath: string
@@ -46,6 +46,8 @@ export class ViewerState {
     // targets
     targets: Object3D[]
     lookAtTarget: string
+    // camera Animations
+    cameraAnimations: AnimationClip[]
     constructor(
         currentModelPathState: string,
         featuredModelsFilePathState: string,
@@ -108,6 +110,7 @@ export class ViewerState {
         this.cameras = []
         this.targets = []
         this.lookAtTarget = ""
+        this.cameraAnimations = []
         makeObservable(this, {
             currentModelPath: observable,
             featuredModelsFilePath: observable,
@@ -155,7 +158,8 @@ export class ViewerState {
             setRotating: action,
             cameras: observable,
             setCamerasList: action,
-            setTargetList: action
+            setTargetList: action,
+            cameraAnimations: observable,
         })
     }
 
@@ -247,6 +251,9 @@ export class ViewerState {
     }
     setTargetList(targets: Object3D[]){
         this.targets = targets
+    }
+    setCameraAnimationsList(clips: AnimationClip[]){
+        this.cameraAnimations = clips
     }
     setLookAtTarget(target_uuid: string) {
       this.lookAtTarget = target_uuid

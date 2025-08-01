@@ -74,7 +74,7 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
             <IconButton 
               color="primary"
               onClick={() => {
-              curState.toggleRecordingKeyFrames()}}>
+              viewerState.handleKey('C')}}>
                 <AddAPhotoTwoToneIcon />
             </IconButton>
           </Tooltip>

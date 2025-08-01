@@ -125,7 +125,7 @@ const OpenSimControl = () => {
                 //     break;
                 case 'C':
                 case 'c':
-                    if (curState.recordingKeyFrames && controlsRef.current){
+                    if (controlsRef.current){
                         const controlTarget = controlsRef.current.target
                         curState.addCamera(camera as PerspectiveCamera, controlTarget)
                     }

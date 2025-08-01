@@ -1,4 +1,4 @@
-import { Grid, Container, IconButton, ToggleButton, FormControl, Slider, SelectChangeEvent, Input, MenuItem, Select, InputLabel } from '@mui/material';
+import { Grid, Container, IconButton, ToggleButton, FormControl, Slider, SelectChangeEvent, Input, MenuItem, Select, InputLabel, Button } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useState, useEffect } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -100,6 +100,11 @@ const BottomBar = React.forwardRef(function CustomContent(
       handleAnimationChange(targetName, true)
     };
 
+    const handleDollyChangeEvent = (event: SelectChangeEvent) => {
+      const targetName = event.target.value as string
+      //handleAnimationChange(targetName, true)
+    };
+
     const handleCameraChangeEvent = (event: SelectChangeEvent) => {
       const targetName = event.target.value as string
       handleCameraChange(targetName)
@@ -189,6 +194,19 @@ const BottomBar = React.forwardRef(function CustomContent(
             </FormControl>
           </Grid>
           )}
+          {cameraAttachmentType === "dolly" && (
+            <Grid item>
+              <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
+                {(curState.viewerState.cameraAnimations.length <1)?(
+                  <Button size="small" variant="outlined" onClick={() => setDollyEditorOpen(true)}>Add New...</Button>):
+                  curState.viewerState.cameraAnimations.map(camClip => (
+                    <MenuItem key={camClip.name} value={camClip.name}>
+                      {camClip.name}
+                    </MenuItem>
+                  ))}
+              </FormControl>
+            </Grid>)
+          }
           {/// animation selection
           }
           { curState.animations.length < 1 ? null : (
