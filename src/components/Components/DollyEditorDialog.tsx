@@ -12,8 +12,10 @@ import {
   DialogActions,
 } from "@mui/material";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ModelUIState } from "../../state/ModelUIState";
+import { CameraSequence } from "../../state/ViewerState";
+import { Camera, Object3D, PerspectiveCamera } from "three";
 
 type CameraType = "fixed" | "attached" | "animated";
 
@@ -30,45 +32,61 @@ interface DollyDialogProps {
   uiState: ModelUIState;
 }
 
+
 const DollyEditorDialog: React.FC<DollyDialogProps> = ({ open, onClose, uiState}) => {
-  const [cameras, setCameras] = React.useState<CameraEntry[]>([]);
-  const cameraList = React.useState(uiState.viewerState.cameras);
+  const useCameraSequence = uiState.viewerState.currentCameraSequence===-1?
+                                new CameraSequence(`Dolly ${uiState.viewerState.cameraSequences.length}`):
+                                uiState.viewerState.cameraSequences[uiState.viewerState.currentCameraSequence];
+  const [cameraSequence, setCameraSequence] = React. useState<CameraSequence>(useCameraSequence);
+  const ctt = cameraSequence.cameraTimesTargets
+  let cameraList = uiState.viewerState.cameras;
+  const [camTimeTrgtList, setCamTimeTrgtList] = React. useState<[Camera, number, Object3D|null][]>(ctt);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+
   const addCamera = () => {
-    setCameras(prev => [
-      ...prev,
-      {
-        id: "",
-        name: `Camera ${prev.length + 1}`,
-        time: 0,
-      },
-    ]);
+    camTimeTrgtList.push(
+           [cameraList[1], 1, null],
+           [cameraList[2], 2, null],           
+      );
   };
 
   const updateCamera = (id: string, updated: Partial<CameraEntry>) => {
-    setCameras(prev =>
-      prev.map(cam => (cam.id === id ? { ...cam, ...updated } : cam))
-    );
+    // setCamTimeTrgtList(prev =>
+    //   prev.map(cam => (cam.id === id ? { ...cam, ...updated } : cam))
+    // );
   };
+
+  useEffect(() => {}, [camTimeTrgtList])
 
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Camera Timeline</DialogTitle>
         <DialogContent>
           <List>
-            {cameras.map(cam => (
-              <ListItem key={cam.id} sx={{ gap: 2 }}>
+            {camTimeTrgtList.map(cam => (
+              <ListItem sx={{ gap: 2 }}>
                 <TextField
+                  select
                   label="Name"
-                  value={cam.name}
-                  onChange={e => updateCamera(cam.id, { name: e.target.value })}
+                  value="Cam Name"
+                  onChange={(e) => {}}
+                  variant="outlined"
                   size="small"
-                />
+                 >
+                {cameraList.map((cam) => (
+                    <MenuItem key={cam.name} value={cam.name} sx={{ width: 100 }}>
+                      {cam.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
                 <TextField
                   label="Time (s)"
                   type="number"
-                  value={cam.time}
-                  onChange={e =>
-                    updateCamera(cam.id, { time: parseFloat(e.target.value) })
+                  value={cam[1]}
+                  onChange={e =>{
+                    //updateCamera(cam[0].id, { time: parseFloat(e.target.value) });
+                    }
                   }
                   size="small"
                   sx={{ width: 100 }}
@@ -77,11 +95,11 @@ const DollyEditorDialog: React.FC<DollyDialogProps> = ({ open, onClose, uiState}
             ))}
           </List>
           <Button onClick={addCamera} variant="contained" sx={{ mt: 2 }}>
-            Add Camera
+            Add Camera Keyframe
           </Button>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>Add/Update</Button>
           <Button onClick={onClose}>Close</Button>
         </DialogActions>
     </Dialog>

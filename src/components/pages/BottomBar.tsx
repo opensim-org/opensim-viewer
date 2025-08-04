@@ -307,9 +307,8 @@ const BottomBar = React.forwardRef(function CustomContent(
         </Grid>
         <DollyEditorDialog
                 open={dollyEditorOpen}
-                onClose={()=>{}}
+                onClose={() => setDollyEditorOpen(false)}
                 uiState={curState}
-
          />
 
       </Container>

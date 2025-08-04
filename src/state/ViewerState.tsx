@@ -1,6 +1,17 @@
 import { makeObservable, observable, action, runInAction } from 'mobx'
 import { Color, Vector3, Camera, Object3D, AnimationClip } from 'three'
 
+export class CameraSequence {
+    name: string | null
+    desc: string | null
+    cameraTimesTargets: [Camera, number, Object3D|null][] 
+    constructor(name:string|null=null, desc:string|null=null){
+        this.name = name
+        this.desc = desc
+        this.cameraTimesTargets = []
+    }
+}
+
 export class ViewerState {
     currentModelPath: string
     featuredModelsFilePath: string
@@ -46,8 +57,10 @@ export class ViewerState {
     // targets
     targets: Object3D[]
     lookAtTarget: string
-    // camera Animations
+    // camera Animations, sequences, then animations created by interpolating sequences
+    cameraSequences: CameraSequence[]
     cameraAnimations: AnimationClip[]
+    currentCameraSequence: number
     constructor(
         currentModelPathState: string,
         featuredModelsFilePathState: string,
@@ -111,6 +124,8 @@ export class ViewerState {
         this.targets = []
         this.lookAtTarget = ""
         this.cameraAnimations = []
+        this.cameraSequences = []
+        this.currentCameraSequence = -1
         makeObservable(this, {
             currentModelPath: observable,
             featuredModelsFilePath: observable,
@@ -159,7 +174,8 @@ export class ViewerState {
             cameras: observable,
             setCamerasList: action,
             setTargetList: action,
-            cameraAnimations: observable,
+            cameraSequences: observable,
+            currentCameraSequence: observable,
         })
     }
 
@@ -251,9 +267,6 @@ export class ViewerState {
     }
     setTargetList(targets: Object3D[]){
         this.targets = targets
-    }
-    setCameraAnimationsList(clips: AnimationClip[]){
-        this.cameraAnimations = clips
     }
     setLookAtTarget(target_uuid: string) {
       this.lookAtTarget = target_uuid
