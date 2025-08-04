@@ -8,6 +8,12 @@ import { Amplify } from 'aws-amplify';
 import awsconfig from './aws-exports';
 Amplify.configure(awsconfig);
 
+if (!Object.hasOwn) {
+  Object.hasOwn = function (obj: any, key: PropertyKey): boolean {
+    return Object.prototype.hasOwnProperty.call(obj, key);
+  };
+}
+
 const theme = createTheme({
     palette: {
         primary: {
