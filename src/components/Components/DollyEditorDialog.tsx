@@ -26,12 +26,6 @@ type CameraEntry = {
   errors?: { name?: string; time?: string };
 };
 
-interface DollyDialogProps {
-  open: boolean;
-  onClose: () => void;
-  uiState: ModelUIState;
-}
-
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -47,6 +41,7 @@ const DollyEditorDialog: React.FC<Props> = ({ open, onClose, uiState}) => {
   time: `${index}`, // default or derived from elsewhere
 }));
   const [entries, setEntries] = useState<CameraEntry[]>(initalEntries);
+  const [dollyName, setDollyName] = useState<string>('Dolly#')
   
 
 
@@ -108,6 +103,16 @@ const DollyEditorDialog: React.FC<Props> = ({ open, onClose, uiState}) => {
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle>Edit Dolly</DialogTitle>
+      <DialogContent>
+        <TextField
+          label="Dolly Name"
+          value={dollyName}
+          onChange={(e) => setDollyName(e.target.value)}
+          fullWidth
+          variant="outlined"
+          margin="normal"
+        />
+      </DialogContent>
       <DialogContent>
         <Button variant="outlined" onClick={addRow} sx={{ mb: 2 }}>
           Add Entry
