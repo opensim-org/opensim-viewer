@@ -1,29 +1,29 @@
 import {
-  TextField,
-  Button,
-  List,
-  ListItem,
-  Select,
-  MenuItem,
-  Typography,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-} from "@mui/material";
+  Button,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Select,
+  MenuItem,
+  TextField
+} from '@mui/material';
 
 import React, { useEffect, useState } from "react";
 import { ModelUIState } from "../../state/ModelUIState";
 import { CameraSequence } from "../../state/ViewerState";
 import { Camera, Object3D, PerspectiveCamera } from "three";
 
-type CameraType = "fixed" | "attached" | "animated";
-
 type CameraEntry = {
   id: string;
   name: string;
-  time: number;
-
+  time: string;
+  errors?: { name?: string; time?: string };
 };
 
 interface DollyDialogProps {
@@ -32,76 +32,139 @@ interface DollyDialogProps {
   uiState: ModelUIState;
 }
 
+type Props = {
+  open: boolean;
+  onClose: () => void;
+  uiState: ModelUIState;
+};
 
-const DollyEditorDialog: React.FC<DollyDialogProps> = ({ open, onClose, uiState}) => {
-  const useCameraSequence = uiState.viewerState.currentCameraSequence===-1?
-                                new CameraSequence(`Dolly ${uiState.viewerState.cameraSequences.length}`):
-                                uiState.viewerState.cameraSequences[uiState.viewerState.currentCameraSequence];
-  const [cameraSequence, setCameraSequence] = React. useState<CameraSequence>(useCameraSequence);
-  const ctt = cameraSequence.cameraTimesTargets
-  let cameraList = uiState.viewerState.cameras;
-  const [camTimeTrgtList, setCamTimeTrgtList] = React. useState<[Camera, number, Object3D|null][]>(ctt);
-  const [selectedIndex, setSelectedIndex] = useState(0);
+const DollyEditorDialog: React.FC<Props> = ({ open, onClose, uiState}) => {
+  const cameraOptions = uiState.viewerState.cameras.map(cam=>cam.name);
+
+  let initalEntries: CameraEntry[] = uiState.viewerState.cameras.map((cam, index) => ({
+  id: cam.uuid,
+  name: cam.name,
+  time: `${index}`, // default or derived from elsewhere
+}));
+  const [entries, setEntries] = useState<CameraEntry[]>(initalEntries);
+  
 
 
-  const addCamera = () => {
-    camTimeTrgtList.push(
-           [cameraList[1], 1, null],
-           [cameraList[2], 2, null],           
-      );
+  const handleChange = (index: number, field: keyof CameraEntry, value: string) => {
+    const updated = [...entries];
+    updated[index] = {
+      ...updated[index],
+      [field]: value,
+      errors: { ...updated[index].errors, [field]: validate(field, value) }
+    };
+    setEntries(updated);
   };
 
-  const updateCamera = (id: string, updated: Partial<CameraEntry>) => {
-    // setCamTimeTrgtList(prev =>
-    //   prev.map(cam => (cam.id === id ? { ...cam, ...updated } : cam))
-    // );
+  const validate = (field: keyof CameraEntry, value: string) => {
+    if (field === 'name' && !value) return 'Camera name is required';
+    //if (field === 'time' && !/^([0-1]\d|2[0-3]):[0-5]\d$/.test(value)) return 'Invalid time format (HH:mm)';
+    return undefined;
   };
 
-  useEffect(() => {}, [camTimeTrgtList])
+  const addRow = () => {
+    setEntries([
+      ...entries,
+      {
+        id: Math.random().toString(36).substring(2, 9),
+        name: '',
+        time: '',
+        errors: {}
+      }
+    ]);
+  };
+
+  const deleteRow = (index: number) => {
+    const updated = [...entries];
+    updated.splice(index, 1);
+    setEntries(updated);
+  };
+
+  const handleSave = () => {
+    const validated = entries.map((entry) => ({
+      ...entry,
+      errors: {
+        name: validate('name', entry.name),
+        time: validate('time', entry.time)
+      }
+    }));
+
+    const hasErrors = validated.some((entry) =>
+      entry.errors?.name || entry.errors?.time
+    );
+
+    if (hasErrors) {
+      setEntries(validated);
+      return;
+    }
+
+    onClose();
+  };
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Camera Timeline</DialogTitle>
-        <DialogContent>
-          <List>
-            {camTimeTrgtList.map(cam => (
-              <ListItem sx={{ gap: 2 }}>
-                <TextField
-                  select
-                  label="Name"
-                  value="Cam Name"
-                  onChange={(e) => {}}
-                  variant="outlined"
-                  size="small"
-                 >
-                {cameraList.map((cam) => (
-                    <MenuItem key={cam.name} value={cam.name} sx={{ width: 100 }}>
-                      {cam.name}
-                    </MenuItem>
-                  ))}
-                </TextField>
-                <TextField
-                  label="Time (s)"
-                  type="number"
-                  value={cam[1]}
-                  onChange={e =>{
-                    //updateCamera(cam[0].id, { time: parseFloat(e.target.value) });
-                    }
-                  }
-                  size="small"
-                  sx={{ width: 100 }}
-                />
-              </ListItem>
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
+      <DialogTitle>Edit Dolly</DialogTitle>
+      <DialogContent>
+        <Button variant="outlined" onClick={addRow} sx={{ mb: 2 }}>
+          Add Entry
+        </Button>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Camera Name</TableCell>
+              <TableCell>Time</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {entries.map((entry, index) => (
+              <TableRow key={entry.id}>
+                <TableCell>
+                  <Select
+                    value={entry.name}
+                    onChange={(e) => handleChange(index, 'name', e.target.value)}
+                    fullWidth
+                    error={!!entry.errors?.name}
+                  >
+                    {cameraOptions.map((name) => (
+                      <MenuItem key={name} value={name}>
+                        {name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {entry.errors?.name && (
+                    <div style={{ color: 'red', fontSize: 12 }}>{entry.errors.name}</div>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <TextField
+                    value={entry.time}
+                    onChange={(e) => handleChange(index, 'time', e.target.value)}
+                    fullWidth
+                    //type="time"
+                    error={!!entry.errors?.time}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                  {entry.errors?.time && (
+                    <div style={{ color: 'red', fontSize: 12 }}>{entry.errors.time}</div>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Button color="error" onClick={() => deleteRow(index)}>Delete</Button>
+                </TableCell>
+              </TableRow>
             ))}
-          </List>
-          <Button onClick={addCamera} variant="contained" sx={{ mt: 2 }}>
-            Add Camera Keyframe
-          </Button>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose}>Add/Update</Button>
-          <Button onClick={onClose}>Close</Button>
-        </DialogActions>
+          </TableBody>
+        </Table>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={handleSave} variant="contained">Save</Button>
+      </DialogActions>
     </Dialog>
   );
 };

@@ -1,14 +1,22 @@
 import { makeObservable, observable, action, runInAction } from 'mobx'
 import { Color, Vector3, Camera, Object3D, AnimationClip } from 'three'
 
+export class CameraFrame {
+    cam: Camera
+    time: number
+    constructor(camera: Camera, time: number) {
+        this.cam = camera
+        this.time = time
+    }
+}
 export class CameraSequence {
     name: string | null
     desc: string | null
-    cameraTimesTargets: [Camera, number, Object3D|null][] 
+    cameraFrames: CameraFrame[] 
     constructor(name:string|null=null, desc:string|null=null){
         this.name = name
         this.desc = desc
-        this.cameraTimesTargets = []
+        this.cameraFrames = []
     }
 }
 
