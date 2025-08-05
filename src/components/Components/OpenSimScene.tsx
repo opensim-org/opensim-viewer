@@ -1,6 +1,4 @@
-import { useGLTF } from '@react-three/drei'
 import { useFrame, useLoader, useThree } from '@react-three/fiber'
-import { TransformControls } from '@react-three/drei'
 
 import * as THREE from 'three';
 
@@ -11,8 +9,6 @@ import { observer } from 'mobx-react'
 import { useModelContext } from '../../state/ModelUIStateContext'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
 
-import viewerState from '../../state/ViewerState'
-import { ModelUIState } from '../../state/ModelUIState'
 
 import { DirectionalLightHelper, SpotLightHelper } from 'three';
 import OpenSimFloor from './OpenSimFloor';
@@ -34,11 +30,10 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     const dirLightHelperRef = useRef<DirectionalLightHelper | null>(null);
     const spotLightHelperRef = useRef<SpotLightHelper | null>(null);
 
-    const [isDirectionalVisible, setDirectionalVisible] = useState(false);
-    const [isSpotVisible, setSpotVisible] = useState(false);
+    const [, setDirectionalVisible] = useState(false);
+    const [, setSpotVisible] = useState(false);
 
     const { scene } = useThree();
-    const viewerState = useModelContext().viewerState;
     const sceneRef = useRef<THREE.Scene>(scene);
     const [sceneObjectMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
     const [useEffectRunning, setUseEffectRunning] = useState<boolean>(false)
@@ -46,46 +41,16 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     const [startTime, setStartTime] = useState<number>(0)
     const [mixers, ] = useState<AnimationMixer[]>([])
     const [colorNodeMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
-    const [selected, setSelected] = useState([])
     //const selected = useSelect().map((sel) => console.log(sel))
     const lightRef = useRef<THREE.DirectionalLight | null>(null)
     const spotlightRef = useRef<THREE.SpotLight>(null)
-    const csRef = useRef<THREE.Group>(null)
     const envRef = useRef<THREE.Group>(null)
-    const bboxRef = useRef<THREE.BoxHelper>(null)
-    const modelsRef = useRef<THREE.Group>(null);
 
     //const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
     const modelGroup = useLoader(GLTFLoader, currentModelPath);
     sceneRef.current.add(modelGroup.scene)
     const animations = modelGroup.animations
-    const LayerMap = new Map([
-      ["Mesh", 1],
-      ["Force", 2],
-      ["World", 3],
-      ["Marker", 4],
-      ["ExpMarker", 5],
-      ["expForce", 6],
-      ["WrapSphere", 7],
-      ["WrapCylinder", 7],
-      ["WrapEllipsoid", 7],
-      ["WrapTorus", 7],
-      ["wrapObject", 7],
-      ["ContactSphere", 8],
-      ["ContactMesh", 8],
-      ["ContactHalfSpace", 8]
-    ]);
 
-    const mapObjectToLayer = (obj3d: Object3D)=>{
-      if (obj3d.userData !== null && obj3d.userData !== undefined &&
-          obj3d.userData.opensimType !== undefined) {
-        let layerNum = LayerMap.get(obj3d.userData.opensimType)
-        if (layerNum === undefined)
-          layerNum = 0
-        obj3d.layers.set(layerNum)
-        obj3d.castShadow = true
-    }
-  }
     //no_face_cull(scene);
 
     const applyAnimationColors = ()=>{

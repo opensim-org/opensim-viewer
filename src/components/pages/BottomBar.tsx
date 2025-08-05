@@ -14,7 +14,7 @@ import { Camera } from 'three/src/cameras/Camera'
 import DollyEditorDialog from '../Components/DollyEditorDialog';
 import React, { useCallback, useRef } from 'react';
 
-const NonAnimatedSlider = styled(Slider)(({ theme } : {theme:any}) => ({
+const NonAnimatedSlider = styled(Slider)(() => ({
   "& .MuiSlider-thumb": {
     transition: 'none'
   },
@@ -47,7 +47,6 @@ const BottomBar = React.forwardRef(function CustomContent(
     const [selectedAnim, setSelectedAnim] = useState<string | undefined>("");
     const [selectedCam, setSelectedCam] = useState<string | undefined>("");
     const [cameraAttachmentType, setCameraAttachmentType] = useState<CameraAttachmentType>('fixed');
-    const [cameraTargetName, setCameraTargetName] = useState<string>("")
     const [dollyEditorOpen, setDollyEditorOpen] = useState(false);
     const isExtraSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('xs'));
     const isSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('sm'));
@@ -61,11 +60,6 @@ const BottomBar = React.forwardRef(function CustomContent(
       setCameraAttachmentType(targetName);
     };
 
-    const handleCameraTargetChangeEvent = (event: SelectChangeEvent) => {
-      const target_uuid = event.target.value
-      curState.viewerState.setLookAtTarget(target_uuid);
-      setCameraTargetName(event.target.name)
-    };
 
 
     const handleAnimationChange = useCallback((animationName: string, animate: boolean) => {
@@ -75,7 +69,7 @@ const BottomBar = React.forwardRef(function CustomContent(
           curState.viewerState.setAnimating(false)
       }
       else {
-          const idx = curState.viewerState.animations.findIndex((value: AnimationClip, index: number)=>{return (value.name === targetName)})
+          const idx = curState.viewerState.animations.findIndex((value: AnimationClip)=>{return (value.name === targetName)})
           if (idx !== -1) {
               curState.viewerState.currentAnimationIndex = idx
               curState.viewerState.setAnimating(animate)
@@ -87,7 +81,7 @@ const BottomBar = React.forwardRef(function CustomContent(
       const targetName = cameraName
       setSelectedCam(cameraName);
 
-        const idx = curState.viewerState.cameras.findIndex((value: Camera, index: number)=>{return (value.name === targetName)})
+        const idx = curState.viewerState.cameras.findIndex((value: Camera)=>{return (value.name === targetName)})
         if (idx !== -1) {
             curState.setCurrentCameraIndex(idx)
         }
@@ -100,10 +94,6 @@ const BottomBar = React.forwardRef(function CustomContent(
       handleAnimationChange(targetName, true)
     };
 
-    const handleDollyChangeEvent = (event: SelectChangeEvent) => {
-      const targetName = event.target.value as string
-      handleAnimationChange(targetName, true)
-    };
 
     const handleCameraChangeEvent = (event: SelectChangeEvent) => {
       const targetName = event.target.value as string

@@ -1,9 +1,7 @@
 import { makeObservable, observable, action } from 'mobx'
-import SceneTreeModel from '../helpers/SceneTreeModel'
-import { AnimationClip } from 'three/src/animation/AnimationClip'
-import { Camera, PerspectiveCamera } from 'three'
+import { PerspectiveCamera } from 'three'
 import { Light } from 'three'
-import { Box3, Object3D, QuaternionKeyframeTrack, Scene, Vector3, VectorKeyframeTrack } from 'three'
+import { Box3, Object3D, Scene, Vector3 } from 'three'
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
 import { CommandFactory } from './commands/CommandFactory'
 import { saveAs } from 'file-saver';

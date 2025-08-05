@@ -388,28 +388,28 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     curState.setSelected("", true);
   }
 
-  function handleBoxSelect(selected: Object3D<THREE.Event>[]): void {
-    let default_box = new THREE.Box3()
-    let firstObjectFound = false;
-    for (let i = 0; i < selected.length; i++){
-      if (selected[i].visible){
-        if (!firstObjectFound){
-          default_box = new THREE.Box3().setFromObject(selected[i])
-          curState.setSelected(selected[i].uuid, true);
-        }
-        else { // Union boxes
-          const newBox = new THREE.Box3().setFromObject(selected[i]);
-          default_box.union(newBox)
-        }
-        firstObjectFound = true
-      }
-    }
-    if (firstObjectFound){
-      //const boxHelper = new THREE.Box3Helper(default_box)
-      //sceneRef.current!.add(boxHelper)
-      //curState.fitCameraTo(default_box);
-    }
-  }
+  // function handleBoxSelect(selected: Object3D<THREE.Event>[]): void {
+  //   let default_box = new THREE.Box3()
+  //   let firstObjectFound = false;
+  //   for (let i = 0; i < selected.length; i++){
+  //     if (selected[i].visible){
+  //       if (!firstObjectFound){
+  //         default_box = new THREE.Box3().setFromObject(selected[i])
+  //         curState.setSelected(selected[i].uuid, true);
+  //       }
+  //       else { // Union boxes
+  //         const newBox = new THREE.Box3().setFromObject(selected[i]);
+  //         default_box.union(newBox)
+  //       }
+  //       firstObjectFound = true
+  //     }
+  //   }
+  //   if (firstObjectFound){
+  //     //const boxHelper = new THREE.Box3Helper(default_box)
+  //     //sceneRef.current!.add(boxHelper)
+  //     //curState.fitCameraTo(default_box);
+  //   }
+  // }
 
     // By the time we're here the model is guaranteed to be available
     return <>

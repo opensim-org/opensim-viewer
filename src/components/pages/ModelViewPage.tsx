@@ -7,7 +7,6 @@ import {
   Environment,
   GizmoHelper,
   GizmoViewport,
-  OrbitControls,
 } from "@react-three/drei";
 import OpenSimControl from '../Components/OpenSimControl';
 import BottomBar from "../pages/BottomBar";
@@ -16,7 +15,7 @@ import CameraPreview from "../Components/CameraPreview"
 import AddCameraDialog from "../Components/Dialogs/AddCameraDialog"
 import AddLightDialog from "../Components/Dialogs/AddLightDialog"
 import SceneTreeBridge from "../Components/SceneTree/SceneTreeBridge"
-import SceneTreeSortable, { SceneTreeSortableHandle } from "../Components/SceneTree/SceneTreeSortable"
+import { SceneTreeSortableHandle } from "../Components/SceneTree/SceneTreeSortable"
 import DrawerMenu from "../Components/DrawerMenu";
 import OpenSimGUIScene from "../Components/OpenSimGUIScene";
 import { ModelInfo, ModelUIState } from "../../state/ModelUIState";
@@ -42,9 +41,6 @@ import VideoRecorder from "../Components/VideoRecorder"
 import { Color} from 'three';
 import { TransformControls } from "@react-three/drei";
 
-import OpenSimSkySphere from '../Components/OpenSimSkySphere' 
-import OpenSimHtmlLogo from '../Components/OpenSimLogo';
-import OpenSimScene from  '../Components/OpenSimScene'
 
 import TranslateIcon from '@mui/icons-material/OpenWith';
 import RotateIcon from '@mui/icons-material/RotateRight';
@@ -187,7 +183,6 @@ interface ViewerProps {
 export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const bottomBarRef = useRef<HTMLDivElement>(null);
   const videoRecorderRef = useRef(null);
-  const coloRef = useRef<Color>(null)
   // TODO: Move to a general styles file?
   const leftMenuWidth = 60;
   const drawerContentWidth = 250;
@@ -196,7 +191,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 
   const [addLightDialogOpen, setAddLightDialogOpen] = useState(false);
 
-  const [sceneVersion, setSceneVersion] = useState(0);
+  const [, setSceneVersion] = useState(0);
 
   const treeRef = useRef<SceneTreeSortableHandle>(null);
   const [treeWidth, setTreeWidth] = useState(0);
@@ -226,7 +221,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const [canvasHeight, setCanvasHeight] = useState("calc(100vh - 68px - " + heightBottomBar + "px)");
   const [canvasLeft, setCanvasLeft] = useState(leftMenuWidth + (menuOpen ? drawerContentWidth : 0));
   const [floatingButtonsContainerTop, setFloatingButtonsContainerTop] = useState("80px");
-  const [bgndColor, setBgndColor] = useState<Color>(new Color(0.7, 0.7, 0.7));
+  const [, setBgndColor] = useState<Color>(new Color(0.7, 0.7, 0.7));
 
   const [scene, setScene] = useState<THREE.Scene | null>(null);
   const [camera, setCamera] = useState<THREE.Camera | null>(null);
