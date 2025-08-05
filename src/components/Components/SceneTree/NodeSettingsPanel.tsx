@@ -147,6 +147,21 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             }
             style={{ marginTop: 16 }}
           />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={selectedNode.castShadow ?? selectedNode.object3D?.castShadow ?? true}
+                onChange={(e) =>
+                  patch({
+                    castShadow: e.target.checked,
+                    object3DProps: { castShadow: e.target.checked },
+                  })
+                }
+              />
+            }
+            label="Cast Shadow"
+            style={{ marginTop: 16 }}
+          />
         </>
       )}
 
@@ -204,6 +219,21 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
                 object3DProps: { penumbra: parseFloat(e.target.value) },
               })
             }
+            style={{ marginTop: 16 }}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={selectedNode.castShadow ?? selectedNode.object3D?.castShadow ?? true}
+                onChange={(e) =>
+                  patch({
+                    castShadow: e.target.checked,
+                    object3DProps: { castShadow: e.target.checked },
+                  })
+                }
+              />
+            }
+            label="Cast Shadow"
             style={{ marginTop: 16 }}
           />
         </>
@@ -274,6 +304,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             }}
             style={{ marginTop: 16 }}
           />
+          {/*
           <TextField
             label="Near plane"
             type="number"
@@ -304,11 +335,13 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             }}
             style={{ marginTop: 16 }}
           />
+          */}
         </>
       )}
 
       {selectedNode?.type === "OrthographicCamera" && (
         <>
+          {/*
           <TextField
             label="Left"
             type="number"
@@ -399,6 +432,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             }}
             style={{ marginTop: 16 }}
           />
+        */}
         </>
       )}
 
