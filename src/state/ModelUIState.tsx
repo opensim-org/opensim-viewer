@@ -56,10 +56,6 @@ export class ModelUIState {
     snapshotProps: SnapshotProps = new SnapshotProps()
     showGlobalFrame: boolean
     sceneTree: SceneTreeModelGUI | null
-    animating: boolean
-    animationSpeed: number
-    animations: AnimationClip[]
-    currentAnimationIndex: number
     lights: Light[]
     targets: Vector3[]
     startCameraIndex: number
@@ -92,10 +88,6 @@ export class ModelUIState {
         this.takeSnapshot = false
         this.showGlobalFrame = false
         this.sceneTree = null
-        this.animating = false
-        this.animationSpeed = 1.0
-        this.animations = []
-        this.currentAnimationIndex = -1
         this.lights = []
         this.targets = []
         //this.keyframes = []
@@ -121,10 +113,6 @@ export class ModelUIState {
             setZooming: action,
             draggable: observable,
             setShowGlobalFrame: action,
-            animationSpeed: observable,
-            animations: observable,
-            setAnimationList: action,
-            setAnimationSpeed: action,
             lights: observable,
             selected: observable,
             setSelected: action,
@@ -145,10 +133,6 @@ export class ModelUIState {
         if (oldPath !== newJsonFile){
             this.viewerState.currentModelPath = newJsonFile
             this.cameraLayersMask = -1
-            this.animating = false
-            this.animationSpeed = 1
-            this.animations = []
-            this.currentAnimationIndex = -1
             this.lights = []
             this.currentCameraIndex = -1
         }
@@ -191,12 +175,6 @@ export class ModelUIState {
     setTakeSnapshot() {
         this.takeSnapshot = true
     }
-    setAnimating(newState: boolean){
-        this.animating = newState
-    }
-    setCurrentAnimationIndex(newIndex: number) {
-        this.currentAnimationIndex = newIndex
-    }
     setCurrentCameraIndex(newIndex: number) {
         this.currentCameraIndex = newIndex
     }
@@ -206,14 +184,8 @@ export class ModelUIState {
     setSceneTree(newTree: SceneTreeModelGUI) {
         this.sceneTree = newTree
     }
-    setAnimationList(animations: AnimationClip[]) {
-        this.animations=animations
-    }
     setLightsList(lights: Light[]) {
       this.lights = lights
-    }
-    setAnimationSpeed(newSpeed: number) {
-        this.animationSpeed = newSpeed
     }
     getGuiMode() {
         return this.isGuiMode;
@@ -438,8 +410,10 @@ export class ModelUIState {
     fitCameraTo(objectbbox: Box3) {
         this.fitToBox = objectbbox;
     }
+    
     toggleRecordingKeyFrames() {
         this.recordingKeyFrames = !this.recordingKeyFrames
+        /*
         if (!this.recordingKeyFrames) {
             const duration = this.viewerState.cameras.length-1
             const positions: number[] = []
@@ -471,7 +445,7 @@ export class ModelUIState {
         else {// If turning on recording, capture first camera key frame
             this.viewerState.pending_key = 'c'
             this.startCameraIndex = this.viewerState.cameras.length
-        }
+        } */
     }
     addCamera(camera: PerspectiveCamera, target: Vector3) {
         const camClone = camera.clone()

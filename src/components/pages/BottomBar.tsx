@@ -72,16 +72,16 @@ const BottomBar = React.forwardRef(function CustomContent(
       const targetName = animationName
       setSelectedAnim(animationName);
       if ( targetName === ""){
-          curState.setAnimating(false)
+          curState.viewerState.setAnimating(false)
       }
       else {
-          const idx = curState.animations.findIndex((value: AnimationClip, index: number)=>{return (value.name === targetName)})
+          const idx = curState.viewerState.animations.findIndex((value: AnimationClip, index: number)=>{return (value.name === targetName)})
           if (idx !== -1) {
-              curState.currentAnimationIndex = idx
-              curState.setAnimating(animate)
+              curState.viewerState.currentAnimationIndex = idx
+              curState.viewerState.setAnimating(animate)
           }
       }
-    }, [curState]);
+    }, [curState.viewerState]);
 
     const handleCameraChange = useCallback((cameraName: string) => {
       const targetName = cameraName
@@ -102,7 +102,7 @@ const BottomBar = React.forwardRef(function CustomContent(
 
     const handleDollyChangeEvent = (event: SelectChangeEvent) => {
       const targetName = event.target.value as string
-      //handleAnimationChange(targetName, true)
+      handleAnimationChange(targetName, true)
     };
 
     const handleCameraChangeEvent = (event: SelectChangeEvent) => {
@@ -111,12 +111,12 @@ const BottomBar = React.forwardRef(function CustomContent(
     };
 
     function togglePlayAnimation() {
-        curState.setAnimating(!curState.animating);
+        curState.viewerState.setAnimating(!curState.viewerState.animating);
         setPlay(!play);
     }
 
     function handleSpeedChange(event: SelectChangeEvent) {
-        curState.setAnimationSpeed(Number(event.target.value));
+        curState.viewerState.setAnimationSpeed(Number(event.target.value));
         setSpeed(Number(event.target.value))
     }
 
@@ -138,11 +138,11 @@ const BottomBar = React.forwardRef(function CustomContent(
 
     useEffect(() => {
       //console.log("use-effect1 BottomBar")
-      if (curState.animations.length > 0) {
-        setSelectedAnim(curState.animations[0].name)
-        handleAnimationChange(curState.animations[0].name, false)
+      if (curState.viewerState.animations.length > 0) {
+        setSelectedAnim(curState.viewerState.animations[0].name)
+        handleAnimationChange(curState.viewerState.animations[0].name, false)
       }
-    }, [curState.animations, handleAnimationChange]);
+    }, [curState.viewerState.animations, handleAnimationChange]);
 
     useEffect(() => {
       if (curState.viewerState.cameras.length > 0) {
@@ -197,25 +197,13 @@ const BottomBar = React.forwardRef(function CustomContent(
           {cameraAttachmentType === "dolly" && (
             <Grid item>
               <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
-                {(curState.viewerState.cameraAnimations.length <1)?(
-                  <Button size="small" variant="outlined" onClick={() => setDollyEditorOpen(true)}>Add New...</Button>):
-                  <Select
-                      value={curState.viewerState.cameraAnimations[0].name}
-                  >
-                  {curState.viewerState.cameraAnimations.map(camClip => (
-                    <MenuItem key={camClip.name} value={camClip.name}>
-                      {camClip.name}
-                    </MenuItem>
-                  ))
-                  }
-                  </Select>
-                  }
+                  <Button size="small" variant="outlined" onClick={() => setDollyEditorOpen(true)}>Add New...</Button>
               </FormControl>
             </Grid>)
           }
           {/// animation selection
           }
-          { curState.animations.length < 1 ? null : (
+          { curState.viewerState.animations.length < 1 ? null : (
           <Grid item>
             <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
               <Select
@@ -223,8 +211,8 @@ const BottomBar = React.forwardRef(function CustomContent(
                 label={t('visualizationControl.animate')}
                 value={selectedAnim?.toString()}
                 onChange={handleAnimationChangeEvent}
-                disabled={curState.animations.length < 1}>
-                  {curState.animations.map(anim => (
+                disabled={curState.viewerState.animations.length < 1}>
+                  {curState.viewerState.animations.map(anim => (
                     <MenuItem key={anim.name} value={anim.name}>
                       {anim.name}
                     </MenuItem>
@@ -243,7 +231,7 @@ const BottomBar = React.forwardRef(function CustomContent(
                   value={speed.toString()}
                   label={t('visualizationControl.speed')}
                   onChange={handleSpeedChange}
-                  disabled={curState.animations.length < 1}>
+                  disabled={curState.viewerState.animations.length < 1}>
                     <MenuItem value={0.25}>0.25</MenuItem>
                     <MenuItem value={0.5}>0.5</MenuItem>
                     <MenuItem value={1.0}>1.0</MenuItem>
@@ -260,7 +248,7 @@ const BottomBar = React.forwardRef(function CustomContent(
                 size="small"
                 color="primary"
                 value={'Animation'}
-                disabled={curState.animations.length < 1}
+                disabled={curState.viewerState.animations.length < 1}
                 onClick={togglePlayAnimation}>
                   {play?<PauseCircleTwoToneIcon/>:<PlayCircleTwoToneIcon/>}
               </IconButton>
@@ -276,7 +264,7 @@ const BottomBar = React.forwardRef(function CustomContent(
                 aria-label="Default"
                 valueLabelDisplay="auto"
                 onChange={handleSliderChange}
-                disabled={curState.animations.length < 1}/>
+                disabled={curState.viewerState.animations.length < 1}/>
             </FormControl>
           </Grid>
           {/// frame number
@@ -295,7 +283,7 @@ const BottomBar = React.forwardRef(function CustomContent(
                   max: 100,
                   type: 'number',
                   'aria-labelledby': 'input-slider'}}
-                disabled={curState.animations.length < 1}/>
+                disabled={curState.viewerState.animations.length < 1}/>
             </FormControl>
           </Grid>
 

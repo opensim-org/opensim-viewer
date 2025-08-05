@@ -68,7 +68,11 @@ export class ViewerState {
     lookAtTarget: string
     // camera Animations, sequences, then animations created by interpolating sequences
     cameraSequences: CameraSequence[]
-    cameraAnimations: AnimationClip[]
+    // Animation support
+    animating: boolean
+    animationSpeed: number
+    animations: AnimationClip[]
+    currentAnimationIndex: number
     currentCameraSequence: number
     constructor(
         currentModelPathState: string,
@@ -132,9 +136,12 @@ export class ViewerState {
         this.cameras = []
         this.targets = []
         this.lookAtTarget = ""
-        this.cameraAnimations = []
         this.cameraSequences = []
         this.currentCameraSequence = -1
+        this.animating = false
+        this.animationSpeed = 1.0
+        this.animations = []
+        this.currentAnimationIndex = -1
         makeObservable(this, {
             currentModelPath: observable,
             featuredModelsFilePath: observable,
@@ -185,6 +192,10 @@ export class ViewerState {
             setTargetList: action,
             cameraSequences: observable,
             currentCameraSequence: observable,
+            animationSpeed: observable,
+            animations: observable,
+            setAnimationList: action,
+            setAnimationSpeed: action,
         })
     }
 
@@ -282,7 +293,20 @@ export class ViewerState {
     }
     addCameraSequence(newSequence:CameraSequence){
         this.cameraSequences.push(newSequence);
-        this.cameraAnimations.push(this.createAnimationClipFromSequence(newSequence));
+        this.animations.push(this.createAnimationClipFromSequence(newSequence));
+        this.currentAnimationIndex = this.animations.length - 1;
+    }
+    setAnimationList(animations: AnimationClip[]) {
+        this.animations=animations
+    }
+    setAnimationSpeed(newSpeed: number) {
+        this.animationSpeed = newSpeed
+    }
+    setAnimating(newState: boolean){
+        this.animating = newState
+    }
+    setCurrentAnimationIndex(newIndex: number) {
+        this.currentAnimationIndex = newIndex
     }
     createAnimationClipFromSequence(newSequence: CameraSequence): AnimationClip {
         const numFrames = newSequence.cameraFrames.length

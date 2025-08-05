@@ -418,8 +418,8 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
               <BottomBar
                 ref={bottomBarRef}
                 animationPlaySpeed={1.0}
-                animating={uiState.animating}
-                animationList={uiState.animations}/>
+                animating={uiState.viewerState.animating}
+                animationList={uiState.viewerState.animations}/>
 
 {scene && camera && (
   <div

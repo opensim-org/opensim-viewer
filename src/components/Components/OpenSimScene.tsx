@@ -276,27 +276,27 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
               }
             }
 
-            if (curState.currentAnimationIndex !== animationIndex) {
-              const newAnimationIndex = curState.currentAnimationIndex
+            if (curState.viewerState.currentAnimationIndex !== animationIndex) {
+              const newAnimationIndex = curState.viewerState.currentAnimationIndex
               const oldIndex  = animationIndex
               // animation has changed
               if (oldIndex !== -1){
                 mixers[oldIndex].stopAllAction()
               }
               setAnimationIndex(newAnimationIndex)
-              mixers[curState.currentAnimationIndex]?.clipAction(animations[curState.currentAnimationIndex]).play()
+              mixers[curState.viewerState.currentAnimationIndex]?.clipAction(animations[curState.viewerState.currentAnimationIndex]).play()
             }
-            if (supportControls && curState.animating){
-              if (curState.currentAnimationIndex!==-1) {
-                let duration = mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).getClip().duration;
+            if (supportControls && curState.viewerState.animating){
+              if (curState.viewerState.currentAnimationIndex!==-1) {
+                let duration = mixers[curState.viewerState.currentAnimationIndex].clipAction(animations[curState.viewerState.currentAnimationIndex]).getClip().duration;
 
                 if(curState.currentFrame !== startTime) {
                   const framePercentage = curState.currentFrame / 100;
                   const currentTimeInSlider = duration * framePercentage;
-                  mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time =  currentTimeInSlider;
+                  mixers[curState.viewerState.currentAnimationIndex].clipAction(animations[curState.viewerState.currentAnimationIndex]).time =  currentTimeInSlider;
                 }
-                const currentTime = mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time
-                mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
+                const currentTime = mixers[curState.viewerState.currentAnimationIndex].clipAction(animations[curState.viewerState.currentAnimationIndex]).time
+                mixers[curState.viewerState.currentAnimationIndex].update(delta * curState.viewerState.animationSpeed)
                 //console.log(duration)
                 // For material at index "key" setColor to nodes["value"].translation
                 applyAnimationColors();
@@ -304,16 +304,16 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
                 setStartTime(Math.trunc((currentTime / duration) * 100))
               }
             } else if (supportControls) {
-              if (curState.currentAnimationIndex!==-1) {
+              if (curState.viewerState.currentAnimationIndex!==-1) {
                 if(curState.currentFrame !== startTime) {
-                  let duration = mixers[curState.currentAnimationIndex]?.clipAction(animations[curState.currentAnimationIndex]).getClip().duration;
+                  let duration = mixers[curState.viewerState.currentAnimationIndex]?.clipAction(animations[curState.viewerState.currentAnimationIndex]).getClip().duration;
                   const framePercentage = curState.currentFrame / 100;
                   const currentTime = duration * framePercentage;
                   // For material at index "key" setColor to nodes["value"].translation
                   applyAnimationColors();
-                  mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time = currentTime;
+                  mixers[curState.viewerState.currentAnimationIndex].clipAction(animations[curState.viewerState.currentAnimationIndex]).time = currentTime;
                   setStartTime(curState.currentFrame)
-                  mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
+                  mixers[curState.viewerState.currentAnimationIndex].update(delta * curState.viewerState.animationSpeed)
                 }
               }
             }
@@ -341,7 +341,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         if (supportControls) {
             ///curState.setCurrentModelPath(currentModelPath)
             ///curState.setSceneTree(new SceneTreeModel(scene))
-            curState.setAnimationList(animations)
+            curState.viewerState.setAnimationList(animations)
         }
         return () => {
           if (objectSelectionBox !== null){

@@ -49,7 +49,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     //computeNormals(modelGroup as Group);
     //const animations = modelGroup!.animations;
-    const allAnimations = curState.animations;
+    const allAnimations = curState.viewerState.animations;
 
     const collectAnimations = (group: Group)=>{
       group.traverse((o) => {
@@ -81,7 +81,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     if (curState.scene === null)
       curState.scene = sceneRef.current;
-    curState.setAnimationList(allAnimations)
+    curState.viewerState.setAnimationList(allAnimations)
     // This useEffect loads the cameras and assign them to its respective states.
     useEffect(() => {
       if (modelsRef.current!==null) {
@@ -159,7 +159,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         setCurrentCamera(selectedCamera);
         set({ camera: selectedCamera });
 
-        curState.animations.forEach((clip) => {
+        curState.viewerState.animations.forEach((clip) => {
           clip.tracks.forEach((track) => {
             if (track.name.includes(selectedCamera.name)) {
               if (track.name.endsWith('.position')) {
@@ -202,7 +202,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           });
         });
       }
-    }, [currentCamera, set, curState.currentCameraIndex, curState.viewerState.cameras, curState.animations]);
+    }, [currentCamera, set, curState.currentCameraIndex, curState.viewerState.cameras, curState.viewerState.animations]);
 
 
     if (supportControls) {
@@ -216,9 +216,9 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     }
 
     // Make sure mixers match animations
-    if ((curState.animations.length > 0 && mixers.length !==curState.animations.length)) {
+    if ((curState.viewerState.animations.length > 0 && mixers.length !==curState.viewerState.animations.length)) {
         mixers.length = 0
-        curState.animations.forEach((clip) => {
+        curState.viewerState.animations.forEach((clip) => {
             const nextMixer = new AnimationMixer(camera)
             nextMixer.clipAction(clip)
             mixers.push(nextMixer)
@@ -268,8 +268,9 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
               }
             }
             csRef.current!.visible =  curState.showGlobalFrame
-            if (curState.currentAnimationIndex !== animationIndex) {
-              const newAnimationIndex = curState.currentAnimationIndex
+            const viewerState = curState.viewerState
+            if (viewerState.currentAnimationIndex !== animationIndex) {
+              const newAnimationIndex = viewerState.currentAnimationIndex
               const oldIndex  = animationIndex
               // animation has changed
               if (oldIndex !== -1){
@@ -280,7 +281,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
                 // create a mixer for the animation
                 const nextMixer = new AnimationMixer(camera)
                 // targetMixerRef.current = new AnimationMixer(targetRef.current!);
-                const nextAnimation = curState.animations[curState.currentAnimationIndex];
+                const nextAnimation = viewerState.animations[viewerState.currentAnimationIndex];
                 nextAnimation.tracks[0].setInterpolation(THREE.InterpolateLinear);
                 nextAnimation.tracks[1].setInterpolation(THREE.InterpolateLinear);
                 nextMixer.clipAction(nextAnimation, nextAnimation.name.startsWith("cam")?camera:scene);
@@ -296,19 +297,19 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
                 //       nextAnimation.tracks[2].values[1], 
                 //       nextAnimation.tracks[2].values[2], true);
               }
-              mixers[curState.currentAnimationIndex]?.clipAction(curState.animations[curState.currentAnimationIndex]).play()
+              mixers[viewerState.currentAnimationIndex]?.clipAction(viewerState.animations[viewerState.currentAnimationIndex]).play()
             }
-            if (curState.animating){
-              if (curState.currentAnimationIndex!==-1) {
-                let duration = mixers[curState.currentAnimationIndex].clipAction(curState.animations[curState.currentAnimationIndex]).getClip().duration;
+            if (viewerState.animating){
+              if (viewerState.currentAnimationIndex!==-1) {
+                let duration = mixers[viewerState.currentAnimationIndex].clipAction(viewerState.animations[viewerState.currentAnimationIndex]).getClip().duration;
 
                 if(curState.currentFrame !== startTime) {
                   const framePercentage = curState.currentFrame / 100;
                   const currentTimeInSlider = duration * framePercentage;
-                  mixers[curState.currentAnimationIndex].clipAction(curState.animations[curState.currentAnimationIndex]).time =  currentTimeInSlider;
+                  mixers[viewerState.currentAnimationIndex].clipAction(viewerState.animations[viewerState.currentAnimationIndex]).time =  currentTimeInSlider;
                 }
-                const currentTime = mixers[curState.currentAnimationIndex].clipAction(curState.animations[curState.currentAnimationIndex]).time
-                mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed);
+                const currentTime = mixers[viewerState.currentAnimationIndex].clipAction(viewerState.animations[viewerState.currentAnimationIndex]).time
+                mixers[viewerState.currentAnimationIndex].update(delta * viewerState.animationSpeed);
                 //targetMixerRef.current!.update(delta * curState.animationSpeed);
                 //camera.lookAt(targetRef.current!.position)
 
@@ -321,16 +322,16 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
                 setStartTime(Math.trunc((currentTime / duration) * 100))
               }
             } else {
-              if (curState.currentAnimationIndex!==-1) {
+              if (viewerState.currentAnimationIndex!==-1) {
                 if(curState.currentFrame !== startTime) {
-                  let duration = mixers[curState.currentAnimationIndex]?.clipAction(curState.animations[curState.currentAnimationIndex]).getClip().duration;
+                  let duration = mixers[viewerState.currentAnimationIndex]?.clipAction(viewerState.animations[viewerState.currentAnimationIndex]).getClip().duration;
                   const framePercentage = curState.currentFrame / 100;
                   const currentTime = duration * framePercentage;
                   // For material at index "key" setColor to nodes["value"].translation
                   applyAnimationColors();
-                  mixers[curState.currentAnimationIndex].clipAction(curState.animations[curState.currentAnimationIndex]).time = currentTime;
+                  mixers[viewerState.currentAnimationIndex].clipAction(viewerState.animations[viewerState.currentAnimationIndex]).time = currentTime;
                   setStartTime(curState.currentFrame)
-                  mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
+                  mixers[viewerState.currentAnimationIndex].update(delta * viewerState.animationSpeed)
                   //targetMixerRef.current!.update(delta * curState.animationSpeed);
                   //camera.lookAt(targetRef.current!.position)
                 }
