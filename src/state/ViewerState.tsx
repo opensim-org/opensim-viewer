@@ -1,11 +1,12 @@
+import { String } from 'aws-sdk/clients/apigateway'
 import { makeObservable, observable, action, runInAction } from 'mobx'
-import { Color, Vector3, Camera, Object3D, AnimationClip } from 'three'
+import { Color, Vector3, Camera, Object3D, AnimationClip, VectorKeyframeTrack, QuaternionKeyframeTrack } from 'three'
 
 export class CameraFrame {
-    cam: Camera
+    cam_uuid: string
     time: number
-    constructor(camera: Camera, time: number) {
-        this.cam = camera
+    constructor(camera_uuid: String, time: number) {
+        this.cam_uuid = camera_uuid
         this.time = time
     }
 }
@@ -278,6 +279,30 @@ export class ViewerState {
     }
     setLookAtTarget(target_uuid: string) {
       this.lookAtTarget = target_uuid
+    }
+    addCameraSequence(newSequence:CameraSequence){
+        this.cameraSequences.push(newSequence);
+        this.cameraAnimations.push(this.createAnimationClipFromSequence(newSequence));
+    }
+    createAnimationClipFromSequence(newSequence: CameraSequence): AnimationClip {
+        const numFrames = newSequence.cameraFrames.length
+        const duration = newSequence.cameraFrames[numFrames-1].time
+        const positions: number[] = []
+        const orientations: number[] = []
+        const keyFrameTimes: number[] = []
+        for (let i=0; i< newSequence.cameraFrames.length; i++){
+            const frame = newSequence.cameraFrames[i]
+            const cam = this.cameras.find(cam => cam.uuid === frame.cam_uuid) as Camera;
+            cam.position.toArray(positions, 3*i)
+            cam.quaternion.toArray(orientations, 4*i)
+            keyFrameTimes.push(frame.time)
+        }
+        // Create 2 keyframetracks one for camera, 2nd for target
+        const positionKF = new VectorKeyframeTrack( '.position', keyFrameTimes, positions );
+        const orientationKF = new QuaternionKeyframeTrack( '.quaternion', keyFrameTimes, orientations );
+
+        // Create an AnimationClip from saved KeyFrameCameras, add to ui
+        return new AnimationClip(newSequence.name!, duration, [positionKF, orientationKF])
     }
     async loadUserPreferences() {
         try {

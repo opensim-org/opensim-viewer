@@ -199,11 +199,15 @@ const BottomBar = React.forwardRef(function CustomContent(
               <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
                 {(curState.viewerState.cameraAnimations.length <1)?(
                   <Button size="small" variant="outlined" onClick={() => setDollyEditorOpen(true)}>Add New...</Button>):
-                  curState.viewerState.cameraAnimations.map(camClip => (
+                  <Select>
+                  {curState.viewerState.cameraAnimations.map(camClip => (
                     <MenuItem key={camClip.name} value={camClip.name}>
                       {camClip.name}
                     </MenuItem>
-                  ))}
+                  ))
+                  }
+                  </Select>
+                  }
               </FormControl>
             </Grid>)
           }
