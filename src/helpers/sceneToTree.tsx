@@ -18,7 +18,7 @@ function getValidChildren(obj: THREE.Object3D, traverse: any) {
     .filter((child: any) => child !== null);
 }
 
-export function convertSceneToTree(scene: THREE.Scene | null, camera: THREE.Camera | null) {
+export function convertSceneToTree(scene: THREE.Scene | null) {
   const traverse = (obj: any): any | null => {
     const nodeType = determineNodeType(obj);
     const { id, uuid } = obj;
