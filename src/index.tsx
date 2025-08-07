@@ -14,6 +14,12 @@ if (!Object.hasOwn) {
   };
 }
 
+if (!Object.hasOwn) {
+  Object.hasOwn = function (obj: any, key: PropertyKey): boolean {
+    return Object.prototype.hasOwnProperty.call(obj, key);
+  };
+}
+
 const theme = createTheme({
     palette: {
         primary: {

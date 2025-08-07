@@ -64,7 +64,6 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     // eslint-disable-next-line no-mixed-operators
     const [objectSelectionBox, setObjectSelectionBox] = useState<BoxHelper | null>(new BoxHelper(scene));
     let curState = useModelContext();
-
     const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
 
     // This useEffect loads the cameras and assign them to its respective states.
@@ -326,7 +325,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
       onPointerDown={(e: any) => curState.setSelected(e.object.uuid, false)}
       onPointerMissed={() => curState.setSelected("", false)}
       />
-      <group name='OpenSim Environment' ref={envRef}>
+      <group name='OpenSimEnvironment' ref={envRef}>
           <directionalLight name="Directional Light" ref={lightRef} position={[0.5, 1.5, -0.5]}
             intensity={curState.viewerState.lightIntensity} color={curState.viewerState.lightColor}
             castShadow={true}
