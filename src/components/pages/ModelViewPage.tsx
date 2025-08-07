@@ -15,7 +15,7 @@ import CameraPreview from "../Components/CameraPreview"
 import AddCameraDialog from "../Components/Dialogs/AddCameraDialog"
 import AddLightDialog from "../Components/Dialogs/AddLightDialog"
 import SceneTreeBridge from "../Components/SceneTree/SceneTreeBridge"
-import { SceneTreeSortableHandle } from "../Components/SceneTree/SceneTreeSortable"
+import SceneTreeSortable, { SceneTreeSortableHandle } from "../Components/SceneTree/SceneTreeSortable"
 import DrawerMenu from "../Components/DrawerMenu";
 import OpenSimGUIScene from "../Components/OpenSimGUIScene";
 import { ModelInfo, ModelUIState } from "../../state/ModelUIState";
@@ -48,7 +48,6 @@ import RotateIcon from '@mui/icons-material/RotateRight';
 import {
   Button
 } from "@mui/material";
-import SceneTreeView from '../Components/SceneTreeView';
 
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
@@ -73,7 +72,7 @@ export const addNewCamera = (
   name: string = 'NewCamera',
   type: 'PerspectiveCamera' | 'OrthographicCamera' = 'PerspectiveCamera',
   uiState: ModelUIState,
-  camerasGroup: THREE.Group,
+  parent: any,
   onSceneUpdated: () => void
 ): THREE.Camera => {
   let camera: Camera;
@@ -106,12 +105,11 @@ export const addNewCamera = (
     (camera as OrthographicCamera).updateProjectionMatrix();
   }
 
-
   const helper = new CameraHelper(camera);
   helper.name = `${name}_Helper`;
 
-  camerasGroup.add(camera);
-  camerasGroup.add(helper);
+  parent?.object3D?.add(camera);
+  parent?.object3D?.add(helper);
 
   uiState.viewerState.setCamerasList([...uiState.viewerState.cameras, camera]);
   uiState.setSelected(camera.uuid);
@@ -191,7 +189,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 
   const [addLightDialogOpen, setAddLightDialogOpen] = useState(false);
 
-  const [, setSceneVersion] = useState(0);
+  const [sceneVersion, setSceneVersion] = useState(0);
 
   const treeRef = useRef<SceneTreeSortableHandle>(null);
   const [treeWidth, setTreeWidth] = useState(0);
@@ -430,7 +428,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     }}
   >
     <div style={{ flex: "1 1 50%", overflowY: "auto" }}>
-      {/* <SceneTreeSortable
+      <SceneTreeSortable
         ref={treeRef}
         scene={scene}
         sceneVersion={sceneVersion}
@@ -440,8 +438,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
         onAddLightClick={setAddLightDialogOpen}
         setTransformTargetFunction={setTransformTarget}
         onWidthChange={setTreeWidth}
-      /> */}
-      <SceneTreeView/>
+      /> 
     </div>
   </div>
 )}

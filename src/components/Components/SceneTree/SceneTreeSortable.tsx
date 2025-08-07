@@ -202,6 +202,8 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                   setTreeData(newData);
                   if (scene) applyTreeToScene(newData, scene);
                 }}
+                theme={FileExplorerTheme}
+                canDrag={({ node }) => node.nodeType !== 'addCameraButton'}
                 generateNodeProps={({ node, path }) => {
                   const isSelected = selectedPath?.join('.') === path.join('.');
                   const icon = iconMap[node.nodeType] || iconMap.unknown;
