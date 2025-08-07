@@ -118,7 +118,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
 
     useEffect(() => {
       if (scene && camera) {
-        setTreeData(convertSceneToTree(scene, camera));
+        setTreeData(convertSceneToTree(scene));
       }
     }, [scene, camera, sceneVersion]);
 

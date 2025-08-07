@@ -2,6 +2,12 @@ import * as THREE from 'three';
 
 function determineNodeType(obj: THREE.Object3D): string {
   if (obj.name === "Scene") return "model";
+  if (obj.type === "Object3D" && obj.userData!==undefined && obj.userData.name!==undefined &&
+          obj.userData.name.startsWith("Model")
+   ) return "model";
+  if (obj.type === "Object3D" && obj.userData!==undefined && obj.userData.name!==undefined &&
+          (obj.userData.name === "Ground")
+   ) return "Body";
   if (obj.type === "Group") return "group";
   if (obj.type.includes("Light")) return "light";
   if (obj.name.includes("SkySphere")) return "skySphere";
@@ -13,12 +19,12 @@ function determineNodeType(obj: THREE.Object3D): string {
 
 function getValidChildren(obj: THREE.Object3D, traverse: any) {
   return obj.children
-    .filter(child => child.type.includes("Camera") || child.type.includes("Light"))
+    .filter(child => child.type.includes("Camera") || child.type.includes("Light") || child.type.includes("Object3D"))
     .map(traverse)
     .filter((child: any) => child !== null);
 }
 
-export function convertSceneToTree(scene: THREE.Scene | null, camera: THREE.Camera | null) {
+export function convertSceneToTree(scene: THREE.Scene | null) {
   const traverse = (obj: any): any | null => {
     const nodeType = determineNodeType(obj);
     const { id, uuid } = obj;
@@ -27,8 +33,7 @@ export function convertSceneToTree(scene: THREE.Scene | null, camera: THREE.Came
 
     const shouldProcess =
       (!obj.type.includes("TransformControls") &&
-      !obj.type.includes("Helper") &&
-      obj.type !== "Object3D") &&
+      !obj.type.includes("Helper")) &&
       !(obj.type === "Group" && obj.name === "" && obj.children.length === 0);
 
     if (!shouldProcess) return null;
