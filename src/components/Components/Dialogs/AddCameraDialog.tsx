@@ -10,12 +10,13 @@ import Autocomplete from '@mui/material/Autocomplete';
 interface AddCameraDialogProps {
   open: boolean;
   onClose: () => void;
-  onAddCamera: (name: string | undefined, type: any, uiState: ModelUIState, camerasGroup: THREE.Group) => void;
+  onAddCamera: (name: string | undefined, type: any, uiState: ModelUIState, parent: THREE.Object3D | null) => void;
   scene: THREE.Scene | null;
   uiState: ModelUIState;
+  parent: THREE.Object3D | null;
 }
 
-const AddCameraDialog: React.FC<AddCameraDialogProps> = ({ open, onClose, onAddCamera, scene, uiState }) => {
+const AddCameraDialog: React.FC<AddCameraDialogProps> = ({ open, onClose, onAddCamera, scene, uiState, parent }) => {
   const [cameraName, setCameraName] = useState("NewCamera");
   const [cameraType, setCameraType] = useState("PerspectiveCamera");
 
@@ -53,10 +54,8 @@ const AddCameraDialog: React.FC<AddCameraDialogProps> = ({ open, onClose, onAddC
         <Button
           onClick={() => {
               if (scene) {
-                const camerasGroup = scene.getObjectByName('Cameras') as THREE.Group;
-                if (camerasGroup) {
-                  onAddCamera(cameraName.trim() || "NewCamera", cameraType.trim() || "SpotLight", uiState, camerasGroup);
-                }
+                onAddCamera(cameraName.trim() || "NewCamera", cameraType.trim() || "SpotLight", uiState, parent);
+
                 onClose();
               }
             }
