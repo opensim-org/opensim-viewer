@@ -33,24 +33,6 @@ const AddCameraDialog: React.FC<AddCameraDialogProps> = ({ open, onClose, onAddC
           onChange={(e) => setCameraName(e.target.value)}
         />
       </DialogContent>
-      {/*
-      <DialogContent>
-        <Autocomplete
-          options={['PerspectiveCamera', 'OrthographicCamera']}
-          value={cameraType}
-          onChange={(_:any, newValue:any) => setCameraType(newValue ?? '')}
-          renderInput={(params:any) => (
-            <TextField
-              {...params}
-              autoFocus
-              margin="dense"
-              label="Camera Type"
-              fullWidth
-            />
-          )}
-        />
-      </DialogContent>
-      */}
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
         <Button
