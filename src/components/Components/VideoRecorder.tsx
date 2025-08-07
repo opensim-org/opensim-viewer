@@ -23,107 +23,178 @@ type VideoRecorderViewProps = {
   videoRecorderRef: React.MutableRefObject<VideoRecorderRef | null>;
 }
 
-function VideoRecorder(props :VideoRecorderViewProps) {
+function VideoRecorder(props: VideoRecorderViewProps) {
   const { t } = useTranslation();
   const viewerState = useModelContext().viewerState;
   const { gl } = useThree();
   const ffmpegRef = useRef(new FFmpeg());
-  const { enqueueSnackbar, closeSnackbar  } = useSnackbar();
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+
+  const capturedFrames = useRef<string[]>([]);
+  const isRecordingRef = useRef(false);
+  const frameCaptureIntervalRef = useRef<number | null>(null);
+  const fps = 30;
 
   const load = async () => {
-    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/umd/'
+    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/umd/';
     const ffmpeg = ffmpegRef.current;
-    ffmpeg.on('log', ({ message }) => {
-      console.log(message);
-    });
+    ffmpeg.on('log', ({ message }) => console.log(message));
     await ffmpeg.load({
-      coreURL: `${baseURL}/ffmpeg-core.js`,
-      wasmURL: `${baseURL}/ffmpeg-core.wasm`,
+      coreURL: `${baseURL}ffmpeg-core.js`,
+      wasmURL: `${baseURL}ffmpeg-core.wasm`,
     });
-  }
+  };
 
-  const transcodeMp4 = async (url:string) => {
+  const captureFrame = (): string => {
+    return gl.domElement.toDataURL('image/jpeg', 0.92);
+  };
+
+  const encodeFramesToVideo = async (ext: 'mp4' | 'mov') => {
     const ffmpeg = ffmpegRef.current;
-    await ffmpeg.writeFile('input.webm', await fetchFile(url));
-    await ffmpeg.exec(['-i', 'input.webm', '-r', '60', "-c:v", "libx264", "-preset", "slow", "-profile:v", "high", "-pix_fmt", "yuv420p", "-crf", "17", "-vf", "pad=ceil(iw/2)*2:ceil(ih/2)*2", 'video.mp4']);
-    const data = await ffmpeg.readFile('video.mp4');
-    const urlMp4 = URL.createObjectURL(new Blob([data], {type: 'video/mp4'}));
-    return urlMp4;
-  }
+    await load();
 
-  const transcodeMov = async (url:string) => {
-    const ffmpeg = ffmpegRef.current;
-    await ffmpeg.writeFile('input.webm', await fetchFile(url));
-    await ffmpeg.exec(['-i', 'input.webm', '-r', '60', "-c:v", "libx264", "-preset", "slow", "-profile:v", "high", "-pix_fmt", "yuv420p", "-crf", "17", "-vf", "pad=ceil(iw/2)*2:ceil(ih/2)*2", 'video.mov']);
-    const data = await ffmpeg.readFile('video.mov');
-    const urlMov = URL.createObjectURL(new Blob([data], {type: 'video/mov'}));
-    return urlMov;
-  }
+    // Convert base64 strings to blobs and write them to ffmpeg FS
+    for (let i = 0; i < capturedFrames.current.length; i++) {
+      const dataURL = capturedFrames.current[i];
+      // Convert base64 URL to Uint8Array
+      const res = await fetch(dataURL);
+      const blob = await res.blob();
+      await ffmpeg.writeFile(`input${String(i).padStart(3, '0')}.jpg`, await fetchFile(blob));
+    }
 
-  function downloadVideo(url:any, fileName:string) {
+    // Input pattern with .jpg extension now
+    const args = [
+      '-framerate', `${fps}`,
+      '-i', 'input%03d.jpg',
+      '-r', `${fps}`,
+      '-c:v', 'libx264',
+      '-pix_fmt', 'yuv420p',
+      '-preset', 'fast',
+      '-crf', '17',
+    ];
+
+    if (ext === 'mov') {
+      args.push('-profile:v', 'high');
+      args.push('-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2');
+    }
+
+    args.push(`output.${ext}`);
+    await ffmpeg.exec(args);
+
+    const data = await ffmpeg.readFile(`output.${ext}`);
+    return URL.createObjectURL(new Blob([data], { type: `video/${ext}` }));
+  };
+
+  const downloadVideo = (url: string, filename: string) => {
     const a = document.createElement('a');
     a.href = url;
-    a.download = fileName;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
-  }
+  };
 
   useEffect(() => {
-    const stream = gl.domElement.captureStream();
-    let options = { mimeType: 'video/webm;codecs=vp8,opus' };
+    const stream = gl.domElement.captureStream(fps);
+    const webmSupported = MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus');
+    const useMediaRecorder = viewerState.recordedVideoFormat === 'webm' && webmSupported;
 
-    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-        options = { mimeType: 'video/mp4;codecs=avc1,mp4a' };
-        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-            console.error("No compatible MIME type found.");
-            return;
-        }
+    const recorder = useMediaRecorder ? new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8,opus' }) : null;
+    const recordedChunks: Blob[] = [];
+
+    if (recorder) {
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) recordedChunks.push(e.data);
+      };
     }
 
-    const recorder = new MediaRecorder(stream, options);
-
-    const startRecording = function() {
-      viewerState.setIsRecordingVideo(true)
-      enqueueSnackbar(t('snackbars.recording_video'), {variant: 'info', anchorOrigin: { horizontal: "right", vertical: "bottom"}, persist: true})
-      recorder.start();
-    };
-
-    const stopRecording = function() {
-      recorder.stop()
-      closeSnackbar()
-      viewerState.setIsRecordingVideo(false)
-      recorder.addEventListener('dataavailable', async (evt) => {
-        const url = URL.createObjectURL(evt.data);
-        // If not webm, convert to format.
-        if (viewerState.recordedVideoFormat === "webm") {
-          downloadVideo(url, viewerState.recordedVideoName + "." + viewerState.recordedVideoFormat )
-        } else {
-          enqueueSnackbar(t('snackbars.processing_video'), {variant: 'info', anchorOrigin: { horizontal: "right", vertical: "bottom" }, persist: true})
-          viewerState.setIsProcessingVideo(true)
-          await load()
-          if (viewerState.recordedVideoFormat === "mp4") {
-            const urlMp4 = await transcodeMp4(url)
-            downloadVideo(urlMp4, viewerState.recordedVideoName + "." + viewerState.recordedVideoFormat )
-          }
-          if (viewerState.recordedVideoFormat === "mov") {
-            await load()
-            const urlMov = await transcodeMov(url)
-            downloadVideo(urlMov, viewerState.recordedVideoName + "." + viewerState.recordedVideoFormat )
-          }
-        }
-        viewerState.setIsProcessingVideo(false)
-        closeSnackbar()
+    const startRecording = () => {
+      viewerState.setIsRecordingVideo(true);
+      enqueueSnackbar(t('snackbars.recording_video'), {
+        variant: 'info',
+        anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
+        persist: true
       });
+
+      if (useMediaRecorder && recorder) {
+        recorder.start();
+      } else {
+        capturedFrames.current = [];
+        isRecordingRef.current = true;
+
+        let frameCount = 0;
+        const startTime = performance.now();
+        let lastCaptureTime = startTime;
+
+        const captureLoop = async () => {
+          const loop = async () => {
+            if (!isRecordingRef.current) {
+              const endTime = performance.now();
+              const durationSec = (endTime - startTime) / 1000;
+              const realFps = frameCount / durationSec;
+              console.log(`Recording stopped.`);
+              console.log(`Duration: ${durationSec.toFixed(2)} seconds`);
+              console.log(`Frames captured: ${frameCount}`);
+              console.log(`Real framerate: ${realFps.toFixed(2)} fps`);
+              return;
+            }
+
+            const now = performance.now();
+            const timeSinceLastCapture = now - lastCaptureTime;
+            const frameDuration = 1000 / fps;
+
+            if (timeSinceLastCapture >= frameDuration) {
+              lastCaptureTime = now;
+              const frameDataURL = captureFrame();
+              capturedFrames.current.push(frameDataURL);
+              frameCount++;
+            }
+
+            requestAnimationFrame(loop);
+          };
+
+          requestAnimationFrame(loop);
+        };
+
+        captureLoop();
+      }
     };
 
-    props.videoRecorderRef.current = {
-      startRecording,
-      stopRecording,
+
+    const stopRecording = async () => {
+      closeSnackbar();
+      viewerState.setIsRecordingVideo(false);
+
+      if (useMediaRecorder && recorder) {
+        recorder.stop();
+        recorder.onstop = async () => {
+          const blob = new Blob(recordedChunks, { type: 'video/webm' });
+          const url = URL.createObjectURL(blob);
+          downloadVideo(url, `${viewerState.recordedVideoName}.webm`);
+        };
+      } else {
+        isRecordingRef.current = false;
+        enqueueSnackbar(t('snackbars.processing_video'), { variant: 'info', anchorOrigin: { horizontal: 'right', vertical: 'bottom' }, persist: true });
+        viewerState.setIsProcessingVideo(true);
+
+        try {
+          const ext = viewerState.recordedVideoFormat as 'mp4' | 'mov';
+          const url = await encodeFramesToVideo(ext);
+          downloadVideo(url, `${viewerState.recordedVideoName}.${ext}`);
+        } catch (e) {
+          console.error(e);
+        }
+
+        viewerState.setIsProcessingVideo(false);
+        closeSnackbar();
+      }
     };
+
+    props.videoRecorderRef.current = { startRecording, stopRecording };
   }, [props.videoRecorderRef, gl.domElement, enqueueSnackbar, closeSnackbar, t, viewerState]);
 
   return null;
 }
+
 
 export default observer(VideoRecorder);

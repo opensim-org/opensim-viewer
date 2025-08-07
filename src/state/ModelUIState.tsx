@@ -1,7 +1,8 @@
 import { makeObservable, observable, action } from 'mobx'
 import SceneTreeModel from '../helpers/SceneTreeModel'
 import { AnimationClip } from 'three/src/animation/AnimationClip'
-import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
+import { Camera } from 'three'
+import { Light } from 'three'
 import { Group } from 'three'
 import ViewerState from './ViewerState'
 
@@ -28,7 +29,8 @@ export class ModelUIState {
     animationSpeed: number
     animations: AnimationClip[]
     currentAnimationIndex: number
-    cameras: PerspectiveCamera[]
+    cameras: Camera[]
+    lights: Light[]
     currentCameraIndex: number
     selected: string
     deSelected: string
@@ -53,6 +55,7 @@ export class ModelUIState {
         this.animations = []
         this.currentAnimationIndex = -1
         this.cameras = []
+        this.lights = []
         this.currentCameraIndex = -1
         this.selected = ""
         this.deSelected = ""
@@ -72,6 +75,7 @@ export class ModelUIState {
             setAnimationSpeed: action,
             animations: observable,
             cameras: observable,
+            lights: observable,
             setCamerasList: action,
             selected: observable,
             setSelected: action,
@@ -94,9 +98,10 @@ export class ModelUIState {
             this.cameraLayersMask = -1
             this.animating = false
             this.animationSpeed = 1
-			      this.animations = []
+            this.animations = []
             this.currentAnimationIndex = -1
-			      this.cameras = []
+            this.cameras = []
+            this.lights = []
             this.currentCameraIndex = -1
         }
     }
@@ -130,8 +135,11 @@ export class ModelUIState {
     setAnimationList(animations: AnimationClip[]) {
         this.animations=animations
     }
-    setCamerasList(cameras: PerspectiveCamera[]) {
+    setCamerasList(cameras: Camera[]) {
         this.cameras=cameras
+    }
+    setLightsList(lights: Light[]) {
+      this.lights = lights
     }
     setAnimationSpeed(newSpeed: number) {
         this.animationSpeed = newSpeed

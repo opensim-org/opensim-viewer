@@ -24,6 +24,7 @@ const SkySphere: React.FC<SkySphereProps> = observer(({ texturePath }) => {
 
   return (
     <mesh
+      name="SkySphere"
       ref={skySphereRef}
       geometry={skyGeometry}
       material={skyMaterial}
