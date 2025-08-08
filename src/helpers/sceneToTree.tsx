@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 function determineNodeType(obj: THREE.Object3D): string {
-  if (obj.name === "Scene") return "model";
+  if (obj.name === "Scene") return "scene";
   if (obj.type === "Object3D" && obj.userData!==undefined && obj.userData.name!==undefined &&
           obj.userData.name.startsWith("Model")
    ) return "model";
@@ -35,7 +35,7 @@ export function convertSceneToTree(scene: THREE.Scene | null) {
   const traverse = (obj: any): any | null => {
     const nodeType = determineNodeType(obj);
     const { id, uuid } = obj;
-    let title = obj.name === "Scene" ? "Model" : getShortName(obj.name);
+    let title =  getShortName(obj.name);
     let children = null;
 
     const shouldProcess =

@@ -19,6 +19,7 @@ import GridOnIcon from '@mui/icons-material/GridOn';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import PanoramaIcon from '@mui/icons-material/Panorama';
 
 import { convertSceneToTree } from '../../../helpers/sceneToTree';
 import { useModelContext } from '../../../state/ModelUIStateContext';
@@ -49,6 +50,7 @@ export interface SceneTreeSortableHandle {
 }
 
 const iconMap: Record<string, JSX.Element> = {
+  scene: <PanoramaIcon />,
   model: <PersonIcon />,
   group: <FolderIcon />,
   camera: <CameraAltIcon />,
