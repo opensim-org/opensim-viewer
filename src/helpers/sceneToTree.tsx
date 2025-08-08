@@ -6,8 +6,8 @@ function determineNodeType(obj: THREE.Object3D): string {
           obj.userData.name.startsWith("Model")
    ) return "model";
   if (obj.type === "Object3D" && obj.userData!==undefined && obj.userData.name!==undefined &&
-          (obj.userData.name === "Ground")
-   ) return "Body";
+          (obj.userData.name === "Ground" || obj.userData.name.startsWith("Body:"))
+   ) return "body";
   if (obj.type === "Group") return "group";
   if (obj.type.includes("Light")) return "light";
   if (obj.name.includes("SkySphere")) return "skySphere";
@@ -24,11 +24,18 @@ function getValidChildren(obj: THREE.Object3D, traverse: any) {
     .filter((child: any) => child !== null);
 }
 
+function getShortName(input: string) {
+  if (input.includes("set")){
+    const lastSlashIndex = input.lastIndexOf("set");
+    return input.substring(lastSlashIndex + 3);
+  }
+  return input;
+}
 export function convertSceneToTree(scene: THREE.Scene | null) {
   const traverse = (obj: any): any | null => {
     const nodeType = determineNodeType(obj);
     const { id, uuid } = obj;
-    let title = obj.name === "Scene" ? "Model" : obj.name;
+    let title = obj.name === "Scene" ? "Model" : getShortName(obj.name);
     let children = null;
 
     const shouldProcess =

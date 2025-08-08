@@ -226,9 +226,23 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 
   const [scene, setScene] = useState<THREE.Scene | null>(null);
   const [camera, setCamera] = useState<THREE.Camera | null>(null);
-  const [transformTarget, setTransformTarget] = useState<THREE.Object3D | null>(null);
+  const [transformTarget, setTransformTargetInternal] = useState<THREE.Object3D | null>(null);
   const [transformMode, setTransformMode] = useState<'translate' | 'rotate'>('translate');
 
+  function isImmovableObject(name: string){
+    return name==="Ground" || name.startsWith("Body");
+  }
+  function setTransformTarget(customTarget: THREE.Object3D | null) {
+    if (customTarget !== null &&
+      customTarget.userData !== undefined &&
+      customTarget.userData.name !== undefined &&
+      isImmovableObject(customTarget.userData.name)
+    ) {
+      setTransformTargetInternal(null)
+      return;
+    }
+    setTransformTargetInternal(customTarget)
+  }
   useEffect(() => {
     if (bottomBarRef.current) {
       const heightBottomBar = bottomBarRef.current.offsetHeight;
@@ -256,26 +270,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     viewerState.setUserPreferencesJsonPath('/user-preferences.json')
     viewerState.loadUserPreferences()
 
-//    const gui = new GUI()
-//    gui.domElement.style.marginTop = '66px';
-//    gui.domElement.style.marginRight = '-15px';
-//    const sceneFolder = gui.addFolder("Scene");
-//    sceneFolder.addColor(viewerState, 'backgroundColor').onChange(
-//      function(v: any){viewerState.setBackgroundColor(v); coloRef.current?.copy(v);}
-//    );
-//    const floorFolder = gui.addFolder("Floor");
-//    floorFolder.add(viewerState, 'floorHeight', -2, 2, .01).name("Height")
-//    floorFolder.add(viewerState, 'floorVisible')
-//    floorFolder.add(viewerState, 'floorTextureFile', { 'tile':0, 'wood-floor':1, 'Cobblestone':2, 'textureStone':3, 'grassy':4}).name("Texture").onChange(
-//      function(v: any){viewerState.setFloorTextureIndex(v)}
-//    );
-//    const lightFolder = gui.addFolder("Lights");
-//    lightFolder.add(viewerState, 'lightIntensity', 0, 2, .05).name("Intensity")
-//    lightFolder.addColor(viewerState, 'lightColor').name("Color")
-//    lightFolder.add(viewerState, 'spotLight')
-//    return () => {
-//        gui.destroy()
-//      }
   }, [uiState.viewerState]);
 
   if (urlParam!== undefined) {
@@ -354,7 +348,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
                 {transformTarget && (
                   <>
-                      <TransformControls object={transformTarget} mode={transformMode} />
+                      <TransformControls object={transformTarget} mode={undefined} />
                   </>
                 )}
 

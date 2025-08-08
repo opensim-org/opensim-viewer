@@ -56,6 +56,7 @@ const iconMap: Record<string, JSX.Element> = {
   axes: <ThreeDRotationIcon />,
   skySphere: <PublicIcon />,
   floor: <GridOnIcon />,
+  body: <PersonIcon />,
   unknown: <HelpOutlineIcon />,
   addCameraButton: <> </>,
   addLightButton: <> </>,
@@ -251,7 +252,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                     title: (
                       <span style={{ marginLeft: 10, display: 'inline-flex', alignItems: 'center' }}>
                         {node.title}
-                        {node.subtitle && node.subtitle !== 'Group' && ` (${node.subtitle})`}
+                        {/* {node.subtitle && node.subtitle !== 'Group' && ` (${node.subtitle})`} */}
 
                         {node.object3D && node.type !== 'Group' && node.title !== 'Scene' && (
                           <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleVisibilityToggle(node); }} style={{ marginLeft: 8 }}>

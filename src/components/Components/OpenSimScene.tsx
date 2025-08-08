@@ -1,6 +1,5 @@
 import { useGLTF } from '@react-three/drei'
 import { useFrame, useLoader, useThree } from '@react-three/fiber'
-import { TransformControls } from '@react-three/drei'
 
 import * as THREE from 'three';
 
