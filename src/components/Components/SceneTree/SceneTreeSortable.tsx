@@ -213,17 +213,28 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                     className: isSelected ? 'rst__rowSelected' : undefined,
                     onClick: (e: React.MouseEvent) => {
                       e.stopPropagation();
-                      setSelectedPath(path);
 
-                      setSettingsNode(node);
-                      if (node.nodeType === 'camera')
-                        uiState.setSelected(node.uuid);
-                      else
-                        uiState.setSelected("")
+                      const isSameNode = selectedPath?.join('.') === path.join('.');
 
-                      setTransformTargetFunction?.(scene?.getObjectById(node.id));
-                      if (!(node.type === "Group") && !(node.type === "AddButton") && !(node.title === "Model")) {
-                        handleSettingsClick(node, path)
+                      if (isSameNode) {
+                        // Deselect
+                        setSelectedPath(null);
+                        setSettingsNode(null);
+                        uiState.setSelected("");
+                        setTransformTargetFunction?.(null);
+                      } else {
+                        // Select
+                        setSelectedPath(path);
+                        setSettingsNode(node);
+                        if (node.nodeType === 'camera')
+                          uiState.setSelected(node.uuid);
+                        else
+                          uiState.setSelected("");
+
+                        setTransformTargetFunction?.(scene?.getObjectById(node.id));
+                        if (!(node.type === "Group") && !(node.type === "AddButton") && !(node.title === "Model")) {
+                          handleSettingsClick(node, path);
+                        }
                       }
                     },
                     onContextMenu: (e: React.MouseEvent) => {
