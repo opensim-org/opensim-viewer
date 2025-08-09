@@ -38,7 +38,7 @@ const AddCameraDialog: React.FC<AddCameraDialogProps> = ({ open, onClose, onAddC
         <Button
           onClick={() => {
               if (scene) {
-                onAddCamera(cameraName.trim() || "NewCamera", cameraType.trim() || "SpotLight", uiState, parent);
+                onAddCamera(cameraName.trim() || "NewCamera", 'PerspectiveCamera' || "PerspectiveCamera", uiState, parent);
 
                 onClose();
               }

@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import { ModelUIState } from '../../../state/ModelUIState';
 import { observer } from 'mobx-react-lite';
-import { Color } from 'three'
+import { Color, MathUtils } from 'three'
 
 interface NodeSettingsPanelProps {
   selectedNode: any;
@@ -147,6 +147,21 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             }
             style={{ marginTop: 16 }}
           />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={selectedNode.castShadow ?? selectedNode.object3D?.castShadow ?? true}
+                onChange={(e) =>
+                  patch({
+                    castShadow: e.target.checked,
+                    object3DProps: { castShadow: e.target.checked },
+                  })
+                }
+              />
+            }
+            label="Cast Shadow"
+            style={{ marginTop: 16 }}
+          />
         </>
       )}
 
@@ -204,6 +219,21 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
                 object3DProps: { penumbra: parseFloat(e.target.value) },
               })
             }
+            style={{ marginTop: 16 }}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={selectedNode.castShadow ?? selectedNode.object3D?.castShadow ?? true}
+                onChange={(e) =>
+                  patch({
+                    castShadow: e.target.checked,
+                    object3DProps: { castShadow: e.target.checked },
+                  })
+                }
+              />
+            }
+            label="Cast Shadow"
             style={{ marginTop: 16 }}
           />
         </>
@@ -274,6 +304,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             }}
             style={{ marginTop: 16 }}
           />
+          {/*
           <TextField
             label="Near plane"
             type="number"
@@ -304,11 +335,13 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             }}
             style={{ marginTop: 16 }}
           />
+          */}
         </>
       )}
 
       {selectedNode?.type === "OrthographicCamera" && (
         <>
+          {/*
           <TextField
             label="Left"
             type="number"
@@ -399,6 +432,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             }}
             style={{ marginTop: 16 }}
           />
+        */}
         </>
       )}
 
@@ -487,6 +521,106 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
         </>
       )}
 
+
+      {/* Position controls for lights and cameras */}
+      {( selectedNode?.type === "PerspectiveCamera" ||
+          selectedNode?.type === "OrthographicCamera" ||
+          selectedNode?.type === "SpotLight" ||
+          selectedNode?.type === "PointLight" ||
+          selectedNode?.type === "DirectionalLight")
+       && (
+        <>
+          <Typography variant="subtitle2" style={{ marginTop: 24 }}>Transform</Typography>
+
+          {/* Translation */}
+          <TextField
+            label="Position X"
+            type="number"
+            fullWidth
+            value={selectedNode.object3D?.position.x ?? 0}
+            onChange={(e) => {
+              const x = parseFloat(e.target.value);
+              const y = selectedNode.object3D.position.y;
+              const z = selectedNode.object3D.position.z;
+              selectedNode.object3D.position.set(x, y, z);
+              patch({});
+            }}
+            style={{ marginTop: 16 }}
+          />
+          <TextField
+            label="Position Y"
+            type="number"
+            fullWidth
+            value={selectedNode.object3D?.position.y ?? 0}
+            onChange={(e) => {
+              const y = parseFloat(e.target.value);
+              const x = selectedNode.object3D.position.x;
+              const z = selectedNode.object3D.position.z;
+              selectedNode.object3D.position.set(x, y, z);
+              patch({});
+            }}
+            style={{ marginTop: 16 }}
+          />
+          <TextField
+            label="Position Z"
+            type="number"
+            fullWidth
+            value={selectedNode.object3D?.position.z ?? 0}
+            onChange={(e) => {
+              const z = parseFloat(e.target.value);
+              const x = selectedNode.object3D.position.x;
+              const y = selectedNode.object3D.position.y;
+              selectedNode.object3D.position.set(x, y, z);
+              patch({});
+            }}
+            style={{ marginTop: 16 }}
+          />
+
+          {/* Rotation (degrees) */}
+          <TextField
+              label="Rotation X (°)"
+              type="number"
+              fullWidth
+              value={MathUtils.radToDeg(selectedNode.object3D?.rotation.x ?? 0)}
+              onChange={(e) => {
+                const x = MathUtils.degToRad(parseFloat(e.target.value));
+                const y = selectedNode.object3D.rotation.y;
+                const z = selectedNode.object3D.rotation.z;
+                selectedNode.object3D.rotation.set(x, y, z);
+                patch({});
+              }}
+              style={{ marginTop: 16 }}
+            />
+            <TextField
+              label="Rotation Y (°)"
+              type="number"
+              fullWidth
+              value={MathUtils.radToDeg(selectedNode.object3D?.rotation.y ?? 0)}
+              onChange={(e) => {
+                const y = MathUtils.degToRad(parseFloat(e.target.value));
+                const x = selectedNode.object3D.rotation.x;
+                const z = selectedNode.object3D.rotation.z;
+                selectedNode.object3D.rotation.set(x, y, z);
+                patch({});
+              }}
+              style={{ marginTop: 16 }}
+            />
+            <TextField
+              label="Rotation Z (°)"
+              type="number"
+              fullWidth
+              value={MathUtils.radToDeg(selectedNode.object3D?.rotation.z ?? 0)}
+              onChange={(e) => {
+                const z = MathUtils.degToRad(parseFloat(e.target.value));
+                const x = selectedNode.object3D.rotation.x;
+                const y = selectedNode.object3D.rotation.y;
+                selectedNode.object3D.rotation.set(x, y, z);
+                patch({});
+              }}
+              style={{ marginTop: 16 }}
+            />
+        </>
+      )}g
     </div>
 
 

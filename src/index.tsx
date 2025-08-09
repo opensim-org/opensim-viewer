@@ -14,6 +14,7 @@ if (!Object.hasOwn) {
   };
 }
 
+// This definition of Object.hasOwn is included here to support old chromium browsers, like the one embedded in the GUI.
 if (!Object.hasOwn) {
   Object.hasOwn = function (obj: any, key: PropertyKey): boolean {
     return Object.prototype.hasOwnProperty.call(obj, key);

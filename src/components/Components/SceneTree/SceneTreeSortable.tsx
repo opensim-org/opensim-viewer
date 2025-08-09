@@ -19,6 +19,7 @@ import GridOnIcon from '@mui/icons-material/GridOn';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import PanoramaIcon from '@mui/icons-material/Panorama';
 
 import { convertSceneToTree } from '../../../helpers/sceneToTree';
 import { useModelContext } from '../../../state/ModelUIStateContext';
@@ -49,6 +50,7 @@ export interface SceneTreeSortableHandle {
 }
 
 const iconMap: Record<string, JSX.Element> = {
+  scene: <PanoramaIcon />,
   model: <PersonIcon />,
   group: <FolderIcon />,
   camera: <CameraAltIcon />,
@@ -56,6 +58,7 @@ const iconMap: Record<string, JSX.Element> = {
   axes: <ThreeDRotationIcon />,
   skySphere: <PublicIcon />,
   floor: <GridOnIcon />,
+  body: <PersonIcon />,
   unknown: <HelpOutlineIcon />,
   addCameraButton: <> </>,
   addLightButton: <> </>,
@@ -118,8 +121,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
 
     useEffect(() => {
       if (scene && camera) {
-        const treeNodes = convertSceneToTree(scene, camera);
-        setTreeData(treeNodes);
+        setTreeData(convertSceneToTree(scene));
       }
     }, [scene, camera, sceneVersion]);
 
@@ -213,17 +215,28 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                     className: isSelected ? 'rst__rowSelected' : undefined,
                     onClick: (e: React.MouseEvent) => {
                       e.stopPropagation();
-                      setSelectedPath(path);
 
-                      setSettingsNode(node);
-                      if (node.nodeType === 'camera')
-                        uiState.setSelected(node.uuid);
-                      else
-                        uiState.setSelected("")
+                      const isSameNode = selectedPath?.join('.') === path.join('.');
 
-                      setTransformTargetFunction?.(scene?.getObjectById(node.id));
-                      if (!(node.type === "Group") && !(node.type === "AddButton") && !(node.title === "Model")) {
-                        handleSettingsClick(node, path)
+                      if (isSameNode) {
+                        // Deselect
+                        setSelectedPath(null);
+                        setSettingsNode(null);
+                        uiState.setSelected("");
+                        setTransformTargetFunction?.(null);
+                      } else {
+                        // Select
+                        setSelectedPath(path);
+                        setSettingsNode(node);
+                        if (node.nodeType === 'camera')
+                          uiState.setSelected(node.uuid);
+                        else
+                          uiState.setSelected("");
+
+                        setTransformTargetFunction?.(scene?.getObjectById(node.id));
+                        if (!(node.type === "Group") && !(node.type === "AddButton") && !(node.title === "Model")) {
+                          handleSettingsClick(node, path);
+                        }
                       }
                     },
                     onContextMenu: (e: React.MouseEvent) => {
@@ -252,7 +265,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                     title: (
                       <span style={{ marginLeft: 10, display: 'inline-flex', alignItems: 'center' }}>
                         {node.title}
-                        {node.subtitle && node.subtitle !== 'Group' && ` (${node.subtitle})`}
+                        {/* {node.subtitle && node.subtitle !== 'Group' && ` (${node.subtitle})`} */}
 
                         {node.object3D && node.type !== 'Group' && node.title !== 'Scene' && (
                           <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleVisibilityToggle(node); }} style={{ marginLeft: 8 }}>

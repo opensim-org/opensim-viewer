@@ -12,9 +12,6 @@
       "AmplifyAppId": "d7iaa9a9lxtm6"
     },
     "categories": {
-      "hosting": {
-        "S3AndCloudFront": {}
-      },
       "auth": {
         "opensimviewer423590f5": {}
       },

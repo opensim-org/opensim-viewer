@@ -1,7 +1,13 @@
 import * as THREE from 'three';
 
 function determineNodeType(obj: THREE.Object3D): string {
-  if (obj.name === "Scene") return "model";
+  if (obj.name === "Scene") return "scene";
+  if (obj.type === "Object3D" && obj.userData!==undefined && obj.userData.name!==undefined &&
+          obj.userData.name.startsWith("Model")
+   ) return "model";
+  if (obj.type === "Object3D" && obj.userData!==undefined && obj.userData.name!==undefined &&
+          (obj.userData.name === "Ground" || obj.userData.name.startsWith("Body:"))
+   ) return "body";
   if (obj.type === "Group") return "group";
   if (obj.type.includes("Light")) return "light";
   if (obj.name.includes("SkySphere")) return "skySphere";
@@ -13,33 +19,46 @@ function determineNodeType(obj: THREE.Object3D): string {
 
 function getValidChildren(obj: THREE.Object3D, traverse: any) {
   return obj.children
-    .filter(child => child.type.includes("Camera") || child.type.includes("Light"))
+    .filter(child => child.type.includes("Camera") || child.type.includes("Light") || 
+    child.type.includes("Object3D") || 
+    child.userData.opensimType==="Ground" || child.userData.opensimType==="Frame")
     .map(traverse)
     .filter((child: any) => child !== null);
 }
 
-export function convertSceneToTree(scene: THREE.Scene | null, camera: THREE.Camera | null) {
+function getShortName(input: string) {
+  if (input.includes("set")){
+    const lastSlashIndex = input.lastIndexOf("set");
+    return input.substring(lastSlashIndex + 3);
+  }
+  return input;
+}
+export function convertSceneToTree(scene: THREE.Scene | null) {
   const traverse = (obj: any): any | null => {
     const nodeType = determineNodeType(obj);
     const { id, uuid } = obj;
-    let title = obj.name === "Scene" ? "Model" : obj.name;
+    let title =  getShortName(obj.name);
     let children = null;
 
     const shouldProcess =
       (!obj.type.includes("TransformControls") &&
       !obj.type.includes("Helper") &&
-      obj.type !== "Object3D") &&
+      !(obj.name ==="Com") &&
+      !obj.type.includes("Skinned")) &&
       !(obj.type === "Group" && obj.name === "" && obj.children.length === 0);
 
     if (!shouldProcess) return null;
 
     const isGroup = obj.type === "Group";
-    const isModel = title === "Model";
+    const isModel = title === "Model" || (obj.userData.opensimType!== undefined && obj.userData.opensimType=== "Model");
 
     if (obj.children?.length > 0) {
       if (isGroup) {
         if (!isModel) {
-          children = obj.children.map(traverse).filter((child: any) => child !== null);
+          if (obj.userData.opensimType=== "Frame") // don't recur on Frames
+            children = []
+          else
+            children = obj.children.map(traverse).filter((child: any) => child !== null);
         } else {
           const validChildren = getValidChildren(obj, traverse);
           if (validChildren.length > 0) children = validChildren;

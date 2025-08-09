@@ -223,9 +223,23 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 
   const [scene, setScene] = useState<THREE.Scene | null>(null);
   const [camera, setCamera] = useState<THREE.Camera | null>(null);
-  const [transformTarget, setTransformTarget] = useState<THREE.Object3D | null>(null);
+  const [transformTarget, setTransformTargetInternal] = useState<THREE.Object3D | null>(null);
   const [transformMode, setTransformMode] = useState<'translate' | 'rotate'>('translate');
 
+  function isImmovableObject(name: string){
+    return name==="Ground" || name.startsWith("Body");
+  }
+  function setTransformTarget(customTarget: THREE.Object3D | null) {
+    if (customTarget !== null &&
+      customTarget.userData !== undefined &&
+      ((customTarget.userData.name !== undefined && isImmovableObject(customTarget.userData.name)) ||
+        customTarget.userData.opensimType === "Ground" || customTarget.userData.opensimType === "Frame")
+    ) {
+      setTransformTargetInternal(null)
+      return;
+    }
+    setTransformTargetInternal(customTarget)
+  }
   useEffect(() => {
     if (bottomBarRef.current) {
       const heightBottomBar = bottomBarRef.current.offsetHeight;
@@ -346,7 +360,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
                 {transformTarget && (
                   <>
-                      <TransformControls object={transformTarget} mode={transformMode} />
+                      <TransformControls object={transformTarget} mode={undefined} />
                   </>
                 )}
 

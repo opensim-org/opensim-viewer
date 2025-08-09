@@ -94,14 +94,6 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         setCurrentCamera(cameras.length > 0 ? cameras[0] as PerspectiveCamera : new PerspectiveCamera());
         curState.setCurrentCameraIndex(0);
       }
-      else { // use the default camera, call it DefaultCam
-        if (curState.viewerState.cameras.length === 0){
-          const cam = camera as PerspectiveCamera;  // Provided by the library
-          cam.name = "Default Camera"
-          curState.viewerState.setCamerasList([cam])
-          curState.setCurrentCameraIndex(0)
-        }
-      }
     }, [curState, scene, gl.domElement.clientWidth, gl.domElement, set, camera]);
 
     // This useEffect sets the current selected camera.
