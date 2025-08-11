@@ -77,34 +77,13 @@ export const addNewCamera = (
 ): THREE.Camera => {
   let camera: Camera;
 
-  if (type === 'PerspectiveCamera') {
-    const aspect = 800 / 600; // You may want to make this dynamic
-    camera = new PerspectiveCamera(50, aspect, 0.1, 100);
+  const aspect = 800 / 600; // You may want to make this dynamic
+  camera = new PerspectiveCamera(50, aspect, 0.1, 100);
 
-    camera.name = name;
-    camera.position.set(0, 1, 2);
-    (camera as PerspectiveCamera).updateProjectionMatrix();
-  } else {
-    // Orthographic frustum (left, right, top, bottom, near, far)
-    const frustumSize = 2;
-    const aspect = 800 / 600; // Or get this from your renderer/canvas
-    const width = frustumSize * aspect;
-    const height = frustumSize;
-
-    camera = new OrthographicCamera(
-      -width / 2,
-      width / 2,
-      height / 2,
-      -height / 2,
-      0.1,
-      50
-    );
-
-    camera.name = name;
-    camera.position.set(0, 1, 2);
-    (camera as OrthographicCamera).updateProjectionMatrix();
-  }
-
+  camera.name = name;
+  camera.position.set(0, 1, 2);
+  (camera as PerspectiveCamera).updateProjectionMatrix();
+  
   const helper = new CameraHelper(camera);
   helper.name = `${name}_Helper`;
 
@@ -360,7 +339,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
                 {transformTarget && (
                   <>
-                      <TransformControls object={transformTarget} mode={undefined} />
+                      <TransformControls object={transformTarget} mode={transformMode} />
                   </>
                 )}
 

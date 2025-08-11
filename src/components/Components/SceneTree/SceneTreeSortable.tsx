@@ -102,7 +102,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
 
     const [contextMenu, setContextMenu] = useState<{ mouseX: number; mouseY: number; node: any; path: number[] } | null>(null);
     const [nodeToDelete, setNodeToDelete] = useState<{ node: any; path: number[] } | null>(null);
-
+    const [stateSceneVersion, ] = useState<number>(uiState.viewerState.sceneVersion);
     const outerDivRef = useRef<HTMLDivElement>(null);
 
     const typesExcludedFromRemove = ['skySphere', 'floor', 'axes', 'group', 'model'];
@@ -123,7 +123,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
       if (scene && camera) {
         setTreeData(convertSceneToTree(scene));
       }
-    }, [scene, camera, sceneVersion]);
+    }, [scene, camera, sceneVersion, stateSceneVersion]);
 
     const handleSettingsClick = (node: any, path: number[]) => {
       setSettingsNode(node);

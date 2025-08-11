@@ -128,12 +128,8 @@ export class ModelUIState {
 
     addModelFromPath(newJsonFile: string) {
         let oldPath = this.viewerState.currentModelPath
-        if (oldPath !== newJsonFile){
-            this.viewerState.currentModelPath = newJsonFile
-            this.cameraLayersMask = -1
-            this.lights = []
-            this.currentCameraIndex = -1
-        }
+        if (oldPath !== newJsonFile)
+            this.viewerState.setCurrentModelPath(newJsonFile)
     }
 
     addModelToMap(model_uuid:string, modelGroup: Object3D) {
@@ -332,8 +328,7 @@ export class ModelUIState {
                 if (this.modelDictionary[modeltoClose]!== undefined){
                     this.modelDictionary[modeltoClose].removeFromParent()
                     delete this.modelDictionary[modeltoClose]
-                    // update scene tree
-                    this.sceneTree!.removeModel(modeltoClose);
+                    // update sceneVersion to force tree rendering
                     this.viewerState.sceneVersion= this.viewerState.sceneVersion+1;
                 }
                 break;
