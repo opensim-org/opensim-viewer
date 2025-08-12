@@ -8,7 +8,7 @@ import {
   GizmoHelper,
   GizmoViewport,
 } from "@react-three/drei";
-import OpenSimControl from '../Components/OpenSimControl';
+import OpenSimControl, { OpenSimControlHandle } from '../Components/OpenSimControl';
 import BottomBar from "../pages/BottomBar";
 import FloatingControlsPanel from '../Components/FloatingControlsPanel';
 import CameraPreview from "../Components/CameraPreview"
@@ -30,10 +30,7 @@ import { DirectionalLightHelper,
   DirectionalLight,
   SpotLight,
   PointLight,
-  CameraHelper,
-  Camera,
-  PerspectiveCamera,
-  OrthographicCamera} from 'three';
+  CameraHelper} from 'three';
 
 import VideoRecorder from "../Components/VideoRecorder"
 
@@ -70,28 +67,23 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
 
 export const addNewCamera = (
   name: string = 'NewCamera',
-  type: 'PerspectiveCamera' | 'OrthographicCamera' = 'PerspectiveCamera',
   uiState: ModelUIState,
+  control: OpenSimControlHandle,
   parent: any,
   onSceneUpdated: () => void
 ): THREE.Camera => {
-  let camera: Camera;
-
-  const aspect = 800 / 600; // You may want to make this dynamic
-  camera = new PerspectiveCamera(50, aspect, 0.1, 100);
-
-  camera.name = name;
-  camera.position.set(0, 1, 2);
-  (camera as PerspectiveCamera).updateProjectionMatrix();
+  //camera.name = name;
+  //camera.position.set(0, 1, 2);
+  //(camera as PerspectiveCamera).updateProjectionMatrix();
   
+  const camera = control.addCamera(name);
+  uiState.viewerState.setCamerasList([...uiState.viewerState.cameras, camera]);
+  uiState.setSelected(camera.uuid);
   const helper = new CameraHelper(camera);
   helper.name = `${name}_Helper`;
 
   parent?.object3D?.add(camera);
   parent?.object3D?.add(helper);
-
-  uiState.viewerState.setCamerasList([...uiState.viewerState.cameras, camera]);
-  uiState.setSelected(camera.uuid);
 
   onSceneUpdated();
 
@@ -172,6 +164,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 
   const treeRef = useRef<SceneTreeSortableHandle>(null);
   const [treeWidth, setTreeWidth] = useState(0);
+  const openSimControlsRef = useRef<OpenSimControlHandle>(null);
 
   useLayoutEffect(() => {
     const el = treeRef.current?.getWidth ? treeRef.current : null;
@@ -334,7 +327,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
                   <GizmoViewport labelColor="white" />
                 </GizmoHelper>
-                <OpenSimControl/>
+                <OpenSimControl ref={openSimControlsRef}/>
                 <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
                 {transformTarget && (
@@ -380,8 +373,8 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
               <AddCameraDialog
                 open={addCameraDialogOpen}
                 onClose={() => setAddCameraDialogOpen(false)}
-                onAddCamera={(name:any, type:any) => {
-                  const newCam = addNewCamera(name, type, uiState, treeRef.current?.selectedNode() ?? null, () => setSceneVersion(v => v + 1));
+                onAddCamera={(name:any) => {
+                  const newCam = addNewCamera(name, uiState, openSimControlsRef.current!, treeRef.current?.selectedNode() ?? null, () => setSceneVersion(v => v + 1));
                   setTransformTarget(newCam);
                 }}
                 scene={scene}

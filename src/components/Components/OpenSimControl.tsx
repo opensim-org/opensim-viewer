@@ -6,11 +6,19 @@ import { useModelContext } from '../../state/ModelUIStateContext';
 
 import { useFrame, useThree } from '@react-three/fiber'
 
-import THREE, { Box3, Object3D, PerspectiveCamera, Sphere, Vector2, Vector3 } from 'three';
-import { useRef } from 'react';
+import THREE, { Box3, Camera, Object3D, PerspectiveCamera, Sphere, Vector2, Vector3 } from 'three';
+
+// OpenSimControl.tsx
+import { forwardRef, useImperativeHandle, useRef } from 'react';
+import { GroupProps } from '@react-three/fiber';
+
+export type OpenSimControlHandle = {
+  addCamera: (cameraName: any) => PerspectiveCamera;
+  getTarget: () => Vector3 | null;
+};
 
 
-const OpenSimControl = () => {
+const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref) => {
     const {
         gl, // WebGL renderer
         camera,
@@ -22,7 +30,18 @@ const OpenSimControl = () => {
    const viewerState = useModelContext().viewerState;
    const controlsRef = useRef<OrbitControlsImpl | null>(null)
 
-   const controlTarget = new Vector3(0., 0., 0.);
+  useImperativeHandle(ref, () => ({
+    addCamera: (cameraName: any) => {
+        const newCam = (camera as PerspectiveCamera).clone();
+        newCam.name = cameraName;
+        curState.viewerState.setCamerasList([...curState.viewerState.cameras, camera]);
+        //curState.targets.push(controlsRef.current!.target);
+
+        return newCam;
+    },
+    getTarget: () => { return controlsRef.current!.target}
+  }));
+
    function implementDolly(amount: number) {
         if (controlsRef.current) {
             const target = controlsRef.current.target
@@ -275,7 +294,7 @@ const OpenSimControl = () => {
         {curState.draggable && <TransformControls object={curState.selectedObject!} onMouseUp={completeTransform}/>}
         <OrbitControls ref={controlsRef} camera={camera} makeDefault />
     </>
-}
+});
 /*
 const OpenSimControl = () => {
     const {
