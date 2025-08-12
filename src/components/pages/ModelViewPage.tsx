@@ -77,7 +77,6 @@ export const addNewCamera = (
   //(camera as PerspectiveCamera).updateProjectionMatrix();
   
   const camera = control.addCamera(name);
-  uiState.viewerState.setCamerasList([...uiState.viewerState.cameras, camera]);
   uiState.setSelected(camera.uuid);
   const helper = new CameraHelper(camera);
   helper.name = `${name}_Helper`;
@@ -400,34 +399,35 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 animating={uiState.viewerState.animating}
                 animationList={uiState.viewerState.animations}/>
 
-{scene && camera && (
-  <div
-    style={{
-      position: "absolute",
-      top: 66,
-      right: 0,
-      zIndex: 1000,
-      height: canvasHeight,          // full canvas height
-      width: treeWidth || 250,       // whatever width the tree reports (fallback 250 px)
-      display: "flex",
-      flexDirection: "column",
-    }}
-  >
-    <div style={{ flex: "1 1 50%", overflowY: "auto" }}>
-      <SceneTreeSortable
-        ref={treeRef}
-        scene={scene}
-        sceneVersion={sceneVersion}
-        camera={camera}
-        height="100%"
-        onAddCameraClick={setAddCameraDialogOpen}
-        onAddLightClick={setAddLightDialogOpen}
-        setTransformTargetFunction={setTransformTarget}
-        onWidthChange={setTreeWidth}
-      /> 
-    </div>
-  </div>
-)}
+              {scene && camera && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 66,
+                    right: 0,
+                    zIndex: 1000,
+                    height: canvasHeight,          // full canvas height
+                    width: `${treeWidth}`,       // whatever width the tree reports (fallback 250 px)
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  <div style={{ flex: "1 1 50%", overflowY: "auto" }}>
+                    <SceneTreeSortable
+                      ref={treeRef}
+                      scene={scene}
+                      sceneVersion={sceneVersion}
+                      camera={camera}
+                      /* let it stretch to parent height */
+                      height="100%"
+                      onAddCameraClick={setAddCameraDialogOpen}
+                      onAddLightClick={setAddLightDialogOpen}
+                      setTransformTargetFunction={setTransformTarget}
+                      onWidthChange={setTreeWidth}
+                    />
+                  </div>
+                </div>
+              )}
 
 
           </div>

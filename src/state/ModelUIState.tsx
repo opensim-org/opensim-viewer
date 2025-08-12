@@ -55,7 +55,6 @@ export class ModelUIState {
     showGlobalFrame: boolean
     sceneTree: SceneTreeModelGUI | null
     lights: Light[]
-    targets: Vector3[]
     startCameraIndex: number
     currentCameraIndex: number
     selected: string
@@ -87,7 +86,6 @@ export class ModelUIState {
         this.showGlobalFrame = false
         this.sceneTree = null
         this.lights = []
-        this.targets = []
         //this.keyframes = []
         this.startCameraIndex = -1
         this.currentCameraIndex = -1
@@ -121,7 +119,6 @@ export class ModelUIState {
             setCurrentFrame: action,
             currentCameraIndex: observable,
             setCurrentCameraIndex: action,
-            addCamera: action,
         })
         console.log("Created ModelUIState instance ", currentModelPathState)
     }
@@ -440,15 +437,5 @@ export class ModelUIState {
             this.startCameraIndex = this.viewerState.cameras.length
         } */
     }
-    addCamera(camera: PerspectiveCamera, target: Vector3) {
-        const camClone = camera.clone()
-        camClone.name = "Camera_"+this.viewerState.cameras.length
-        this.viewerState.cameras.push(camClone);
-        this.targets.push(target.clone())
-        // const newKeyFrame = new CameraKeyFrameProps(camClone, target.clone(), this.keyframes.length)
-        // this.keyframes.push(newKeyFrame)
-        // console.log("Adding Camera at p, q:")
-        // console.log(camera.position)
-        // console.log(camera.quaternion)
-    }
+
 }

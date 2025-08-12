@@ -80,7 +80,7 @@ const SceneTreeView  = ()  => {
     if (sTree === null && curState.scene !== null) {
       // console.log(curState.scene);
       curState.setSceneTree(new SceneTreeModelGUI(curState.scene!));
-      curState.viewerState.setTargetList(new TargetListModel(curState.scene!).getTargets());
+      //curState.viewerState.setTargetList(new TargetListModel(curState.scene!).getTargets());
       setTreeVersion(curState.viewerState.sceneVersion);
       console.log("TreeVersion", treeVersion)
     }
@@ -90,7 +90,7 @@ const SceneTreeView  = ()  => {
 
       if (treeVersion <curState.viewerState.sceneVersion){
         curState.setSceneTree(new SceneTreeModelGUI(curState.scene!));
-        curState.viewerState.setTargetList(new TargetListModel(curState.scene!).getTargets());
+        //curState.viewerState.setTargetList(new TargetListModel(curState.scene!).getTargets());
         console.log('SceneTreeView useEffect called');
         setTreeVersion(curState.viewerState.sceneVersion);
         console.log("TreeVersion", treeVersion)

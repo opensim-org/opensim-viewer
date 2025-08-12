@@ -32,12 +32,7 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
 
   useImperativeHandle(ref, () => ({
     addCamera: (cameraName: any) => {
-        const newCam = (camera as PerspectiveCamera).clone();
-        newCam.name = cameraName;
-        curState.viewerState.setCamerasList([...curState.viewerState.cameras, camera]);
-        //curState.targets.push(controlsRef.current!.target);
-
-        return newCam;
+        return curState.viewerState.addCamera(camera as PerspectiveCamera, controlsRef.current!.target, cameraName)
     },
     getTarget: () => { return controlsRef.current!.target}
   }));
@@ -146,7 +141,7 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
                 case 'c':
                     if (controlsRef.current){
                         const controlTarget = controlsRef.current.target
-                        curState.addCamera(camera as PerspectiveCamera, controlTarget)
+                        curState.viewerState.addCamera(camera as PerspectiveCamera, controlTarget, undefined)
                     }
             }
             viewerState.pending_key = "";
@@ -220,7 +215,7 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
         }
         if (curState.currentCameraIndex!==-1) {
             const nextCam = curState.viewerState.cameras[curState.currentCameraIndex]
-            let target = curState.targets[curState.currentCameraIndex]
+            let target = curState.viewerState.targets[curState.currentCameraIndex]
             if (target === undefined) {
                 target = new Vector3(0, 0, 0)
             }

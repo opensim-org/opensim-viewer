@@ -1,6 +1,6 @@
 import { String } from 'aws-sdk/clients/apigateway'
 import { makeObservable, observable, action, runInAction } from 'mobx'
-import { Color, Vector3, Camera, Object3D, AnimationClip, VectorKeyframeTrack, QuaternionKeyframeTrack } from 'three'
+import { Color, Vector3, Camera, Object3D, AnimationClip, VectorKeyframeTrack, QuaternionKeyframeTrack, PerspectiveCamera } from 'three'
 
 export class CameraFrame {
     cam_uuid: string
@@ -63,8 +63,8 @@ export class ViewerState {
     sceneVersion: number
     // cameras
     cameras: Camera[]
+    targets: Vector3[]
     // targets
-    targets: Object3D[]
     lookAtTarget: string
     // camera Animations, sequences, then animations created by interpolating sequences
     cameraSequences: CameraSequence[]
@@ -189,7 +189,6 @@ export class ViewerState {
             setRotating: action,
             cameras: observable,
             setCamerasList: action,
-            setTargetList: action,
             cameraSequences: observable,
             currentCameraSequence: observable,
             animationSpeed: observable,
@@ -285,9 +284,6 @@ export class ViewerState {
     setCamerasList(cameras: Camera[]) {
         this.cameras=cameras
     }
-    setTargetList(targets: Object3D[]){
-        this.targets = targets
-    }
     setLookAtTarget(target_uuid: string) {
       this.lookAtTarget = target_uuid
     }
@@ -346,6 +342,16 @@ export class ViewerState {
         } catch (error) {
             console.error("Error loading user preferences:", error);
         }
+    }
+    addCamera(camera: PerspectiveCamera, target: Vector3, suggestedName: string | undefined) {
+        const camClone = camera.clone()
+        if (suggestedName === undefined) 
+            camClone.name = "Camera_"+this.cameras.length
+        else
+            camClone.name = suggestedName;
+        this.cameras.push(camClone);
+        this.targets.push(target.clone())
+        return camClone;
     }
 }
 
