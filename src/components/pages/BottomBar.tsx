@@ -1,4 +1,4 @@
-import { Grid, Container, IconButton, ToggleButton, FormControl, Slider, SelectChangeEvent, Input, MenuItem, Select, InputLabel, Button } from '@mui/material';
+import { Grid, Container, IconButton, ToggleButton, FormControl, Slider, SelectChangeEvent, Input, MenuItem, Select, InputLabel, Button, Typography, Divider } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useState, useEffect } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -13,6 +13,7 @@ import { useModelContext } from '../../state/ModelUIStateContext';
 import { Camera } from 'three/src/cameras/Camera'
 import DollyEditorDialog from '../Components/DollyEditorDialog';
 import React, { useCallback, useRef } from 'react';
+import CameraPanel from './CameraPanel';
 
 const NonAnimatedSlider = styled(Slider)(() => ({
   "& .MuiSlider-thumb": {
@@ -127,7 +128,7 @@ const BottomBar = React.forwardRef(function CustomContent(
     };
 
     useEffect(() => {
-      //console.log("use-effect1 BottomBar")
+
       if (curState.viewerState.animations.length > 0) {
         setSelectedAnim(curState.viewerState.animations[0].name)
         handleAnimationChange(curState.viewerState.animations[0].name, false)
@@ -143,12 +144,15 @@ const BottomBar = React.forwardRef(function CustomContent(
 
     return (
       <Container ref={(ref as any) || bottomBarRef}>
-
         <Grid container spacing={1} justifyContent="center">
+          <Grid item >
+            <CameraPanel uState={curState}/>
+          </Grid>
+          <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
           <Grid item>
             {/// Fixed or Dolly
             }
-            <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
+            {/* <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
               <InputLabel id="camera-type-label">Attachment</InputLabel>
               <Select
                 labelId="camera-type-label"
@@ -160,7 +164,7 @@ const BottomBar = React.forwardRef(function CustomContent(
                 <MenuItem value="fixed">Fixed</MenuItem>
                 <MenuItem value="dolly">Moving</MenuItem>
               </Select>
-            </FormControl>
+            </FormControl> */}
           </Grid>
           {/// camera selection
           }

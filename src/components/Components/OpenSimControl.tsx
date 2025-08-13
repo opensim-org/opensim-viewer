@@ -13,8 +13,7 @@ import { forwardRef, useImperativeHandle, useRef } from 'react';
 import { GroupProps } from '@react-three/fiber';
 
 export type OpenSimControlHandle = {
-  addCamera: (cameraName: any) => PerspectiveCamera;
-  getTarget: () => Vector3 | null;
+  addCamera: (cameraName: any, parent: Object3D | null) => PerspectiveCamera;
 };
 
 
@@ -31,10 +30,9 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
    const controlsRef = useRef<OrbitControlsImpl | null>(null)
 
   useImperativeHandle(ref, () => ({
-    addCamera: (cameraName: any) => {
+    addCamera: (cameraName: any, parent: Object3D | null) => {
         return curState.viewerState.addCamera(camera as PerspectiveCamera, controlsRef.current!.target, cameraName)
-    },
-    getTarget: () => { return controlsRef.current!.target}
+    }
   }));
 
    function implementDolly(amount: number) {

@@ -69,7 +69,7 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
         <Grid item xs={6}>
             <SnapShotModal open={false}/>
         </Grid>
-        <Grid item xs={6}>
+        {/* <Grid item xs={6}>
           <Tooltip title={t('bottomBar.fit')}>
             <IconButton 
               color="primary"
@@ -78,7 +78,7 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
                 <AddAPhotoTwoToneIcon />
             </IconButton>
           </Tooltip>
-        </Grid>
+        </Grid> */}
         <Grid item xs={6}>
           <Tooltip title={t('bottomBar.record')}>
             <IconButton

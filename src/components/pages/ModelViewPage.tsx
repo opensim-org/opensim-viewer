@@ -72,11 +72,8 @@ export const addNewCamera = (
   parent: any,
   onSceneUpdated: () => void
 ): THREE.Camera => {
-  //camera.name = name;
-  //camera.position.set(0, 1, 2);
-  //(camera as PerspectiveCamera).updateProjectionMatrix();
   
-  const camera = control.addCamera(name);
+  const camera = control.addCamera(name, parent);
   uiState.setSelected(camera.uuid);
   const helper = new CameraHelper(camera);
   helper.name = `${name}_Helper`;
