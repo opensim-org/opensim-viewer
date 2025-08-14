@@ -82,6 +82,15 @@ function CameraPanel(props :CameraPanelProps) {
     }
   }
 
+    const handleEdit = () => {
+    if (dollyMode) {
+      setDollyEditorOpen(true)
+    }
+    else {
+      //curState.viewerState.saveCameraAndTarget=true; // Message Control to save camera and target
+    }
+  }
+
   const handleCameraTypeChange = (event: SelectChangeEvent) => {
     const targetName = event.target.value as string;
     setSelectedAttachment(targetName);
@@ -138,14 +147,14 @@ function CameraPanel(props :CameraPanelProps) {
       </FormControl>
       <FormControl margin="dense" size="small" variant="standard" >
       <Stack direction="row">
-        <IconButton color="primary" title="Add Camera" onClick={handleAdd}>
+        <IconButton color="primary" title="Add Camera/Dolly" onClick={handleAdd}>
           <AddIcon />
         </IconButton>
-        <IconButton color="info" title="Edit Camera" disabled={!selectedCamera}>
+        <IconButton color="info" title="Edit Camera/Dolly" disabled={!selectedCamera} onClick={handleEdit}>
           {/** This should open the tree with selected camera node so location, name props can all be changed in one place. */}
           <EditIcon />
         </IconButton>
-        <IconButton color="error" title="Delete Camera" disabled={!selectedCamera} onClick={() => {
+        <IconButton color="error" title="Delete Camera/Dolly" disabled={!selectedCamera} onClick={() => {
               curState.viewerState.deleteCurrentCamera()}}>
           <DeleteIcon />
         </IconButton>

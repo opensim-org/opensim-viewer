@@ -308,10 +308,11 @@ export class ViewerState {
     setLookAtTarget(target_uuid: string) {
       this.lookAtTarget = target_uuid
     }
-    addCameraSequence(newSequence:CameraDolly){
+    addCameraDolly(newSequence:CameraDolly){
         this.cameraDollies.push(newSequence);
         this.animations.push(this.createAnimationClipFromSequence(newSequence));
         this.currentAnimationIndex = this.animations.length - 1;
+        this.currentDollyIndex = this.cameraDollies.length - 1;
     }
     setAnimationList(animations: AnimationClip[]) {
         this.animations=animations

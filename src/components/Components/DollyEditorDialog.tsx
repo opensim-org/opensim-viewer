@@ -17,7 +17,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { ModelUIState } from "../../state/ModelUIState";
 import { CameraFrame, CameraDolly } from "../../state/ViewerState";
-import { Camera, Object3D, PerspectiveCamera } from "three";
+import { Camera } from 'three';
 
 type CameraEntry = {
   id: string;
@@ -42,7 +42,22 @@ const DollyEditorDialog: React.FC<Props> = ({ open, onClose, uiState}) => {
 }));
   const [entries, setEntries] = useState<CameraEntry[]>(initalEntries);
   const [dollyName, setDollyName] = useState<string>('Dolly#')
-  
+  const [cameras, ] = useState<Camera[]>(uiState.viewerState.cameras);
+  const generateCameraEntryFromFrame = (frame: CameraFrame) =>{
+    const cam = cameras.find(cam => cam.uuid === frame.cam_uuid)
+    return {
+      id: Math.random().toString(36).substring(2, 9),
+      name: cam!.name,
+      time: `${frame.time}`,
+      errors: { }
+    }
+  };
+
+  // if (uiState.viewerState.cameraDollies.length > 0 && uiState.viewerState.currentDollyIndex !== -1) {
+  //   let currentDolly = uiState.viewerState.cameraDollies[uiState.viewerState.currentDollyIndex];
+  //   setDollyName(currentDolly.name);
+  //   setEntries(currentDolly.cameraFrames.map((frame) => generateCameraEntryFromFrame(frame)))
+  // }
 
 
   const handleChange = (index: number, field: keyof CameraEntry, value: string) => {
@@ -107,7 +122,7 @@ const DollyEditorDialog: React.FC<Props> = ({ open, onClose, uiState}) => {
       
       const camFrames:CameraFrame[] = entries.map(camEntry=>({cam_uuid:camEntry.id, time:Number(camEntry.time)}));
       newSequence.cameraFrames = camFrames;
-      uiState.viewerState.addCameraSequence(newSequence);
+      uiState.viewerState.addCameraDolly(newSequence);
     }
     else {
       // update in-place
@@ -142,7 +157,7 @@ const DollyEditorDialog: React.FC<Props> = ({ open, onClose, uiState}) => {
           </TableHead>
           <TableBody>
             {entries.map((entry, index) => (
-              <TableRow key={entry.id}>
+              <TableRow key={entry.id} sx={{ height: 32 }}>
                 <TableCell>
                   <Select
                     value={entry.name}
