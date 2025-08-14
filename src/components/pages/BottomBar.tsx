@@ -11,7 +11,6 @@ import { AnimationClip} from 'three';
 import { useTranslation } from 'react-i18next';
 import { useModelContext } from '../../state/ModelUIStateContext';
 import { Camera } from 'three/src/cameras/Camera'
-import DollyEditorDialog from '../Components/DollyEditorDialog';
 import React, { useCallback, useRef } from 'react';
 import CameraPanel from './CameraPanel';
 
@@ -48,20 +47,12 @@ const BottomBar = React.forwardRef(function CustomContent(
     const [selectedAnim, setSelectedAnim] = useState<string | undefined>("");
     const [selectedCam, setSelectedCam] = useState<string | undefined>("");
     const [cameraAttachmentType, setCameraAttachmentType] = useState<CameraAttachmentType>('fixed');
-    const [dollyEditorOpen, setDollyEditorOpen] = useState(false);
     const isExtraSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('xs'));
     const isSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('sm'));
     const isMediumScreen = useMediaQuery((theme:any) => theme.breakpoints.only('md'));
 
     const minWidthSlider = isExtraSmallScreen ? 150 : isSmallScreen ? 175 : isMediumScreen ? 250 : 300; // Adjust values as needed
     const maxWidthTime = 45;
-
-    const handleCameraAttachmentChangeEvent = (event: SelectChangeEvent) => {
-      const targetName = event.target.value as CameraAttachmentType
-      setCameraAttachmentType(targetName);
-    };
-
-
 
     const handleAnimationChange = useCallback((animationName: string, animate: boolean) => {
       const targetName = animationName
@@ -77,12 +68,6 @@ const BottomBar = React.forwardRef(function CustomContent(
           }
       }
     }, [curState.viewerState]);
-
-
-    const handleCameraChangeEvent = (event: SelectChangeEvent) => {
-      const targetName = event.target.value as string
-      handleCameraChange(targetName)
-    };
 
     const handleCameraChange = useCallback((cameraName: string) => {
       const targetName = cameraName
@@ -146,7 +131,7 @@ const BottomBar = React.forwardRef(function CustomContent(
       <Container ref={(ref as any) || bottomBarRef}>
         <Grid container spacing={1} justifyContent="center">
           <Grid item >
-            <CameraPanel uState={curState}/>
+            <CameraPanel uState={curState} />
           </Grid>
           <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
           <Grid item>
@@ -188,13 +173,13 @@ const BottomBar = React.forwardRef(function CustomContent(
             </FormControl>
           </Grid>
           )} */}
-          {cameraAttachmentType === "dolly" && (
+          {/* {cameraAttachmentType === "dolly" && (
             <Grid item>
               <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
                   <Button size="small" variant="outlined" onClick={() => setDollyEditorOpen(true)}>Add New...</Button>
               </FormControl>
             </Grid>)
-          }
+          } */}
           {/// animation selection
           }
           { curState.viewerState.animations.length < 1 ? null : (
@@ -293,12 +278,6 @@ const BottomBar = React.forwardRef(function CustomContent(
             </Tooltip>
           </Grid>
         </Grid>
-        <DollyEditorDialog
-          open={dollyEditorOpen}
-          onClose={() => setDollyEditorOpen(false)}
-          uiState={curState}
-          />
-
       </Container>
     )
 });

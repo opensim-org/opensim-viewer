@@ -10,11 +10,11 @@ export class CameraFrame {
         this.time = time
     }
 }
-export class CameraSequence {
-    name: string | null
+export class CameraDolly {
+    name: string
     desc: string | null
     cameraFrames: CameraFrame[] 
-    constructor(name:string|null=null, desc:string|null=null){
+    constructor(name:string| "", desc:string|null=null){
         this.name = name
         this.desc = desc
         this.cameraFrames = []
@@ -69,8 +69,8 @@ export class ViewerState {
     lookAtTarget: string
     saveCameraAndTarget: boolean // used to request control save current camera and target to this state
     // camera Animations, sequences, then animations created by interpolating sequences
-    cameraSequences: CameraSequence[]
-    currentCameraSequence: number
+    cameraDollies: CameraDolly[]
+    currentDollyIndex: number
     // Animation support
     animating: boolean
     animationSpeed: number
@@ -144,8 +144,8 @@ export class ViewerState {
         this.currentCameraIndex = -1
         this.lookAtTarget = ""
         this.saveCameraAndTarget = false;
-        this.cameraSequences = []
-        this.currentCameraSequence = -1
+        this.cameraDollies = []
+        this.currentDollyIndex = -1
         this.animating = false
         this.animationSpeed = 1.0
         this.animations = []
@@ -200,8 +200,9 @@ export class ViewerState {
             setRotating: action,
             cameras: observable,
             setCamerasList: action,
-            cameraSequences: observable,
-            currentCameraSequence: observable,
+            cameraDollies: observable,
+            currentDollyIndex: observable,
+            setCurrentDollyIndex: action,
             animationSpeed: observable,
             animations: observable,
             setAnimationList: action,
@@ -301,11 +302,14 @@ export class ViewerState {
     setCurrentCameraIndex(newIndex: number) {
         this.currentCameraIndex = newIndex
     }
+    setCurrentDollyIndex(newIndex: number) {
+        this.currentDollyIndex = newIndex
+    }
     setLookAtTarget(target_uuid: string) {
       this.lookAtTarget = target_uuid
     }
-    addCameraSequence(newSequence:CameraSequence){
-        this.cameraSequences.push(newSequence);
+    addCameraSequence(newSequence:CameraDolly){
+        this.cameraDollies.push(newSequence);
         this.animations.push(this.createAnimationClipFromSequence(newSequence));
         this.currentAnimationIndex = this.animations.length - 1;
     }
@@ -321,7 +325,7 @@ export class ViewerState {
     setCurrentAnimationIndex(newIndex: number) {
         this.currentAnimationIndex = newIndex
     }
-    createAnimationClipFromSequence(newSequence: CameraSequence): AnimationClip {
+    createAnimationClipFromSequence(newSequence: CameraDolly): AnimationClip {
         const numFrames = newSequence.cameraFrames.length
         const duration = newSequence.cameraFrames[numFrames-1].time
         const positions: number[] = []
@@ -366,6 +370,7 @@ export class ViewerState {
             camClone.name = "Camera_"+this.cameras.length
         else
             camClone.name = suggestedName;
+        
         this.cameras.push(camClone);
         this.targets.push(target.clone())
         this.cameraGroup?.add(camClone);

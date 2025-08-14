@@ -16,7 +16,7 @@ import {
 
 import React, { useEffect, useState } from "react";
 import { ModelUIState } from "../../state/ModelUIState";
-import { CameraFrame, CameraSequence } from "../../state/ViewerState";
+import { CameraFrame, CameraDolly } from "../../state/ViewerState";
 import { Camera, Object3D, PerspectiveCamera } from "three";
 
 type CameraEntry = {
@@ -96,9 +96,9 @@ const DollyEditorDialog: React.FC<Props> = ({ open, onClose, uiState}) => {
       setEntries(validated);
       return;
     }
-    if (uiState.viewerState.currentCameraSequence===-1){
+    if (uiState.viewerState.currentDollyIndex===-1){
       // New Dolly, add to state and make current
-      const newSequence=new CameraSequence(dollyName)
+      const newSequence=new CameraDolly(dollyName)
       entries.forEach((entry) => {
         // find by name in uiState.viewerState.cameras
         const ndx = uiState.viewerState.cameras.findIndex(cam=>cam.name===entry.name);
