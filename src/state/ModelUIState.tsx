@@ -56,7 +56,6 @@ export class ModelUIState {
     sceneTree: SceneTreeModelGUI | null
     lights: Light[]
     startCameraIndex: number
-    currentCameraIndex: number
     selected: string
     deSelected: string
     selectedObject: Object3D | null
@@ -88,7 +87,6 @@ export class ModelUIState {
         this.lights = []
         //this.keyframes = []
         this.startCameraIndex = -1
-        this.currentCameraIndex = -1
         this.selected = ""
         this.deSelected = ""
         this.selectedObject = null
@@ -117,8 +115,6 @@ export class ModelUIState {
             cameraLayersMask: observable,
             currentFrame: observable,
             setCurrentFrame: action,
-            currentCameraIndex: observable,
-            setCurrentCameraIndex: action,
         })
         console.log("Created ModelUIState instance ", currentModelPathState)
     }
@@ -165,9 +161,6 @@ export class ModelUIState {
     }
     setTakeSnapshot() {
         this.takeSnapshot = true
-    }
-    setCurrentCameraIndex(newIndex: number) {
-        this.currentCameraIndex = newIndex
     }
     setShowGlobalFrame(newState: boolean) {
         this.showGlobalFrame = newState 
@@ -432,10 +425,7 @@ export class ModelUIState {
             // const targetClip = new AnimationClip("tgtClip", duration, [targetKF])
             // this.setAnimationList(this.animations.concat(targetClip))
         }
-        else {// If turning on recording, capture first camera key frame
-            this.viewerState.pending_key = 'c'
-            this.startCameraIndex = this.viewerState.cameras.length
-        } */
+     */
     }
 
 }

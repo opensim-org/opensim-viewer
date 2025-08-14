@@ -127,20 +127,6 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
                         fitToModels(true);
                     }
                     break;
-                // case 's':
-                // case 'S':
-                //     (controls as unknown as CameraControls).saveState();
-                //     break;
-                // case 'r':
-                // case 'R':
-                //     (controls as unknown as CameraControls).reset(true);
-                //     break;
-                case 'C':
-                case 'c':
-                    if (controlsRef.current){
-                        const controlTarget = controlsRef.current.target
-                        curState.viewerState.addCamera(camera as PerspectiveCamera, controlTarget, undefined)
-                    }
             }
             viewerState.pending_key = "";
         }
@@ -154,6 +140,13 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
                 controlsRef.current!.target.copy(worldPos)
             }
             curState.viewerState.lookAtTarget = ""
+        }
+        else if (curState.viewerState.saveCameraAndTarget){
+            if (controlsRef.current){
+                const controlTarget = controlsRef.current.target
+                curState.viewerState.addCamera(camera as PerspectiveCamera, controlTarget, undefined)
+            }
+            curState.viewerState.saveCameraAndTarget = false
         }
         else if (curState.takeSnapshot){
             if (curState.snapshotProps.size_choice==="screen"){
@@ -211,9 +204,9 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
             fitToBox(curState.fitToBox)
             curState.fitToBox = null
         }
-        if (curState.currentCameraIndex!==-1) {
-            const nextCam = curState.viewerState.cameras[curState.currentCameraIndex]
-            let target = curState.viewerState.targets[curState.currentCameraIndex]
+        if (curState.viewerState.currentCameraIndex!==-1) {
+            const nextCam = curState.viewerState.cameras[curState.viewerState.currentCameraIndex]
+            let target = curState.viewerState.targets[curState.viewerState.currentCameraIndex]
             if (target === undefined) {
                 target = new Vector3(0, 0, 0)
             }
@@ -225,7 +218,7 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
                 //     target.x, target.y, target.z, false)
                 controlsRef.current.update()
             }
-            curState.setCurrentCameraIndex(-1)
+            //curState.viewerState.setCurrentCameraIndex(-1)
         }
 
        function fitToModels(transition: boolean) {

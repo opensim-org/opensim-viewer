@@ -125,7 +125,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         curState.viewerState.setCamerasList(cameras.map(obj => obj as PerspectiveCamera))
         // Set current camera and current index as 0
         setCurrentCamera(cameras.length > 0 ? cameras[0] as PerspectiveCamera : new PerspectiveCamera())
-        curState.setCurrentCameraIndex(0)
+        curState.viewerState.setCurrentCameraIndex(0)
       }
       // else { // use the default camera, call it DefaultCam
       //   if (curState.viewerState.cameras.length === 0){
@@ -155,7 +155,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     // This useEffect sets the current selected camera.
     useEffect(() => {
       if (curState.viewerState.cameras.length > 0 && currentCamera) {
-        const selectedCamera = curState.viewerState.cameras[curState.currentCameraIndex] as PerspectiveCamera;
+        const selectedCamera = curState.viewerState.cameras[curState.viewerState.currentCameraIndex] as PerspectiveCamera;
         setCurrentCamera(selectedCamera);
         set({ camera: selectedCamera });
 
@@ -202,7 +202,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           });
         });
       }
-    }, [currentCamera, set, curState.currentCameraIndex, curState.viewerState.cameras, curState.viewerState.animations]);
+    }, [currentCamera, set, curState.viewerState.currentCameraIndex, curState.viewerState.cameras, curState.viewerState.animations]);
 
 
     if (supportControls) {
@@ -238,6 +238,10 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         spotLightHelperRef.current = helper;
         scene.add(helper);
       }
+      if (envRef.current && scene) 
+        curState.viewerState.setEnvironmentGroup(envRef.current)
+      if (camerasGroupRef.current && scene) 
+        curState.viewerState.setCamerasGroup(camerasGroupRef.current)
 
       return () => {
         if (dirLightHelperRef.current) {

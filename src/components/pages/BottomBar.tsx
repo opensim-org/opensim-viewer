@@ -78,13 +78,19 @@ const BottomBar = React.forwardRef(function CustomContent(
       }
     }, [curState.viewerState]);
 
+
+    const handleCameraChangeEvent = (event: SelectChangeEvent) => {
+      const targetName = event.target.value as string
+      handleCameraChange(targetName)
+    };
+
     const handleCameraChange = useCallback((cameraName: string) => {
       const targetName = cameraName
       setSelectedCam(cameraName);
 
         const idx = curState.viewerState.cameras.findIndex((value: Camera)=>{return (value.name === targetName)})
         if (idx !== -1) {
-            curState.setCurrentCameraIndex(idx)
+            curState.viewerState.setCurrentCameraIndex(idx)
         }
 
       curState.setCurrentFrame(0);
@@ -93,12 +99,6 @@ const BottomBar = React.forwardRef(function CustomContent(
     const handleAnimationChangeEvent = (event: SelectChangeEvent) => {
       const targetName = event.target.value as string
       handleAnimationChange(targetName, true)
-    };
-
-
-    const handleCameraChangeEvent = (event: SelectChangeEvent) => {
-      const targetName = event.target.value as string
-      handleCameraChange(targetName)
     };
 
     function togglePlayAnimation() {
@@ -168,7 +168,7 @@ const BottomBar = React.forwardRef(function CustomContent(
           </Grid>
           {/// camera selection
           }
-          { cameraAttachmentType==='dolly'|| curState.viewerState.cameras.length < 1 ? null : (
+          {/* { cameraAttachmentType==='dolly'|| curState.viewerState.cameras.length < 1 ? null : (
           <Grid item>
             <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 150 }}>
               <InputLabel id="simple-select-standard-label">Camera</InputLabel>
@@ -187,7 +187,7 @@ const BottomBar = React.forwardRef(function CustomContent(
               </Select>
             </FormControl>
           </Grid>
-          )}
+          )} */}
           {cameraAttachmentType === "dolly" && (
             <Grid item>
               <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>

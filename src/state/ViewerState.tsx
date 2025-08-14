@@ -1,6 +1,6 @@
 import { String } from 'aws-sdk/clients/apigateway'
 import { makeObservable, observable, action, runInAction } from 'mobx'
-import { Color, Vector3, Camera, Object3D, AnimationClip, VectorKeyframeTrack, QuaternionKeyframeTrack, PerspectiveCamera } from 'three'
+import { Color, Vector3, Camera, Object3D, AnimationClip, VectorKeyframeTrack, QuaternionKeyframeTrack, PerspectiveCamera, Group } from 'three'
 
 export class CameraFrame {
     cam_uuid: string
@@ -64,16 +64,22 @@ export class ViewerState {
     // cameras
     cameras: Camera[]
     targets: Vector3[]
+    currentCameraIndex: number
     // targets
     lookAtTarget: string
+    saveCameraAndTarget: boolean // used to request control save current camera and target to this state
     // camera Animations, sequences, then animations created by interpolating sequences
     cameraSequences: CameraSequence[]
+    currentCameraSequence: number
     // Animation support
     animating: boolean
     animationSpeed: number
     animations: AnimationClip[]
     currentAnimationIndex: number
-    currentCameraSequence: number
+    // Environment holders
+    environmentGroup: Group | null
+    cameraGroup: Group |  null
+    lightsGroup: Group | null
     constructor(
         currentModelPathState: string,
         featuredModelsFilePathState: string,
@@ -135,13 +141,18 @@ export class ViewerState {
         this.sceneVersion = 0
         this.cameras = []
         this.targets = []
+        this.currentCameraIndex = -1
         this.lookAtTarget = ""
+        this.saveCameraAndTarget = false;
         this.cameraSequences = []
         this.currentCameraSequence = -1
         this.animating = false
         this.animationSpeed = 1.0
         this.animations = []
         this.currentAnimationIndex = -1
+        this.environmentGroup = null
+        this.cameraGroup = null
+        this.lightsGroup = null
         makeObservable(this, {
             currentModelPath: observable,
             featuredModelsFilePath: observable,
@@ -195,6 +206,9 @@ export class ViewerState {
             animations: observable,
             setAnimationList: action,
             setAnimationSpeed: action,
+            currentCameraIndex: observable,
+            setCurrentCameraIndex: action,
+
         })
     }
 
@@ -284,6 +298,9 @@ export class ViewerState {
     setCamerasList(cameras: Camera[]) {
         this.cameras=cameras
     }
+    setCurrentCameraIndex(newIndex: number) {
+        this.currentCameraIndex = newIndex
+    }
     setLookAtTarget(target_uuid: string) {
       this.lookAtTarget = target_uuid
     }
@@ -351,7 +368,31 @@ export class ViewerState {
             camClone.name = suggestedName;
         this.cameras.push(camClone);
         this.targets.push(target.clone())
+        this.cameraGroup?.add(camClone);
         return camClone;
+    }
+    deleteCurrentCamera() {
+        const idx = this.currentCameraIndex;
+        const cam = this.cameras[idx];
+        // Remove from scene
+        if (cam !== undefined) {
+            cam.removeFromParent();
+            // remove from cached arrays
+            this.cameras.splice(idx, 1);
+            this.targets.splice(idx,1);
+            // Fix current if needed
+            if (idx > this.cameras.length-1) 
+                this.setCurrentCameraIndex(this.cameras.length-1)
+        }
+    }
+    setEnvironmentGroup(grp: Group) {
+        this.environmentGroup = grp;
+    }
+    setCamerasGroup(grp: Group) {
+        this.cameraGroup = grp;
+    }
+    setLightsGroup(grp: Group) {
+        this.lightsGroup = grp;
     }
 }
 

@@ -92,14 +92,14 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         curState.viewerState.setCamerasList(cameras.map(obj => obj as PerspectiveCamera));
         // Set current camera and current index as 0
         setCurrentCamera(cameras.length > 0 ? cameras[0] as PerspectiveCamera : new PerspectiveCamera());
-        curState.setCurrentCameraIndex(0);
+        curState.viewerState.setCurrentCameraIndex(0);
       }
     }, [curState, scene, gl.domElement.clientWidth, gl.domElement, set, camera]);
 
     // This useEffect sets the current selected camera.
     useEffect(() => {
       if (curState.viewerState.cameras.length > 0 && currentCamera) {
-        const selectedCamera = curState.viewerState.cameras[curState.currentCameraIndex] as PerspectiveCamera;
+        const selectedCamera = curState.viewerState.cameras[curState.viewerState.currentCameraIndex] as PerspectiveCamera;
         setCurrentCamera(selectedCamera);
         set({ camera: selectedCamera });
 
@@ -146,7 +146,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
           });
         });
       }
-    }, [currentCamera, set, curState.currentCameraIndex, curState.viewerState.cameras, animations]);
+    }, [currentCamera, set, curState.viewerState.currentCameraIndex, curState.viewerState.cameras, animations, curState.viewerState.currentCameraIndex]);
 
     // This useEffect adds helpers to the lights.
     useEffect(() => {
@@ -162,7 +162,8 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         spotLightHelperRef.current = helper;
         scene.add(helper);
       }
-
+      if (envRef.current && scene) 
+        curState.viewerState.setEnvironmentGroup(envRef.current)
       return () => {
         if (dirLightHelperRef.current) {
           scene.remove(dirLightHelperRef.current);
