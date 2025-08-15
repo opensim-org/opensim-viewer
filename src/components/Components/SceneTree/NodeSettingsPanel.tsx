@@ -75,6 +75,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
           patch({ title: e.target.value })}
         }
         style={{ marginBottom: 16 }}
+        size="small"
       />
 
       {selectedNode?.type === "SpotLight" && (
@@ -92,6 +93,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               });
             }}
             style={{ marginTop: 16 }}
+            size="small"
           />
           <TextField
             label="Intensity"
@@ -105,6 +107,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               })
             }
             style={{ marginTop: 16 }}
+            size="small"
           />
           <TextField
             label="Angle (rad)"
@@ -119,6 +122,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               })
             }
             style={{ marginTop: 16 }}
+            size="small"
           />
           <TextField
             label="Distance"
@@ -132,6 +136,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               })
             }
             style={{ marginTop: 16 }}
+            size="small"
           />
           <TextField
             label="Penumbra"
@@ -146,6 +151,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               })
             }
             style={{ marginTop: 16 }}
+            size="small"
           />
           <FormControlLabel
             control={
@@ -180,6 +186,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               });
             }}
             style={{ marginTop: 16 }}
+            size="small"
           />
           <TextField
             label="Intensity"
@@ -193,6 +200,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               })
             }
             style={{ marginTop: 16 }}
+            size="small"
           />
           <TextField
             label="Distance"
@@ -206,6 +214,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               })
             }
             style={{ marginTop: 16 }}
+            size="small"
           />
           <TextField
             label="Penumbra"
@@ -220,6 +229,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               })
             }
             style={{ marginTop: 16 }}
+            size="small"
           />
           <FormControlLabel
             control={
@@ -254,6 +264,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               });
             }}
             style={{ marginTop: 16 }}
+            size="small"
           />
           <TextField
             label="Intensity"
@@ -267,6 +278,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               })
             }
             style={{ marginTop: 16 }}
+            size="small"
           />
           <FormControlLabel
             control={
@@ -303,6 +315,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               refreshCamera();
             }}
             style={{ marginTop: 16 }}
+            size="small"
           />
           {/*
           <TextField
@@ -319,6 +332,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               refreshCamera();
             }}
             style={{ marginTop: 16 }}
+            size="small"
           />
           <TextField
             label="Far plane"
@@ -334,6 +348,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               refreshCamera();
             }}
             style={{ marginTop: 16 }}
+            size="small"
           />
           */}
         </>
@@ -356,6 +371,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               refreshCamera();
             }}
             style={{ marginTop: 16 }}
+            size="small"
           />
           <TextField
             label="Right"
@@ -371,6 +387,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               refreshCamera();
             }}
             style={{ marginTop: 16 }}
+            size="small"
           />
           <TextField
             label="Top"
@@ -386,6 +403,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               refreshCamera();
             }}
             style={{ marginTop: 16 }}
+            size="small"
           />
           <TextField
             label="Bottom"
@@ -401,6 +419,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               refreshCamera();
             }}
             style={{ marginTop: 16 }}
+            size="small"
           />
           <TextField
             label="Near plane"
@@ -416,6 +435,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               refreshCamera();
             }}
             style={{ marginTop: 16 }}
+            size="small"
           />
           <TextField
             label="Far plane"
@@ -431,6 +451,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               refreshCamera();
             }}
             style={{ marginTop: 16 }}
+            size="small"
           />
         */}
         </>
@@ -459,6 +480,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               patch({ floorHeight: newY });
             }}
             style={{ marginTop: 16 }}
+            size="small"
           />
 
           <TextField
@@ -473,6 +495,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               uiState.viewerState.setFloorTextureIndex?.(idx);
             }}
             style={{ marginTop: 16 }}
+            size="small"
           >
             <MenuItem value={0}>Tile</MenuItem>
             <MenuItem value={1}>Wood floor</MenuItem>
@@ -512,6 +535,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               uiState.viewerState.setSkyTextureIndex?.(idx);
             }}
             style={{ marginTop: 16 }}
+            size="small"
           >
             <MenuItem value={0}>Death Valley</MenuItem>
             <MenuItem value={1}>San Carlo</MenuItem>
@@ -546,6 +570,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               patch({});
             }}
             style={{ marginTop: 16 }}
+            size="small"
           />
           <TextField
             label="Position Y"
@@ -560,6 +585,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               patch({});
             }}
             style={{ marginTop: 16 }}
+            size="small"
           />
           <TextField
             label="Position Z"
@@ -574,6 +600,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               patch({});
             }}
             style={{ marginTop: 16 }}
+            size="small"
           />
 
           {/* Rotation (degrees) */}
@@ -590,6 +617,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
                 patch({});
               }}
               style={{ marginTop: 16 }}
+              size="small"
             />
             <TextField
               label="Rotation Y (°)"
@@ -604,6 +632,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
                 patch({});
               }}
               style={{ marginTop: 16 }}
+              size="small"
             />
             <TextField
               label="Rotation Z (°)"
@@ -618,9 +647,10 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
                 patch({});
               }}
               style={{ marginTop: 16 }}
+              size="small"
             />
         </>
-      )}g
+      )}
     </div>
 
 

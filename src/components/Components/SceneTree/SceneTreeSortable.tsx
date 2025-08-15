@@ -218,24 +218,47 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
 
                       const isSameNode = selectedPath?.join('.') === path.join('.');
 
+                      // Helper visibility
+                      const hideAllHelpers = () => {
+                        scene?.traverse((obj) => {
+                          if (obj.name.endsWith("_Helper")) {
+                            obj.visible = false;
+                          }
+                        });
+                      };
+
                       if (isSameNode) {
                         // Deselect
                         setSelectedPath(null);
                         setSettingsNode(null);
                         uiState.setSelected("");
                         setTransformTargetFunction?.(null);
+
+                        // Hide all helpers when nothing is selected
+                        hideAllHelpers();
                       } else {
-                        // Select
+                        // Select new node
                         setSelectedPath(path);
                         setSettingsNode(node);
-                        if (node.nodeType === 'camera')
+
+                        if (node.nodeType === 'camera') {
                           uiState.setSelected(node.uuid);
-                        else
+                        } else {
                           uiState.setSelected("");
+                        }
 
                         setTransformTargetFunction?.(scene?.getObjectById(node.id));
                         if (!(node.type === "Group") && !(node.type === "AddButton") && !(node.title === "Model")) {
                           handleSettingsClick(node, path);
+                        }
+
+                        // Hide all helpers
+                        hideAllHelpers();
+
+                        // Show helper for the selected object
+                        const helper = scene?.getObjectByName(`${node.object3D?.name}_Helper`);
+                        if (helper) {
+                          helper.visible = true;
                         }
                       }
                     },
