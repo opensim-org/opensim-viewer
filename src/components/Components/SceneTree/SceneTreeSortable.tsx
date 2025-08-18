@@ -20,7 +20,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
-import { convertSceneToTree } from '../../../helpers/sceneToTree';
+import { convertSceneToTree, mergeTreeWithScene } from '../../../helpers/sceneToTree';
 import { useModelContext } from '../../../state/ModelUIStateContext';
 import { ModelUIState } from '../../../state/ModelUIState';
 
@@ -118,7 +118,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
 
     useEffect(() => {
       if (scene && camera) {
-        setTreeData(convertSceneToTree(scene));
+        setTreeData((old) => mergeTreeWithScene(old, scene));
       }
     }, [scene, camera, sceneVersion]);
 
