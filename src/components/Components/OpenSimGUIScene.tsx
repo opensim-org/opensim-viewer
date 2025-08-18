@@ -253,7 +253,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           spotLightHelperRef.current.dispose?.();
         }
       };
-    }, [scene, curState.viewerState.lightColor]);
+    }, [scene, curState.viewerState.lightColor, curState.viewerState]);
 
     useFrame((state, delta) => {
     //console.log(camera.position)
@@ -303,7 +303,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
               }
               mixers[viewerState.currentAnimationIndex]?.clipAction(viewerState.animations[viewerState.currentAnimationIndex]).play()
             }
-            if (viewerState.animating){
+            if (viewerState.animating || (curState.simulationTime !== undefined && curState.simulationTime > 0)){
               if (viewerState.currentAnimationIndex!==-1) {
                 let duration = mixers[viewerState.currentAnimationIndex].clipAction(viewerState.animations[viewerState.currentAnimationIndex]).getClip().duration;
 
@@ -409,9 +409,9 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
   //     }
   //   }
   //   if (firstObjectFound){
-  //     //const boxHelper = new THREE.Box3Helper(default_box)
-  //     //sceneRef.current!.add(boxHelper)
-  //     //curState.fitCameraTo(default_box);
+  //     const boxHelper = new THREE.Box3Helper(default_box)
+  //     sceneRef.current!.add(boxHelper)
+  //     curState.fitCameraTo(default_box);
   //   }
   // }
 

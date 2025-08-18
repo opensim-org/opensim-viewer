@@ -116,7 +116,6 @@ export class ModelUIState {
             currentFrame: observable,
             setCurrentFrame: action,
             simulationTime: observable,
-            setSimulationTime: action
         })
         console.log("Created ModelUIState instance ", currentModelPathState)
     }
@@ -363,7 +362,7 @@ export class ModelUIState {
                     }
                 }
                 this.scene?.updateMatrixWorld(true);
-                this.setSimulationTime(parsedMessage.simulationTime);
+                this.simulationTime = parsedMessage.time;
                 break;
             case "getOffsets":
                 this.sendText(this.getModelOffsetsJson());
@@ -397,9 +396,6 @@ export class ModelUIState {
         this.fitToBox = objectbbox;
     }
 
-    setSimulationTime(newTime: number) {
-        this.simulationTime = newTime;
-    }
     toggleRecordingKeyFrames() {
 
         /*
@@ -420,7 +416,7 @@ export class ModelUIState {
                 keyFrameTimes.push((i-this.startCameraIndex))
 
             }
-            // Create 2 keyframetracks one for camera, 2nd for target
+            // Create 2 keyframetracks one for camera, 2nd for targetbuild/assets build/builtin build/static build/_redirects build/arm26.gltf build/favicon.ico build/logo192.png build/logo512.png build/manifest.json build/robots.txt build/27ccdc65.json build/4afd371b.json build/gait10dof18musc.json build/b24d8447.json build/user-preferences.json build/asset-manifest.json build/index.html
             const positionKF = new VectorKeyframeTrack( '.position', keyFrameTimes, positions );
             const orientationKF = new QuaternionKeyframeTrack( '.quaternion', keyFrameTimes, orientations );
 
