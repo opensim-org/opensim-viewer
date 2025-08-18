@@ -73,7 +73,7 @@ export class ModelUIState {
     useSkybox: string
     fitToBox: Box3 | null
     debug: boolean
-    recordingKeyFrames: boolean
+    simulationTime: number
     constructor(
         currentModelPathState: string
     ) {
@@ -99,7 +99,7 @@ export class ModelUIState {
         this.useSkybox = "NoBackground"
         this.fitToBox = null
         this.debug = false
-        this.recordingKeyFrames = false
+        this.simulationTime=0.0
         this.viewerState = new ViewerState(currentModelPathState, '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false);
         makeObservable(this, {
             zooming: observable,
@@ -115,6 +115,8 @@ export class ModelUIState {
             cameraLayersMask: observable,
             currentFrame: observable,
             setCurrentFrame: action,
+            simulationTime: observable,
+            setSimulationTime: action
         })
         console.log("Created ModelUIState instance ", currentModelPathState)
     }
@@ -361,6 +363,7 @@ export class ModelUIState {
                     }
                 }
                 this.scene?.updateMatrixWorld(true);
+                this.setSimulationTime(parsedMessage.simulationTime);
                 break;
             case "getOffsets":
                 this.sendText(this.getModelOffsetsJson());
@@ -393,10 +396,14 @@ export class ModelUIState {
     fitCameraTo(objectbbox: Box3) {
         this.fitToBox = objectbbox;
     }
-    
+
+    setSimulationTime(newTime: number) {
+        this.simulationTime = newTime;
+    }
     toggleRecordingKeyFrames() {
-        this.recordingKeyFrames = !this.recordingKeyFrames
+
         /*
+        this.recordingKeyFrames = !this.recordingKeyFrames
         if (!this.recordingKeyFrames) {
             const duration = this.viewerState.cameras.length-1
             const positions: number[] = []
