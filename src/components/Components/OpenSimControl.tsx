@@ -1,4 +1,4 @@
-import { TransformControls, CameraControls, OrbitControls} from '@react-three/drei'
+import { TransformControls, OrbitControls} from '@react-three/drei'
 import { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 
 import { observer } from 'mobx-react'
@@ -6,7 +6,7 @@ import { useModelContext } from '../../state/ModelUIStateContext';
 
 import { useFrame, useThree } from '@react-three/fiber'
 
-import THREE, { Box3, Camera, Object3D, PerspectiveCamera, Sphere, Vector2, Vector3 } from 'three';
+import THREE, { Box3, Object3D, PerspectiveCamera, Sphere, Vector2, Vector3 } from 'three';
 
 // OpenSimControl.tsx
 import { forwardRef, useImperativeHandle, useRef } from 'react';

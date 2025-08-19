@@ -1,4 +1,4 @@
-import { Grid, Container, IconButton, ToggleButton, FormControl, Slider, SelectChangeEvent, Input, MenuItem, Select, InputLabel, Button, Typography, Divider } from '@mui/material';
+import { Grid, Container, IconButton, ToggleButton, FormControl, Slider, SelectChangeEvent, Input, MenuItem, Select, Divider } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useState, useEffect } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -32,8 +32,6 @@ interface BottomBarProps {
 }
 
 
-type CameraAttachmentType = 'fixed' | 'dolly';
-
 const BottomBar = React.forwardRef(function CustomContent(
     props: BottomBarProps,
     ref,
@@ -45,8 +43,7 @@ const BottomBar = React.forwardRef(function CustomContent(
     const [speed, setSpeed] = useState(1.0);
     const [play, setPlay] = useState(false);
     const [selectedAnim, setSelectedAnim] = useState<string | undefined>("");
-    const [selectedCam, setSelectedCam] = useState<string | undefined>("");
-    const [cameraAttachmentType, setCameraAttachmentType] = useState<CameraAttachmentType>('fixed');
+    const [, setSelectedCam] = useState<string | undefined>("");
     const isExtraSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('xs'));
     const isSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('sm'));
     const isMediumScreen = useMediaQuery((theme:any) => theme.breakpoints.only('md'));
