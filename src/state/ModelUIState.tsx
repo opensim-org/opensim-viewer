@@ -7,7 +7,7 @@ import { CommandFactory } from './commands/CommandFactory'
 import { saveAs } from 'file-saver';
 import { SkinnedMuscle } from './SkinnedMuscle'
 import ViewerState from './ViewerState'
-import SceneTreeModelGUI from '../helpers/SceneTreeModelGUI'
+import SceneTreeModel from '../helpers/SceneTreeModel';
 
 export class ModelInfo {
     model_name: string | null
@@ -53,7 +53,7 @@ export class ModelUIState {
     takeSnapshot: boolean
     snapshotProps: SnapshotProps = new SnapshotProps()
     showGlobalFrame: boolean
-    sceneTree: SceneTreeModelGUI | null
+    sceneTree: SceneTreeModel | null
     lights: Light[]
     startCameraIndex: number
     selected: string
@@ -166,7 +166,7 @@ export class ModelUIState {
     setShowGlobalFrame(newState: boolean) {
         this.showGlobalFrame = newState 
     }
-    setSceneTree(newTree: SceneTreeModelGUI) {
+    setSceneTree(newTree: SceneTreeModel) {
         this.sceneTree = newTree
     }
     setLightsList(lights: Light[]) {
