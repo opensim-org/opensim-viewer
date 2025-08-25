@@ -127,60 +127,12 @@ const BottomBar = React.forwardRef(function CustomContent(
     return (
       <Container ref={(ref as any) || bottomBarRef}>
         <Grid container spacing={1} justifyContent="center">
-          <Grid item >
+          <Grid item sx={{ mt: 1 }}>
             <CameraPanel uState={curState} />
           </Grid>
           <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
-          <Grid item>
-            {/// Fixed or Dolly
-            }
-            {/* <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
-              <InputLabel id="camera-type-label">Attachment</InputLabel>
-              <Select
-                labelId="camera-type-label"
-                id="attach-select"
-                label="Attachment"
-                value={cameraAttachmentType}
-                onChange={handleCameraAttachmentChangeEvent}
-              >
-                <MenuItem value="fixed">Fixed</MenuItem>
-                <MenuItem value="dolly">Moving</MenuItem>
-              </Select>
-            </FormControl> */}
-          </Grid>
-          {/// camera selection
-          }
-          {/* { cameraAttachmentType==='dolly'|| curState.viewerState.cameras.length < 1 ? null : (
-          <Grid item>
-            <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 150 }}>
-              <InputLabel id="simple-select-standard-label">Camera</InputLabel>
-              <Select
-                labelId="simple-select-standard-label"
-                label={t('visualizationControl.camera')}
-                value={selectedCam?.toString()}
-                onChange={handleCameraChangeEvent}
-                disabled={curState.viewerState.cameras.length < 1}>
-                  {curState.viewerState.cameras.map(cam => (
-                    <MenuItem key={cam.name} value={cam.name}>
-                      {cam.name}
-                    </MenuItem>
-                  ))}
-                visibility={false}
-              </Select>
-            </FormControl>
-          </Grid>
-          )} */}
-          {/* {cameraAttachmentType === "dolly" && (
-            <Grid item>
-              <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
-                  <Button size="small" variant="outlined" onClick={() => setDollyEditorOpen(true)}>Add New...</Button>
-              </FormControl>
-            </Grid>)
-          } */}
-          {/// animation selection
-          }
           { curState.viewerState.animations.length < 1 ? null : (
-          <Grid item>
+          <Grid item sx={{ mt: 1 }}>
             <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
               <Select
                 labelId="simple-select-standard-label"
@@ -199,7 +151,7 @@ const BottomBar = React.forwardRef(function CustomContent(
           )}
 
           {curState.getGuiMode()?"":// Control Speed only through the GUI
-            <Grid item>
+            <Grid item sx={{ mt: 1 }}>
               <FormControl margin="dense" size="small" variant="standard">
                 <Select
                   labelId="demo-simple-select-label"
@@ -216,9 +168,7 @@ const BottomBar = React.forwardRef(function CustomContent(
               </FormControl>
             </Grid>
           }
-          {/// toggle play
-          }
-          <Grid item>
+          <Grid item sx={{ mt: 1 }}>
             <FormControl margin="dense" size="small" variant="standard">
               <IconButton
                 size="small"
@@ -230,9 +180,7 @@ const BottomBar = React.forwardRef(function CustomContent(
               </IconButton>
             </FormControl>
           </Grid>
-          {/// slider
-          }
-          <Grid item>
+          <Grid item sx={{ mt: 1 }}>
             <FormControl margin="dense" size="small" sx={{minWidth: minWidthSlider}}>
               <NonAnimatedSlider
                 defaultValue={50}
@@ -245,7 +193,7 @@ const BottomBar = React.forwardRef(function CustomContent(
           </Grid>
           {/// frame number
           }
-          <Grid item>
+          <Grid item sx={{ mt: 1 }}>
             <FormControl margin="dense" size="small" variant="filled">
               <Input
                 sx={{maxWidth: maxWidthTime}}
@@ -262,8 +210,8 @@ const BottomBar = React.forwardRef(function CustomContent(
                 disabled={curState.viewerState.animations.length < 1}/>
             </FormControl>
           </Grid>
-
-          <Grid item>
+          {curState.getGuiMode()?"":
+          <Grid item sx={{ mt: 1 }}>
             <Tooltip title={t('bottomBar.autoRotate')}>
               <ToggleButton
                 color="primary"
@@ -274,6 +222,7 @@ const BottomBar = React.forwardRef(function CustomContent(
               </ToggleButton>
             </Tooltip>
           </Grid>
+        }
         </Grid>
       </Container>
     )

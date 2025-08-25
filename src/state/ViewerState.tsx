@@ -375,6 +375,7 @@ export class ViewerState {
         this.cameras.push(camClone);
         this.targets.push(target.clone())
         this.cameraGroup?.add(camClone);
+        this.sceneVersion = this.sceneVersion +1;
         return camClone;
     }
     deleteCurrentCamera() {

@@ -87,3 +87,58 @@ export function convertSceneToTree(scene: THREE.Scene | null) {
 
   return tree;
 }
+
+function mergeTreeWithScene(oldTree: any[], scene: THREE.Scene) {
+  const oldMap = new Map<string, any>();
+  const collect = (nodes: any[]) => {
+    nodes.forEach((n) => {
+      oldMap.set(n.uuid, n);
+      if (n.children) collect(n.children);
+    });
+  };
+  collect(oldTree);
+
+  const traverse = (obj: THREE.Object3D): any | null => {
+    const nodeType = determineNodeType(obj);
+    const { id, uuid } = obj;
+    let title = obj.name === "Scene" ? "Model" : obj.name;
+
+    const shouldProcess =
+      (!obj.type.includes("TransformControls") &&
+        !obj.type.includes("Helper")) &&
+      !(obj.type === "Group" && obj.name === "" && obj.children.length === 0);
+
+    if (!shouldProcess) return null;
+
+    const validChildren = getValidChildren(obj, traverse);
+    const oldNode = oldMap.get(uuid);
+
+    if (oldNode) {
+      // Reuse old node, just update props
+      oldNode.title = title;
+      oldNode.subtitle = obj.type;
+      oldNode.nodeType = nodeType;
+      oldNode.id = id;
+      oldNode.type = obj.type;
+      oldNode.object3D = obj;
+      oldNode.children = validChildren.length > 0 ? validChildren : null;
+      return oldNode;
+    } else {
+      // New node
+      return {
+        title,
+        subtitle: obj.type,
+        object3D: obj,
+        nodeType,
+        id,
+        uuid,
+        type: obj.type,
+        children: validChildren.length > 0 ? validChildren : null,
+      };
+    }
+  };
+
+  return scene.children.map(traverse).filter(Boolean);
+}
+
+export { mergeTreeWithScene };
