@@ -98,7 +98,7 @@ export class ModelUIState {
         this.fitToBox = null
         this.debug = false
         this.simulationTime=0.0
-        this.viewerState = new ViewerState(currentModelPathState, '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false);
+        this.viewerState = new ViewerState(currentModelPathState, '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'webm', false, false);
         makeObservable(this, {
             zooming: observable,
             showGlobalFrame: observable,
