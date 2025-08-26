@@ -55,7 +55,6 @@ export class ModelUIState {
     showGlobalFrame: boolean
     sceneTree: SceneTreeModel | null
     lights: Light[]
-    startCameraIndex: number
     selected: string
     deSelected: string
     selectedObject: Object3D | null
@@ -86,7 +85,6 @@ export class ModelUIState {
         this.sceneTree = null
         this.lights = []
         //this.keyframes = []
-        this.startCameraIndex = -1
         this.selected = ""
         this.deSelected = ""
         this.selectedObject = null
@@ -395,40 +393,4 @@ export class ModelUIState {
     fitCameraTo(objectbbox: Box3) {
         this.fitToBox = objectbbox;
     }
-
-    toggleRecordingKeyFrames() {
-
-        /*
-        this.recordingKeyFrames = !this.recordingKeyFrames
-        if (!this.recordingKeyFrames) {
-            const duration = this.viewerState.cameras.length-1
-            const positions: number[] = []
-            const targets: number[] = []
-            const orientations: number[] = []
-            const keyFrameTimes: number[] = []
-            for (let i=this.startCameraIndex; i< this.viewerState.cameras.length; i++){
-                const cam = this.viewerState.cameras[i]
-                const tgt = this.targets[i]
-                cam.position.toArray(positions, 3*(i-this.startCameraIndex))
-                cam.quaternion.toArray(orientations, 4*(i-this.startCameraIndex))
-
-                tgt.toArray(targets, 3*(i-this.startCameraIndex))
-                keyFrameTimes.push((i-this.startCameraIndex))
-
-            }
-            // Create 2 keyframetracks one for camera, 2nd for targetbuild/assets build/builtin build/static build/_redirects build/arm26.gltf build/favicon.ico build/logo192.png build/logo512.png build/manifest.json build/robots.txt build/27ccdc65.json build/4afd371b.json build/gait10dof18musc.json build/b24d8447.json build/user-preferences.json build/asset-manifest.json build/index.html
-            const positionKF = new VectorKeyframeTrack( '.position', keyFrameTimes, positions );
-            const orientationKF = new QuaternionKeyframeTrack( '.quaternion', keyFrameTimes, orientations );
-
-            // Create an AnimationClip from saved KeyFrameCameras, add to ui
-            const camClip = new AnimationClip("camClip_"+this.animations.length, duration, [positionKF, orientationKF])
-            this.setAnimationList(this.animations.concat(camClip))
-
-            // const targetKF = new VectorKeyframeTrack( '.position', keyFrameTimes, targets );
-            // const targetClip = new AnimationClip("tgtClip", duration, [targetKF])
-            // this.setAnimationList(this.animations.concat(targetClip))
-        }
-     */
-    }
-
 }

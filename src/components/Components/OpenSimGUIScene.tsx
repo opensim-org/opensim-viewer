@@ -113,7 +113,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             const cameraPers = camera as PerspectiveCamera
             cameraPers.aspect = aspectRatio;
             cameraPers.updateProjectionMatrix();
-                      // Add camera to the cameras group
+            
             if (envRef.current) {
               envRef.current.add(camera);
             }
@@ -121,8 +121,8 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         // Update cameras list.
         curState.viewerState.setCamerasList(cameras.map(obj => obj as PerspectiveCamera))
         // Set current camera and current index as 0
-        setCurrentCamera(cameras.length > 0 ? cameras[0] as PerspectiveCamera : new PerspectiveCamera())
-        curState.viewerState.setCurrentCameraIndex(0)
+        //setCurrentCamera(cameras.length > 0 ? cameras[0] as PerspectiveCamera : new PerspectiveCamera())
+        //curState.viewerState.setCurrentCameraIndex(0)
       }
       // else { // use the default camera, call it DefaultCam
       //   if (curState.viewerState.cameras.length === 0){

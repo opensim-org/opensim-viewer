@@ -106,7 +106,6 @@ function CameraPanel(props :CameraPanelProps) {
           onChange={handleCameraTypeChange}
           displayEmpty
         >
-          {/* <MenuItem value="">Default Camera</MenuItem> */}
           {attachmentType.map((obj) => (
             <MenuItem key={obj} value={obj}>
               {obj}
@@ -150,11 +149,13 @@ function CameraPanel(props :CameraPanelProps) {
         <IconButton color="primary" title="Add Camera/Dolly" onClick={handleAdd}>
           <AddIcon />
         </IconButton>
-        <IconButton color="info" title="Edit Camera/Dolly" disabled={!selectedCamera} onClick={handleEdit}>
+        <IconButton color="info" title="Edit Camera/Dolly" 
+        disabled={(!selectedCamera && !dollyMode) || (!selectedDolly && dollyMode)} onClick={handleEdit}>
           {/** This should open the tree with selected camera node so location, name props can all be changed in one place. */}
           <EditIcon />
         </IconButton>
-        <IconButton color="error" title="Delete Camera/Dolly" disabled={!selectedCamera} onClick={() => {
+        <IconButton color="error" title="Delete Camera/Dolly" 
+         disabled={(!selectedCamera && !dollyMode) || (!selectedDolly && dollyMode)} onClick={() => {
               curState.viewerState.deleteCurrentCamera()}}>
           <DeleteIcon />
         </IconButton>
