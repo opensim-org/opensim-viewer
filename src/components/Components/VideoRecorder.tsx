@@ -36,12 +36,11 @@ function VideoRecorder(props: VideoRecorderViewProps) {
   const fps = 30;
 
   const load = async () => {
-    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/umd/';
     const ffmpeg = ffmpegRef.current;
     ffmpeg.on('log', ({ message }) => console.log(message));
     await ffmpeg.load({
-      coreURL: `${baseURL}ffmpeg-core.js`,
-      wasmURL: `${baseURL}ffmpeg-core.wasm`,
+      coreURL: '/ffmpeg/ffmpeg-core.js',
+      wasmURL: '/ffmpeg/ffmpeg-core.wasm',
     });
   };
 
