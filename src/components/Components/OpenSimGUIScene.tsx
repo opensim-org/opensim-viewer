@@ -32,15 +32,12 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     const [startTime, setStartTime] = useState<number>(0)
     const [mixers, ] = useState<AnimationMixer[]>([])
     const [colorNodeMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
-    //const [selected, setSelected] = useState([])
-    //const selected = useSelect().map((sel) => console.log(sel))
     const lightRef = useRef<THREE.DirectionalLight | null>(null)
     const spotlightRef = useRef<THREE.SpotLight>(null)
     const csRef = useRef<THREE.Group>(null)
     const envRef = useRef<THREE.Group>(null)
     const bboxRef = useRef<THREE.BoxHelper>(null)
     const modelsRef = useRef<THREE.Group>(null);
-    const camerasGroupRef = useRef<THREE.Group>(null);
 
     const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
 
@@ -117,8 +114,8 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             cameraPers.aspect = aspectRatio;
             cameraPers.updateProjectionMatrix();
                       // Add camera to the cameras group
-            if (camerasGroupRef.current) {
-              camerasGroupRef.current.add(camera);
+            if (envRef.current) {
+              envRef.current.add(camera);
             }
         });
         // Update cameras list.
@@ -202,7 +199,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           });
         });
       }
-    }, [currentCamera, set, curState.viewerState.currentCameraIndex, curState.viewerState.cameras, curState.viewerState.animations]);
+    }, [currentCamera, set, curState.viewerState.currentCameraIndex, curState.viewerState.cameras, curState.viewerState.cameras.length, curState.viewerState.animations]);
 
 
     if (supportControls) {
@@ -240,8 +237,6 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
       }
       if (envRef.current && scene) 
         curState.viewerState.setEnvironmentGroup(envRef.current)
-      if (camerasGroupRef.current && scene) 
-        curState.viewerState.setCamerasGroup(camerasGroupRef.current)
 
       return () => {
         if (dirLightHelperRef.current) {
@@ -418,17 +413,14 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     // By the time we're here the model is guaranteed to be available
     return <>
       <group name='OpenSim Environment' ref={envRef}>
-          <group name="Cameras" ref={camerasGroupRef}></group>
-          <group name="Illumination">
-            <directionalLight name="Directional Light" ref={lightRef} position={[0.5, 1.5, -0.5]}
-              intensity={curState.viewerState.lightIntensity} color={curState.viewerState.lightColor}
-              castShadow={true}
-              shadow-camera-far={8}
-              shadow-camera-left={-2}
-              shadow-camera-right={2}
-              shadow-camera-top={2}
-              shadow-camera-bottom={-2}/>
-          </group>
+        <directionalLight name="Directional Light" ref={lightRef} position={[0.5, 1.5, -0.5]}
+          intensity={curState.viewerState.lightIntensity} color={curState.viewerState.lightColor}
+          castShadow={true}
+          shadow-camera-far={8}
+          shadow-camera-left={-2}
+          shadow-camera-right={2}
+          shadow-camera-top={2}
+          shadow-camera-bottom={-2}/>
         <OpenSimFloor />
         <group name='WCS' ref={csRef} visible={curState.showGlobalFrame}>
           <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.2]}>

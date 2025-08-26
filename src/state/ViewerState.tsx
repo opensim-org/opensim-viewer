@@ -374,7 +374,7 @@ export class ViewerState {
         
         this.cameras.push(camClone);
         this.targets.push(target.clone())
-        this.cameraGroup?.add(camClone);
+        this.environmentGroup?.add(camClone);
         this.sceneVersion = this.sceneVersion +1;
         return camClone;
     }
@@ -394,12 +394,6 @@ export class ViewerState {
     }
     setEnvironmentGroup(grp: Group) {
         this.environmentGroup = grp;
-    }
-    setCamerasGroup(grp: Group) {
-        this.cameraGroup = grp;
-    }
-    setLightsGroup(grp: Group) {
-        this.lightsGroup = grp;
     }
 }
 

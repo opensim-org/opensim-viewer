@@ -20,7 +20,8 @@ function determineNodeType(obj: THREE.Object3D): string {
 function getValidChildren(obj: THREE.Object3D, traverse: any) {
   return obj.children
     .filter(child => child.type.includes("Camera") || child.type.includes("Light") || 
-    child.type.includes("Object3D") || 
+    child.type.includes("Object3D") || child.name === "Floor" || child.name==="WCS" ||
+    child.type==="Group" ||
     child.userData.opensimType==="Ground" || child.userData.opensimType==="Frame")
     .map(traverse)
     .filter((child: any) => child !== null);

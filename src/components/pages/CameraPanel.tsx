@@ -41,7 +41,7 @@ function CameraPanel(props :CameraPanelProps) {
     return () => {
       // Optional cleanup logic
     };
-  }, [availableCameras, curState.viewerState.cameraDollies, curState.viewerState.cameras]);
+  }, [availableCameras, curState.viewerState.cameraDollies, curState.viewerState.cameras, curState.viewerState.cameras.length]);
 
   const handleCameraChangeEvent = (event: SelectChangeEvent) => {
     const targetName = event.target.value as string
