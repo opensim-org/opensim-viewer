@@ -111,16 +111,16 @@ const BottomBar = React.forwardRef(function CustomContent(
 
     useEffect(() => {
 
-      if (curState.viewerState.animations.length > 0 && curState.viewerState.currentCameraIndex !== -1) {
+      if (curState.viewerState.animations.length > 0) {
         setSelectedAnim(curState.viewerState.animations[0].name)
         handleAnimationChange(curState.viewerState.animations[0].name, false)
       }
-    }, [curState.viewerState.animations, curState.viewerState.currentCameraIndex, handleAnimationChange]);
+    }, [curState.viewerState.animations, handleAnimationChange]);
 
     useEffect(() => {
       if (curState.viewerState.cameras.length > 0 && curState.viewerState.currentCameraIndex !== -1) {
-        setSelectedCam(curState.viewerState.cameras[0].name)
-        handleCameraChange(curState.viewerState.cameras[0].name)
+        setSelectedCam(curState.viewerState.cameras[curState.viewerState.currentCameraIndex].name)
+        handleCameraChange(curState.viewerState.cameras[curState.viewerState.currentCameraIndex].name)
       }
     }, [curState.viewerState.cameras, curState.viewerState.cameras.length, curState.viewerState.currentCameraIndex, handleCameraChange]);
 

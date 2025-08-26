@@ -32,16 +32,21 @@ function CameraPanel(props :CameraPanelProps) {
   const [availableDollies, setAvailableDollies] = useState<CameraDolly[]>(props.uState.viewerState.cameraDollies);
   const [dollyEditorOpen, setDollyEditorOpen] = useState(false);
   const [dollyMode, setDollyMode] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const curState = props.uState;
 
   useEffect(() => {
     // Effect logic here
     setAvailableCameras(curState.viewerState.cameras);
     setAvailableDollies(curState.viewerState.cameraDollies);
+    if (curState.viewerState.cameras.length > 0 && curState.viewerState.currentCameraIndex !== -1) {
+      setSelectedCamera(curState.viewerState.cameras[curState.viewerState.currentCameraIndex].name);
+      handleCameraChange(curState.viewerState.cameras[curState.viewerState.currentCameraIndex].name);
+    }
     return () => {
       // Optional cleanup logic
     };
-  }, [availableCameras, curState.viewerState.cameraDollies, curState.viewerState.cameras, curState.viewerState.cameras.length]);
+  }, [availableCameras, curState.viewerState.cameraDollies, curState.viewerState.cameras, curState.viewerState.cameras.length,curState.viewerState.currentCameraIndex]);
 
   const handleCameraChangeEvent = (event: SelectChangeEvent) => {
     const targetName = event.target.value as string
@@ -51,11 +56,9 @@ function CameraPanel(props :CameraPanelProps) {
   const handleCameraChange = useCallback((cameraName: string) => {
     const targetName = cameraName
     setSelectedCamera(cameraName);
+    const idx = curState.viewerState.cameras.findIndex((value: Camera)=>{return (value.name === targetName)})
+    curState.viewerState.setCurrentCameraIndex(idx)
 
-      const idx = curState.viewerState.cameras.findIndex((value: Camera)=>{return (value.name === targetName)})
-      if (idx !== -1) {
-          curState.viewerState.setCurrentCameraIndex(idx)
-      }
   }, [curState]);
   
   const handleDollyChangeEvent = (event: SelectChangeEvent) => {
@@ -75,6 +78,7 @@ function CameraPanel(props :CameraPanelProps) {
 
   const handleAdd = () => {
     if (dollyMode) {
+      setEditMode(false)
       setDollyEditorOpen(true)
     }
     else {
@@ -84,6 +88,7 @@ function CameraPanel(props :CameraPanelProps) {
 
     const handleEdit = () => {
     if (dollyMode) {
+      setEditMode(true);
       setDollyEditorOpen(true)
     }
     else {
@@ -163,6 +168,7 @@ function CameraPanel(props :CameraPanelProps) {
       </FormControl>
       <DollyEditorDialog
           open={dollyEditorOpen}
+          edit={editMode}
           onClose={() => setDollyEditorOpen(false)}
           uiState={curState}
       />

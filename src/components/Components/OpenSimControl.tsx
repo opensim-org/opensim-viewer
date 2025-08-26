@@ -218,7 +218,7 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
                 //     target.x, target.y, target.z, false)
                 controlsRef.current.update()
             }
-            curState.viewerState.setCurrentCameraIndex(-1)
+            //curState.viewerState.setCurrentCameraIndex(-1)
         }
 
        function fitToModels(transition: boolean) {

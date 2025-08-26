@@ -314,6 +314,11 @@ export class ViewerState {
         this.currentAnimationIndex = this.animations.length - 1;
         this.currentDollyIndex = this.cameraDollies.length - 1;
     }
+    updateCameraDolly(newSequence:CameraDolly){
+        // update entry at  this.currentDollyIndex
+        this.cameraDollies[this.currentDollyIndex]=(newSequence);
+        this.animations[this.currentDollyIndex]=(this.createAnimationClipFromSequence(newSequence));
+    }
     setAnimationList(animations: AnimationClip[]) {
         this.animations=animations
     }
@@ -375,6 +380,7 @@ export class ViewerState {
         this.cameras.push(camClone);
         this.targets.push(target.clone())
         this.environmentGroup?.add(camClone);
+        this.currentCameraIndex = (this.cameras.length - 1);
         this.sceneVersion = this.sceneVersion +1;
         return camClone;
     }

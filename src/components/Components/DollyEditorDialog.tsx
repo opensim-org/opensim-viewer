@@ -28,20 +28,21 @@ type CameraEntry = {
 
 type Props = {
   open: boolean;
+  edit: boolean;
   onClose: () => void;
   uiState: ModelUIState;
 };
 
-const DollyEditorDialog: React.FC<Props> = ({ open, onClose, uiState}) => {
+const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => {
   const cameraOptions = uiState.viewerState.cameras.map(cam=>cam.name);
 
-  let initalEntries: CameraEntry[] = uiState.viewerState.cameras.map((cam, index) => ({
-  id: cam.uuid,
-  name: cam.name,
-  time: `${index}`, // default or derived from elsewhere
-}));
+  const initalEntries: CameraEntry[] = uiState.viewerState.cameras.map((cam, index) => ({
+    id: cam.uuid,
+    name: cam.name,
+    time: `${index}`, // default or derived from elsewhere
+  }));
   const [entries, setEntries] = useState<CameraEntry[]>(initalEntries);
-  const [dollyName, setDollyName] = useState<string>('Dolly#')
+  const [dollyName, setDollyName] = useState<string>('Dolly')
   const [cameras, ] = useState<Camera[]>(uiState.viewerState.cameras);
   const generateCameraEntryFromFrame = (frame: CameraFrame) =>{
     const cam = cameras.find(cam => cam.uuid === frame.cam_uuid)
@@ -53,12 +54,14 @@ const DollyEditorDialog: React.FC<Props> = ({ open, onClose, uiState}) => {
     }
   };
 
-  // if (uiState.viewerState.cameraDollies.length > 0 && uiState.viewerState.currentDollyIndex !== -1) {
-  //   let currentDolly = uiState.viewerState.cameraDollies[uiState.viewerState.currentDollyIndex];
-  //   setDollyName(currentDolly.name);
-  //   setEntries(currentDolly.cameraFrames.map((frame) => generateCameraEntryFromFrame(frame)))
-  // }
-
+  useEffect(() => {
+    if (open && edit && 
+              uiState.viewerState.currentDollyIndex !== -1) {
+      let currentDolly = uiState.viewerState.cameraDollies[uiState.viewerState.currentDollyIndex];
+      setDollyName(currentDolly.name);
+      setEntries(currentDolly.cameraFrames.map((frame) => generateCameraEntryFromFrame(frame)))
+    }
+  }, [open, edit, uiState.viewerState.currentDollyIndex, uiState.viewerState.cameraDollies]);
 
   const handleChange = (index: number, field: keyof CameraEntry, value: string) => {
     const updated = [...entries];
@@ -72,7 +75,6 @@ const DollyEditorDialog: React.FC<Props> = ({ open, onClose, uiState}) => {
 
   const validate = (field: keyof CameraEntry, value: string) => {
     if (field === 'name' && !value) return 'Camera name is required';
-    //if (field === 'time' && !/^([0-1]\d|2[0-3]):[0-5]\d$/.test(value)) return 'Invalid time format (HH:mm)';
     return undefined;
   };
 
@@ -111,7 +113,19 @@ const DollyEditorDialog: React.FC<Props> = ({ open, onClose, uiState}) => {
       setEntries(validated);
       return;
     }
-    if (uiState.viewerState.currentDollyIndex===-1){
+    if (edit){
+      const newSequence=new CameraDolly(dollyName)
+      entries.forEach((entry) => {
+        // find by name in uiState.viewerState.cameras
+        const ndx = uiState.viewerState.cameras.findIndex(cam=>cam.name===entry.name);
+        entry.id = uiState.viewerState.cameras[ndx].uuid
+      })
+      
+      const camFrames:CameraFrame[] = entries.map(camEntry=>({cam_uuid:camEntry.id, time:Number(camEntry.time)}));
+      newSequence.cameraFrames = camFrames;
+      uiState.viewerState.updateCameraDolly(newSequence);
+    }
+    else {
       // New Dolly, add to state and make current
       const newSequence=new CameraDolly(dollyName)
       entries.forEach((entry) => {
@@ -123,9 +137,8 @@ const DollyEditorDialog: React.FC<Props> = ({ open, onClose, uiState}) => {
       const camFrames:CameraFrame[] = entries.map(camEntry=>({cam_uuid:camEntry.id, time:Number(camEntry.time)}));
       newSequence.cameraFrames = camFrames;
       uiState.viewerState.addCameraDolly(newSequence);
-    }
-    else {
-      // update in-place
+      setEntries([])
+      setDollyName("")
     }
     onClose();
   };
@@ -144,10 +157,10 @@ const DollyEditorDialog: React.FC<Props> = ({ open, onClose, uiState}) => {
         />
       </DialogContent>
       <DialogContent>
-        <Button variant="outlined" onClick={addRow} sx={{ mb: 2 }}>
+        <Button variant="outlined" onClick={addRow} sx={{ mb: 1 }}>
           Add Entry
         </Button>
-        <Table>
+        <Table size="small">
           <TableHead>
             <TableRow>
               <TableCell>Camera Name</TableCell>
@@ -157,7 +170,7 @@ const DollyEditorDialog: React.FC<Props> = ({ open, onClose, uiState}) => {
           </TableHead>
           <TableBody>
             {entries.map((entry, index) => (
-              <TableRow key={entry.id} sx={{ height: 32 }}>
+              <TableRow key={entry.id} sx={{ height: 20 }}>
                 <TableCell>
                   <Select
                     value={entry.name}
