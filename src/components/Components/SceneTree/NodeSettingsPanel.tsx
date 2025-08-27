@@ -620,7 +620,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               style={{ marginTop: 16 }}
             />
         </>
-      )}g
+      )}
     </div>
 
 
