@@ -78,8 +78,6 @@ export class ViewerState {
     currentAnimationIndex: number
     // Environment holders
     environmentGroup: Group | null
-    cameraGroup: Group |  null
-    lightsGroup: Group | null
     constructor(
         currentModelPathState: string,
         featuredModelsFilePathState: string,
@@ -151,8 +149,6 @@ export class ViewerState {
         this.animations = []
         this.currentAnimationIndex = -1
         this.environmentGroup = null
-        this.cameraGroup = null
-        this.lightsGroup = null
         makeObservable(this, {
             currentModelPath: observable,
             featuredModelsFilePath: observable,
