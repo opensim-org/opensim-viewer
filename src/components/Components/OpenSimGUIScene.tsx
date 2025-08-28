@@ -201,16 +201,13 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
       }
     }, [currentCamera, set, curState.viewerState.currentCameraIndex, curState.viewerState.cameras, curState.viewerState.cameras.length, curState.viewerState.animations]);
 
-
-    if (supportControls) {
-      scene.traverse((o) => {
-          sceneObjectMap.set(o.uuid, o);
-          if (o.name.startsWith("ColorNode")) {
-            colorNodeMap.set(o.uuid, o);
-          }
-          }
-      )
-    }
+    scene.traverse((o) => {
+        sceneObjectMap.set(o.uuid, o);
+        if (o.name.startsWith("ColorNode")) {
+          colorNodeMap.set(o.uuid, o);
+        }
+        }
+    )
 
     // Make sure mixers match animations
     if ((curState.viewerState.animations.length > 0 && mixers.length !==curState.viewerState.animations.length)) {
@@ -220,7 +217,6 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             nextMixer.clipAction(clip)
             mixers.push(nextMixer)
         });
-        //setMixers(mixers)
     }
     // This useEffect adds helpers to the lights.
     useEffect(() => {
@@ -296,6 +292,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
                 //       nextAnimation.tracks[2].values[1], 
                 //       nextAnimation.tracks[2].values[2], true);
               }
+              // Leave to animate button to start playing
               mixers[viewerState.currentAnimationIndex]?.clipAction(viewerState.animations[viewerState.currentAnimationIndex]).play()
             }
             if (viewerState.animating || (curState.simulationTime !== undefined && curState.simulationTime > 0)){
