@@ -74,6 +74,7 @@ export function convertSceneToTree(scene: THREE.Scene | null) {
   return tree;
 }
 
+// Given an existing tree and a scene with updated elements, update the tree.
 function mergeTreeWithScene(oldTree: any[], scene: THREE.Scene) {
   const oldMap = new Map<string, any>();
   const collect = (nodes: any[]) => {
@@ -100,7 +101,7 @@ function mergeTreeWithScene(oldTree: any[], scene: THREE.Scene) {
     const oldNode = oldMap.get(uuid);
 
     if (oldNode) {
-      // Reuse old node, just update props
+      // If a node from the scene already exists in the tree, just update it props.
       oldNode.title = title;
       oldNode.subtitle = obj.type;
       oldNode.nodeType = nodeType;
@@ -110,7 +111,7 @@ function mergeTreeWithScene(oldTree: any[], scene: THREE.Scene) {
       oldNode.children = validChildren.length > 0 ? validChildren : null;
       return oldNode;
     } else {
-      // New node
+      // If a node in the scene does not exist in the tree, create it.
       return {
         title,
         subtitle: obj.type,
