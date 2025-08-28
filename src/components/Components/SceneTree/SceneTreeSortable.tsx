@@ -20,13 +20,20 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
-import { convertSceneToTree } from '../../../helpers/sceneToTree';
+import { convertSceneToTree, mergeTreeWithScene } from '../../../helpers/sceneToTree';
 import { useModelContext } from '../../../state/ModelUIStateContext';
 import { ModelUIState } from '../../../state/ModelUIState';
 
 import NodeSettingsPanel from "./NodeSettingsPanel";
 
 import './SceneTreeSortable.css';
+
+import { DirectionalLightHelper,
+  SpotLightHelper,
+  PointLightHelper,
+  CameraHelper,
+  Object3D
+} from 'three';
 
 const PANEL_WIDTH = 300;
 
@@ -60,6 +67,46 @@ const iconMap: Record<string, JSX.Element> = {
   addCameraButton: <> </>,
   addLightButton: <> </>,
 };
+
+
+export function createTempHelper(node:any, scene: THREE.Scene | null) {
+  let helper: Object3D | null = null;
+
+  switch (node.type) {
+    case "DirectionalLight":
+      helper = new DirectionalLightHelper(node, 0.5);
+      break;
+    case "SpotLight":
+      helper = new SpotLightHelper(node);
+      break;
+    case "PointLight":
+      helper = new PointLightHelper(node, 0.5);
+      break;
+    case "PerspectiveCamera":
+    case "OrthographicCamera":
+    case "Camera":
+      helper = new CameraHelper(node);
+      break;
+
+    default:
+      return null;
+  }
+
+  if (helper) {
+    helper.name = "temp_helper";
+    helper.visible = true;
+    scene?.add(helper);
+  }
+
+  return helper;
+}
+
+export function removeTempHelper(scene: THREE.Scene | null) {
+    const helper = scene?.getObjectByName("temp_helper");
+    if (helper && helper.parent) {
+      helper.parent.remove(helper);
+    }
+}
 
 function applyTreeToScene(tree: any[], scene: THREE.Scene) {
   const applyNode = (node: any, parent: THREE.Object3D) => {
@@ -118,7 +165,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
 
     useEffect(() => {
       if (scene && camera) {
-        setTreeData(convertSceneToTree(scene));
+        setTreeData((old) => mergeTreeWithScene(old, scene));
       }
     }, [scene, camera, sceneVersion]);
 
@@ -221,19 +268,30 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                         setSettingsNode(null);
                         uiState.setSelected("");
                         setTransformTargetFunction?.(null);
+
+                        // Remove current helper.
+                        removeTempHelper(scene)
                       } else {
-                        // Select
+                        // Select new node
                         setSelectedPath(path);
                         setSettingsNode(node);
-                        if (node.nodeType === 'camera')
+
+                        if (node.nodeType === 'camera') {
                           uiState.setSelected(node.uuid);
-                        else
+                        } else {
                           uiState.setSelected("");
+                        }
 
                         setTransformTargetFunction?.(scene?.getObjectById(node.id));
                         if (!(node.type === "Group") && !(node.type === "AddButton") && !(node.title === "Model")) {
                           handleSettingsClick(node, path);
                         }
+
+                        // Remove previous helper
+                        removeTempHelper(scene)
+
+                        // Create new helper.
+                        createTempHelper(node.object3D, scene)
                       }
                     },
                     onContextMenu: (e: React.MouseEvent) => {
@@ -257,6 +315,11 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                         node,
                         path,
                       });
+
+
+                      // Remove previous helper
+                      removeTempHelper(scene)
+
                     },
                     icons: [icon],
                     title: (
@@ -362,11 +425,8 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                 if (!nodeToDelete) return;
                 const { path, node } = nodeToDelete;
 
-                // Remove helper if exists
-                const helper = scene?.getObjectByName(`${node.object3D?.name}_Helper`);
-                if (helper && helper.parent) {
-                  helper.parent.remove(helper);
-                }
+                // Remove current helper.
+                removeTempHelper(scene)
 
                 // Remove object3D from scene
                 if (node.object3D && node.object3D.parent) {

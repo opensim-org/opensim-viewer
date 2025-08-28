@@ -19,7 +19,7 @@ function determineNodeType(obj: THREE.Object3D): string {
 
 function getValidChildren(obj: THREE.Object3D, traverse: any) {
   return obj.children
-    .filter(child => child.type.includes("Camera") || child.type.includes("Light") || child.type.includes("Object3D"))
+    .filter(child => child.type.includes("Camera") || child.type.includes("Light") || child.type.includes("Object3D") || child.type.includes("Mesh"))
     .map(traverse)
     .filter((child: any) => child !== null);
 }
@@ -73,3 +73,59 @@ export function convertSceneToTree(scene: THREE.Scene | null) {
 
   return tree;
 }
+
+// Given an existing tree and a scene with updated elements, update the tree.
+function mergeTreeWithScene(oldTree: any[], scene: THREE.Scene) {
+  const oldMap = new Map<string, any>();
+  const collect = (nodes: any[]) => {
+    nodes.forEach((n) => {
+      oldMap.set(n.uuid, n);
+      if (n.children) collect(n.children);
+    });
+  };
+  collect(oldTree);
+
+  const traverse = (obj: THREE.Object3D): any | null => {
+    const nodeType = determineNodeType(obj);
+    const { id, uuid } = obj;
+    let title = obj.name === "Scene" ? "Model" : obj.name;
+
+    const shouldProcess =
+      (!obj.type.includes("TransformControls") &&
+        !obj.type.includes("Helper")) &&
+      !(obj.type === "Group" && obj.name === "" && obj.children.length === 0);
+
+    if (!shouldProcess) return null;
+
+    const validChildren = getValidChildren(obj, traverse);
+    const oldNode = oldMap.get(uuid);
+
+    if (oldNode) {
+      // If a node from the scene already exists in the tree, just update it props.
+      oldNode.title = title;
+      oldNode.subtitle = obj.type;
+      oldNode.nodeType = nodeType;
+      oldNode.id = id;
+      oldNode.type = obj.type;
+      oldNode.object3D = obj;
+      oldNode.children = validChildren.length > 0 ? validChildren : null;
+      return oldNode;
+    } else {
+      // If a node in the scene does not exist in the tree, create it.
+      return {
+        title,
+        subtitle: obj.type,
+        object3D: obj,
+        nodeType,
+        id,
+        uuid,
+        type: obj.type,
+        children: validChildren.length > 0 ? validChildren : null,
+      };
+    }
+  };
+
+  return scene.children.map(traverse).filter(Boolean);
+}
+
+export { mergeTreeWithScene };
