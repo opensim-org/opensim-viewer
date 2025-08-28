@@ -218,7 +218,9 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
                 //     target.x, target.y, target.z, false)
                 controlsRef.current.update()
             }
-            //curState.viewerState.setCurrentCameraIndex(-1)
+            setTimeout(() => { // Wait one second so the UI doesn't refresh
+                curState.viewerState.setCurrentCameraIndex(-1)
+            }, 1000);
         }
 
        function fitToModels(transition: boolean) {
