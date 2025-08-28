@@ -28,6 +28,13 @@ import NodeSettingsPanel from "./NodeSettingsPanel";
 
 import './SceneTreeSortable.css';
 
+import { DirectionalLightHelper,
+  SpotLightHelper,
+  PointLightHelper,
+  CameraHelper,
+  Object3D
+} from 'three';
+
 const PANEL_WIDTH = 300;
 
 interface SceneTreeSortableProps {
@@ -60,6 +67,46 @@ const iconMap: Record<string, JSX.Element> = {
   addCameraButton: <> </>,
   addLightButton: <> </>,
 };
+
+
+export function createTempHelper(node:any, scene: THREE.Scene | null) {
+  let helper: Object3D | null = null;
+
+  switch (node.type) {
+    case "DirectionalLight":
+      helper = new DirectionalLightHelper(node, 0.5);
+      break;
+    case "SpotLight":
+      helper = new SpotLightHelper(node);
+      break;
+    case "PointLight":
+      helper = new PointLightHelper(node, 0.5);
+      break;
+    case "PerspectiveCamera":
+    case "OrthographicCamera":
+    case "Camera":
+      helper = new CameraHelper(node);
+      break;
+
+    default:
+      return null;
+  }
+
+  if (helper) {
+    helper.name = "temp_helper";
+    helper.visible = true;
+    scene?.add(helper);
+  }
+
+  return helper;
+}
+
+export function removeTempHelper(scene: THREE.Scene | null) {
+    const helper = scene?.getObjectByName("temp_helper");
+    if (helper && helper.parent) {
+      helper.parent.remove(helper);
+    }
+}
 
 function applyTreeToScene(tree: any[], scene: THREE.Scene) {
   const applyNode = (node: any, parent: THREE.Object3D) => {
@@ -215,15 +262,6 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
 
                       const isSameNode = selectedPath?.join('.') === path.join('.');
 
-                      // Helper visibility
-                      const hideAllHelpers = () => {
-                        scene?.traverse((obj) => {
-                          if (obj.name.endsWith("_Helper")) {
-                            obj.visible = false;
-                          }
-                        });
-                      };
-
                       if (isSameNode) {
                         // Deselect
                         setSelectedPath(null);
@@ -231,8 +269,8 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                         uiState.setSelected("");
                         setTransformTargetFunction?.(null);
 
-                        // Hide all helpers when nothing is selected
-                        hideAllHelpers();
+                        // Remove current helper.
+                        removeTempHelper(scene)
                       } else {
                         // Select new node
                         setSelectedPath(path);
@@ -249,14 +287,11 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                           handleSettingsClick(node, path);
                         }
 
-                        // Hide all helpers
-                        hideAllHelpers();
+                        // Remove previous helper
+                        removeTempHelper(scene)
 
-                        // Show helper for the selected object
-                        const helper = scene?.getObjectByName(`${node.object3D?.name}_Helper`);
-                        if (helper) {
-                          helper.visible = true;
-                        }
+                        // Create new helper.
+                        createTempHelper(node.object3D, scene)
                       }
                     },
                     onContextMenu: (e: React.MouseEvent) => {
@@ -280,6 +315,11 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                         node,
                         path,
                       });
+
+
+                      // Remove previous helper
+                      removeTempHelper(scene)
+
                     },
                     icons: [icon],
                     title: (
@@ -385,11 +425,8 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                 if (!nodeToDelete) return;
                 const { path, node } = nodeToDelete;
 
-                // Remove helper if exists
-                const helper = scene?.getObjectByName(`${node.object3D?.name}_Helper`);
-                if (helper && helper.parent) {
-                  helper.parent.remove(helper);
-                }
+                // Remove current helper.
+                removeTempHelper(scene)
 
                 // Remove object3D from scene
                 if (node.object3D && node.object3D.parent) {

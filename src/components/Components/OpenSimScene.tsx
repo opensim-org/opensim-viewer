@@ -1,6 +1,5 @@
 import { useGLTF } from '@react-three/drei'
-import { useFrame, useLoader, useThree } from '@react-three/fiber'
-import { TransformControls } from '@react-three/drei'
+import { useFrame, useThree } from '@react-three/fiber'
 
 import * as THREE from 'three';
 
@@ -12,13 +11,9 @@ import SceneTreeModel from '../../helpers/SceneTreeModel'
 import { useModelContext } from '../../state/ModelUIStateContext'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
 
-import viewerState from '../../state/ViewerState'
-import { ModelUIState } from '../../state/ModelUIState'
-
 import { DirectionalLightHelper, SpotLightHelper } from 'three';
 import OpenSimFloor from './OpenSimFloor';
 import OpenSimSkySphere from './OpenSimSkySphere';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 interface OpenSimSceneProps {
     currentModelPath: string,
@@ -193,33 +188,6 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         });
       }
     }, [currentCamera, set, curState.currentCameraIndex, curState.cameras, animations]);
-
-    // This useEffect adds helpers to the lights.
-    useEffect(() => {
-      if (lightRef.current && scene) {
-        const helper = new DirectionalLightHelper(lightRef.current, 0.5);
-        helper.name = "Directional Light_Helper"
-        dirLightHelperRef.current = helper;
-        scene.add(helper);
-      }
-
-      if (spotlightRef.current && scene) {
-        const helper = new SpotLightHelper(spotlightRef.current, curState.viewerState.lightColor);
-        spotLightHelperRef.current = helper;
-        scene.add(helper);
-      }
-
-      return () => {
-        if (dirLightHelperRef.current) {
-          scene.remove(dirLightHelperRef.current);
-          dirLightHelperRef.current.dispose?.();
-        }
-        if (spotLightHelperRef.current) {
-          scene.remove(spotLightHelperRef.current);
-          spotLightHelperRef.current.dispose?.();
-        }
-      };
-    }, [scene, lightRef.current, spotlightRef.current]);
 
     if (supportControls) {
       scene.traverse((o) => {
