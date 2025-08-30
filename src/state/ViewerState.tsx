@@ -1,5 +1,5 @@
 import { makeObservable, observable, action, runInAction } from 'mobx'
-import { Color, Vector3 } from 'three'
+import { Color, Object3D, Vector3 } from 'three'
 
 export class ViewerState {
     currentModelPath: string
@@ -37,6 +37,8 @@ export class ViewerState {
     lightIntensity: number
     lightColor: Color
     spotLight: boolean
+    // selection
+    selectedObject: Object3D | null = null
     constructor(
         currentModelPathState: string,
         featuredModelsFilePathState: string,
@@ -237,6 +239,17 @@ export class ViewerState {
         } catch (error) {
             console.error("Error loading user preferences:", error);
         }
+    }
+    setSelected(obj: Object3D | null) {
+        this.selectedObject = obj;
+    }
+    isSelectionMovable() : boolean{
+      return !((this.selectedObject !== null && this.selectedObject.userData?.opensimType !== undefined)||
+      (this.selectedObject !== null && 
+        this.selectedObject.userData !== undefined && this.selectedObject.userData.name !== undefined &&
+        (this.selectedObject.userData?.name.startsWith("Body:") ||
+         (this.selectedObject.userData?.name.startsWith("Model:") && this.selectedObject.type === "Group") ||
+         this.selectedObject!.name === ("Ground"))))
     }
 }
 

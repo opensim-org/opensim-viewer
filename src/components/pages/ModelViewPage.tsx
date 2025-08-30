@@ -350,7 +350,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 <OpenSimControl/>
                 <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
-                {transformTarget && (
+                {transformTarget && uiState.viewerState.isSelectionMovable() && (
                   <>
                       <TransformControls object={transformTarget} mode={transformMode} />
                   </>
@@ -377,6 +377,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 <Button
                   variant={transformMode === 'translate' ? 'contained' : 'outlined'}
                   onClick={() => setTransformMode('translate')}
+                  disabled={!uiState.viewerState.isSelectionMovable()}
                   size="small"
                 >
                   <TranslateIcon />
@@ -384,6 +385,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 <Button
                   variant={transformMode === 'rotate' ? 'contained' : 'outlined'}
                   onClick={() => setTransformMode('rotate')}
+                  disabled={!uiState.viewerState.isSelectionMovable()}
                   size="small"
                 >
                   <RotateIcon />

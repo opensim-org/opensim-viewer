@@ -276,6 +276,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                         setSelectedPath(path);
                         setSettingsNode(node);
 
+                        uiState.viewerState.setSelected(node.object3D);
                         if (node.nodeType === 'camera') {
                           uiState.setSelected(node.uuid);
                         } else {
