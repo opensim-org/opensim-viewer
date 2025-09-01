@@ -1,4 +1,5 @@
-import { useFrame, useLoader, useThree } from '@react-three/fiber'
+import { useGLTF } from '@react-three/drei'
+import { useFrame, useThree } from '@react-three/fiber'
 
 import * as THREE from 'three';
 
@@ -6,6 +7,8 @@ import { useEffect, useRef, useState } from 'react'
 import { AnimationMixer, BoxHelper, Color, Mesh, Object3D} from 'three'
 import { observer } from 'mobx-react'
 
+
+import SceneTreeModel from '../../helpers/SceneTreeModel'
 import { useModelContext } from '../../state/ModelUIStateContext'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
 
@@ -13,7 +16,6 @@ import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
 import { DirectionalLightHelper, SpotLightHelper } from 'three';
 import OpenSimFloor from './OpenSimFloor';
 import OpenSimSkySphere from './OpenSimSkySphere';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 interface OpenSimSceneProps {
     currentModelPath: string,
@@ -22,19 +24,21 @@ interface OpenSimSceneProps {
 
 const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportControls }) => {
     //const modelGroup = useLoader(GLTFLoader, currentModelPath)
-    //const { scene, animations } = useGLTF(currentModelPath);
+    const { scene, animations } = useGLTF(currentModelPath);
 
     const { set, gl, camera} = useThree();
 
-    //const envRef = useRef<THREE.Group>(null)
+    const envRef = useRef<THREE.Group>(null)
     const dirLightHelperRef = useRef<DirectionalLightHelper | null>(null);
     const spotLightHelperRef = useRef<SpotLightHelper | null>(null);
 
     const [, setDirectionalVisible] = useState(false);
     const [, setSpotVisible] = useState(false);
 
-    const { scene } = useThree();
-    const sceneRef = useRef<THREE.Scene>(scene);
+    let curState = useModelContext();
+    curState.scene = scene;
+
+    const sceneRef = useRef<THREE.Scene>();
     const [sceneObjectMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
     const [useEffectRunning, setUseEffectRunning] = useState<boolean>(false)
     const [animationIndex, setAnimationIndex] = useState<number>(-1)
@@ -44,12 +48,8 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     //const selected = useSelect().map((sel) => console.log(sel))
     const lightRef = useRef<THREE.DirectionalLight | null>(null)
     const spotlightRef = useRef<THREE.SpotLight>(null)
-    const envRef = useRef<THREE.Group>(null)
 
-    //const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
-    const modelGroup = useLoader(GLTFLoader, currentModelPath);
-    sceneRef.current.add(modelGroup.scene)
-    const animations = modelGroup.animations
+    const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
 
     //no_face_cull(scene);
 
@@ -63,11 +63,12 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     }
     // eslint-disable-next-line no-mixed-operators
     const [objectSelectionBox, setObjectSelectionBox] = useState<BoxHelper | null>(new BoxHelper(scene));
-    let curState = useModelContext();
-    const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
 
     // This useEffect loads the cameras and assign them to its respective states.
     useEffect(() => {
+      if (envRef.current && scene) 
+        curState.viewerState.setEnvironmentGroup(envRef.current)
+
       const cameras = scene.getObjectsByProperty('isPerspectiveCamera', true);
       console.log(`Number of cameras: ${cameras.length}`);
       cameras.forEach((camera, index) => {
@@ -147,34 +148,6 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         });
       }
     }, [currentCamera, set, curState.viewerState.currentCameraIndex, curState.viewerState.cameras, animations, curState.viewerState.currentCameraIndex]);
-
-    // This useEffect adds helpers to the lights.
-    useEffect(() => {
-      if (lightRef.current && scene) {
-        const helper = new DirectionalLightHelper(lightRef.current, 0.5);
-        helper.name = "Directional Light_Helper"
-        dirLightHelperRef.current = helper;
-        scene.add(helper);
-      }
-
-      if (spotlightRef.current && scene) {
-        const helper = new SpotLightHelper(spotlightRef.current, curState.viewerState.lightColor);
-        spotLightHelperRef.current = helper;
-        scene.add(helper);
-      }
-      if (envRef.current && scene) 
-        curState.viewerState.setEnvironmentGroup(envRef.current)
-      return () => {
-        if (dirLightHelperRef.current) {
-          scene.remove(dirLightHelperRef.current);
-          dirLightHelperRef.current.dispose?.();
-        }
-        if (spotLightHelperRef.current) {
-          scene.remove(spotLightHelperRef.current);
-          spotLightHelperRef.current.dispose?.();
-        }
-      };
-    }, [scene, curState.viewerState.lightColor]);
 
     if (supportControls) {
       scene.traverse((o) => {

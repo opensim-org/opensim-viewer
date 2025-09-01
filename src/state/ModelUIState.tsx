@@ -1,5 +1,5 @@
 import { makeObservable, observable, action } from 'mobx'
-import { PerspectiveCamera } from 'three'
+import { Group, PerspectiveCamera } from 'three'
 import { Light } from 'three'
 import { Box3, Object3D, Scene, Vector3 } from 'three'
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
@@ -46,7 +46,7 @@ export class KeyFrameProps {
     }
 }
 export class ModelUIState {
-    scene: Scene | null
+    scene: Scene | Group |null
     isGuiMode: boolean
     zooming: boolean
     zoom_inOut: number

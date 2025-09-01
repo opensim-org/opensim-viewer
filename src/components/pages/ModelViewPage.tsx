@@ -24,13 +24,17 @@ import { MyModelContext } from "../../state/ModelUIStateContext";
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { useParams } from 'react-router-dom';
 
-import { DirectionalLightHelper,
-  SpotLightHelper,
-  PointLightHelper,
+import { createTempHelper, removeTempHelper } from '../Components/SceneTree/SceneTreeSortable'
+
+import * as THREE from 'three';
+
+import {
   DirectionalLight,
   SpotLight,
   PointLight,
-  CameraHelper} from 'three';
+  Camera,
+  PerspectiveCamera,
+  OrthographicCamera} from 'three';
 
 import VideoRecorder from "../Components/VideoRecorder"
 
@@ -67,19 +71,20 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
 
 export const addNewCamera = (
   name: string = 'NewCamera',
+  type: 'PerspectiveCamera' | 'OrthographicCamera' = 'PerspectiveCamera',
   uiState: ModelUIState,
   control: OpenSimControlHandle,
   parent: any,
+  scene: THREE.Scene | null,
   onSceneUpdated: () => void
 ): THREE.Camera => {
-  
   const camera = control.addCamera(name, parent);
   uiState.setSelected(camera.uuid);
-  const helper = new CameraHelper(camera);
-  helper.name = `${name}_Helper`;
-
   parent?.object3D?.add(camera);
-  parent?.object3D?.add(helper);
+
+  // Remove previous helper and create current.
+  removeTempHelper(scene)
+  createTempHelper(camera, scene)
 
   onSceneUpdated();
 
@@ -92,31 +97,28 @@ export const addNewLight = (
   type: 'DirectionalLight' | 'PointLight' | 'SpotLight' = 'SpotLight',
   uiState: ModelUIState,
   parent: any,
+  scene: THREE.Scene | null,
   onSceneUpdated: () => void
 ): THREE.Light => {
   let light: THREE.Light;
-  let helper: THREE.Object3D | undefined;
 
   switch (type) {
     case 'DirectionalLight': {
       const dir = new DirectionalLight(0xffffff, 1);
       dir.target.position.set(0, 0, -1);
       light = dir;
-      helper = new DirectionalLightHelper(dir);
       parent?.object3D?.add(dir.target);
       break;
     }
     case 'PointLight': {
       const point = new PointLight(0xffffff, 1, 0, 2);
       light = point;
-      helper = new PointLightHelper(point);
       break;
     }
     case 'SpotLight':
     default: {
       const spot = new SpotLight(0xffffff, 1, 0, Math.PI / 6, 0.2, 1);
       light = spot;
-      helper = new SpotLightHelper(spot);
       parent?.object3D?.add(spot.target);
       break;
     }
@@ -126,13 +128,13 @@ export const addNewLight = (
   light.position.set(2, 2, 2);
 
   parent?.object3D?.add(light);
-  if (helper) {
-    helper.name = `${name}_Helper`;
-    parent?.object3D?.add(helper);
-  }
 
   uiState.setLightsList?.([...uiState.lights, light]);
   uiState.setSelected(light.uuid);
+
+  // Remove previous helper and create current.
+  removeTempHelper(scene)
+  createTempHelper(light, scene)
 
   onSceneUpdated();
 
@@ -369,8 +371,8 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
               <AddCameraDialog
                 open={addCameraDialogOpen}
                 onClose={() => setAddCameraDialogOpen(false)}
-                onAddCamera={(name:any) => {
-                  const newCam = addNewCamera(name, uiState, openSimControlsRef.current!, treeRef.current?.selectedNode() ?? null, () => setSceneVersion(v => v + 1));
+                onAddCamera={(name:any, type:any) => {
+                  const newCam = addNewCamera(name, type, uiState, openSimControlsRef.current!, treeRef.current?.selectedNode() ?? null, scene, () => setSceneVersion(v => v + 1));
                   setTransformTarget(newCam);
                 }}
                 scene={scene}
@@ -382,7 +384,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 open={addLightDialogOpen}
                 onClose={() => setAddLightDialogOpen(false)}
                 onAddLight={(name:any, type:any) => {
-                    const newLight = addNewLight(name, type, uiState, treeRef.current?.selectedNode() ?? null, () => setSceneVersion(v => v + 1));
+                    const newLight = addNewLight(name, type, uiState, treeRef.current?.selectedNode() ?? null, scene, () => setSceneVersion(v => v + 1));
                     setTransformTarget(newLight);
                 }}
                 scene={scene}

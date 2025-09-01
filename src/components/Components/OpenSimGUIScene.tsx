@@ -81,6 +81,9 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     curState.viewerState.setAnimationList(allAnimations)
     // This useEffect loads the cameras and assign them to its respective states.
     useEffect(() => {
+      if (envRef.current && scene) 
+        curState.viewerState.setEnvironmentGroup(envRef.current)
+
       if (modelsRef.current!==null) {
         const boundingBox = new THREE.Box3();
         // // Compute the bounding box of the scene if models are already loaded
@@ -218,33 +221,6 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             mixers.push(nextMixer)
         });
     }
-    // This useEffect adds helpers to the lights.
-    useEffect(() => {
-      if (lightRef.current && scene) {
-        const helper = new DirectionalLightHelper(lightRef.current, 0.5);
-        dirLightHelperRef.current = helper;
-        scene.add(helper);
-      }
-
-      if (spotlightRef.current && scene) {
-        const helper = new SpotLightHelper(spotlightRef.current, curState.viewerState.lightColor);
-        spotLightHelperRef.current = helper;
-        scene.add(helper);
-      }
-      if (envRef.current && scene) 
-        curState.viewerState.setEnvironmentGroup(envRef.current)
-
-      return () => {
-        if (dirLightHelperRef.current) {
-          scene.remove(dirLightHelperRef.current);
-          dirLightHelperRef.current.dispose?.();
-        }
-        if (spotLightHelperRef.current) {
-          scene.remove(spotLightHelperRef.current);
-          spotLightHelperRef.current.dispose?.();
-        }
-      };
-    }, [scene, curState.viewerState.lightColor, curState.viewerState]);
 
     useFrame((state, delta) => {
     //console.log(camera.position)
