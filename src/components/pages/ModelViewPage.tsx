@@ -26,6 +26,8 @@ import { MyModelContext } from "../../state/ModelUIStateContext";
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { useParams } from 'react-router-dom';
 
+import { CircularProgress } from "@mui/material";
+
 import { createTempHelper, removeTempHelper } from '../Components/SceneTree/SceneTreeSortable'
 
 import * as THREE from 'three';
@@ -311,7 +313,23 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
             />
           </div>
           <div id="canvas-container">
-            <Suspense fallback={null}>
+
+            <Suspense fallback={
+                // This fallback allows showing a loading indicator while the canvas is loading.
+                <div
+                  style={{
+                    width: canvasWidth,
+                    height: canvasHeight,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  // disableShrink ensures a fix length of the loading indicator, as loading a canvas is CPU intensive
+                  // and can affect how the indicator is shown.
+                  <CircularProgress size={200} color={"primary"} disableShrink />
+                </div>
+              }>
               <FloatingControlsPanel
                 videoRecorderRef={videoRecorderRef}
                 info={new ModelInfo(uiState.modelInfo.model_name, uiState.modelInfo.desc, uiState.modelInfo.authors)}
