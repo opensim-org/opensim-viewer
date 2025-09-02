@@ -155,8 +155,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 
   const [addLightDialogOpen, setAddLightDialogOpen] = useState(false);
 
-  const [sceneVersion, setSceneVersion] = useState(0);
-
   const treeRef = useRef<SceneTreeSortableHandle>(null);
   const [treeWidth, setTreeWidth] = useState(0);
   const openSimControlsRef = useRef<OpenSimControlHandle>(null);
@@ -368,7 +366,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 open={addCameraDialogOpen}
                 onClose={() => setAddCameraDialogOpen(false)}
                 onAddCamera={(name:any, type:any) => {
-                  const newCam = addNewCamera(name, type, uiState, openSimControlsRef.current!, treeRef.current?.selectedNode() ?? null, scene, () => setSceneVersion(v => v + 1));
+                  const newCam = addNewCamera(name, type, uiState, openSimControlsRef.current!, treeRef.current?.selectedNode() ?? null, scene, () => {uiState.viewerState.sceneVersion++});
                   setTransformTarget(newCam);
                 }}
                 scene={scene}
@@ -380,7 +378,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 open={addLightDialogOpen}
                 onClose={() => setAddLightDialogOpen(false)}
                 onAddLight={(name:any, type:any) => {
-                    const newLight = addNewLight(name, type, uiState, treeRef.current?.selectedNode() ?? null, scene, () => setSceneVersion(v => v + 1));
+                    const newLight = addNewLight(name, type, uiState, treeRef.current?.selectedNode() ?? null, scene, () => {uiState.viewerState.sceneVersion++});
                     setTransformTarget(newLight);
                 }}
                 scene={scene}
@@ -411,7 +409,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                     <SceneTreeSortable
                       ref={treeRef}
                       scene={scene}
-                      sceneVersion={sceneVersion}
                       camera={camera}
                       /* let it stretch to parent height */
                       height="100%"

@@ -205,7 +205,8 @@ export class ViewerState {
             setAnimationSpeed: action,
             currentCameraIndex: observable,
             setCurrentCameraIndex: action,
-
+            sceneVersion: observable,
+            setSceneVersion: action,
         })
     }
 
@@ -377,7 +378,7 @@ export class ViewerState {
         this.targets.push(target.clone())
         this.environmentGroup?.add(camClone);
         this.currentCameraIndex = (this.cameras.length - 1);
-        this.sceneVersion = this.sceneVersion +1;
+        this.setSceneVersion(this.sceneVersion +1);
         return camClone;
     }
     deleteCurrentCamera() {
@@ -396,6 +397,9 @@ export class ViewerState {
     }
     setEnvironmentGroup(grp: Group) {
         this.environmentGroup = grp;
+    }
+    setSceneVersion(version: number) {
+        this.sceneVersion = version;
     }
 }
 

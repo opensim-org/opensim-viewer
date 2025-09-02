@@ -35,6 +35,7 @@ import { DirectionalLightHelper,
   CameraHelper,
   Object3D
 } from 'three';
+import { observer } from 'mobx-react';
 
 const PANEL_WIDTH = 300;
 
@@ -42,7 +43,6 @@ interface SceneTreeSortableProps {
   scene: THREE.Scene | null;
   camera: THREE.Camera | null;
   height: string;
-  sceneVersion?: number;
   onAddCameraClick?: (node: any) => void;
   onAddLightClick?: (node: any) => void;
   setTransformTargetFunction?: (func: any) => void;
@@ -130,7 +130,6 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
       scene,
       camera,
       height,
-      sceneVersion,
       onAddCameraClick,
       onAddLightClick,
       setTransformTargetFunction,
@@ -169,7 +168,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
       if (scene && camera) {
         setTreeData((old) => mergeTreeWithScene(old, scene));
       }
-    }, [scene, camera, sceneVersion, uiState.viewerState.sceneVersion]);
+    }, [scene, camera, uiState.viewerState.sceneVersion]);
 
     const handleSettingsClick = (node: any, path: number[]) => {
       setSettingsNode(node);
@@ -457,4 +456,4 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
   }
 );
 
-export default SceneTreeSortable;
+export default observer(SceneTreeSortable);
