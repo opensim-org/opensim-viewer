@@ -316,6 +316,8 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 
             <Suspense fallback={
                 // This fallback allows showing a loading indicator while the canvas is loading.
+                // disableShrink ensures a fix length of the loading indicator, as loading a canvas is CPU intensive
+                // and can affect how the indicator is shown.
                 <div
                   style={{
                     width: canvasWidth,
@@ -325,8 +327,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                     justifyContent: "center",
                   }}
                 >
-                  // disableShrink ensures a fix length of the loading indicator, as loading a canvas is CPU intensive
-                  // and can affect how the indicator is shown.
                   <CircularProgress size={200} color={"primary"} disableShrink />
                 </div>
               }>
