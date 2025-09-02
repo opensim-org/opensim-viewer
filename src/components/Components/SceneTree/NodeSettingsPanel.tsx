@@ -494,6 +494,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               const idx = parseInt(e.target.value, 10);
               uiState.viewerState.setFloorTextureIndex?.(idx);
             }}
+            SelectProps={{ MenuProps: { keepMounted: true } }}
             style={{ marginTop: 16 }}
             size="small"
           >
@@ -534,6 +535,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               const idx = parseInt(e.target.value, 10);
               uiState.viewerState.setSkyTextureIndex?.(idx);
             }}
+            SelectProps={{ MenuProps: { keepMounted: true } }}
             style={{ marginTop: 16 }}
             size="small"
           >
