@@ -426,7 +426,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                     position: "absolute",
                     top: 66,
                     right: 0,
-                    zIndex: 1000,
+                    zIndex: 1002,
                     height: canvasHeight,          // full canvas height
                     width: `${treeWidth}`,       // whatever width the tree reports (fallback 250 px)
                     display: "flex",
