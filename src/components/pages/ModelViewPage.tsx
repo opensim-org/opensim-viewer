@@ -31,10 +31,7 @@ import * as THREE from 'three';
 import {
   DirectionalLight,
   SpotLight,
-  PointLight,
-  Camera,
-  PerspectiveCamera,
-  OrthographicCamera} from 'three';
+  PointLight} from 'three';
 
 import VideoRecorder from "../Components/VideoRecorder"
 
@@ -235,11 +232,10 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     // Create fresh WebSocket
     if (uiState.isGuiMode) {
       const socket = new WebSocket('ws://127.0.0.1:8002/visEndpoint');
-      socket.onopen = () => { console.log("socket opened");}
+      socket.onopen = () => { uiState.setSocketHandle(socket); console.log("socket opened");}
       socket.onmessage = function(evt) { 
       //   //console.log(evt.data)
         uiState.handleSocketMessage(evt.data);
-        uiState.setSocketHandle(socket);
       };
       socket.onerror = function(evt) { 
         uiState.isGuiMode = false;
