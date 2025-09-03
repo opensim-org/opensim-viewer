@@ -28,6 +28,7 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
    const curState = useModelContext();
    const viewerState = useModelContext().viewerState;
    const controlsRef = useRef<OrbitControlsImpl | null>(null)
+   const lastPosition = useRef(new Vector3())
 
   useImperativeHandle(ref, () => ({
     addCamera: (cameraName: any, parent: Object3D | null) => {
@@ -97,6 +98,15 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
         }
    }
    useFrame((_, delta) => {
+        // If camera moves and was a fixed camera, then make it none/default
+        if (!lastPosition.current.equals(camera.position)) {
+            let diff = lastPosition.current.clone();
+            diff.sub(camera.position);
+            lastPosition.current.copy(camera.position)
+            if ((curState.viewerState.currentCameraIndex!==-1) && diff.length() > 1e-3) {
+                curState.viewerState.setCurrentCameraIndex(-1)
+            }
+        }
         if (viewerState.pending_key !== "") {
             switch (viewerState.pending_key) {
                 case 'i':
@@ -212,15 +222,15 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
             }
             if (controlsRef.current) {
                 camera.position.copy(nextCam.position)
+                // Update lastPosition so we don't inadvertently immediately revert to default/none
+                lastPosition.current.copy(camera.position)
                 controlsRef.current.target.copy(target)
                 // controlsRef.current.setLookAt(
                 //     nextCam.position.x, nextCam.position.y, nextCam.position.z,
                 //     target.x, target.y, target.z, false)
                 controlsRef.current.update()
             }
-            setTimeout(() => { // Wait one second so the UI doesn't refresh
-                curState.viewerState.setCurrentCameraIndex(-1)
-            }, 1000);
+
         }
 
        function fitToModels(transition: boolean) {

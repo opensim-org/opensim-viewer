@@ -43,6 +43,9 @@ function CameraPanel(props :CameraPanelProps) {
       setSelectedCamera(curState.viewerState.cameras[curState.viewerState.currentCameraIndex].name);
       handleCameraChange(curState.viewerState.cameras[curState.viewerState.currentCameraIndex].name);
     }
+    else if (curState.viewerState.currentCameraIndex === -1){
+      setSelectedCamera("")
+    }
     return () => {
       // Optional cleanup logic
     };

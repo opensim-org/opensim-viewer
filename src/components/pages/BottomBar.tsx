@@ -43,7 +43,6 @@ const BottomBar = React.forwardRef(function CustomContent(
     const [speed, setSpeed] = useState(1.0);
     const [play, setPlay] = useState(false);
     const [selectedAnim, setSelectedAnim] = useState<string | undefined>("");
-    const [, setSelectedCam] = useState<string | undefined>("");
     const isExtraSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('xs'));
     const isSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('sm'));
     const isMediumScreen = useMediaQuery((theme:any) => theme.breakpoints.only('md'));
@@ -65,18 +64,6 @@ const BottomBar = React.forwardRef(function CustomContent(
           }
       }
     }, [curState.viewerState]);
-
-    const handleCameraChange = useCallback((cameraName: string) => {
-      const targetName = cameraName
-      setSelectedCam(cameraName);
-
-        const idx = curState.viewerState.cameras.findIndex((value: Camera)=>{return (value.name === targetName)})
-        if (idx !== -1) {
-            curState.viewerState.setCurrentCameraIndex(idx)
-        }
-
-      curState.setCurrentFrame(0);
-    }, [curState]);
 
     const handleAnimationChangeEvent = (event: SelectChangeEvent) => {
       const targetName = event.target.value as string
@@ -116,13 +103,6 @@ const BottomBar = React.forwardRef(function CustomContent(
         handleAnimationChange(curState.viewerState.animations[0].name, false)
       }
     }, [curState.viewerState.animations, handleAnimationChange]);
-
-    useEffect(() => {
-      if (curState.viewerState.cameras.length > 0 && curState.viewerState.currentCameraIndex !== -1) {
-        setSelectedCam(curState.viewerState.cameras[curState.viewerState.currentCameraIndex].name)
-        handleCameraChange(curState.viewerState.cameras[curState.viewerState.currentCameraIndex].name)
-      }
-    }, [curState.viewerState.cameras, curState.viewerState.cameras.length, curState.viewerState.currentCameraIndex, handleCameraChange]);
 
     return (
       <Container ref={(ref as any) || bottomBarRef}>
