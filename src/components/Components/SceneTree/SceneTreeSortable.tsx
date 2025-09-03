@@ -199,7 +199,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
         ref={outerDivRef}
         style={{
           position: 'absolute',
-          top: 0,
+          top: '-66px',
           right: 0,
           height,
           display: 'flex',
