@@ -42,6 +42,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
 
     let curState = useModelContext();
+    curState.isGuiMode = true;
     const modelGroup = useLoader(OpenSimLoader, currentModelPath)
 
     //computeNormals(modelGroup as Group);
@@ -285,13 +286,16 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
                 //targetMixerRef.current!.update(delta * curState.animationSpeed);
                 //camera.lookAt(targetRef.current!.position)
 
-                // update controls to fix target
-                //(controls as unknown as CameraControls).update(delta* curState.animationSpeed)
-                //console.log(duration)
                 // For material at index "key" setColor to nodes["value"].translation
                 applyAnimationColors();
-                curState.setCurrentFrame(Math.trunc((currentTime / duration) * 100))
-                setStartTime(Math.trunc((currentTime / duration) * 100))
+                const prevFrame = curState.currentFrame;
+                curState.setCurrentFrame(Math.trunc((currentTime / duration) * 100));
+                setStartTime(Math.trunc((currentTime / duration) * 100));
+                if (curState.currentFrame < prevFrame && curState.viewerState.animating){
+                  curState.viewerState.setAnimating(false);
+                  curState.setCurrentFrame(0);
+                }
+                //console.log(currentTime, duration, startTime, curState.currentFrame);
               }
             } else {
               if (viewerState.currentAnimationIndex!==-1) {

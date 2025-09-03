@@ -308,8 +308,8 @@ export class ViewerState {
     addCameraDolly(newSequence:CameraDolly){
         this.cameraDollies.push(newSequence);
         this.animations.push(this.createAnimationClipFromSequence(newSequence));
-        this.currentAnimationIndex = this.animations.length - 1;
-        this.currentDollyIndex = this.cameraDollies.length - 1;
+        this.setCurrentAnimationIndex(this.animations.length - 1);
+        this.setCurrentDollyIndex(this.cameraDollies.length - 1);
     }
     updateCameraDolly(newSequence:CameraDolly){
         // update entry at  this.currentDollyIndex

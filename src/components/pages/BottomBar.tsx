@@ -98,11 +98,14 @@ const BottomBar = React.forwardRef(function CustomContent(
 
     useEffect(() => {
 
-      if (curState.viewerState.animations.length > 0) {
-        setSelectedAnim(curState.viewerState.animations[0].name)
-        handleAnimationChange(curState.viewerState.animations[0].name, false)
+      if (curState.viewerState.animations.length > 0 && curState.viewerState.currentAnimationIndex !== -1) {
+        setSelectedAnim(curState.viewerState.animations[curState.viewerState.currentAnimationIndex].name)
+        handleAnimationChange(curState.viewerState.animations[curState.viewerState.currentAnimationIndex].name, false)
       }
-    }, [curState.viewerState.animations, handleAnimationChange]);
+      else if (curState.viewerState.currentAnimationIndex === -1) {
+        setSelectedAnim("");
+      }
+    }, [curState.viewerState.animations, curState.viewerState.currentAnimationIndex, handleAnimationChange, selectedAnim]);
 
     return (
       <Container ref={(ref as any) || bottomBarRef}>
