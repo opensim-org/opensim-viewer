@@ -394,6 +394,7 @@ export class ViewerState {
             if (idx > this.cameras.length-1) 
                 this.setCurrentCameraIndex(this.cameras.length-1)
         }
+        this.setSceneVersion(this.sceneVersion +1);
     }
     setEnvironmentGroup(grp: Group) {
         this.environmentGroup = grp;

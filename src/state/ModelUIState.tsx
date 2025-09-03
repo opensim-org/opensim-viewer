@@ -318,7 +318,7 @@ export class ModelUIState {
                     this.modelDictionary[modeltoClose].removeFromParent()
                     delete this.modelDictionary[modeltoClose]
                     // update sceneVersion to force tree rendering
-                    this.viewerState.sceneVersion= this.viewerState.sceneVersion+1;
+                    this.viewerState.setSceneVersion(this.viewerState.sceneVersion+1);
                 }
                 break;
             case "Select" :

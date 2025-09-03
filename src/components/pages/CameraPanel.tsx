@@ -99,6 +99,15 @@ function CameraPanel(props :CameraPanelProps) {
     }
   }
 
+  const handleDelete = () => {
+    if (dollyMode) {
+
+    }
+    else {
+      curState.viewerState.deleteCurrentCamera(); // Message Control to save camera and target
+    }
+  }
+
   const handleCameraTypeChange = (event: SelectChangeEvent) => {
     const targetName = event.target.value as string;
     setSelectedAttachment(targetName);
@@ -163,8 +172,7 @@ function CameraPanel(props :CameraPanelProps) {
           <EditIcon />
         </IconButton>
         <IconButton color="error" title="Delete Camera/Dolly" 
-         disabled={(!selectedCamera && !dollyMode) || (!selectedDolly && dollyMode)} onClick={() => {
-              curState.viewerState.deleteCurrentCamera()}}>
+         disabled={(!selectedCamera && !dollyMode) || (!selectedDolly && dollyMode)} onClick={handleDelete}>
           <DeleteIcon />
         </IconButton>
       </Stack>
