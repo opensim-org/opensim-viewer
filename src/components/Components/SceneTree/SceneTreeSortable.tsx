@@ -330,10 +330,11 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                         path,
                       });
 
-
                       // Remove previous helper
                       removeTempHelper(scene)
 
+                      // Create new helper.
+                      createTempHelper(node.object3D, scene)
                     },
                     icons: [icon],
                     title: (
