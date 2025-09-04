@@ -13,6 +13,7 @@ import { useSnackbar } from 'notistack'
 import { useTranslation } from 'react-i18next'
 import { useModelContext } from "../../state/ModelUIStateContext";
 
+import { getTimestamp } from "../../helpers/timeHelpers"
 
 type VideoRecorderRef = {
   startRecording: () => void;
@@ -169,7 +170,8 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         recorder.onstop = async () => {
           const blob = new Blob(recordedChunks, { type: 'video/webm' });
           const url = URL.createObjectURL(blob);
-          downloadVideo(url, `${viewerState.recordedVideoName}.webm`);
+          const timestamp = getTimestamp();
+          downloadVideo(url, `${viewerState.recordedVideoName}_${timestamp}.webm`);
         };
       } else {
         isRecordingRef.current = false;
@@ -179,7 +181,8 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         try {
           const ext = viewerState.recordedVideoFormat as 'mp4' | 'mov';
           const url = await encodeFramesToVideo(ext);
-          downloadVideo(url, `${viewerState.recordedVideoName}.${ext}`);
+          const timestamp = getTimestamp();
+          downloadVideo(url, `${viewerState.recordedVideoName}_${timestamp}.${ext}`);
         } catch (e) {
           console.error(e);
         }
