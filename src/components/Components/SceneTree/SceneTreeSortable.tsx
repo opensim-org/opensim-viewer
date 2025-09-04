@@ -164,8 +164,10 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
     }, [isOpen]);
 
     useEffect(() => {
-      if (scene && camera) {
+      if (scene) {
         setTreeData((old) => mergeTreeWithScene(old, scene));
+      } else {
+        setTreeData((old) => mergeTreeWithScene(old, null));
       }
     }, [scene, camera, sceneVersion]);
 

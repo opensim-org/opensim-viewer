@@ -75,7 +75,7 @@ export function convertSceneToTree(scene: THREE.Scene | null) {
 }
 
 // Given an existing tree and a scene with updated elements, update the tree.
-function mergeTreeWithScene(oldTree: any[], scene: THREE.Scene) {
+function mergeTreeWithScene(oldTree: any[], scene: THREE.Scene | null) {
   const oldMap = new Map<string, any>();
   const collect = (nodes: any[]) => {
     nodes.forEach((n) => {
@@ -125,7 +125,10 @@ function mergeTreeWithScene(oldTree: any[], scene: THREE.Scene) {
     }
   };
 
-  return scene.children.map(traverse).filter(Boolean);
+  if (scene)
+    return scene.children.map(traverse).filter(Boolean);
+  else
+    return []
 }
 
 export { mergeTreeWithScene };
