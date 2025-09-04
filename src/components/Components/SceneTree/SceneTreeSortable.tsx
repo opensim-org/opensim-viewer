@@ -151,7 +151,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
 
     const outerDivRef = useRef<HTMLDivElement>(null);
 
-    const typesExcludedFromRemove = ['skySphere', 'floor', 'axes', 'group', 'model', 'modelComponent'];
+    const typesNotModifiable = ['skySphere', 'floor', 'axes', 'group', 'model', 'modelComponent'];
 
 
     useImperativeHandle(ref, () => ({
@@ -286,7 +286,12 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                           uiState.setSelected("");
                         }
 
-                        setTransformTargetFunction?.(scene?.getObjectById(node.id));
+                        // Only show transform target if the type is not excluded (e.g., for cameras and lights)
+                        if (!typesNotModifiable.includes(node.nodeType))
+                          setTransformTargetFunction?.(scene?.getObjectById(node.id));
+                        else
+                          setTransformTargetFunction?.(null);
+
                         if (!(node.type === "Group") && !(node.type === "AddButton") && !(node.title === "Model")) {
                           handleSettingsClick(node, path);
                         }
@@ -405,11 +410,12 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
           </MenuItem>
 
           {/* Conditionally render Remove Node */}
-          {contextMenu && !typesExcludedFromRemove.includes(contextMenu.node.nodeType) && (
+          {contextMenu && !typesNotModifiable.includes(contextMenu.node.nodeType) && (
             <MenuItem
               onClick={() => {
                 setNodeToDelete({ node: contextMenu.node, path: contextMenu.path });
                 setContextMenu(null);
+                setTransformTargetFunction?.(null);
               }}
             >
               Remove Node
