@@ -395,6 +395,17 @@ export class ViewerState {
                 this.setCurrentCameraIndex(this.cameras.length-1)
         }
         this.setSceneVersion(this.sceneVersion +1);
+    }    
+    deleteCurrentDolly() {
+        const idx = this.currentDollyIndex;
+        const dolly = this.cameraDollies[idx];
+        if (dolly !== undefined) {
+            // remove from cached arrays
+            this.cameraDollies.splice(idx, 1);
+           // Fix current if needed
+            if (idx > this.cameraDollies.length-1) 
+                this.setCurrentDollyIndex(this.cameraDollies.length-1)
+        }
     }
     setEnvironmentGroup(grp: Group) {
         this.environmentGroup = grp;

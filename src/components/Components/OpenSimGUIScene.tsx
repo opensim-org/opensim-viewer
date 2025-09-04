@@ -3,7 +3,7 @@ import { ThreeEvent, useFrame, useLoader, useThree } from '@react-three/fiber'
 import * as THREE from 'three';
 
 import { useEffect, useRef, useState } from 'react'
-import { AnimationMixer, Color, DirectionalLightHelper, Group, Mesh, Object3D, SpotLightHelper} from 'three'
+import { AnimationMixer, Color, Group, Mesh, Object3D} from 'three'
 import { observer } from 'mobx-react'
 
 import { useModelContext } from '../../state/ModelUIStateContext'
@@ -20,8 +20,6 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     // useGLTF suspends the component, it literally stops processing
     const { set, gl} = useThree();
-    const dirLightHelperRef = useRef<DirectionalLightHelper | null>(null);
-    const spotLightHelperRef = useRef<SpotLightHelper | null>(null);
     const { scene, camera } = useThree();
     const viewerState = useModelContext().viewerState;
 
@@ -33,7 +31,6 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     const [mixers, ] = useState<AnimationMixer[]>([])
     const [colorNodeMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
     const lightRef = useRef<THREE.DirectionalLight | null>(null)
-    const spotlightRef = useRef<THREE.SpotLight>(null)
     const csRef = useRef<THREE.Group>(null)
     const envRef = useRef<THREE.Group>(null)
     const bboxRef = useRef<THREE.BoxHelper>(null)

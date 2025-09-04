@@ -35,6 +35,14 @@ function CameraPanel(props :CameraPanelProps) {
   const [editMode, setEditMode] = useState(false);
   const curState = props.uState;
 
+  const handleCameraChange = useCallback((cameraName: string) => {
+    const targetName = cameraName
+    setSelectedCamera(cameraName);
+    const idx = curState.viewerState.cameras.findIndex((value: Camera)=>{return (value.name === targetName)})
+    curState.viewerState.setCurrentCameraIndex(idx)
+
+  }, [curState]);
+
   useEffect(() => {
     // Effect logic here
     setAvailableCameras(curState.viewerState.cameras);
@@ -49,20 +57,12 @@ function CameraPanel(props :CameraPanelProps) {
     return () => {
       // Optional cleanup logic
     };
-  }, [availableCameras, curState.viewerState.cameraDollies, curState.viewerState.cameras, curState.viewerState.cameras.length,curState.viewerState.currentCameraIndex]);
+  }, [availableCameras, curState.viewerState.cameraDollies, curState.viewerState.cameras, curState.viewerState.cameras.length, curState.viewerState.currentCameraIndex, handleCameraChange]);
 
   const handleCameraChangeEvent = (event: SelectChangeEvent) => {
     const targetName = event.target.value as string
     handleCameraChange(targetName)
   };
-
-  const handleCameraChange = useCallback((cameraName: string) => {
-    const targetName = cameraName
-    setSelectedCamera(cameraName);
-    const idx = curState.viewerState.cameras.findIndex((value: Camera)=>{return (value.name === targetName)})
-    curState.viewerState.setCurrentCameraIndex(idx)
-
-  }, [curState]);
   
   const handleDollyChangeEvent = (event: SelectChangeEvent) => {
     const targetName = event.target.value as string
@@ -101,7 +101,7 @@ function CameraPanel(props :CameraPanelProps) {
 
   const handleDelete = () => {
     if (dollyMode) {
-
+      curState.viewerState.deleteCurrentDolly();
     }
     else {
       curState.viewerState.deleteCurrentCamera(); // Message Control to save camera and target

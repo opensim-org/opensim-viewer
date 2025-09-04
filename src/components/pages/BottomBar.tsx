@@ -10,7 +10,6 @@ import { observer } from 'mobx-react'
 import { AnimationClip} from 'three';
 import { useTranslation } from 'react-i18next';
 import { useModelContext } from '../../state/ModelUIStateContext';
-import { Camera } from 'three/src/cameras/Camera'
 import React, { useCallback, useRef } from 'react';
 import CameraPanel from './CameraPanel';
 
