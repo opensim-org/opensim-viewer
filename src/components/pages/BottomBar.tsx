@@ -132,7 +132,7 @@ const BottomBar = React.forwardRef(function CustomContent(
           </Grid>
           )}
 
-          {curState.getGuiMode()?"":// Control Speed only through the GUI
+          {// Control Speed only through the GUI
             <Grid item sx={{ mt: 1 }}>
               <FormControl margin="dense" size="small" variant="standard">
                 <Select

@@ -272,14 +272,17 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             if (viewerState.animating || (curState.simulationTime !== undefined && curState.simulationTime > 0)){
               if (viewerState.currentAnimationIndex!==-1) {
                 let duration = mixers[viewerState.currentAnimationIndex].clipAction(viewerState.animations[viewerState.currentAnimationIndex]).getClip().duration;
-
                 if(curState.currentFrame !== startTime) {
                   const framePercentage = curState.currentFrame / 100;
                   const currentTimeInSlider = duration * framePercentage;
                   mixers[viewerState.currentAnimationIndex].clipAction(viewerState.animations[viewerState.currentAnimationIndex]).time =  currentTimeInSlider;
                 }
                 const currentTime = mixers[viewerState.currentAnimationIndex].clipAction(viewerState.animations[viewerState.currentAnimationIndex]).time
-                mixers[viewerState.currentAnimationIndex].update(delta * viewerState.animationSpeed);
+                //mixers[viewerState.currentAnimationIndex].setTime(viewerState.animating?animationTime:curState.simulationTime)
+                if (viewerState.animating)
+                    mixers[viewerState.currentAnimationIndex].update(delta * viewerState.animationSpeed);
+                else
+                    mixers[viewerState.currentAnimationIndex].setTime(curState.simulationTime)
                 //targetMixerRef.current!.update(delta * curState.animationSpeed);
                 //camera.lookAt(targetRef.current!.position)
 
@@ -288,10 +291,11 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
                 const prevFrame = curState.currentFrame;
                 curState.setCurrentFrame(Math.trunc((currentTime / duration) * 100));
                 setStartTime(Math.trunc((currentTime / duration) * 100));
-                if (curState.currentFrame < prevFrame && curState.viewerState.animating){
-                  curState.viewerState.setAnimating(false);
-                  curState.setCurrentFrame(0);
-                }
+                // Disable looping for now
+                // if (curState.currentFrame < prevFrame && curState.viewerState.animating){
+                //   curState.viewerState.setAnimating(false);
+                //   curState.setCurrentFrame(0);
+                // }
                 //console.log(currentTime, duration, startTime, curState.currentFrame);
               }
             } else {
