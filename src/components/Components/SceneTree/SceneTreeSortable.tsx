@@ -19,6 +19,7 @@ import GridOnIcon from '@mui/icons-material/GridOn';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import ViewInAr from '@mui/icons-material/ViewInAr';
 
 import { convertSceneToTree, mergeTreeWithScene } from '../../../helpers/sceneToTree';
 import { useModelContext } from '../../../state/ModelUIStateContext';
@@ -66,6 +67,7 @@ const iconMap: Record<string, JSX.Element> = {
   unknown: <HelpOutlineIcon />,
   addCameraButton: <> </>,
   addLightButton: <> </>,
+  modelComponent: <ViewInAr />
 };
 
 
@@ -149,7 +151,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
 
     const outerDivRef = useRef<HTMLDivElement>(null);
 
-    const typesExcludedFromRemove = ['skySphere', 'floor', 'axes', 'group', 'model'];
+    const typesExcludedFromRemove = ['skySphere', 'floor', 'axes', 'group', 'model', 'modelComponent'];
 
 
     useImperativeHandle(ref, () => ({

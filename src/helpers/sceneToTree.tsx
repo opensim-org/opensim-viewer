@@ -2,19 +2,32 @@ import * as THREE from 'three';
 
 function determineNodeType(obj: THREE.Object3D): string {
   if (obj.name === "Scene") return "model";
-  if (obj.type === "Object3D" && obj.userData!==undefined && obj.userData.name!==undefined &&
-          obj.userData.name.startsWith("Model")
-   ) return "model";
-  if (obj.type === "Object3D" && obj.userData!==undefined && obj.userData.name!==undefined &&
-          (obj.userData.name === "Ground")
-   ) return "Body";
   if (obj.type === "Group") return "group";
   if (obj.type.includes("Light")) return "light";
   if (obj.name.includes("SkySphere")) return "skySphere";
   if (obj.name.includes("Floor")) return "floor";
   if (obj.type.includes("Axes")) return "axes";
   if (obj.type.includes("Camera")) return "camera";
+  if (obj.type === "Object3D" && obj.userData!==undefined && obj.userData.name!==undefined && obj.userData.name === "Model")
+    return "model";
+  if (isModelComponent(obj)) return "modelComponent";
   return "unknown";
+}
+
+// This function traverses an objects parents until it reaches an object called "Model", or null. If it reaches "Model"
+// it returns true. False otherwise.
+function isModelComponent(obj: THREE.Object3D) {
+  let current = obj.parent;
+
+  while (current !== null) {
+    if (current.name === "Scene" ||
+        (current.userData?.name && current.userData.name.startsWith("Scene"))) {
+      return true;
+    }
+    current = current.parent;
+  }
+
+  return false;
 }
 
 function getValidChildren(obj: THREE.Object3D, traverse: any) {
