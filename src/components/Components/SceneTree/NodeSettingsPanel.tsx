@@ -652,8 +652,6 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
         </>
       )}
     </div>
-
-
   );
 });
 
