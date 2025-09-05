@@ -7,10 +7,12 @@ import './FloatingControlsPanel.css';
 import InfoIcon from '@mui/icons-material/Info';
 import ZoomOutTwoToneIcon from '@mui/icons-material/ZoomOutTwoTone';
 import ZoomInTwoToneIcon from '@mui/icons-material/ZoomInTwoTone';
-import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone';
+import FitScreenTwoToneIcon from '@mui/icons-material/FitScreenTwoTone';
+import AddAPhotoTwoToneIcon from '@mui/icons-material/AddAPhotoTwoTone';
 import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
 import { useModelContext } from '../../state/ModelUIStateContext';
-
+import SnapShotModal from './SnapShotModal';
+import { ToggleButton } from '@mui/material';
 import { ModelInfo } from '../../state/ModelUIState';
 
 interface FloatingControlsPanelProps {
@@ -56,14 +58,27 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
         </Grid>
 
         <Grid item xs={6}>
-          <Tooltip title={t('bottomBar.snapshoot')}>
+          <Tooltip title={t('bottomBar.fit')}>
             <IconButton color="primary" onClick={() => {
-              curState.setTakeSnapshot();}}>
-                <PhotoCameraTwoToneIcon />
+              viewerState.handleKey('F')}}>
+                <FitScreenTwoToneIcon />
             </IconButton>
           </Tooltip>
         </Grid>
 
+        <Grid item xs={6}>
+            <SnapShotModal open={false}/>
+        </Grid>
+        {/* <Grid item xs={6}>
+          <Tooltip title={t('bottomBar.fit')}>
+            <IconButton 
+              color="primary"
+              onClick={() => {
+              viewerState.handleKey('C')}}>
+                <AddAPhotoTwoToneIcon />
+            </IconButton>
+          </Tooltip>
+        </Grid> */}
         <Grid item xs={6}>
           <Tooltip title={t('bottomBar.record')}>
             <IconButton
@@ -89,6 +104,7 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
               </IconButton>
           </Tooltip>
         </Grid>
+
       </Grid>
 
       {isWindowOpen &&

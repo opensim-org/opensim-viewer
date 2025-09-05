@@ -1,5 +1,25 @@
+import { String } from 'aws-sdk/clients/apigateway'
 import { makeObservable, observable, action, runInAction } from 'mobx'
-import { Color, Vector3 } from 'three'
+import { Color, Vector3, Camera, AnimationClip, VectorKeyframeTrack, QuaternionKeyframeTrack, PerspectiveCamera, Group } from 'three'
+
+export class CameraFrame {
+    cam_uuid: string
+    time: number
+    constructor(camera_uuid: String, time: number) {
+        this.cam_uuid = camera_uuid
+        this.time = time
+    }
+}
+export class CameraDolly {
+    name: string
+    desc: string | null
+    cameraFrames: CameraFrame[] 
+    constructor(name:string| "", desc:string|null=null){
+        this.name = name
+        this.desc = desc
+        this.cameraFrames = []
+    }
+}
 
 export class ViewerState {
     currentModelPath: string
@@ -14,7 +34,6 @@ export class ViewerState {
     recordedVideoFormat: string
     isRecordingVideo: boolean
     isProcessingVideo: boolean
-    isGuiMode: boolean
     user_uuid: string
     // user preferences
     userPreferencesJsonPath: string = ''
@@ -37,6 +56,28 @@ export class ViewerState {
     lightIntensity: number
     lightColor: Color
     spotLight: boolean
+    // toolbar options
+    rotating: boolean
+    pending_key: string
+    // update control
+    sceneVersion: number
+    // cameras
+    cameras: Camera[]
+    targets: Vector3[]
+    currentCameraIndex: number
+    // targets
+    lookAtTarget: string
+    saveCameraAndTarget: boolean // used to request control save current camera and target to this state
+    // camera Animations, sequences, then animations created by interpolating sequences
+    cameraDollies: CameraDolly[]
+    currentDollyIndex: number
+    // Animation support
+    animating: boolean
+    animationSpeed: number
+    animations: AnimationClip[]
+    currentAnimationIndex: number
+    // Environment holders
+    environmentGroup: Group | null
     constructor(
         currentModelPathState: string,
         featuredModelsFilePathState: string,
@@ -49,7 +90,6 @@ export class ViewerState {
         recordedVideoName: string,
         recordedVideoFormat: string,
         isRecordingVideo: boolean,
-        isGuiMode: boolean,
         isProcessingVideo: boolean
     ) {
         this.userPreferences = observable({
@@ -67,19 +107,18 @@ export class ViewerState {
         this.recordedVideoName = recordedVideoName
         this.recordedVideoFormat = recordedVideoFormat
         this.isRecordingVideo = isRecordingVideo
-        this.isGuiMode = isGuiMode
         this.isProcessingVideo = isProcessingVideo
         this.user_uuid = ''
         this.backgroundColor = new Color(0.7, 0.7, 0.7)
         this.backgroundImage = null
-        this.skyTextureIndex = 0
+        this.skyTextureIndex = -1
         this.defaultSkyTextures = [
             '/assets/skyTextures/death-valley-alberto.jpg',
             '/assets/skyTextures/San_Carlo_(Grantola)_-_photosphere_of_interior.jpg',
             '/assets/skyTextures/Photosphere_in_Pozzolo_(Domaso)_2.jpg',
             '/assets/skyTextures/Photosphere_VML4_between_Nessa_and_L\'Agnone_01.jpg',
         ]
-        this.skyVisible = true
+        this.skyVisible = false
         this.textureIndex = 0
         this.defaultFloorTextures = [
             '/assets/floorTextures/tile.jpg',
@@ -95,6 +134,21 @@ export class ViewerState {
         this.lightIntensity = 0.25
         this.lightColor = new Color(0.6, 0.6, 0.6)
         this.spotLight = false
+        this.rotating = false;
+        this.pending_key = ""
+        this.sceneVersion = 0
+        this.cameras = []
+        this.targets = []
+        this.currentCameraIndex = -1
+        this.lookAtTarget = ""
+        this.saveCameraAndTarget = false;
+        this.cameraDollies = []
+        this.currentDollyIndex = -1
+        this.animating = false
+        this.animationSpeed = 1.0
+        this.animations = []
+        this.currentAnimationIndex = -1
+        this.environmentGroup = null
         makeObservable(this, {
             currentModelPath: observable,
             featuredModelsFilePath: observable,
@@ -116,7 +170,6 @@ export class ViewerState {
             recordedVideoName: observable,
             recordedVideoFormat: observable,
             isRecordingVideo: observable,
-            isGuiMode: observable,
             userPreferencesJsonPath: observable,
             userPreferences: observable,
             setUserPreferencesJsonPath: action,
@@ -125,9 +178,9 @@ export class ViewerState {
             setIsProcessingVideo: action,
             setIsRecordingVideo: action,
             defaultFloorTextures: observable,
-            skyVisible: observable,
-            skyTextureIndex: observable,
-            setSkyTextureIndex: action,
+            // skyVisible: observable,
+            // skyTextureIndex: observable,
+            // setSkyTextureIndex: action,
             floorHeight: observable,
             floorRound: observable,
             floorVisible: observable,
@@ -139,6 +192,21 @@ export class ViewerState {
             lightColor: observable,
             spotLight: observable,
             setIsLocalUpload: action,
+            rotating: observable,
+            setRotating: action,
+            cameras: observable,
+            setCamerasList: action,
+            cameraDollies: observable,
+            currentDollyIndex: observable,
+            setCurrentDollyIndex: action,
+            animationSpeed: observable,
+            animations: observable,
+            setAnimationList: action,
+            setAnimationSpeed: action,
+            currentCameraIndex: observable,
+            setCurrentCameraIndex: action,
+            sceneVersion: observable,
+            setSceneVersion: action,
         })
     }
 
@@ -188,9 +256,6 @@ export class ViewerState {
     setIsProcessingVideo(newState: boolean) {
         this.isProcessingVideo = newState
     }
-    setIsGuiMode(newState: boolean) {
-      this.isGuiMode = newState
-    }
     setIsRecordingVideo(newState: boolean) {
         this.isRecordingVideo = newState
     }
@@ -214,11 +279,75 @@ export class ViewerState {
     }
     setSkyTextureIndex(newIndex: number) {
         this.skyTextureIndex = newIndex
+        if (newIndex === -1) 
+            this.skyVisible = false
+        else
+            this.skyVisible = true
+    }
+    setRotating(newState: boolean) {
+        this.rotating = newState
+    }
+    handleKey(key: string) {
+        this.pending_key = key
     }
     setUserPreferencesJsonPath(path: string) {
       this.userPreferencesJsonPath = path
     }
+    setCamerasList(cameras: Camera[]) {
+        this.cameras=cameras
+    }
+    setCurrentCameraIndex(newIndex: number) {
+        this.currentCameraIndex = newIndex
+    }
+    setCurrentDollyIndex(newIndex: number) {
+        this.currentDollyIndex = newIndex
+    }
+    setLookAtTarget(target_uuid: string) {
+      this.lookAtTarget = target_uuid
+    }
+    addCameraDolly(newSequence:CameraDolly){
+        this.cameraDollies.push(newSequence);
+        this.animations.push(this.createAnimationClipFromSequence(newSequence));
+        this.setCurrentAnimationIndex(this.animations.length - 1);
+        this.setCurrentDollyIndex(this.cameraDollies.length - 1);
+    }
+    updateCameraDolly(newSequence:CameraDolly){
+        // update entry at  this.currentDollyIndex
+        this.cameraDollies[this.currentDollyIndex]=(newSequence);
+        this.animations[this.currentDollyIndex]=(this.createAnimationClipFromSequence(newSequence));
+    }
+    setAnimationList(animations: AnimationClip[]) {
+        this.animations=animations
+    }
+    setAnimationSpeed(newSpeed: number) {
+        this.animationSpeed = newSpeed
+    }
+    setAnimating(newState: boolean){
+        this.animating = newState
+    }
+    setCurrentAnimationIndex(newIndex: number) {
+        this.currentAnimationIndex = newIndex
+    }
+    createAnimationClipFromSequence(newSequence: CameraDolly): AnimationClip {
+        const numFrames = newSequence.cameraFrames.length
+        const duration = newSequence.cameraFrames[numFrames-1].time
+        const positions: number[] = []
+        const orientations: number[] = []
+        const keyFrameTimes: number[] = []
+        for (let i=0; i< newSequence.cameraFrames.length; i++){
+            const frame = newSequence.cameraFrames[i]
+            const cam = this.cameras.find(cam => cam.uuid === frame.cam_uuid) as Camera;
+            cam.position.toArray(positions, 3*i)
+            cam.quaternion.toArray(orientations, 4*i)
+            keyFrameTimes.push(frame.time)
+        }
+        // Create 2 keyframetracks one for camera, 2nd for target
+        const positionKF = new VectorKeyframeTrack( '.position', keyFrameTimes, positions );
+        const orientationKF = new QuaternionKeyframeTrack( '.quaternion', keyFrameTimes, orientations );
 
+        // Create an AnimationClip from saved KeyFrameCameras, add to ui
+        return new AnimationClip(newSequence.name!, duration, [positionKF, orientationKF])
+    }
     async loadUserPreferences() {
         try {
             const response = await fetch(this.userPreferencesJsonPath);
@@ -237,6 +366,52 @@ export class ViewerState {
         } catch (error) {
             console.error("Error loading user preferences:", error);
         }
+    }
+    addCamera(camera: PerspectiveCamera, target: Vector3, suggestedName: string | undefined) {
+        const camClone = camera.clone()
+        if (suggestedName === undefined) 
+            camClone.name = "Camera_"+this.cameras.length
+        else
+            camClone.name = suggestedName;
+        
+        this.cameras.push(camClone);
+        this.targets.push(target.clone())
+        this.environmentGroup?.add(camClone);
+        this.currentCameraIndex = (this.cameras.length - 1);
+        this.setSceneVersion(this.sceneVersion +1);
+        return camClone;
+    }
+    deleteCurrentCamera() {
+        const idx = this.currentCameraIndex;
+        const cam = this.cameras[idx];
+        // Remove from scene
+        if (cam !== undefined) {
+            cam.removeFromParent();
+            // remove from cached arrays
+            this.cameras.splice(idx, 1);
+            this.targets.splice(idx,1);
+            // Fix current if needed
+            if (idx > this.cameras.length-1) 
+                this.setCurrentCameraIndex(this.cameras.length-1)
+        }
+        this.setSceneVersion(this.sceneVersion +1);
+    }    
+    deleteCurrentDolly() {
+        const idx = this.currentDollyIndex;
+        const dolly = this.cameraDollies[idx];
+        if (dolly !== undefined) {
+            // remove from cached arrays
+            this.cameraDollies.splice(idx, 1);
+           // Fix current if needed
+            if (idx > this.cameraDollies.length-1) 
+                this.setCurrentDollyIndex(this.cameraDollies.length-1)
+        }
+    }
+    setEnvironmentGroup(grp: Group) {
+        this.environmentGroup = grp;
+    }
+    setSceneVersion(version: number) {
+        this.sceneVersion = version;
     }
 }
 

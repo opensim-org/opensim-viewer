@@ -4,12 +4,14 @@ import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three';
 
 import { useEffect, useRef, useState } from 'react'
-import { AnimationMixer, BoxHelper, Color, Group, Mesh, Object3D} from 'three'
+import { AnimationMixer, BoxHelper, Color, Mesh, Object3D} from 'three'
 import { observer } from 'mobx-react'
+
 
 import SceneTreeModel from '../../helpers/SceneTreeModel'
 import { useModelContext } from '../../state/ModelUIStateContext'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
+
 
 import { DirectionalLightHelper, SpotLightHelper } from 'three';
 import OpenSimFloor from './OpenSimFloor';
@@ -30,49 +32,26 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     const dirLightHelperRef = useRef<DirectionalLightHelper | null>(null);
     const spotLightHelperRef = useRef<SpotLightHelper | null>(null);
 
-    const [isDirectionalVisible, setDirectionalVisible] = useState(false);
-    const [isSpotVisible, setSpotVisible] = useState(false);
+    const [, setDirectionalVisible] = useState(false);
+    const [, setSpotVisible] = useState(false);
 
-    const no_face_cull = (scene: Group)=>{
-      if (scene) {
-        scene.traverse((o)=>{
-          if (o.name.endsWith("path")){
-            o.frustumCulled = false;
-          }
-          mapObjectToLayer(o)
+    let curState = useModelContext();
+    curState.scene = scene;
 
-        })
-      }
-    };
+    const sceneRef = useRef<THREE.Scene>();
+    const [sceneObjectMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
+    const [useEffectRunning, setUseEffectRunning] = useState<boolean>(false)
+    const [animationIndex, setAnimationIndex] = useState<number>(-1)
+    const [startTime, setStartTime] = useState<number>(0)
+    const [mixers, ] = useState<AnimationMixer[]>([])
+    const [colorNodeMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
+    //const selected = useSelect().map((sel) => console.log(sel))
+    const lightRef = useRef<THREE.DirectionalLight | null>(null)
+    const spotlightRef = useRef<THREE.SpotLight>(null)
 
-    const LayerMap = new Map([
-      ["Mesh", 1],
-      ["Force", 2],
-      ["World", 3],
-      ["Marker", 4],
-      ["ExpMarker", 5],
-      ["expForce", 6],
-      ["WrapSphere", 7],
-      ["WrapCylinder", 7],
-      ["WrapEllipsoid", 7],
-      ["WrapTorus", 7],
-      ["wrapObject", 7],
-      ["ContactSphere", 8],
-      ["ContactMesh", 8],
-      ["ContactHalfSpace", 8]
-    ]);
+    const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
 
-    const mapObjectToLayer = (obj3d: Object3D)=>{
-      if (obj3d.userData !== null && obj3d.userData !== undefined &&
-          obj3d.userData.opensimType !== undefined) {
-        let layerNum = LayerMap.get(obj3d.userData.opensimType)
-        if (layerNum === undefined)
-          layerNum = 0
-        obj3d.layers.set(layerNum)
-        obj3d.castShadow = true
-    }
-  }
-    no_face_cull(scene);
+    //no_face_cull(scene);
 
     const applyAnimationColors = ()=>{
       colorNodeMap.forEach((node)=>{
@@ -83,24 +62,13 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
       })
     }
     // eslint-disable-next-line no-mixed-operators
-    const [sceneObjectMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
     const [objectSelectionBox, setObjectSelectionBox] = useState<BoxHelper | null>(new BoxHelper(scene));
-    const [useEffectRunning, setUseEffectRunning] = useState<boolean>(false)
-    const [animationIndex, setAnimationIndex] = useState<number>(-1)
-    const [startTime, setStartTime] = useState<number>(0)
-    const [mixers, ] = useState<AnimationMixer[]>([])
-    const [colorNodeMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
-
-    let curState = useModelContext();
-    curState.scene = scene;
-
-    const sceneRef = useRef<THREE.Scene>()
-    const lightRef = useRef<THREE.DirectionalLight | null>(null)
-    const spotlightRef = useRef<THREE.SpotLight>(null)
-    const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
 
     // This useEffect loads the cameras and assign them to its respective states.
     useEffect(() => {
+      if (envRef.current && scene) 
+        curState.viewerState.setEnvironmentGroup(envRef.current)
+
       const cameras = scene.getObjectsByProperty('isPerspectiveCamera', true);
       console.log(`Number of cameras: ${cameras.length}`);
       cameras.forEach((camera, index) => {
@@ -122,25 +90,17 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         });
 
         // Update cameras list.
-        curState.setCamerasList(cameras.map(obj => obj as PerspectiveCamera));
+        curState.viewerState.setCamerasList(cameras.map(obj => obj as PerspectiveCamera));
         // Set current camera and current index as 0
         setCurrentCamera(cameras.length > 0 ? cameras[0] as PerspectiveCamera : new PerspectiveCamera());
-        curState.setCurrentCameraIndex(0);
-      }
-      else { // use the default camera, call it DefaultCam
-        if (curState.cameras.length === 0){
-          const cam = camera as PerspectiveCamera;  // Provided by the library
-          cam.name = "Default Camera"
-          curState.setCamerasList([cam])
-          curState.setCurrentCameraIndex(0)
-        }
+        curState.viewerState.setCurrentCameraIndex(0);
       }
     }, [curState, scene, gl.domElement.clientWidth, gl.domElement, set, camera]);
 
     // This useEffect sets the current selected camera.
     useEffect(() => {
-      if (curState.cameras.length > 0 && currentCamera) {
-        const selectedCamera = curState.cameras[curState.currentCameraIndex] as PerspectiveCamera;
+      if (curState.viewerState.cameras.length > 0 && currentCamera) {
+        const selectedCamera = curState.viewerState.cameras[curState.viewerState.currentCameraIndex] as PerspectiveCamera;
         setCurrentCamera(selectedCamera);
         set({ camera: selectedCamera });
 
@@ -187,7 +147,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
           });
         });
       }
-    }, [currentCamera, set, curState.currentCameraIndex, curState.cameras, animations]);
+    }, [currentCamera, set, curState.viewerState.currentCameraIndex, curState.viewerState.cameras, animations, curState.viewerState.currentCameraIndex]);
 
     if (supportControls) {
       scene.traverse((o) => {
@@ -202,17 +162,17 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         scene.add(objectSelectionBox!);
       }
       // First child of scene is model, grab info from it
-      const modelData = scene.children[0].userData;
-      if (modelData.name.startsWith('Model')){
-        // Populate model name, description and authors if not null
-        let desc = 'description'
-        let authors = 'authors'
-        if (modelData.description !== undefined)
-          desc = modelData.description
-        if (modelData.authors !== undefined)
-          authors = modelData.authors
-        curState.setModelInfo(modelData.name, desc, authors)
-      }
+      // const modelData = scene.children[0].userData;
+      // if (modelData.name.startsWith('Model')){
+      //   // Populate model name, description and authors if not null
+      //   let desc = 'description'
+      //   let authors = 'authors'
+      //   if (modelData.description !== undefined)
+      //     desc = modelData.description
+      //   if (modelData.authors !== undefined)
+      //     authors = modelData.authors
+      //   curState.setModelInfo(modelData.name, desc, authors)
+      // }
     }
 
     // Make sure mixers match animations
@@ -246,27 +206,27 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
               }
             }
 
-            if (curState.currentAnimationIndex !== animationIndex) {
-              const newAnimationIndex = curState.currentAnimationIndex
+            if (curState.viewerState.currentAnimationIndex !== animationIndex) {
+              const newAnimationIndex = curState.viewerState.currentAnimationIndex
               const oldIndex  = animationIndex
               // animation has changed
               if (oldIndex !== -1){
                 mixers[oldIndex].stopAllAction()
               }
               setAnimationIndex(newAnimationIndex)
-              mixers[curState.currentAnimationIndex]?.clipAction(animations[curState.currentAnimationIndex]).play()
+              mixers[curState.viewerState.currentAnimationIndex]?.clipAction(animations[curState.viewerState.currentAnimationIndex]).play()
             }
-            if (supportControls && curState.animating){
-              if (curState.currentAnimationIndex!==-1) {
-                let duration = mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).getClip().duration;
+            if (supportControls && curState.viewerState.animating){
+              if (curState.viewerState.currentAnimationIndex!==-1) {
+                let duration = mixers[curState.viewerState.currentAnimationIndex].clipAction(animations[curState.viewerState.currentAnimationIndex]).getClip().duration;
 
                 if(curState.currentFrame !== startTime) {
                   const framePercentage = curState.currentFrame / 100;
                   const currentTimeInSlider = duration * framePercentage;
-                  mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time =  currentTimeInSlider;
+                  mixers[curState.viewerState.currentAnimationIndex].clipAction(animations[curState.viewerState.currentAnimationIndex]).time =  currentTimeInSlider;
                 }
-                const currentTime = mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time
-                mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
+                const currentTime = mixers[curState.viewerState.currentAnimationIndex].clipAction(animations[curState.viewerState.currentAnimationIndex]).time
+                mixers[curState.viewerState.currentAnimationIndex].update(delta * curState.viewerState.animationSpeed)
                 //console.log(duration)
                 // For material at index "key" setColor to nodes["value"].translation
                 applyAnimationColors();
@@ -274,16 +234,16 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
                 setStartTime(Math.trunc((currentTime / duration) * 100))
               }
             } else if (supportControls) {
-              if (curState.currentAnimationIndex!==-1) {
+              if (curState.viewerState.currentAnimationIndex!==-1) {
                 if(curState.currentFrame !== startTime) {
-                  let duration = mixers[curState.currentAnimationIndex]?.clipAction(animations[curState.currentAnimationIndex]).getClip().duration;
+                  let duration = mixers[curState.viewerState.currentAnimationIndex]?.clipAction(animations[curState.viewerState.currentAnimationIndex]).getClip().duration;
                   const framePercentage = curState.currentFrame / 100;
                   const currentTime = duration * framePercentage;
                   // For material at index "key" setColor to nodes["value"].translation
                   applyAnimationColors();
-                  mixers[curState.currentAnimationIndex].clipAction(animations[curState.currentAnimationIndex]).time = currentTime;
+                  mixers[curState.viewerState.currentAnimationIndex].clipAction(animations[curState.viewerState.currentAnimationIndex]).time = currentTime;
                   setStartTime(curState.currentFrame)
-                  mixers[curState.currentAnimationIndex].update(delta * curState.animationSpeed)
+                  mixers[curState.viewerState.currentAnimationIndex].update(delta * curState.viewerState.animationSpeed)
                 }
               }
             }
@@ -309,15 +269,15 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         //console.log("OpenSimScene.useEffect called ", curState.currentModelPath)
         setUseEffectRunning(false)
         if (supportControls) {
-            curState.setCurrentModelPath(currentModelPath)
-            curState.setSceneTree(new SceneTreeModel(scene))
-            curState.setAnimationList(animations)
+            ///curState.setCurrentModelPath(currentModelPath)
+            ///curState.setSceneTree(new SceneTreeModel(scene))
+            curState.viewerState.setAnimationList(animations)
         }
         return () => {
           if (objectSelectionBox !== null){
             scene.remove(objectSelectionBox)
             setObjectSelectionBox(null);
-            curState.setSelected("")
+            curState.setSelected("", false)
           }
           sceneObjectMap.clear();
           setUseEffectRunning(true)
@@ -328,8 +288,8 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     // By the time we're here the model is guaranteed to be available
     return <>
     <primitive object={scene} ref={sceneRef}
-      onPointerDown={(e: any) => curState.setSelected(e.object.uuid)}
-      onPointerMissed={() => curState.setSelected("")}
+      onPointerDown={(e: any) => curState.setSelected(e.object.uuid, false)}
+      onPointerMissed={() => curState.setSelected("", false)}
       />
       <group name='OpenSimEnvironment' ref={envRef}>
           <directionalLight name="Directional Light" ref={lightRef} position={[0.5, 1.5, -0.5]}

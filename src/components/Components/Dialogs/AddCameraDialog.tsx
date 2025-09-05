@@ -22,7 +22,7 @@ const AddCameraDialog: React.FC<AddCameraDialogProps> = ({ open, onClose, onAddC
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Add New Camera</DialogTitle>
+      <DialogTitle>Add Camera From View</DialogTitle>
       <DialogContent>
         <TextField
           autoFocus
