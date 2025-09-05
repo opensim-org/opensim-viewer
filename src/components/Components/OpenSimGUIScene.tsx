@@ -269,26 +269,22 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
               // Leave to animate button to start playing
               mixers[viewerState.currentAnimationIndex]?.clipAction(viewerState.animations[viewerState.currentAnimationIndex]).play()
             }
-            if (viewerState.animating || (curState.simulationTime !== undefined && curState.simulationTime > 0)){
+            if (viewerState.animating || curState.isGUIAnimating){
               if (viewerState.currentAnimationIndex!==-1) {
                 let duration = mixers[viewerState.currentAnimationIndex].clipAction(viewerState.animations[viewerState.currentAnimationIndex]).getClip().duration;
-                if(curState.currentFrame !== startTime) {
+                if(curState.currentFrame !== startTime && viewerState.animating) {
                   const framePercentage = curState.currentFrame / 100;
                   const currentTimeInSlider = duration * framePercentage;
                   mixers[viewerState.currentAnimationIndex].clipAction(viewerState.animations[viewerState.currentAnimationIndex]).time =  currentTimeInSlider;
                 }
                 const currentTime = mixers[viewerState.currentAnimationIndex].clipAction(viewerState.animations[viewerState.currentAnimationIndex]).time
                 //mixers[viewerState.currentAnimationIndex].setTime(viewerState.animating?animationTime:curState.simulationTime)
-                if (viewerState.animating)
-                    mixers[viewerState.currentAnimationIndex].update(delta * viewerState.animationSpeed);
-                else
-                    mixers[viewerState.currentAnimationIndex].setTime(curState.simulationTime)
+                mixers[viewerState.currentAnimationIndex].update(delta * viewerState.animationSpeed);
                 //targetMixerRef.current!.update(delta * curState.animationSpeed);
                 //camera.lookAt(targetRef.current!.position)
 
                 // For material at index "key" setColor to nodes["value"].translation
                 applyAnimationColors();
-                const prevFrame = curState.currentFrame;
                 curState.setCurrentFrame(Math.trunc((currentTime / duration) * 100));
                 setStartTime(Math.trunc((currentTime / duration) * 100));
                 // Disable looping for now

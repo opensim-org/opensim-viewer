@@ -142,7 +142,11 @@ const BottomBar = React.forwardRef(function CustomContent(
                   label={t('visualizationControl.speed')}
                   onChange={handleSpeedChange}
                   disabled={curState.viewerState.animations.length < 1}>
-                    <MenuItem value={0.25}>0.25</MenuItem>
+                    <MenuItem value={0.01}>0.01</MenuItem>
+                    <MenuItem value={0.1}>0.1</MenuItem>
+                    <MenuItem value={0.2}>0.2</MenuItem>
+                    <MenuItem value={0.3}>0.3</MenuItem>
+                    <MenuItem value={0.4}>0.4</MenuItem>
                     <MenuItem value={0.5}>0.5</MenuItem>
                     <MenuItem value={1.0}>1.0</MenuItem>
                     <MenuItem value={2.0}>2.0</MenuItem>
@@ -156,7 +160,7 @@ const BottomBar = React.forwardRef(function CustomContent(
                 size="small"
                 color="primary"
                 value={'Animation'}
-                disabled={curState.viewerState.animations.length < 1}
+                disabled={curState.viewerState.animations.length < 1 || curState.isGUIAnimating}
                 onClick={togglePlayAnimation}>
                   {play?<PauseCircleTwoToneIcon/>:<PlayCircleTwoToneIcon/>}
               </IconButton>

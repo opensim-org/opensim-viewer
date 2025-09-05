@@ -73,6 +73,7 @@ export class ModelUIState {
     fitToBox: Box3 | null
     debug: boolean
     simulationTime: number
+    isGUIAnimating: boolean = false
     constructor(
         currentModelPathState: string
     ) {
@@ -379,6 +380,12 @@ export class ModelUIState {
                 // TODO: support path edit message type
                 //editor.processPathEdit(msg);
                 break;
+            case "startAnimation":
+                this.SetAnimatingGUI(true);
+                break;
+            case "endAnimation":
+                this.SetAnimatingGUI(false);
+                break;
         }
     }
     sendText(json: string) {
@@ -392,5 +399,13 @@ export class ModelUIState {
     }
     fitCameraTo(objectbbox: Box3) {
         this.fitToBox = objectbbox;
+    }
+
+    SetAnimatingGUI(isAnimating: boolean) {
+        // Implement animation state handling here if needed
+        this.isGUIAnimating = isAnimating;
+        if (isAnimating) {
+            this.viewerState.setAnimating(false);
+        }
     }
 }
