@@ -111,7 +111,7 @@ export class ViewerState {
         this.user_uuid = ''
         this.backgroundColor = new Color(0.7, 0.7, 0.7)
         this.backgroundImage = null
-        this.skyTextureIndex = -1
+        this.skyTextureIndex = 0
         this.defaultSkyTextures = [
             '/assets/skyTextures/death-valley-alberto.jpg',
             '/assets/skyTextures/San_Carlo_(Grantola)_-_photosphere_of_interior.jpg',

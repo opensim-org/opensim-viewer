@@ -131,7 +131,7 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
                     break;
                 case 'f':
                 case 'F':
-                    if (curState.selectedObject !== null)
+                    if (curState.selectedObject !== null && curState.selectedObject !== undefined)
                         implementFitToSphere(curState.selectedObject!)
                     else {
                         fitToModels(true);
@@ -237,7 +237,8 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
            const useScene = curState.scene;
            useScene?.traverse((object: Object3D) => {
                if ((object.type === "Group" && object.name === "OpenSimModels") ||
-                (object.type === "Group" && object.name === "Models")
+                (object.type === "Group" && object.name === "Models") ||
+                (object.type === "Object3D" && object.userData !== undefined && object.userData.name.startsWith("Model"))
                ) {
                    implementFitToSphere(object);
                }

@@ -17,7 +17,7 @@ import AddLightDialog from "../Components/Dialogs/AddLightDialog"
 import SceneTreeBridge from "../Components/SceneTree/SceneTreeBridge"
 import SceneTreeSortable, { SceneTreeSortableHandle } from "../Components/SceneTree/SceneTreeSortable"
 import DrawerMenu from "../Components/DrawerMenu";
-import OpenSimGUIScene from "../Components/OpenSimGUIScene";
+import OpenSimScene from "../Components/OpenSimScene";
 import { ModelInfo, ModelUIState } from "../../state/ModelUIState";
 import { observer } from "mobx-react";
 import { MyModelContext } from "../../state/ModelUIStateContext";
@@ -226,25 +226,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     setBgndColor(uiState.viewerState.backgroundColor);
   }, [uiState.viewerState.backgroundColor, uiState.isGuiMode]);
 
-  useEffect(() => {
-    // Create fresh WebSocket
-    if (uiState.isGuiMode) {
-      const socket = new WebSocket('ws://127.0.0.1:8002/visEndpoint');
-      socket.onopen = () => { uiState.setSocketHandle(socket); console.log("socket opened");}
-      socket.onmessage = function(evt) { 
-      //   //console.log(evt.data)
-        uiState.handleSocketMessage(evt.data);
-      };
-      socket.onerror = function(evt) { 
-        uiState.isGuiMode = false;
-      }
-      // Implement your WebSocket logic here
-      return () => {
-        //socket.disconnect();
-      };
-    }
-  }, [uiState]);
-
   React.useEffect(() => {
     // Load user preferences
     const viewerState = uiState.viewerState;
@@ -306,16 +287,10 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
               <Environment files="/assets/potsdamer_platz_1k.hdr"/>
               <SceneTreeBridge onSceneReady={setScene} onCameraReady={setCamera} />
               <fog attach="fog" color="lightgray" near={1} far={10000} />
-
-                {uiState.isGuiMode?
-                <OpenSimGUIScene 
+                <OpenSimScene
                   currentModelPath={uiState.viewerState.currentModelPath}
                   supportControls={true}
-                />:
-                <OpenSimGUIScene
-                  currentModelPath={uiState.viewerState.currentModelPath}
-                  supportControls={true}
-                />}
+                />
                 <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
                   <GizmoViewport labelColor="white" />
                 </GizmoHelper>

@@ -104,7 +104,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         setCurrentCamera(selectedCamera);
         set({ camera: selectedCamera });
 
-        animations.forEach((clip) => {
+        curState.viewerState.animations.forEach((clip) => {
           clip.tracks.forEach((track) => {
             if (track.name.includes(selectedCamera.name)) {
               if (track.name.endsWith('.position')) {
@@ -147,7 +147,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
           });
         });
       }
-    }, [currentCamera, set, curState.viewerState.currentCameraIndex, curState.viewerState.cameras, animations, curState.viewerState.currentCameraIndex]);
+    }, [currentCamera, set, curState.viewerState.currentCameraIndex, curState.viewerState.cameras, animations, curState.viewerState.animations]);
 
     if (supportControls) {
       scene.traverse((o) => {
@@ -176,10 +176,10 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     }
 
     // Make sure mixers match animations
-    if ((animations.length > 0 && mixers.length !==animations.length) ||
-        (animations.length > 0 && mixers.length > 0 && mixers[0].getRoot() !== scene)) {
+    if ((curState.viewerState.animations.length > 0 && mixers.length !==curState.viewerState.animations.length) ||
+        (curState.viewerState.animations.length > 0 && mixers.length > 0 && mixers[0].getRoot() !== scene)) {
         mixers.length = 0
-        animations.forEach((clip) => {
+        curState.viewerState.animations.forEach((clip) => {
             const nextMixer = new AnimationMixer(scene)
             nextMixer.clipAction(clip, scene)
             mixers.push(nextMixer)
