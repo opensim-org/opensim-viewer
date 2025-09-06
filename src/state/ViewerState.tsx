@@ -1,11 +1,10 @@
-import { String } from 'aws-sdk/clients/apigateway'
 import { makeObservable, observable, action, runInAction } from 'mobx'
 import { Color, Vector3, Camera, AnimationClip, VectorKeyframeTrack, QuaternionKeyframeTrack, PerspectiveCamera, Group } from 'three'
 
 export class CameraFrame {
     cam_uuid: string
     time: number
-    constructor(camera_uuid: String, time: number) {
+    constructor(camera_uuid: string, time: number) {
         this.cam_uuid = camera_uuid
         this.time = time
     }
