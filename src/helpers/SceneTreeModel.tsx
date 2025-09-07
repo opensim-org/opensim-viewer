@@ -1,4 +1,4 @@
-import { Object3D, Group, Scene } from "three"; 
+import { Object3D, Group } from "three"; 
 
 export class TreeNode 
 {
@@ -6,36 +6,14 @@ export class TreeNode
   public children: TreeNode[] = [];
   public name: string;
   public threeObject: Object3D|null;
-  constructor(parent: TreeNode|null, threeObj: Object3D|null, recur: boolean) 
+
+  constructor(parent: TreeNode|null, threeObj: Object3D|null) 
   {
     this.parent = parent; 
-    this.name=(threeObj===null)?"":(threeObj.name!==""?threeObj.name:threeObj.type);
+    this.name='';
     this.threeObject = threeObj;
-
-    if (recur && threeObj !== null && !(threeObj.name==="WCS")){
-      // construct 
-      this.addChildrenNodes(threeObj, recur);
-    }
+    if(this.parent) this.parent.children.push(this); 
   }
-  private addChildrenNodes(threeObj: Object3D, recur: boolean) {
-    for (let i = 0; i < threeObj.children.length; i++) {
-      // Skip over helpers
-      if (!this.excludeFromSceneTree(threeObj, i)) {
-        const isBody = (threeObj.name==="/ground") || 
-          (threeObj.type ==="Group" && threeObj.name.startsWith("/bodyset/"))
-        const nextChildNode = new TreeNode(this, threeObj.children[i], recur && !isBody);
-        this.children.push(nextChildNode);
-        //console.log("adding node for ", threeObj.children[i].name, " to parent node");
-      }
-    }
-  }
-
-  private excludeFromSceneTree(threeObj: Object3D, i: number) {
-    return (threeObj.children[i].type.includes('Helper') ||
-            threeObj.children[i].name==="Com" ||
-            (threeObj.userData!== undefined && threeObj.userData.opensimType==="Model"));
-  }
-
   setName(newName: string){
     this.name = newName;
   }
@@ -44,16 +22,16 @@ export class TreeNode
 class SceneTreeModel
 {
     public rootNode: TreeNode|null;
-    constructor(sceneTreeGroup: Group | Scene)
+    constructor(sceneTreeGroup: Group)
     {
-        this.rootNode = new TreeNode(null, sceneTreeGroup, false);
+        this.rootNode = new TreeNode(null, sceneTreeGroup);
         this.rootNode.setName(sceneTreeGroup.name)
         // Create Meshes node
-        let meshesNode = new TreeNode(this.rootNode, null, false);
+        let meshesNode = new TreeNode(this.rootNode, null);
         meshesNode.setName('Meshes')
         sceneTreeGroup.traverse((obj) =>{
             if (obj.type==='Mesh'){
-                let childNode = new TreeNode(meshesNode, obj, false);
+                let childNode = new TreeNode(meshesNode, obj);
                 if (obj.userData !== null && obj.userData.path !== undefined){
                   let pathArr = obj.userData.path.split('/')
                   // Mesh is implicit in name, save screen real-state
