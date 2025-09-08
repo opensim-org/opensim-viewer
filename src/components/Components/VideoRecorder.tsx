@@ -2,18 +2,16 @@ import * as React from "react";
 import { useEffect, useRef } from "react";
 
 import { observer } from "mobx-react";
-
 import { useThree } from '@react-three/fiber';
 
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile } from '@ffmpeg/util';
 
-import { useSnackbar } from 'notistack'
-
-import { useTranslation } from 'react-i18next'
+import { useSnackbar } from 'notistack';
+import { useTranslation } from 'react-i18next';
 import { useModelContext } from "../../state/ModelUIStateContext";
 
-import { getTimestamp } from "../../helpers/timeHelpers"
+import { getTimestamp } from "../../helpers/timeHelpers";
 
 type VideoRecorderRef = {
   startRecording: () => void;
@@ -28,12 +26,12 @@ function VideoRecorder(props: VideoRecorderViewProps) {
   const { t } = useTranslation();
   const viewerState = useModelContext().viewerState;
   const { gl } = useThree();
+
   const ffmpegRef = useRef(new FFmpeg());
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
   const capturedFrames = useRef<string[]>([]);
   const isRecordingRef = useRef(false);
-  const frameCaptureIntervalRef = useRef<number | null>(null);
   const fps = 30;
 
   const load = async () => {
@@ -53,16 +51,26 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     const ffmpeg = ffmpegRef.current;
     await load();
 
-    // Convert base64 strings to blobs and write them to ffmpeg FS
+    // Clean up old files from previous runs
+    try {
+      const files = await ffmpeg.listDir('/');
+      for (const file of files) {
+        if (file.name.startsWith('input') || file.name.startsWith('output')) {
+          await ffmpeg.deleteFile(file.name);
+        }
+      }
+    } catch (e) {
+      console.warn("Cleanup skipped:", e);
+    }
+
+    // Write new frames
     for (let i = 0; i < capturedFrames.current.length; i++) {
       const dataURL = capturedFrames.current[i];
-      // Convert base64 URL to Uint8Array
       const res = await fetch(dataURL);
       const blob = await res.blob();
       await ffmpeg.writeFile(`input${String(i).padStart(3, '0')}.jpg`, await fetchFile(blob));
     }
 
-    // Input pattern with .jpg extension now
     const args = [
       '-framerate', `${fps}`,
       '-i', 'input%03d.jpg',
@@ -100,11 +108,21 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     const useMediaRecorder = viewerState.recordedVideoFormat === 'webm' && webmSupported;
 
     const recorder = useMediaRecorder ? new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8,opus' }) : null;
+
     const recordedChunks: Blob[] = [];
 
     if (recorder) {
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) recordedChunks.push(e.data);
+      };
+
+      recorder.onstop = async () => {
+        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const timestamp = getTimestamp();
+        downloadVideo(url, `${viewerState.recordedVideoName}_${timestamp}.webm`);
+
+        recordedChunks.length = 0; // cleanup
       };
     }
 
@@ -117,6 +135,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       });
 
       if (useMediaRecorder && recorder) {
+        recordedChunks.length = 0; // reset chunks before starting
         recorder.start();
       } else {
         capturedFrames.current = [];
@@ -126,8 +145,8 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         const startTime = performance.now();
         let lastCaptureTime = startTime;
 
-        const captureLoop = async () => {
-          const loop = async () => {
+        const captureLoop = () => {
+          const loop = () => {
             if (!isRecordingRef.current) {
               const endTime = performance.now();
               const durationSec = (endTime - startTime) / 1000;
@@ -160,22 +179,19 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       }
     };
 
-
     const stopRecording = async () => {
       closeSnackbar();
       viewerState.setIsRecordingVideo(false);
 
       if (useMediaRecorder && recorder) {
         recorder.stop();
-        recorder.onstop = async () => {
-          const blob = new Blob(recordedChunks, { type: 'video/webm' });
-          const url = URL.createObjectURL(blob);
-          const timestamp = getTimestamp();
-          downloadVideo(url, `${viewerState.recordedVideoName}_${timestamp}.webm`);
-        };
       } else {
         isRecordingRef.current = false;
-        enqueueSnackbar(t('snackbars.processing_video'), { variant: 'info', anchorOrigin: { horizontal: 'right', vertical: 'bottom' }, persist: true });
+        enqueueSnackbar(t('snackbars.processing_video'), {
+          variant: 'info',
+          anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
+          persist: true
+        });
         viewerState.setIsProcessingVideo(true);
 
         try {
@@ -187,6 +203,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
           console.error(e);
         }
 
+        capturedFrames.current = []; // cleanup
         viewerState.setIsProcessingVideo(false);
         closeSnackbar();
       }
@@ -197,6 +214,5 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
   return null;
 }
-
 
 export default observer(VideoRecorder);
