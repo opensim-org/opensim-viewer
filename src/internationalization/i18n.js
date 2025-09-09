@@ -57,7 +57,8 @@ i18next
                         zoomOut: "Zoom Out",
                         measure: "Measure",
                         annotate: "Annotate",
-                        snapshoot: "Snapshot",
+                        snapshot: "Snapshot",
+                        fit: "Fit Model",
                         record: "Record",
                     },
                     login: {

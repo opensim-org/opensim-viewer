@@ -2,6 +2,8 @@ import { Button, Checkbox, Dialog, DialogActions, DialogContent, FormControl, Fo
 import React from 'react';
 import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone';
 import { useModelContext } from '../../state/ModelUIStateContext';
+import Tooltip from '@mui/material/Tooltip';
+import { useTranslation } from 'react-i18next'
 
 interface FormData {
   size_choice: string;
@@ -14,6 +16,7 @@ interface FormData {
 
 
 const SnapShotModal: React.FC<{open:boolean}> = () => {
+  const { t } = useTranslation();
   const [open, setOpen] = React.useState(false);
   const [changed, setChanged] = React.useState(false);
 
@@ -62,10 +65,12 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
   };
   return (
       <>
-      <IconButton color="primary" onClick={() => {
-        setOpen(true);}}>
-          <PhotoCameraTwoToneIcon />
-      </IconButton>
+      <Tooltip title={t('bottomBar.snapshot')} placement="right">
+        <IconButton color="primary" onClick={() => {
+          setOpen(true);}}>
+            <PhotoCameraTwoToneIcon />
+        </IconButton>
+      </Tooltip>
       <Dialog 
         open={open}
         onClose={handleClose}
