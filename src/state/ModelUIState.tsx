@@ -174,6 +174,9 @@ export class ModelUIState {
     getGuiMode() {
         return this.isGuiMode;
     }
+    setIsGuiMode(newGuiMode: boolean = false) {
+        this.isGuiMode = newGuiMode
+    }
     setSelected(uuid: string, notifyGUI: boolean = false) {
         if (this.selected !== uuid) {
             this.deSelected = this.selected

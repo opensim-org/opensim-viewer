@@ -22,6 +22,9 @@ import Hidden from '@mui/material/Hidden';
 import { Auth } from 'aws-amplify';
 import { useModelContext } from '../../state/ModelUIStateContext';
 
+import logo_dark from './logo-dark.svg';
+import logo from './logo.svg';
+
 interface OpenSimAppBarProps {
   dark: boolean;
   isLoggedIn: boolean;
@@ -134,6 +137,13 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn, isFullS
       <AppBar position="relative" style={{zIndex: 3000}}>
 
         <Toolbar variant="dense" color="inherit">
+          {!curState.isGuiMode ? <Link component={NavLink} to="/">
+            <Box
+              component="img"
+              sx={{ height: 60 }}
+              alt="Logo"
+              src={dark ? logo_dark : logo}/>
+          </Link> : <></>}
 
           <Hidden smUp>
             <IconButton

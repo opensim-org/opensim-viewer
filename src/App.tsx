@@ -64,7 +64,7 @@ function App({ signOut, user }: WithAuthenticatorProps) {
 
     // Set gui mode if parameter is present.
     if (cssParam === 'gui') {
-      setDisplayAppBar('none')
+      curState.setIsGuiMode(true)
     }
   }, [viewerState]);
 
@@ -87,7 +87,7 @@ function App({ signOut, user }: WithAuthenticatorProps) {
             {curState.isGuiMode? <ModelViewPage/>:
             <BrowserRouter>
                 <div className="App" style={{ width: '100%', overflow: 'auto', backgroundColor: viewerState.dark ? appTheme.palette.background.default : lightTheme.palette.background.default}} ref={elementRef}>
-                    <div id="opensim-appbar-visibility" style={{display: displayAppBar}}>
+                    <div id="opensim-appbar-visibility" style={{display: curState.isGuiMode ? 'none' : 'default'}}>
                       <OpenSimAppBar dark={viewerState.dark} isLoggedIn={viewerState.isLoggedIn} isFullScreen={viewerState.isFullScreen} toggleFullscreen={toggleFullscreen}/>
                     </div>
                     <div>
