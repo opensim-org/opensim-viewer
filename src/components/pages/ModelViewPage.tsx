@@ -46,6 +46,7 @@ import RotateIcon from '@mui/icons-material/RotateRight';
 import {
   Button
 } from "@mui/material";
+import OpenSimHtmlLogo from '../Components/OpenSimLogo';
 
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
@@ -333,7 +334,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 )}
 
               </Canvas>
-
+              <OpenSimHtmlLogo />
               <div
                 style={{
                   position: 'absolute',
