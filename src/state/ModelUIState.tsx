@@ -115,6 +115,7 @@ export class ModelUIState {
             currentFrame: observable,
             setCurrentFrame: action,
             simulationTime: observable,
+            setIsGuiMode: action,
         })
         console.log("Created ModelUIState instance ", currentModelPathState)
     }
@@ -175,7 +176,7 @@ export class ModelUIState {
         return this.isGuiMode;
     }
     setIsGuiMode(newGuiMode: boolean = false) {
-        this.isGuiMode = newGuiMode
+        this.isGuiMode = newGuiMode;
     }
     setSelected(uuid: string, notifyGUI: boolean = false) {
         if (this.selected !== uuid) {

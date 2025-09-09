@@ -137,13 +137,13 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn, isFullS
       <AppBar position="relative" style={{zIndex: 3000}}>
 
         <Toolbar variant="dense" color="inherit">
-          {!curState.isGuiMode ? <Link component={NavLink} to="/">
+          {!curState.isGuiMode && <Link component={NavLink} to="/">
             <Box
               component="img"
               sx={{ height: 60 }}
               alt="Logo"
               src={dark ? logo_dark : logo}/>
-          </Link> : <></>}
+          </Link>}
 
           <Hidden smUp>
             <IconButton

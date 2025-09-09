@@ -18,6 +18,7 @@ import SceneTreeBridge from "../Components/SceneTree/SceneTreeBridge"
 import SceneTreeSortable, { SceneTreeSortableHandle } from "../Components/SceneTree/SceneTreeSortable"
 import DrawerMenu from "../Components/DrawerMenu";
 import OpenSimScene from "../Components/OpenSimScene";
+import OpenSimGUIScene from "../Components/OpenSimGUIScene";
 import { ModelInfo, ModelUIState } from "../../state/ModelUIState";
 import { observer } from "mobx-react";
 import { MyModelContext } from "../../state/ModelUIStateContext";
@@ -287,10 +288,15 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
               <Environment files="/assets/potsdamer_platz_1k.hdr"/>
               <SceneTreeBridge onSceneReady={setScene} onCameraReady={setCamera} />
               <fog attach="fog" color="lightgray" near={1} far={10000} />
-                <OpenSimScene
+                {curState.isGuiMode ?
+                  <OpenSimGUIScene
+                    currentModelPath={uiState.viewerState.currentModelPath}
+                    supportControls={true}
+                  />
+                : <OpenSimScene
                   currentModelPath={uiState.viewerState.currentModelPath}
                   supportControls={true}
-                />
+                />}
                 <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
                   <GizmoViewport labelColor="white" />
                 </GizmoHelper>
