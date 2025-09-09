@@ -227,6 +227,25 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     setBgndColor(uiState.viewerState.backgroundColor);
   }, [uiState.viewerState.backgroundColor, uiState.isGuiMode]);
 
+useEffect(() => {
+    // Create fresh WebSocket
+    if (uiState.isGuiMode) {
+      const socket = new WebSocket('ws://127.0.0.1:8002/visEndpoint');
+      socket.onopen = () => { uiState.setSocketHandle(socket); console.log("socket opened");}
+      socket.onmessage = function(evt) {
+      //   //console.log(evt.data)
+        uiState.handleSocketMessage(evt.data);
+      };
+      socket.onerror = function(evt) {
+        uiState.isGuiMode = false;
+      }
+      // Implement your WebSocket logic here
+      return () => {
+        //socket.disconnect();
+      };
+    }
+  }, [uiState]);
+
   React.useEffect(() => {
     // Load user preferences
     const viewerState = uiState.viewerState;
@@ -273,7 +292,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 videoRecorderRef={videoRecorderRef}
                 info={new ModelInfo(uiState.modelInfo.model_name, uiState.modelInfo.desc, uiState.modelInfo.authors)}
                 top={floatingButtonsContainerTop}/>
-              <Canvas 
+              <Canvas
                 id="canvas-element"
                 gl={{ alpha: true, autoClearColor: true, preserveDrawingBuffer: true }}
                 shadows="soft"
