@@ -19,6 +19,7 @@ interface FloatingControlsPanelProps {
   videoRecorderRef: any;
   info: ModelInfo;
   top: string;
+  left: string;
 }
 
 function FloatingControlsPanel(props :FloatingControlsPanelProps) {
@@ -34,7 +35,7 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
   };
 
   return (
-    <div className="floating-buttons-container" style={{top: props.top}}>
+    <div className="floating-buttons-container" style={{top: props.top, left: props.left,}}>
 
       <Grid container spacing={-4} direction="column">
         <Grid item xs={6}>

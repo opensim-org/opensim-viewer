@@ -66,7 +66,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
 
     // This useEffect loads the cameras and assign them to its respective states.
     useEffect(() => {
-      if (envRef.current && scene) 
+      if (envRef.current && scene)
         curState.viewerState.setEnvironmentGroup(envRef.current)
 
       const cameras = scene.getObjectsByProperty('isPerspectiveCamera', true);

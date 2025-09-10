@@ -185,6 +185,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const [canvasHeight, setCanvasHeight] = useState("calc(100vh - 68px - " + heightBottomBar + "px)");
   const [canvasLeft, setCanvasLeft] = useState(leftMenuWidth + (menuOpen ? drawerContentWidth : 0));
   const [floatingButtonsContainerTop, setFloatingButtonsContainerTop] = useState("80px");
+  const [floatingButtonsContainerLeft, setFloatingButtonsContainerLeft] = useState("80px");
   const [, setBgndColor] = useState<Color>(new Color(0.7, 0.7, 0.7));
 
   const [scene, setScene] = useState<THREE.Scene | null>(null);
@@ -223,6 +224,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
       setCanvasHeight('calc(100vh - 68px)');
       setCanvasLeft(0);
       setFloatingButtonsContainerTop("12px")
+      setFloatingButtonsContainerLeft("12px")
     }
     setBgndColor(uiState.viewerState.backgroundColor);
   }, [uiState.viewerState.backgroundColor, uiState.isGuiMode]);
@@ -291,7 +293,8 @@ useEffect(() => {
               <FloatingControlsPanel
                 videoRecorderRef={videoRecorderRef}
                 info={new ModelInfo(uiState.modelInfo.model_name, uiState.modelInfo.desc, uiState.modelInfo.authors)}
-                top={floatingButtonsContainerTop}/>
+                top={floatingButtonsContainerTop}
+                left={floatingButtonsContainerLeft}/>
               <Canvas
                 id="canvas-element"
                 gl={{ alpha: true, autoClearColor: true, preserveDrawingBuffer: true }}

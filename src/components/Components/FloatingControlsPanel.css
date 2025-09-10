@@ -1,7 +1,6 @@
 /* FloatingButton.css */
 .floating-buttons-container {
   position: absolute;
-  left: 80px;
   z-index: 999;
 }
 
