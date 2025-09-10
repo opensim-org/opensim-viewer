@@ -65,6 +65,8 @@ function App({ signOut, user }: WithAuthenticatorProps) {
     // Set gui mode if parameter is present.
     if (cssParam === 'gui') {
       curState.setIsGuiMode(true)
+    } else {
+      curState.setIsGuiMode(false)
     }
   }, [viewerState]);
 

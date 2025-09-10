@@ -24,7 +24,7 @@ interface OpenSimSceneProps {
 
 const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportControls }) => {
     //const modelGroup = useLoader(GLTFLoader, currentModelPath)
-    const { scene, animations } = useGLTF(currentModelPath);
+    const { scene, animations } = useGLTF(currentModelPath ? currentModelPath : "/builtin/double_pendulum.gltf");
 
     const { set, gl, camera} = useThree();
 
