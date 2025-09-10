@@ -103,9 +103,9 @@ const FileDropArea: React.FC<FileDropAreaProps> =observer(({ paddingY = 16}) => 
             appState.setCurrentModelPath(url_gltf);
             closeSnackbar()
 
-            if (location.pathname !== '/viewer') {
-                navigate('/viewer');
-            }
+             if (location.pathname !== '/viewer') {
+                 navigate('/viewer');
+             }
 
             store.uploadProgress = 1;
             store.uploadPercentage = 1;
@@ -132,13 +132,13 @@ const FileDropArea: React.FC<FileDropAreaProps> =observer(({ paddingY = 16}) => 
                       const key = file.name.replace(/\.\w+$/, '.gltf')
                       const gltf_url = "https://s3.us-west-2.amazonaws.com/opensim-viewer-public-download/" + user_uuid + "/"+key
                       /* appState.setCurrentModelPath(gltf_url); */
-                      navigate("/viewer/"+encodeURIComponent(gltf_url))
+                      // navigate("/viewer/"+encodeURIComponent(gltf_url))
                       console.log('Lambda function invoked successfully:', data);
                       closeSnackbar()
                     }
                 });
-                if (location.pathname !== '/viewer')
-                    navigate('/viewer');
+                // if (location.pathname !== '/viewer')
+                //     navigate('/viewer');
 
                 // File uploaded to S3, so it is not a local upload.
                 viewerState.isLocalUpload = true

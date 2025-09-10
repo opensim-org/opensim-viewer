@@ -27,6 +27,8 @@ function VideoRecorder(props: VideoRecorderViewProps) {
   const { t } = useTranslation();
   const viewerState = useModelContext().viewerState;
   const { gl } = useThree();
+  const curState = useModelContext();
+  
   const ffmpegRef = useRef(new FFmpeg());
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 

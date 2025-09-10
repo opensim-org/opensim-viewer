@@ -7,16 +7,19 @@ import './FloatingControlsPanel.css';
 import InfoIcon from '@mui/icons-material/Info';
 import ZoomOutTwoToneIcon from '@mui/icons-material/ZoomOutTwoTone';
 import ZoomInTwoToneIcon from '@mui/icons-material/ZoomInTwoTone';
-import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone';
+import FitScreenTwoToneIcon from '@mui/icons-material/FitScreenTwoTone';
+import AddAPhotoTwoToneIcon from '@mui/icons-material/AddAPhotoTwoTone';
 import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
 import { useModelContext } from '../../state/ModelUIStateContext';
-
+import SnapShotModal from './SnapShotModal';
+import { ToggleButton } from '@mui/material';
 import { ModelInfo } from '../../state/ModelUIState';
 
 interface FloatingControlsPanelProps {
   videoRecorderRef: any;
   info: ModelInfo;
   top: string;
+  left: string;
 }
 
 function FloatingControlsPanel(props :FloatingControlsPanelProps) {
@@ -32,11 +35,11 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
   };
 
   return (
-    <div className="floating-buttons-container" style={{top: props.top}}>
+    <div className="floating-buttons-container" style={{top: props.top, left: props.left,}}>
 
       <Grid container spacing={-4} direction="column">
         <Grid item xs={6}>
-          <Tooltip title={t('bottomBar.zoomIn')}>
+          <Tooltip title={t('bottomBar.zoomIn')} placement="right">
             <IconButton color="primary" onClick={() => {
               curState.setZoomFactor(1.1);
               curState.setZooming(true)}}>
@@ -46,7 +49,7 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
         </Grid>
 
         <Grid item xs={6}>
-          <Tooltip title={t('bottomBar.zoomOut')}>
+          <Tooltip title={t('bottomBar.zoomOut')} placement="right">
             <IconButton color="primary" onClick={() => {
               curState.setZoomFactor(0.9);
               curState.setZooming(true)}}>
@@ -56,16 +59,20 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
         </Grid>
 
         <Grid item xs={6}>
-          <Tooltip title={t('bottomBar.snapshoot')}>
+          <Tooltip title={t('bottomBar.fit')} placement="right">
             <IconButton color="primary" onClick={() => {
-              curState.setTakeSnapshot();}}>
-                <PhotoCameraTwoToneIcon />
+              viewerState.handleKey('F')}}>
+                <FitScreenTwoToneIcon />
             </IconButton>
           </Tooltip>
         </Grid>
 
         <Grid item xs={6}>
-          <Tooltip title={t('bottomBar.record')}>
+            <SnapShotModal open={false}/>
+        </Grid>
+
+        <Grid item xs={6}>
+          <Tooltip title={t('bottomBar.record')} placement="right">
             <IconButton
               color={!viewerState.isRecordingVideo && !viewerState.isProcessingVideo ? "primary" : (viewerState.isProcessingVideo ? "warning" : "error")}
               disabled={viewerState.isProcessingVideo}
@@ -81,7 +88,7 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
         </Grid>
 
         <Grid item xs={6}>
-          <Tooltip title={t('floatingButton.model_info')}>
+          <Tooltip title={t('floatingButton.model_info')} placement="right">
               <IconButton
                 color="primary"
                 onClick={handleButtonClick}>
@@ -89,6 +96,7 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
               </IconButton>
           </Tooltip>
         </Grid>
+
       </Grid>
 
       {isWindowOpen &&

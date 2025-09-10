@@ -15,7 +15,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ isLoggedIn }) => {
     const viewerState = useModelContext().viewerState;
     
     const navigate = useNavigate();
-
+    const curState = useModelContext();
+    
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState<string | null>('');
@@ -24,7 +25,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ isLoggedIn }) => {
         try {
             // If not logged in, log in using Amplify Auth.
             await Auth.signIn(username, password);
-            viewerState.setIsLoggedIn(true);
+            curState.viewerState.setIsLoggedIn(true);
 
             // Go to home.
             navigate('/');

@@ -4,8 +4,6 @@ import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
 import Link from '@mui/material/Link';
-import logo_dark from './logo-dark.svg';
-import logo from './logo.svg';
 import LoginIcon from '@mui/icons-material/Login';
 import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -24,6 +22,9 @@ import Hidden from '@mui/material/Hidden';
 import { Auth } from 'aws-amplify';
 import { useModelContext } from '../../state/ModelUIStateContext';
 
+import logo_dark from './logo-dark.svg';
+import logo from './logo.svg';
+
 interface OpenSimAppBarProps {
   dark: boolean;
   isLoggedIn: boolean;
@@ -33,14 +34,15 @@ interface OpenSimAppBarProps {
 
 const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn, isFullScreen, toggleFullscreen }) => {
   const { t } = useTranslation();
-  const viewerState = useModelContext().viewerState;
+  const curState = useModelContext();
+  const viewerState = curState.viewerState;
   
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const toggleDrawer = () => {
     setIsDrawerOpen(!isDrawerOpen);
   };
-
+/*
   useEffect(() => {
     const checkIsUserLoggedIn = async () => {
       try {
@@ -57,7 +59,7 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn, isFullS
 
     checkIsUserLoggedIn();
   }, [isLoggedIn, viewerState]);
-
+*/
   const styles = {
     drawer: {
       top: '68px',
@@ -65,7 +67,7 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn, isFullS
       width: 'calc(100% - 60px)',
     }
   };
-  const url = encodeURIComponent(viewerState.currentModelPath);
+  const url = encodeURIComponent(curState.viewerState.currentModelPath);
   console.log(url);
   
   return (
@@ -101,10 +103,10 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn, isFullS
               color="inherit"
               sx={{ ml: 1 }}
               onClick={() => {
-                viewerState.setDark(!viewerState.dark);
+                curState.viewerState.setDark(!curState.viewerState.dark);
               }}
             >
-              {viewerState.dark ? <Brightness4Icon /> : <Brightness7Icon />}
+              {curState.viewerState.dark ? <Brightness4Icon /> : <Brightness7Icon />}
             </IconButton>
           </Tooltip>
 
@@ -135,13 +137,13 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn, isFullS
       <AppBar position="relative" style={{zIndex: 3000}}>
 
         <Toolbar variant="dense" color="inherit">
-          <Link component={NavLink} to="/">
+          {!curState.isGuiMode && <Link component={NavLink} to="/">
             <Box
               component="img"
               sx={{ height: 60 }}
               alt="Logo"
               src={dark ? logo_dark : logo}/>
-          </Link>
+          </Link>}
 
           <Hidden smUp>
             <IconButton
@@ -179,9 +181,9 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn, isFullS
                 color="secondary"
                 sx={{ ml: 1 }}
                 onClick={() => {
-                  viewerState.setDark(!viewerState.dark);
+                  curState.viewerState.setDark(!curState.viewerState.dark);
                 }}>
-                {viewerState.dark ? <Brightness4Icon /> : <Brightness7Icon />}
+                {curState.viewerState.dark ? <Brightness4Icon /> : <Brightness7Icon />}
               </IconButton>
             </Tooltip>
           </Hidden>
