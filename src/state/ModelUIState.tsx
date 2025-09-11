@@ -78,7 +78,7 @@ export class ModelUIState {
         currentModelPathState: string
     ) {
         this.scene = null
-        this.isGuiMode = false
+        this.isGuiMode = true
         this.zooming = false
         this.zoom_inOut = 0.0
         this.takeSnapshot = false

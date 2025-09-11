@@ -62,13 +62,15 @@ function App({ signOut, user }: WithAuthenticatorProps) {
     const urlParams = new URLSearchParams(window.location.search);
     const cssParam = urlParams.get('css'); // Assuming 'css' is the parameter name
 
-    // Set gui mode if parameter is present.
-    if (cssParam === 'gui') {
-      curState.setIsGuiMode(true)
-    } else {
-      curState.setIsGuiMode(false)
+    // Set gui mode if parameter is present unless we already know in gui mode.
+    if (!curState.isGuiMode) {
+      if (cssParam === 'gui') {
+        curState.setIsGuiMode(true)
+      } else {
+        curState.setIsGuiMode(false)
+      }
     }
-  }, [viewerState]);
+  }, [curState, viewerState]);
 
     // On file system we'll have a folder per model containing cached/versioned gltf, possibly .osim file, data files, display 
     // preferences
