@@ -24,7 +24,7 @@ import { observer } from "mobx-react";
 import { MyModelContext } from "../../state/ModelUIStateContext";
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { useParams } from 'react-router-dom';
-
+import OpenSimHtmlLogo from '../Components/OpenSimLogo';  
 import { createTempHelper, removeTempHelper } from '../Components/SceneTree/SceneTreeSortable'
 
 import * as THREE from 'three';
@@ -426,6 +426,7 @@ useEffect(() => {
 
 
           </div>
+          <OpenSimHtmlLogo />
         </Main>
       </Box>
     </MyModelContext.Provider>
