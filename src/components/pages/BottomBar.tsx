@@ -41,7 +41,7 @@ const BottomBar = React.forwardRef(function CustomContent(
     const viewerState = curState.viewerState
     const [speed, setSpeed] = useState(1.0);
     const [play, setPlay] = useState(false);
-    const [selectedAnim, setSelectedAnim] = useState<string | undefined>("");
+    const [selectedAnim, setSelectedAnim] = useState("");
     const isExtraSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('xs'));
     const isSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('sm'));
     const isMediumScreen = useMediaQuery((theme:any) => theme.breakpoints.only('md'));
@@ -52,16 +52,15 @@ const BottomBar = React.forwardRef(function CustomContent(
     const handleAnimationChange = useCallback((animationName: string, animate: boolean) => {
       const targetName = animationName
       setSelectedAnim(animationName);
-      if ( targetName === ""){
-          curState.viewerState.setAnimating(false)
+      if (targetName === "") {
+        // 'None' selected: stop animation and reset index
+        curState.viewerState.setAnimating(false);
+        curState.viewerState.setCurrentAnimationIndex(-1);
+        setPlay(false);
+        return;
       }
-      else {
-          const idx = curState.viewerState.animations.findIndex((value: AnimationClip)=>{return (value.name === targetName)})
-          if (idx !== -1) {
-              curState.viewerState.currentAnimationIndex = idx
-              curState.viewerState.setAnimating(animate)
-          }
-      }
+      const idx = curState.viewerState.animations.findIndex((value: AnimationClip)=>{return (value.name === targetName)});
+      curState.viewerState.setCurrentAnimationIndex(idx);
     }, [curState.viewerState]);
 
     const handleAnimationChangeEvent = (event: SelectChangeEvent) => {
@@ -101,9 +100,6 @@ const BottomBar = React.forwardRef(function CustomContent(
         setSelectedAnim(curState.viewerState.animations[curState.viewerState.currentAnimationIndex].name)
         handleAnimationChange(curState.viewerState.animations[curState.viewerState.currentAnimationIndex].name, false)
       }
-      else if (curState.viewerState.currentAnimationIndex === -1) {
-        setSelectedAnim("");
-      }
     }, [curState.viewerState.animations, curState.viewerState.currentAnimationIndex, handleAnimationChange, selectedAnim]);
 
     return (
@@ -119,9 +115,11 @@ const BottomBar = React.forwardRef(function CustomContent(
               <Select
                 labelId="simple-select-standard-label"
                 label={t('visualizationControl.animate')}
-                value={selectedAnim?.toString()}
+                value={selectedAnim}
                 onChange={handleAnimationChangeEvent}
+                displayEmpty
                 disabled={curState.viewerState.animations.length < 1}>
+                  <MenuItem value="">None</MenuItem>
                   {curState.viewerState.animations.map(anim => (
                     <MenuItem key={anim.name} value={anim.name}>
                       {anim.name}
