@@ -4,6 +4,7 @@ import SceneTreeItem from './SceneTreeItem';
 import SceneTreeModel, { TreeNode } from '../../helpers/SceneTreeModel';
 import { observer } from 'mobx-react';
 import { useModelContext } from '../../state/ModelUIStateContext';
+import { Group } from 'three';
 
 function MinusSquare(props: SvgIconProps) {
     return (
@@ -52,7 +53,7 @@ const SceneTreeView  = ()  => {
     const sTree = curState.sceneTree
     if (sTree === null && curState.scene !== null) {
       // console.log(curState.scene);
-      curState.setSceneTree(new SceneTreeModel(curState.scene!));
+      curState.setSceneTree(new SceneTreeModel(curState.scene! as Group));
     }
     const meshesNode = (sTree === null)? null: sTree.rootNode?.children[0]
     const meshesArray = (sTree === null)? null: meshesNode?.children;

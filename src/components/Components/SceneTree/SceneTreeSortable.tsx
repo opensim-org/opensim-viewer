@@ -20,6 +20,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ViewInAr from '@mui/icons-material/ViewInAr';
+import PanoramaIcon from '@mui/icons-material/Panorama';
 
 import { convertSceneToTree, mergeTreeWithScene } from '../../../helpers/sceneToTree';
 import { useModelContext } from '../../../state/ModelUIStateContext';
@@ -35,6 +36,7 @@ import { DirectionalLightHelper,
   CameraHelper,
   Object3D
 } from 'three';
+import { observer } from 'mobx-react';
 
 const PANEL_WIDTH = 300;
 
@@ -42,7 +44,6 @@ interface SceneTreeSortableProps {
   scene: THREE.Scene | null;
   camera: THREE.Camera | null;
   height: string;
-  sceneVersion?: number;
   onAddCameraClick?: (node: any) => void;
   onAddLightClick?: (node: any) => void;
   setTransformTargetFunction?: (func: any) => void;
@@ -57,6 +58,7 @@ export interface SceneTreeSortableHandle {
 }
 
 const iconMap: Record<string, JSX.Element> = {
+  scene: <PanoramaIcon />,
   model: <PersonIcon />,
   group: <FolderIcon />,
   camera: <CameraAltIcon />,
@@ -64,6 +66,7 @@ const iconMap: Record<string, JSX.Element> = {
   axes: <ThreeDRotationIcon />,
   skySphere: <PublicIcon />,
   floor: <GridOnIcon />,
+  body: <PersonIcon />,
   unknown: <HelpOutlineIcon />,
   addCameraButton: <> </>,
   addLightButton: <> </>,
@@ -129,7 +132,6 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
       scene,
       camera,
       height,
-      sceneVersion,
       onAddCameraClick,
       onAddLightClick,
       setTransformTargetFunction,
@@ -141,14 +143,13 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
     const uiState = useModelContext();
 
     const [treeData, setTreeData] = useState<any[]>([]);
-    const [isOpen, setIsOpen] = useState(true);
+    const [isOpen, setIsOpen] = useState(false);
     const [selectedPath, setSelectedPath] = useState<number[] | null>(null);
     const [settingsNode, setSettingsNode] = useState<any>(null);
     const [updateNodeFn, setUpdateNodeFn] = useState<((n: any) => void) | null>(null);
 
     const [contextMenu, setContextMenu] = useState<{ mouseX: number; mouseY: number; node: any; path: number[] } | null>(null);
     const [nodeToDelete, setNodeToDelete] = useState<{ node: any; path: number[] } | null>(null);
-
     const outerDivRef = useRef<HTMLDivElement>(null);
 
     const typesNotModifiable = ['skySphere', 'floor', 'axes', 'group', 'model', 'modelComponent'];
@@ -171,7 +172,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
       } else {
         setTreeData((old) => mergeTreeWithScene(old, null));
       }
-    }, [scene, camera, sceneVersion]);
+    }, [scene, camera, uiState.viewerState.sceneVersion]);
 
     const handleSettingsClick = (node: any, path: number[]) => {
       setSettingsNode(node);
@@ -202,7 +203,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
         ref={outerDivRef}
         style={{
           position: 'absolute',
-          top: 0,
+          top: uiState.isGuiMode ? '-66px' : '0px',
           right: 0,
           height,
           display: 'flex',
@@ -340,7 +341,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                     title: (
                       <span style={{ marginLeft: 10, display: 'inline-flex', alignItems: 'center' }}>
                         {node.title}
-                        {node.subtitle && node.subtitle !== 'Group' && ` (${node.subtitle})`}
+                        {/* {node.subtitle && node.subtitle !== 'Group' && ` (${node.subtitle})`} */}
 
                         {node.object3D && node.type !== 'Group' && node.title !== 'Scene' && (
                           <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleVisibilityToggle(node); }} style={{ marginLeft: 8 }}>
@@ -471,4 +472,4 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
   }
 );
 
-export default SceneTreeSortable;
+export default observer(SceneTreeSortable);

@@ -8,11 +8,9 @@ import {
   GizmoHelper,
   GizmoViewport,
 } from "@react-three/drei";
-import OpenSimControl from "../Components/OpenSimControl";
-import { Suspense } from "react";
+import OpenSimControl, { OpenSimControlHandle } from '../Components/OpenSimControl';
 import BottomBar from "../pages/BottomBar";
 import FloatingControlsPanel from '../Components/FloatingControlsPanel';
-
 import CameraPreview from "../Components/CameraPreview"
 import AddCameraDialog from "../Components/Dialogs/AddCameraDialog"
 import AddLightDialog from "../Components/Dialogs/AddLightDialog"
@@ -20,14 +18,15 @@ import SceneTreeBridge from "../Components/SceneTree/SceneTreeBridge"
 import SceneTreeSortable, { SceneTreeSortableHandle } from "../Components/SceneTree/SceneTreeSortable"
 import DrawerMenu from "../Components/DrawerMenu";
 import OpenSimScene from "../Components/OpenSimScene";
-import { ModelUIState } from "../../state/ModelUIState";
+import OpenSimGUIScene from "../Components/OpenSimGUIScene";
+import { ModelInfo, ModelUIState } from "../../state/ModelUIState";
 import { observer } from "mobx-react";
 import { MyModelContext } from "../../state/ModelUIStateContext";
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { useParams } from 'react-router-dom';
-
 import { CircularProgress } from "@mui/material";
-
+import OpenSimHtmlLogo from '../Components/OpenSimLogo';  
+        
 import { createTempHelper, removeTempHelper } from '../Components/SceneTree/SceneTreeSortable'
 
 import * as THREE from 'three';
@@ -35,17 +34,14 @@ import * as THREE from 'three';
 import {
   DirectionalLight,
   SpotLight,
-  PointLight,
-  Camera,
-  PerspectiveCamera,
-  OrthographicCamera} from 'three';
+  PointLight} from 'three';
 
 import VideoRecorder from "../Components/VideoRecorder"
-import { ModelInfo } from '../../state/ModelUIState';
 
 // import GUI from 'lil-gui';
 import { Color} from 'three';
 import { TransformControls } from "@react-three/drei";
+
 
 import TranslateIcon from '@mui/icons-material/OpenWith';
 import RotateIcon from '@mui/icons-material/RotateRight';
@@ -77,43 +73,14 @@ export const addNewCamera = (
   name: string = 'NewCamera',
   type: 'PerspectiveCamera' | 'OrthographicCamera' = 'PerspectiveCamera',
   uiState: ModelUIState,
+  control: OpenSimControlHandle,
   parent: any,
   scene: THREE.Scene | null,
   onSceneUpdated: () => void
 ): THREE.Camera => {
-  let camera: Camera;
-
-  if (type === 'PerspectiveCamera') {
-    const aspect = 800 / 600; // You may want to make this dynamic
-    camera = new PerspectiveCamera(50, aspect, 0.1, 100);
-
-    camera.name = name;
-    camera.position.set(0, 1, 2);
-    (camera as PerspectiveCamera).updateProjectionMatrix();
-  } else {
-    // Orthographic frustum (left, right, top, bottom, near, far)
-    const frustumSize = 2;
-    const aspect = 800 / 600; // Or get this from your renderer/canvas
-    const width = frustumSize * aspect;
-    const height = frustumSize;
-
-    camera = new OrthographicCamera(
-      -width / 2,
-      width / 2,
-      height / 2,
-      -height / 2,
-      0.1,
-      50
-    );
-
-    camera.name = name;
-    camera.position.set(0, 1, 2);
-    (camera as OrthographicCamera).updateProjectionMatrix();
-  }
-  parent?.object3D?.add(camera);
-
-  uiState.setCamerasList([...uiState.cameras, camera]);
+  const camera = control.addCamera(name, parent);
   uiState.setSelected(camera.uuid);
+  parent?.object3D?.add(camera);
 
   // Remove previous helper and create current.
   removeTempHelper(scene)
@@ -183,7 +150,6 @@ interface ViewerProps {
 export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const bottomBarRef = useRef<HTMLDivElement>(null);
   const videoRecorderRef = useRef(null);
-  const coloRef = useRef<Color>(null)
   // TODO: Move to a general styles file?
   const leftMenuWidth = 60;
   const drawerContentWidth = 250;
@@ -192,10 +158,9 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 
   const [addLightDialogOpen, setAddLightDialogOpen] = useState(false);
 
-  const [sceneVersion, setSceneVersion] = useState(0);
-
   const treeRef = useRef<SceneTreeSortableHandle>(null);
   const [treeWidth, setTreeWidth] = useState(0);
+  const openSimControlsRef = useRef<OpenSimControlHandle>(null);
 
   useLayoutEffect(() => {
     const el = treeRef.current?.getWidth ? treeRef.current : null;
@@ -222,13 +187,28 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const [canvasHeight, setCanvasHeight] = useState("calc(100vh - 68px - " + heightBottomBar + "px)");
   const [canvasLeft, setCanvasLeft] = useState(leftMenuWidth + (menuOpen ? drawerContentWidth : 0));
   const [floatingButtonsContainerTop, setFloatingButtonsContainerTop] = useState("80px");
-  const [bgndColor, setBgndColor] = useState<Color>(new Color(0.7, 0.7, 0.7));
+  const [floatingButtonsContainerLeft, setFloatingButtonsContainerLeft] = useState("80px");
+  const [, setBgndColor] = useState<Color>(new Color(0.7, 0.7, 0.7));
 
   const [scene, setScene] = useState<THREE.Scene | null>(null);
   const [camera, setCamera] = useState<THREE.Camera | null>(null);
-  const [transformTarget, setTransformTarget] = useState<THREE.Object3D | null>(null);
+  const [transformTarget, setTransformTargetInternal] = useState<THREE.Object3D | null>(null);
   const [transformMode, setTransformMode] = useState<'translate' | 'rotate'>('translate');
 
+  function isImmovableObject(name: string){
+    return name==="Ground" || name.startsWith("Body");
+  }
+  function setTransformTarget(customTarget: THREE.Object3D | null) {
+    if (customTarget !== null &&
+      customTarget.userData !== undefined &&
+      ((customTarget.userData.name !== undefined && isImmovableObject(customTarget.userData.name)) ||
+        customTarget.userData.opensimType === "Ground" || customTarget.userData.opensimType === "Frame")
+    ) {
+      setTransformTargetInternal(null)
+      return;
+    }
+    setTransformTargetInternal(customTarget)
+  }
   useEffect(() => {
     if (bottomBarRef.current) {
       const heightBottomBar = bottomBarRef.current.offsetHeight;
@@ -240,15 +220,35 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 
   React.useEffect(() => {
     // Change interface if we are in GUI mode.
-    if (uiState.viewerState.isGuiMode) {
+    if (uiState.isGuiMode) {
       setDisplaySideBar('none');
       setCanvasWidth('100%');
       setCanvasHeight('calc(100vh - 68px)');
       setCanvasLeft(0);
       setFloatingButtonsContainerTop("12px")
+      setFloatingButtonsContainerLeft("12px")
     }
     setBgndColor(uiState.viewerState.backgroundColor);
-  }, [uiState.viewerState.backgroundColor, uiState.viewerState.isGuiMode]);
+  }, [uiState.viewerState.backgroundColor, uiState.isGuiMode]);
+
+useEffect(() => {
+    // Create fresh WebSocket
+    if (uiState.isGuiMode) {
+      const socket = new WebSocket('ws://127.0.0.1:8002/visEndpoint');
+      socket.onopen = () => { uiState.setSocketHandle(socket); console.log("socket opened");}
+      socket.onmessage = function(evt) {
+      //   //console.log(evt.data)
+        uiState.handleSocketMessage(evt.data);
+      };
+      socket.onerror = function(evt) {
+        uiState.isGuiMode = false;
+      }
+      // Implement your WebSocket logic here
+      return () => {
+        //socket.disconnect();
+      };
+    }
+  }, [uiState]);
 
   React.useEffect(() => {
     // Load user preferences
@@ -256,37 +256,14 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     viewerState.setUserPreferencesJsonPath('/user-preferences.json')
     viewerState.loadUserPreferences()
 
-//    const gui = new GUI()
-//    gui.domElement.style.marginTop = '66px';
-//    gui.domElement.style.marginRight = '-15px';
-//    const sceneFolder = gui.addFolder("Scene");
-//    sceneFolder.addColor(viewerState, 'backgroundColor').onChange(
-//      function(v: any){viewerState.setBackgroundColor(v); coloRef.current?.copy(v);}
-//    );
-//    const floorFolder = gui.addFolder("Floor");
-//    floorFolder.add(viewerState, 'floorHeight', -2, 2, .01).name("Height")
-//    floorFolder.add(viewerState, 'floorVisible')
-//    floorFolder.add(viewerState, 'floorTextureFile', { 'tile':0, 'wood-floor':1, 'Cobblestone':2, 'textureStone':3, 'grassy':4}).name("Texture").onChange(
-//      function(v: any){viewerState.setFloorTextureIndex(v)}
-//    );
-//    const lightFolder = gui.addFolder("Lights");
-//    lightFolder.add(viewerState, 'lightIntensity', 0, 2, .05).name("Intensity")
-//    lightFolder.addColor(viewerState, 'lightColor').name("Color")
-//    lightFolder.add(viewerState, 'spotLight')
-//    return () => {
-//        gui.destroy()
-//      }
   }, [uiState.viewerState]);
 
   if (urlParam!== undefined) {
     var decodedUrl = decodeURIComponent(urlParam);
     uiState.viewerState.setCurrentModelPath(decodedUrl);
-    curState.setCurrentModelPath(uiState.viewerState.currentModelPath);
     // If urlParam is not undefined, this means it is getting the model from S3 and not from local.
     uiState.viewerState.setIsLocalUpload(false);
   }
-  else
-    curState.setCurrentModelPath(uiState.viewerState.currentModelPath);
 
   function toggleOpenMenu(name: string = "") {
     // If same name, or empty just toggle.
@@ -302,6 +279,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
       <Box component="div" sx={{ display: "flex" }}>
         <CssBaseline />
         <Main>
+          {!uiState.isGuiMode &&
           <div id="opensim-modelview-sidebar" style={{display: displaySideBar}}>
             <DrawerMenu
               menuOpen={menuOpen}
@@ -312,31 +290,26 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
               drawerContentWidth={drawerContentWidth}
             />
           </div>
+          }
           <div id="canvas-container">
-
-            <Suspense fallback={
-                // This fallback allows showing a loading indicator while the canvas is loading.
-                // disableShrink ensures a fix length of the loading indicator, as loading a canvas is CPU intensive
-                // and can affect how the indicator is shown.
-                <div
-                  style={{
-                    width: canvasWidth,
-                    height: canvasHeight,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <CircularProgress size={200} color={"primary"} disableShrink />
-                </div>
-              }>
+              <div
+                style={{
+                  width: canvasWidth,
+                  height: canvasHeight,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}>
+                <CircularProgress size={200} color={"primary"} disableShrink />
+              </div>
               <FloatingControlsPanel
                 videoRecorderRef={videoRecorderRef}
                 info={new ModelInfo(uiState.modelInfo.model_name, uiState.modelInfo.desc, uiState.modelInfo.authors)}
-                top={floatingButtonsContainerTop}/>
+                top={floatingButtonsContainerTop}
+                left={floatingButtonsContainerLeft}/>
               <Canvas
                 id="canvas-element"
-                gl={{ preserveDrawingBuffer: true }}
+                gl={{ alpha: true, autoClearColor: true, preserveDrawingBuffer: true }}
                 shadows="soft"
                 style={{
                   width: canvasWidth,
@@ -344,28 +317,24 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   left: canvasLeft,
                   transition: "left 0.1s ease",
                 }}
-                camera={{ position: [1500, 2000, 1000], fov: 75, far: 10000 }}
+                camera={{ position: [.2, .1, .2], fov: 50 }}
               >
+              <Environment files="/assets/potsdamer_platz_1k.hdr"/>
               <SceneTreeBridge onSceneReady={setScene} onCameraReady={setCamera} />
               <fog attach="fog" color="lightgray" near={1} far={10000} />
-
-                <color  ref={coloRef}
-                  attach="background" args={[bgndColor.r, bgndColor.g, bgndColor.b]}
-                  // args={
-                  //   theme.palette.mode === "dark" ? ["#151518"] : ["#cccccc"]
-                  // }
-                />
-
-                <OpenSimScene
+                {curState.isGuiMode ?
+                  <OpenSimGUIScene
+                    currentModelPath={uiState.viewerState.currentModelPath}
+                    supportControls={true}
+                  />
+                : <OpenSimScene
                   currentModelPath={uiState.viewerState.currentModelPath}
                   supportControls={true}
-                />
-                <Environment files="/assets/potsdamer_platz_1k.hdr" />
-
+                />}
                 <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
-                  <GizmoViewport labelColor="white" axisHeadScale={1} />
+                  <GizmoViewport labelColor="white" />
                 </GizmoHelper>
-                <OpenSimControl/>
+                <OpenSimControl ref={openSimControlsRef}/>
                 <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
                 {transformTarget && (
@@ -412,7 +381,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 open={addCameraDialogOpen}
                 onClose={() => setAddCameraDialogOpen(false)}
                 onAddCamera={(name:any, type:any) => {
-                  const newCam = addNewCamera(name, type, uiState, treeRef.current?.selectedNode() ?? null, scene, () => setSceneVersion(v => v + 1));
+                  const newCam = addNewCamera(name, type, uiState, openSimControlsRef.current!, treeRef.current?.selectedNode() ?? null, scene, () => {uiState.viewerState.sceneVersion++});
                   setTransformTarget(newCam);
                 }}
                 scene={scene}
@@ -424,7 +393,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 open={addLightDialogOpen}
                 onClose={() => setAddLightDialogOpen(false)}
                 onAddLight={(name:any, type:any) => {
-                    const newLight = addNewLight(name, type, uiState, treeRef.current?.selectedNode() ?? null, scene, () => setSceneVersion(v => v + 1));
+                    const newLight = addNewLight(name, type, uiState, treeRef.current?.selectedNode() ?? null, scene, () => {uiState.viewerState.sceneVersion++});
                     setTransformTarget(newLight);
                 }}
                 scene={scene}
@@ -435,8 +404,8 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
               <BottomBar
                 ref={bottomBarRef}
                 animationPlaySpeed={1.0}
-                animating={uiState.animating}
-                animationList={uiState.animations}/>
+                animating={uiState.viewerState.animating}
+                animationList={uiState.viewerState.animations}/>
 
               {scene && camera && (
                 <div
@@ -455,7 +424,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                     <SceneTreeSortable
                       ref={treeRef}
                       scene={scene}
-                      sceneVersion={sceneVersion}
                       camera={camera}
                       /* let it stretch to parent height */
                       height="100%"
@@ -468,8 +436,9 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                 </div>
               )}
 
-            </Suspense>
+
           </div>
+          <OpenSimHtmlLogo />
         </Main>
       </Box>
     </MyModelContext.Provider>

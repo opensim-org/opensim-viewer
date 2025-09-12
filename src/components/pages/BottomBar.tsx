@@ -1,4 +1,4 @@
-import { Grid, Container, IconButton, ToggleButton, FormControl, Slider, SelectChangeEvent, Input, MenuItem, Select } from '@mui/material';
+import { Grid, Container, IconButton, ToggleButton, FormControl, Slider, SelectChangeEvent, Input, MenuItem, Select, Divider } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useState, useEffect } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -7,13 +7,13 @@ import PauseCircleTwoToneIcon from '@mui/icons-material/PauseCircleTwoTone';
 import PlayCircleTwoToneIcon from '@mui/icons-material/PlayCircleTwoTone';
 import Tooltip from '@mui/material/Tooltip';
 import { observer } from 'mobx-react'
-import { AnimationClip } from 'three';
+import { AnimationClip} from 'three';
 import { useTranslation } from 'react-i18next';
 import { useModelContext } from '../../state/ModelUIStateContext';
-import { Camera } from 'three/src/cameras/Camera'
 import React, { useCallback, useRef } from 'react';
+import CameraPanel from './CameraPanel';
 
-const NonAnimatedSlider = styled(Slider)(({ theme } : {theme:any}) => ({
+const NonAnimatedSlider = styled(Slider)(() => ({
   "& .MuiSlider-thumb": {
     transition: 'none'
   },
@@ -30,6 +30,7 @@ interface BottomBarProps {
   animationBounds?: number[];
 }
 
+
 const BottomBar = React.forwardRef(function CustomContent(
     props: BottomBarProps,
     ref,
@@ -37,11 +38,10 @@ const BottomBar = React.forwardRef(function CustomContent(
     const bottomBarRef = useRef(null);
     const { t } = useTranslation();
     const curState = useModelContext();
+    const viewerState = curState.viewerState
     const [speed, setSpeed] = useState(1.0);
     const [play, setPlay] = useState(false);
-    const [selectedAnim, setSelectedAnim] = useState<string | undefined>("");
-    const [selectedCam, setSelectedCam] = useState<string | undefined>("");
-
+    const [selectedAnim, setSelectedAnim] = useState("");
     const isExtraSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('xs'));
     const isSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('sm'));
     const isMediumScreen = useMediaQuery((theme:any) => theme.breakpoints.only('md'));
@@ -49,53 +49,32 @@ const BottomBar = React.forwardRef(function CustomContent(
     const minWidthSlider = isExtraSmallScreen ? 150 : isSmallScreen ? 175 : isMediumScreen ? 250 : 300; // Adjust values as needed
     const maxWidthTime = 45;
 
-
     const handleAnimationChange = useCallback((animationName: string, animate: boolean) => {
       const targetName = animationName
       setSelectedAnim(animationName);
-      if ( targetName === ""){
-          curState.setAnimating(false)
+      if (targetName === "") {
+        // 'None' selected: stop animation and reset index
+        curState.viewerState.setAnimating(false);
+        curState.viewerState.setCurrentAnimationIndex(-1);
+        setPlay(false);
+        return;
       }
-      else {
-          const idx = curState.animations.findIndex((value: AnimationClip, index: number)=>{return (value.name === targetName)})
-          if (idx !== -1) {
-              curState.currentAnimationIndex = idx
-              curState.setAnimating(animate)
-          }
-      }
-      //setAge(event.target.value as string);
-    }, [curState]);
-
-    const handleCameraChange = useCallback((cameraName: string) => {
-      const targetName = cameraName
-      setSelectedCam(cameraName);
-
-        const idx = curState.cameras.findIndex((value: Camera, index: number)=>{return (value.name === targetName)})
-        if (idx !== -1) {
-            curState.setCurrentCameraIndex(idx)
-        }
-
-      curState.setCurrentFrame(0);
-      //setAge(event.target.value as string);
-    }, [curState]);
+      const idx = curState.viewerState.animations.findIndex((value: AnimationClip)=>{return (value.name === targetName)});
+      curState.viewerState.setCurrentAnimationIndex(idx);
+    }, [curState.viewerState]);
 
     const handleAnimationChangeEvent = (event: SelectChangeEvent) => {
       const targetName = event.target.value as string
       handleAnimationChange(targetName, true)
     };
 
-    const handleCameraChangeEvent = (event: SelectChangeEvent) => {
-      const targetName = event.target.value as string
-      handleCameraChange(targetName)
-    };
-
     function togglePlayAnimation() {
-        curState.setAnimating(!curState.animating);
+        curState.viewerState.setAnimating(!curState.viewerState.animating);
         setPlay(!play);
     }
 
     function handleSpeedChange(event: SelectChangeEvent) {
-        curState.setAnimationSpeed(Number(event.target.value));
+        curState.viewerState.setAnimationSpeed(Number(event.target.value));
         setSpeed(Number(event.target.value))
     }
 
@@ -116,34 +95,32 @@ const BottomBar = React.forwardRef(function CustomContent(
     };
 
     useEffect(() => {
-      if (curState.animations.length > 0) {
-        setSelectedAnim(curState.animations[0].name)
-        handleAnimationChange(curState.animations[0].name, false)
-      }
-    }, [curState.animations, handleAnimationChange]);
 
-    useEffect(() => {
-      if (curState.cameras.length > 0) {
-        setSelectedCam(curState.cameras[0].name)
-        handleCameraChange(curState.cameras[0].name)
+      if (curState.viewerState.animations.length > 0 && curState.viewerState.currentAnimationIndex !== -1) {
+        setSelectedAnim(curState.viewerState.animations[curState.viewerState.currentAnimationIndex].name)
+        handleAnimationChange(curState.viewerState.animations[curState.viewerState.currentAnimationIndex].name, false)
       }
-    }, [curState.cameras, handleCameraChange]);
+    }, [curState.viewerState.animations, curState.viewerState.currentAnimationIndex, handleAnimationChange, selectedAnim]);
 
     return (
       <Container ref={(ref as any) || bottomBarRef}>
-
         <Grid container spacing={1} justifyContent="center">
-
-          { curState.animations.length < 1 ? null : (
-          <Grid item>
+          <Grid item sx={{ mt: 1 }}>
+            <CameraPanel uState={curState} />
+          </Grid>
+          <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+          { curState.viewerState.animations.length < 1 ? null : (
+          <Grid item sx={{ mt: 1 }}>
             <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
               <Select
                 labelId="simple-select-standard-label"
                 label={t('visualizationControl.animate')}
-                value={selectedAnim?.toString()}
+                value={selectedAnim}
                 onChange={handleAnimationChangeEvent}
-                disabled={curState.animations.length < 1}>
-                  {curState.animations.map(anim => (
+                displayEmpty
+                disabled={curState.viewerState.animations.length < 1}>
+                  <MenuItem value="">None</MenuItem>
+                  {curState.viewerState.animations.map(anim => (
                     <MenuItem key={anim.name} value={anim.name}>
                       {anim.name}
                     </MenuItem>
@@ -153,57 +130,41 @@ const BottomBar = React.forwardRef(function CustomContent(
           </Grid>
           )}
 
-          { curState.cameras.length < 1 ? null : (
-          <Grid item>
-            <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
-              <Select
-                labelId="simple-select-standard-label"
-                label={t('visualizationControl.camera')}
-                value={selectedCam?.toString()}
-                onChange={handleCameraChangeEvent}
-                disabled={curState.cameras.length < 1}>
-                  {curState.cameras.map(cam => (
-                    <MenuItem key={cam.name} value={cam.name}>
-                      {cam.name}
-                    </MenuItem>
-                  ))}
-                visibility={false}
-              </Select>
-            </FormControl>
-          </Grid>
-          )}
-
-          <Grid item>
-            <FormControl margin="dense" size="small" variant="standard">
-              <Select
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
-                value={speed.toString()}
-                label={t('visualizationControl.speed')}
-                onChange={handleSpeedChange}
-                disabled={curState.animations.length < 1}>
-                  <MenuItem value={0.25}>0.25</MenuItem>
-                  <MenuItem value={0.5}>0.5</MenuItem>
-                  <MenuItem value={1.0}>1.0</MenuItem>
-                  <MenuItem value={2.0}>2.0</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-
-          <Grid item>
+          {// Control Speed only through the GUI
+            <Grid item sx={{ mt: 1 }}>
+              <FormControl margin="dense" size="small" variant="standard">
+                <Select
+                  labelId="demo-simple-select-label"
+                  id="demo-simple-select"
+                  value={speed.toString()}
+                  label={t('visualizationControl.speed')}
+                  onChange={handleSpeedChange}
+                  disabled={curState.viewerState.animations.length < 1}>
+                    <MenuItem value={0.01}>0.01</MenuItem>
+                    <MenuItem value={0.1}>0.1</MenuItem>
+                    <MenuItem value={0.2}>0.2</MenuItem>
+                    <MenuItem value={0.3}>0.3</MenuItem>
+                    <MenuItem value={0.4}>0.4</MenuItem>
+                    <MenuItem value={0.5}>0.5</MenuItem>
+                    <MenuItem value={1.0}>1.0</MenuItem>
+                    <MenuItem value={2.0}>2.0</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          }
+          <Grid item sx={{ mt: 1 }}>
             <FormControl margin="dense" size="small" variant="standard">
               <IconButton
                 size="small"
                 color="primary"
                 value={'Animation'}
-                disabled={curState.animations.length < 1}
+                disabled={curState.viewerState.animations.length < 1 || curState.isGUIAnimating}
                 onClick={togglePlayAnimation}>
                   {play?<PauseCircleTwoToneIcon/>:<PlayCircleTwoToneIcon/>}
               </IconButton>
             </FormControl>
           </Grid>
-
-          <Grid item>
+          <Grid item sx={{ mt: 1 }}>
             <FormControl margin="dense" size="small" sx={{minWidth: minWidthSlider}}>
               <NonAnimatedSlider
                 defaultValue={50}
@@ -211,11 +172,12 @@ const BottomBar = React.forwardRef(function CustomContent(
                 aria-label="Default"
                 valueLabelDisplay="auto"
                 onChange={handleSliderChange}
-                disabled={curState.animations.length < 1}/>
+                disabled={curState.viewerState.animations.length < 1}/>
             </FormControl>
           </Grid>
-
-          <Grid item>
+          {/// frame number
+          }
+          <Grid item sx={{ mt: 1 }}>
             <FormControl margin="dense" size="small" variant="filled">
               <Input
                 sx={{maxWidth: maxWidthTime}}
@@ -229,24 +191,23 @@ const BottomBar = React.forwardRef(function CustomContent(
                   max: 100,
                   type: 'number',
                   'aria-labelledby': 'input-slider'}}
-                disabled={curState.animations.length < 1}/>
+                disabled={curState.viewerState.animations.length < 1}/>
             </FormControl>
           </Grid>
-
-          <Grid item>
+          {curState.getGuiMode()?"":
+          <Grid item sx={{ mt: 1 }}>
             <Tooltip title={t('bottomBar.autoRotate')}>
               <ToggleButton
                 color="primary"
-                selected={curState.rotating}
+                selected={viewerState.rotating}
                 value={'Rotate'}
-                onClick={() => curState.setRotating(!curState.rotating)}>
+                onClick={() => viewerState.setRotating(!viewerState.rotating)}>
                   <ThreeSixtyTwoToneIcon />
               </ToggleButton>
             </Tooltip>
           </Grid>
+        }
         </Grid>
-
-
       </Container>
     )
 });
