@@ -292,6 +292,7 @@ useEffect(() => {
           </div>
           }
           <div id="canvas-container">
+              { /*
               <div
                 style={{
                   width: canvasWidth,
@@ -300,8 +301,9 @@ useEffect(() => {
                   alignItems: "center",
                   justifyContent: "center",
                 }}>
-                <CircularProgress size={200} color={"primary"} disableShrink />
+                  <CircularProgress size={200} color={"primary"} disableShrink />
               </div>
+              */ }
               <FloatingControlsPanel
                 videoRecorderRef={videoRecorderRef}
                 info={new ModelInfo(uiState.modelInfo.model_name, uiState.modelInfo.desc, uiState.modelInfo.authors)}
@@ -349,6 +351,7 @@ useEffect(() => {
 
               </Canvas>
 
+              { /*
               <div
                 style={{
                   position: 'absolute',
@@ -376,6 +379,7 @@ useEffect(() => {
                   <RotateIcon />
                 </Button>
               </div>
+              */}
 
               <AddCameraDialog
                 open={addCameraDialogOpen}
