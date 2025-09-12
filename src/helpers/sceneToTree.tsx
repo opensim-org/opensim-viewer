@@ -14,7 +14,26 @@ function determineNodeType(obj: THREE.Object3D): string {
   if (obj.name.includes("Floor")) return "floor";
   if (obj.type.includes("Axes")) return "axes";
   if (obj.type.includes("Camera")) return "camera";
+  if (obj.type === "Object3D" && obj.userData!==undefined && obj.userData.name!==undefined && obj.userData.name === "Model")
+    return "model";
+  if (isModelComponent(obj)) return "modelComponent";
   return "unknown";
+}
+
+// This function traverses an objects parents until it reaches an object called "Model", or null. If it reaches "Model"
+// it returns true. False otherwise.
+function isModelComponent(obj: THREE.Object3D) {
+  let current = obj.parent;
+
+  while (current !== null) {
+    if (current.name === "Scene" ||
+        (current.userData?.name && current.userData.name.startsWith("Scene"))) {
+      return true;
+    }
+    current = current.parent;
+  }
+
+  return false;
 }
 
 function getValidChildren(obj: THREE.Object3D, traverse: any) {
@@ -90,7 +109,7 @@ export function convertSceneToTree(scene: THREE.Scene | null) {
 }
 
 // Given an existing tree and a scene with updated elements, update the tree.
-function mergeTreeWithScene(oldTree: any[], scene: THREE.Scene) {
+function mergeTreeWithScene(oldTree: any[], scene: THREE.Scene | null) {
   const oldMap = new Map<string, any>();
   const collect = (nodes: any[]) => {
     nodes.forEach((n) => {
@@ -140,7 +159,10 @@ function mergeTreeWithScene(oldTree: any[], scene: THREE.Scene) {
     }
   };
 
-  return scene.children.map(traverse).filter(Boolean);
+  if (scene)
+    return scene.children.map(traverse).filter(Boolean);
+  else
+    return []
 }
 
 export { mergeTreeWithScene };

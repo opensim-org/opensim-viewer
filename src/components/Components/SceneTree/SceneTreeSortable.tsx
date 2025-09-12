@@ -19,6 +19,7 @@ import GridOnIcon from '@mui/icons-material/GridOn';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import ViewInAr from '@mui/icons-material/ViewInAr';
 import PanoramaIcon from '@mui/icons-material/Panorama';
 
 import { convertSceneToTree, mergeTreeWithScene } from '../../../helpers/sceneToTree';
@@ -69,6 +70,7 @@ const iconMap: Record<string, JSX.Element> = {
   unknown: <HelpOutlineIcon />,
   addCameraButton: <> </>,
   addLightButton: <> </>,
+  modelComponent: <ViewInAr />
 };
 
 
@@ -150,7 +152,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
     const [nodeToDelete, setNodeToDelete] = useState<{ node: any; path: number[] } | null>(null);
     const outerDivRef = useRef<HTMLDivElement>(null);
 
-    const typesExcludedFromRemove = ['skySphere', 'floor', 'axes', 'group', 'model'];
+    const typesNotModifiable = ['skySphere', 'floor', 'axes', 'group', 'model', 'modelComponent'];
 
 
     useImperativeHandle(ref, () => ({
@@ -165,8 +167,10 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
     }, [isOpen]);
 
     useEffect(() => {
-      if (scene && camera) {
+      if (scene) {
         setTreeData((old) => mergeTreeWithScene(old, scene));
+      } else {
+        setTreeData((old) => mergeTreeWithScene(old, null));
       }
     }, [scene, camera, uiState.viewerState.sceneVersion]);
 
@@ -283,7 +287,12 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                           uiState.setSelected("");
                         }
 
-                        setTransformTargetFunction?.(scene?.getObjectById(node.id));
+                        // Only show transform target if the type is not excluded (e.g., for cameras and lights)
+                        if (!typesNotModifiable.includes(node.nodeType))
+                          setTransformTargetFunction?.(scene?.getObjectById(node.id));
+                        else
+                          setTransformTargetFunction?.(null);
+
                         if (!(node.type === "Group") && !(node.type === "AddButton") && !(node.title === "Model")) {
                           handleSettingsClick(node, path);
                         }
@@ -306,7 +315,12 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                       else
                         uiState.setSelected("")
 
-                      setTransformTargetFunction?.(scene?.getObjectById(node.id));
+                      // Only show transform target if the type is not excluded (e.g., for cameras and lights)
+                      if (!typesNotModifiable.includes(node.nodeType))
+                        setTransformTargetFunction?.(scene?.getObjectById(node.id));
+                      else
+                        setTransformTargetFunction?.(null);
+
                       if (!(node.type === "Group") && !(node.type === "AddButton") && !(node.title === "Model")) {
                         handleSettingsClick(node, path)
                       }
@@ -317,10 +331,11 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                         path,
                       });
 
-
                       // Remove previous helper
                       removeTempHelper(scene)
 
+                      // Create new helper.
+                      createTempHelper(node.object3D, scene)
                     },
                     icons: [icon],
                     title: (
@@ -402,7 +417,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
           </MenuItem>
 
           {/* Conditionally render Remove Node */}
-          {contextMenu && !typesExcludedFromRemove.includes(contextMenu.node.nodeType) && (
+          {contextMenu && !typesNotModifiable.includes(contextMenu.node.nodeType) && (
             <MenuItem
               onClick={() => {
                 setNodeToDelete({ node: contextMenu.node, path: contextMenu.path });
@@ -432,6 +447,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                 // Remove object3D from scene
                 if (node.object3D && node.object3D.parent) {
                   node.object3D.parent.remove(node.object3D);
+                  setTransformTargetFunction?.(null);
                 }
 
                 const newTree = changeNodeAtPath({

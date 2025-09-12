@@ -6,6 +6,8 @@ import { useModelContext } from '../../state/ModelUIStateContext';
 
 import { useFrame, useThree } from '@react-three/fiber'
 
+import { getTimestamp } from "../../helpers/timeHelpers"
+
 import THREE, { Box3, Object3D, PerspectiveCamera, Sphere, Vector2, Vector3 } from 'three';
 
 // OpenSimControl.tsx
@@ -330,7 +332,8 @@ const OpenSimControl = () => {
         }
         else if (curState.takeSnapshot){
             const link = document.createElement('a')
-            link.setAttribute('download', curState.viewerState.snapshotName + "." + curState.viewerState.snapshotFormat)
+            const timestamp = getTimestamp();
+            link.setAttribute('download', curState.viewerState.snapshotName +"_" + timestamp + "." + curState.viewerState.snapshotFormat)
             link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
             link.click()
             curState.takeSnapshot = false;
