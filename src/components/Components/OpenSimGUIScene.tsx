@@ -387,7 +387,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     // By the time we're here the model is guaranteed to be available
     return <>
       <group name='OpenSim Environment' ref={envRef}>
-        <directionalLight name="Directional Light" ref={lightRef} position={[0.5, 1.5, -0.5]}
+        <directionalLight name="Scene Dir Light" ref={lightRef} position={[0.5, 1.5, -0.5]}
           intensity={curState.viewerState.lightIntensity} color={curState.viewerState.lightColor}
           castShadow={true}
           shadow-camera-far={8}
@@ -395,6 +395,8 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           shadow-camera-right={2}
           shadow-camera-top={2}
           shadow-camera-bottom={-2}/>
+        <ambientLight name="Ambient Light" intensity={0.2} color="white"/>
+        <directionalLight name="Dir Light2" position={[0.02, .01, .02]} intensity={1.0} color="gray" castShadow={false}/>
         <OpenSimFloor />
         <group name='WCS' ref={csRef} visible={curState.showGlobalFrame}>
           <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.2]}>

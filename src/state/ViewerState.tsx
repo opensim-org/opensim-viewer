@@ -129,9 +129,9 @@ export class ViewerState {
         this.floorVisible = true
         this.floorRound = false
         this.floorHeight = 0
-        this.sceneLightPosition = new Vector3(0.5, 1.5, -0.5)
+        this.sceneLightPosition = new Vector3(0.1, 1.5, -0.5)
         this.lightIntensity = 0.25
-        this.lightColor = new Color(0.6, 0.6, 0.6)
+        this.lightColor = new Color(1.0, .9, 0.78)
         this.spotLight = false
         this.rotating = false;
         this.pending_key = ""
