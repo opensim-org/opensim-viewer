@@ -154,6 +154,8 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const leftMenuWidth = 60;
   const drawerContentWidth = 250;
 
+  const [canvasLoaded, setCanvasLoaded] = useState(false);
+
   const [addCameraDialogOpen, setAddCameraDialogOpen] = useState(false);
 
   const [addLightDialogOpen, setAddLightDialogOpen] = useState(false);
@@ -292,18 +294,24 @@ useEffect(() => {
           </div>
           }
           <div id="canvas-container">
-              { /*
+            {!canvasLoaded && (
               <div
                 style={{
-                  width: canvasWidth,
-                  height: canvasHeight,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}>
-                  <CircularProgress size={200} color={"primary"} disableShrink />
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'rgba(255, 255, 255, 0.8)', // Optional: semi-transparent background
+                  zIndex: 1000, // Ensure it's above the canvas
+                }}
+              >
+                <CircularProgress size={200} color={'primary'} disableShrink />
               </div>
-              */ }
+            )}
               <FloatingControlsPanel
                 videoRecorderRef={videoRecorderRef}
                 info={new ModelInfo(uiState.modelInfo.model_name, uiState.modelInfo.desc, uiState.modelInfo.authors)}
@@ -320,6 +328,7 @@ useEffect(() => {
                   transition: "left 0.1s ease",
                 }}
                 camera={{ position: [.2, .1, .2], fov: 50 }}
+                onCreated={() => setCanvasLoaded(true)}
               >
               <Environment files="/assets/potsdamer_platz_1k.hdr"/>
               <SceneTreeBridge onSceneReady={setScene} onCameraReady={setCamera} />
