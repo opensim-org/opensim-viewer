@@ -291,7 +291,7 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
 
     return <>
         {curState.draggable && <TransformControls object={curState.selectedObject!} onMouseUp={completeTransform}/>}
-        <OrbitControls ref={controlsRef} camera={camera} makeDefault />
+        <OrbitControls ref={controlsRef} camera={camera} enableDamping={false} makeDefault />
     </>
 });
 /*

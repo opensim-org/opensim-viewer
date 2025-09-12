@@ -52,6 +52,13 @@ const BottomBar = React.forwardRef(function CustomContent(
     const handleAnimationChange = useCallback((animationName: string, animate: boolean) => {
       const targetName = animationName
       setSelectedAnim(animationName);
+      if (targetName === "") {
+        // 'None' selected: stop animation and reset index
+        curState.viewerState.setAnimating(false);
+        curState.viewerState.setCurrentAnimationIndex(-1);
+        setPlay(false);
+        return;
+      }
       const idx = curState.viewerState.animations.findIndex((value: AnimationClip)=>{return (value.name === targetName)});
       curState.viewerState.setCurrentAnimationIndex(idx);
     }, [curState.viewerState]);
