@@ -24,7 +24,9 @@ import { observer } from "mobx-react";
 import { MyModelContext } from "../../state/ModelUIStateContext";
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { useParams } from 'react-router-dom';
+import { CircularProgress } from "@mui/material";
 import OpenSimHtmlLogo from '../Components/OpenSimLogo';  
+        
 import { createTempHelper, removeTempHelper } from '../Components/SceneTree/SceneTreeSortable'
 
 import * as THREE from 'three';
@@ -151,6 +153,8 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   // TODO: Move to a general styles file?
   const leftMenuWidth = 60;
   const drawerContentWidth = 250;
+
+  const [canvasLoaded, setCanvasLoaded] = useState(false);
 
   const [addCameraDialogOpen, setAddCameraDialogOpen] = useState(false);
 
@@ -290,6 +294,24 @@ useEffect(() => {
           </div>
           }
           <div id="canvas-container">
+            {!canvasLoaded && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'rgba(255, 255, 255, 0.8)', // Optional: semi-transparent background
+                  zIndex: 1000, // Ensure it's above the canvas
+                }}
+              >
+                <CircularProgress size={200} color={'primary'} disableShrink />
+              </div>
+            )}
               <FloatingControlsPanel
                 videoRecorderRef={videoRecorderRef}
                 info={new ModelInfo(uiState.modelInfo.model_name, uiState.modelInfo.desc, uiState.modelInfo.authors)}
@@ -306,6 +328,7 @@ useEffect(() => {
                   transition: "left 0.1s ease",
                 }}
                 camera={{ position: [.2, .1, .2], fov: 50 }}
+                onCreated={() => setCanvasLoaded(true)}
               >
               <Environment files="/assets/potsdamer_platz_1k.hdr"/>
               <SceneTreeBridge onSceneReady={setScene} onCameraReady={setCamera} />
@@ -337,6 +360,7 @@ useEffect(() => {
 
               </Canvas>
 
+              { /*
               <div
                 style={{
                   position: 'absolute',
@@ -364,6 +388,7 @@ useEffect(() => {
                   <RotateIcon />
                 </Button>
               </div>
+              */}
 
               <AddCameraDialog
                 open={addCameraDialogOpen}
@@ -401,7 +426,7 @@ useEffect(() => {
                     position: "absolute",
                     top: 66,
                     right: 0,
-                    zIndex: 1000,
+                    zIndex: 1002,
                     height: canvasHeight,          // full canvas height
                     width: `${treeWidth}`,       // whatever width the tree reports (fallback 250 px)
                     display: "flex",
