@@ -61,6 +61,10 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => 
       setDollyName(currentDolly.name);
       setEntries(currentDolly.cameraFrames.map((frame) => generateCameraEntryFromFrame(frame)))
     }
+    else if (open && !edit){
+      setEntries([])
+      setDollyName("Dolly")
+    }
   }, [open, edit, uiState.viewerState.currentDollyIndex, uiState.viewerState.cameraDollies]);
 
   const handleChange = (index: number, field: keyof CameraEntry, value: string) => {

@@ -3,7 +3,7 @@ import { ThreeEvent, useFrame, useLoader, useThree } from '@react-three/fiber'
 import * as THREE from 'three';
 
 import { useEffect, useRef, useState } from 'react'
-import { AnimationMixer, Color, Group, Mesh, Object3D} from 'three'
+import { AnimationMixer, AnimationClip, Color, Group, Mesh, Object3D} from 'three'
 import { observer } from 'mobx-react'
 
 import { useModelContext } from '../../state/ModelUIStateContext'
@@ -77,6 +77,17 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     if (curState.scene === null)
       curState.scene = sceneRef.current;
     curState.viewerState.setAnimationList(allAnimations)
+
+       // Make sure mixers match animations
+    if ((curState.viewerState.animations.length > 0 && mixers.length !==curState.viewerState.animations.length)) {
+        mixers.length = 0
+        curState.viewerState.animations.forEach((clip) => {
+            const nextMixer = new AnimationMixer(camera)
+            nextMixer.clipAction(clip)
+            mixers.push(nextMixer)
+        });
+    }
+
     // This useEffect loads the cameras and assign them to its respective states.
     useEffect(() => {
       if (envRef.current && scene) 
@@ -152,55 +163,32 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
   
     // This useEffect sets the current selected camera.
     useEffect(() => {
+      //console.log("Change effect", curState.viewerState.animationsNeedUpdate)
       if (curState.viewerState.cameras.length > 0 && currentCamera) {
         const selectedCamera = curState.viewerState.cameras[curState.viewerState.currentCameraIndex] as PerspectiveCamera;
         setCurrentCamera(selectedCamera);
         set({ camera: selectedCamera });
-
-        curState.viewerState.animations.forEach((clip) => {
-          clip.tracks.forEach((track) => {
-            if (track.name.includes(selectedCamera.name)) {
-              if (track.name.endsWith('.position')) {
-                // Extract initial position
-                const initialPosition = new THREE.Vector3(
-                  track.values[0],
-                  track.values[1],
-                  track.values[2]
-                );
-                console.log("INITIAL")
-                console.log(initialPosition)
-                selectedCamera.position.copy(initialPosition);
-              }
-
-              if (track.name.endsWith('.quaternion')) {
-                // Extract initial rotation (quaternion)
-                const initialRotation = new THREE.Quaternion(
-                  track.values[0],
-                  track.values[1],
-                  track.values[2],
-                  track.values[3]
-                );
-                console.log("INITIAL")
-                console.log(initialRotation)
-                selectedCamera.quaternion.copy(initialRotation);
-              }
-
-              if (track.name.endsWith('.rotation')) {
-                // Extract initial rotation (Euler)
-                const initialRotation = new THREE.Euler(
-                  track.values[0],
-                  track.values[1],
-                  track.values[2]
-                );
-                console.log("INITIAL")
-                console.log(initialRotation)
-                selectedCamera.rotation.copy(initialRotation);
-              }
-            }
-          });
-        });
       }
-    }, [currentCamera, set, curState.viewerState.currentCameraIndex, curState.viewerState.cameras, curState.viewerState.cameras.length, curState.viewerState.animations]);
+      if (curState.viewerState.animationsNeedUpdate && curState.viewerState.animationChange !== null) {
+        const change = curState.viewerState.animationChange as {index:number, operation:string}
+        if (change.operation === "update") {
+          const clipIndex = curState.viewerState.animations[change.index]?change.index:-1
+          if (clipIndex !== -1) {
+            const nextMixer = new AnimationMixer(camera)
+            const clip = curState.viewerState.animations[clipIndex]
+            nextMixer.clipAction(clip)
+            mixers[clipIndex] = nextMixer
+          }
+        }
+        else if (change.operation === "delete") {
+          const clipIndex = curState.viewerState.animations[change.index]?change.index:-1
+          if (clipIndex !== -1) {
+            mixers.splice(clipIndex, 1);
+          }
+        }
+      }
+      curState.viewerState.setAnimationsNeedUpdate(false);
+  }, [currentCamera, set, curState.viewerState.currentCameraIndex, curState.viewerState.cameras, curState.viewerState.cameras.length, curState.viewerState.animations, curState.viewerState.animationsNeedUpdate, curState.viewerState.animationChange, camera, mixers, curState.viewerState]);
 
     scene.traverse((o) => {
         sceneObjectMap.set(o.uuid, o);
@@ -210,16 +198,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         }
     )
 
-    // Make sure mixers match animations
-    if ((curState.viewerState.animations.length > 0 && mixers.length !==curState.viewerState.animations.length)) {
-        mixers.length = 0
-        curState.viewerState.animations.forEach((clip) => {
-            const nextMixer = new AnimationMixer(camera)
-            nextMixer.clipAction(clip)
-            mixers.push(nextMixer)
-        });
-    }
-
+ 
     useFrame((state, delta) => {
     //console.log(camera.position)
     //console.log(camera.quaternion)
@@ -395,7 +374,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           shadow-camera-right={2}
           shadow-camera-top={2}
           shadow-camera-bottom={-2}/>
-        <ambientLight name="Ambient Light" intensity={0.2} color="white"/>
+        <ambientLight name="Ambient Light" intensity={0.02} color="white"/>
         <directionalLight name="Dir Light2" position={[0.02, .01, .02]} intensity={1.0} color="gray" castShadow={false}/>
         <OpenSimFloor />
         <group name='WCS' ref={csRef} visible={curState.showGlobalFrame}>

@@ -42,15 +42,6 @@ import VideoRecorder from "../Components/VideoRecorder"
 import { Color} from 'three';
 import { TransformControls } from "@react-three/drei";
 
-
-import TranslateIcon from '@mui/icons-material/OpenWith';
-import RotateIcon from '@mui/icons-material/RotateRight';
-
-import {
-  Button
-} from "@mui/material";
-
-
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
 }>(({ theme, open }) => ({

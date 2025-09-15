@@ -75,6 +75,8 @@ export class ViewerState {
     animationSpeed: number
     animations: AnimationClip[]
     currentAnimationIndex: number
+    animationsNeedUpdate: boolean
+    animationChange: null | Object
     // Environment holders
     environmentGroup: Group | null
     constructor(
@@ -147,6 +149,8 @@ export class ViewerState {
         this.animationSpeed = 1.0
         this.animations = []
         this.currentAnimationIndex = -1
+        this.animationsNeedUpdate = false
+        this.animationChange = null
         this.environmentGroup = null
         makeObservable(this, {
             currentModelPath: observable,
@@ -206,6 +210,8 @@ export class ViewerState {
             setCurrentCameraIndex: action,
             sceneVersion: observable,
             setSceneVersion: action,
+            animationsNeedUpdate: observable,
+            setAnimationsNeedUpdate: action
         })
     }
 
@@ -309,11 +315,17 @@ export class ViewerState {
         this.animations.push(this.createAnimationClipFromSequence(newSequence));
         this.setCurrentAnimationIndex(this.animations.length - 1);
         this.setCurrentDollyIndex(this.cameraDollies.length - 1);
+        this.animationChange = {index:this.currentDollyIndex, operation:"add"};
+        this.setAnimationsNeedUpdate(true);
+
     }
     updateCameraDolly(newSequence:CameraDolly){
         // update entry at  this.currentDollyIndex
         this.cameraDollies[this.currentDollyIndex]=(newSequence);
-        this.animations[this.currentDollyIndex]=(this.createAnimationClipFromSequence(newSequence));
+        const theClip = this.createAnimationClipFromSequence(newSequence);
+        this.animations[this.currentDollyIndex]=theClip;
+        this.animationChange = {index:this.currentDollyIndex, operation:"update"};
+        this.setAnimationsNeedUpdate(true);
     }
     setAnimationList(animations: AnimationClip[]) {
         this.animations=animations
@@ -405,12 +417,21 @@ export class ViewerState {
             if (idx > this.cameraDollies.length-1) 
                 this.setCurrentDollyIndex(this.cameraDollies.length-1)
         }
+        this.animations.splice(idx, 1);
+        if (this.currentAnimationIndex === idx) {
+            this.setCurrentAnimationIndex(-1);
+        }
+        this.animationChange = {index:idx, operation:"delete"};
+        this.setAnimationsNeedUpdate(true);
     }
     setEnvironmentGroup(grp: Group) {
         this.environmentGroup = grp;
     }
     setSceneVersion(version: number) {
         this.sceneVersion = version;
+    }
+    setAnimationsNeedUpdate(needsUpdate: boolean) {
+        this.animationsNeedUpdate = needsUpdate;
     }
 }
 

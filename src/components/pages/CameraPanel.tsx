@@ -42,22 +42,43 @@ function CameraPanel(props :CameraPanelProps) {
     curState.viewerState.setCurrentCameraIndex(idx)
 
   }, [curState]);
+  
+  const handleDollyChange = useCallback((dollyName: string) => {
+    const targetName = dollyName
+    setSelectedDolly(dollyName);
+
+      const idx = curState.viewerState.cameraDollies.findIndex((value: CameraDolly)=>{return (value.name === targetName)})
+      if (idx !== -1) {
+          curState.viewerState.setCurrentDollyIndex(idx)
+      }
+  }, [curState]);
 
   useEffect(() => {
     // Effect logic here
     setAvailableCameras(curState.viewerState.cameras);
     setAvailableDollies(curState.viewerState.cameraDollies);
-    if (curState.viewerState.cameras.length > 0 && curState.viewerState.currentCameraIndex !== -1) {
-      setSelectedCamera(curState.viewerState.cameras[curState.viewerState.currentCameraIndex].name);
-      handleCameraChange(curState.viewerState.cameras[curState.viewerState.currentCameraIndex].name);
+    if (dollyMode){
+      if (curState.viewerState.cameraDollies.length > 0 && curState.viewerState.currentDollyIndex !== -1) {
+        setSelectedDolly(curState.viewerState.cameraDollies[curState.viewerState.currentDollyIndex].name);
+        handleDollyChange(curState.viewerState.cameraDollies[curState.viewerState.currentDollyIndex].name);
+      }
+      else if (curState.viewerState.currentDollyIndex === -1){
+        setSelectedDolly("")
+      }
     }
-    else if (curState.viewerState.currentCameraIndex === -1){
-      setSelectedCamera("")
+    else {
+      if (curState.viewerState.cameras.length > 0 && curState.viewerState.currentCameraIndex !== -1) {
+        setSelectedCamera(curState.viewerState.cameras[curState.viewerState.currentCameraIndex].name);
+        handleCameraChange(curState.viewerState.cameras[curState.viewerState.currentCameraIndex].name);
+      }
+      else if (curState.viewerState.currentCameraIndex === -1){
+        setSelectedCamera("")
+      }
     }
     return () => {
       // Optional cleanup logic
     };
-  }, [availableCameras, curState.viewerState.cameraDollies, curState.viewerState.cameras, curState.viewerState.cameras.length, curState.viewerState.currentCameraIndex, handleCameraChange]);
+  }, [availableCameras, curState.viewerState.cameraDollies, curState.viewerState.currentDollyIndex, curState.viewerState.cameras, curState.viewerState.cameras.length, curState.viewerState.currentCameraIndex, handleCameraChange, dollyMode, handleDollyChange]);
 
   const handleCameraChangeEvent = (event: SelectChangeEvent) => {
     const targetName = event.target.value as string
@@ -68,16 +89,6 @@ function CameraPanel(props :CameraPanelProps) {
     const targetName = event.target.value as string
     handleDollyChange(targetName)
   };
-
-    const handleDollyChange = useCallback((dollyName: string) => {
-    const targetName = dollyName
-    setSelectedDolly(dollyName);
-
-      const idx = curState.viewerState.cameraDollies.findIndex((value: CameraDolly)=>{return (value.name === targetName)})
-      if (idx !== -1) {
-          curState.viewerState.setCurrentDollyIndex(idx)
-      }
-  }, [curState]);
 
   const handleAdd = () => {
     if (dollyMode) {
