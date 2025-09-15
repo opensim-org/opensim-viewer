@@ -104,8 +104,8 @@ const BottomBar = React.forwardRef(function CustomContent(
       else if (curState.viewerState.currentAnimationIndex === -1){
         setSelectedAnim("")
       }
-    }, [curState.viewerState.animations, curState.viewerState.currentAnimationIndex, 
-            handleAnimationChange, selectedAnim, curState.viewerState.animationsNeedUpdate]);
+    }, [curState.viewerState.animations, curState.viewerState.animations.length, curState.viewerState.currentAnimationIndex, 
+            handleAnimationChange, selectedAnim]);
 
     return (
       <Container ref={(ref as any) || bottomBarRef}>

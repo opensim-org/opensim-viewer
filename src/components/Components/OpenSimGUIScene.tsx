@@ -221,7 +221,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
               const newAnimationIndex = viewerState.currentAnimationIndex
               const oldIndex  = animationIndex
               // animation has changed
-              if (oldIndex !== -1){
+              if (oldIndex !== -1 && mixers[oldIndex]!==undefined) {
                 mixers[oldIndex].stopAllAction()
               }
               setAnimationIndex(newAnimationIndex)
