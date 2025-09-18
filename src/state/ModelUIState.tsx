@@ -74,11 +74,12 @@ export class ModelUIState {
     debug: boolean
     simulationTime: number
     isGUIAnimating: boolean = false
+    processingSocketMessage: boolean = false
     constructor(
         currentModelPathState: string
     ) {
         this.scene = null
-        this.isGuiMode = false
+        this.isGuiMode = true
         this.zooming = false
         this.zoom_inOut = 0.0
         this.takeSnapshot = false
@@ -347,6 +348,9 @@ export class ModelUIState {
                 this.scene?.updateMatrixWorld(true);
                 break;
             case "Frame":
+                if (this.processingSocketMessage)
+                    return;
+                this.processingSocketMessage = true;
                 this.setSelected("", false)
                 var transforms = parsedMessage.Transforms;
                 for (var i = 0; i < transforms.length; i ++ ) {
@@ -364,8 +368,9 @@ export class ModelUIState {
                         this.updatePath(JSON.stringify(paths[p]));
                     }
                 }
-                this.scene?.updateMatrixWorld(true);
+                //this.scene?.updateMatrixWorld(true);
                 this.simulationTime = parsedMessage.time;
+                this.processingSocketMessage = false;
                 break;
             case "getOffsets":
                 this.sendText(this.getModelOffsetsJson());
