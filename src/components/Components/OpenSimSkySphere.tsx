@@ -1,37 +1,33 @@
-import { useTexture } from '@react-three/drei';
-import { useRef } from 'react';
-import * as THREE from 'three';
+import { useLoader } from '@react-three/fiber';
 import { observer } from 'mobx-react';
+import { useRef } from 'react';
+import { Mesh, TextureLoader } from 'three';
 import { useModelContext } from '../../state/ModelUIStateContext';
 
 interface SkySphereProps {
-  texturePath?: string;
+  texturePath: string;
 }
 
-const SkySphere: React.FC<SkySphereProps> = observer(({ texturePath }) => {
-  // Load 360 sky texture
-  const curState = useModelContext();
-  const viewerState = curState.viewerState
-  const skyTexture = useTexture(viewerState.defaultSkyTextures[viewerState.skyTextureIndex]);
-  const skySphereRef = useRef<THREE.Mesh>(null);
+const SkySphere = ({ texturePath }: SkySphereProps) => {
+  const viewerState = useModelContext().viewerState;
+  const skyTexture = useLoader(TextureLoader, viewerState.defaultSkyTextures[viewerState.skyTextureIndex]);
+  const skySphereRef = useRef<Mesh>(null);
 
-  const skyGeometry = new THREE.SphereGeometry(50, 60, 40);
-  const skyMaterial = new THREE.MeshBasicMaterial({
-    map: skyTexture,
-    side: THREE.BackSide,
-    depthWrite: false,
-  });
+  return <>
+      <mesh
+        name="SkySphere"
+        ref={skySphereRef}
+        renderOrder={-1}
+      >
+        <sphereGeometry args={[50, 60, 40]} />
+        <meshBasicMaterial
+          attach="material"
+          map={skyTexture}
+          side={2} // THREE.BackSide
+          depthWrite={false}
+        />
+      </mesh>
+    </>
+};
 
-  return (
-    <mesh
-      name="SkySphere"
-      ref={skySphereRef}
-      geometry={skyGeometry}
-      material={skyMaterial}
-      renderOrder={-1} // Ensure it renders first as background
-      visible={viewerState.skyVisible}
-    />
-  );
-});
-
-export default SkySphere;
+export default observer(SkySphere);
