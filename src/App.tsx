@@ -23,7 +23,7 @@ import HomePage from './components/pages/HomePage';
 import AboutPage from './components/pages/AboutPage';
 import ModelListPage from './components/pages/ModelListPage/ModelListPage';
 import { useModelContext } from './state/ModelUIStateContext';
-
+import DisableZoom from './disableZoom';
 // import awsconfig from './aws-exports';
 // Amplify.configure(awsconfig);
 
@@ -88,6 +88,7 @@ function App({ signOut, user }: WithAuthenticatorProps) {
         <ThemeProvider theme={viewerState.dark ? appTheme : lightTheme}>
           <SnackbarProvider>
             <CssBaseline />
+            <DisableZoom />
             {curState.isGuiMode? <ModelViewPage/>:
             <BrowserRouter>
                 <div className="App" style={{ width: '100%', overflow: 'auto', backgroundColor: viewerState.dark ? appTheme.palette.background.default : lightTheme.palette.background.default}} ref={elementRef}>

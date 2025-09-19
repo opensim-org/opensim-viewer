@@ -26,7 +26,10 @@ import { useModelContext } from "../../state/ModelUIStateContext";
 import { useParams } from 'react-router-dom';
 import { CircularProgress } from "@mui/material";
 import OpenSimHtmlLogo from '../Components/OpenSimLogo';  
-        
+
+import { Stats } from '@react-three/drei'
+import { Perf } from 'r3f-perf'
+
 import { createTempHelper, removeTempHelper } from '../Components/SceneTree/SceneTreeSortable'
 
 import * as THREE from 'three';
@@ -145,6 +148,8 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const leftMenuWidth = 60;
   const drawerContentWidth = 250;
 
+  const [showDebug, setShowDebug] = useState(false);
+
   const [canvasLoaded, setCanvasLoaded] = useState(false);
 
   const [addCameraDialogOpen, setAddCameraDialogOpen] = useState(false);
@@ -251,6 +256,18 @@ useEffect(() => {
 
   }, [uiState.viewerState]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key.toLowerCase() === "d") {
+        e.preventDefault(); // prevent browser bookmark shortcut
+        setShowDebug(prev => !prev);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   if (urlParam!== undefined) {
     var decodedUrl = decodeURIComponent(urlParam);
     uiState.viewerState.setCurrentModelPath(decodedUrl);
@@ -349,6 +366,12 @@ useEffect(() => {
                   <CameraPreview selectedCameraUuid={uiState.selected} marginRight={treeWidth} />
                 )}
 
+                {showDebug && (
+                  <>
+                    <Stats />
+                    {{ /*<Perf position="top-right" /> */}}
+                  </>
+                )}
               </Canvas>
 
               { /*
