@@ -321,9 +321,9 @@ export class ViewerState {
     }
     updateCameraDolly(newSequence:CameraDolly){
         // update entry at  this.currentDollyIndex
-        this.cameraDollies[this.currentDollyIndex]=(newSequence);
+        this.cameraDollies.splice(this.currentDollyIndex, 1, newSequence);
         const theClip = this.createAnimationClipFromSequence(newSequence);
-        this.animations[this.currentDollyIndex]=theClip;
+        this.animations.splice(this.currentDollyIndex, 1, theClip);
         this.animationChange = {index:this.currentDollyIndex, operation:"update"};
         this.setAnimationsNeedUpdate(true);
     }

@@ -95,7 +95,6 @@ const BottomBar = React.forwardRef(function CustomContent(
     };
 
     useEffect(() => {
-
       if (curState.viewerState.animations.length > 0 && curState.viewerState.currentAnimationIndex !== -1) 
       {
         setSelectedAnim(curState.viewerState.animations[curState.viewerState.currentAnimationIndex].name)
@@ -104,8 +103,9 @@ const BottomBar = React.forwardRef(function CustomContent(
       else if (curState.viewerState.currentAnimationIndex === -1){
         setSelectedAnim("")
       }
-    }, [curState.viewerState.animations, curState.viewerState.animations.length, curState.viewerState.currentAnimationIndex, 
-            handleAnimationChange, selectedAnim]);
+    }, [curState.viewerState.animations, curState.viewerState.currentAnimationIndex, 
+        curState.viewerState.cameraDollies, curState.viewerState.currentDollyIndex,
+            handleAnimationChange, selectedAnim, curState.viewerState.animationsNeedUpdate]);
 
     return (
       <Container ref={(ref as any) || bottomBarRef}>

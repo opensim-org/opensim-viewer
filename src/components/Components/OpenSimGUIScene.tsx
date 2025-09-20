@@ -171,6 +171,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
       }
       if (curState.viewerState.animationsNeedUpdate && curState.viewerState.animationChange !== null) {
         const change = curState.viewerState.animationChange as {index:number, operation:string}
+        setAnimationIndex(-1); // reset animation index to force update
         if (change.operation === "update") {
           const clipIndex = curState.viewerState.animations[change.index]?change.index:-1
           if (clipIndex !== -1) {

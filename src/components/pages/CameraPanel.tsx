@@ -78,7 +78,9 @@ function CameraPanel(props :CameraPanelProps) {
     return () => {
       // Optional cleanup logic
     };
-  }, [availableCameras, curState.viewerState.cameraDollies, curState.viewerState.currentDollyIndex, curState.viewerState.cameras, curState.viewerState.cameras.length, curState.viewerState.currentCameraIndex, handleCameraChange, dollyMode, handleDollyChange]);
+  }, [availableCameras, curState.viewerState.cameraDollies, curState.viewerState.currentDollyIndex, curState.viewerState.cameras, 
+      curState.viewerState.cameras.length, curState.viewerState.currentCameraIndex, 
+      curState.viewerState.animationsNeedUpdate, handleCameraChange, dollyMode, handleDollyChange]);
 
   const handleCameraChangeEvent = (event: SelectChangeEvent) => {
     const targetName = event.target.value as string
