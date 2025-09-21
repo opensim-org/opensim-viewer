@@ -18,6 +18,18 @@ export class CameraDolly {
         this.desc = desc
         this.cameraFrames = []
     }
+    toJSON() {
+    return {
+      name: this.name,
+      // You can transform, rename, or omit fields here
+      desc: this.desc,
+      cameraFrames: this.cameraFrames.map(frame => ({
+        cam_uuid: frame.cam_uuid,
+        time: frame.time
+      })),
+    }
+  }
+
 }
 
 export class ViewerState {

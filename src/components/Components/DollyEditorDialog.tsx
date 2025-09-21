@@ -147,6 +147,36 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => 
     onClose();
   };
 
+    const handleSaveJson = () => {
+    handleSave();
+    const currentDolly = uiState.viewerState.cameraDollies[uiState.viewerState.currentDollyIndex];
+    let saveCameras: Camera[] = [];
+    currentDolly.cameraFrames.forEach((frame) => {
+      const cam = uiState.viewerState.cameras.find(cam => cam.uuid === frame.cam_uuid);
+      if (cam && !saveCameras.includes(cam)) {
+        saveCameras.push(cam);
+      } 
+    });
+    const jsonSave = {
+      dolly: currentDolly,
+      // You can transform, rename, or omit fields here
+      cameras: saveCameras
+    }
+    const blob = new Blob([JSON.stringify(jsonSave, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob)
+
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'dolly_' + currentDolly.name + ".json"
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+
+    URL.revokeObjectURL(url)
+      
+    onClose();
+  };
+
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle>Edit Dolly</DialogTitle>
@@ -214,8 +244,9 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => 
         </Table>
       </DialogContent>
       <DialogActions>
+        <Button onClick={handleSaveJson}>Save...</Button>
         <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={handleSave} variant="contained">Save</Button>
+        <Button onClick={handleSave} variant="contained">Ok</Button>
       </DialogActions>
     </Dialog>
   );
