@@ -44,6 +44,7 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => 
   const [entries, setEntries] = useState<CameraEntry[]>(initalEntries);
   const [dollyName, setDollyName] = useState<string>('Dolly')
   const [cameras, ] = useState<Camera[]>(uiState.viewerState.cameras);
+  const [loadedFromFile, setLoadedFromFile] = useState<boolean>(false);
   const generateCameraEntryFromFrame = (frame: CameraFrame) =>{
     const cam = cameras.find(cam => cam.uuid === frame.cam_uuid)
     return {
@@ -61,7 +62,7 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => 
       setDollyName(currentDolly.name);
       setEntries(currentDolly.cameraFrames.map((frame) => generateCameraEntryFromFrame(frame)))
     }
-    else if (open && !edit){
+    else if (open && !edit && !loadedFromFile) {
       setEntries([])
       setDollyName("Dolly")
     }
@@ -195,8 +196,12 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => 
           if (json) {
             const data = JSON.parse(json as string);
             // Handle loaded data
-            console.log(data)
             uiState.viewerState.addDollyAndCameras(data.dolly, data.cameras, data.targets);
+            let currentDolly = uiState.viewerState.cameraDollies[uiState.viewerState.currentDollyIndex];
+            // console.log("Current dolly after load: ", currentDolly);
+            setLoadedFromFile(true);
+            setDollyName(currentDolly.name);
+            setEntries(currentDolly.cameraFrames.map((frame) => generateCameraEntryFromFrame(frame)))
           }
         };
         reader.readAsText(file);
