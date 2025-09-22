@@ -1,5 +1,5 @@
 import { makeObservable, observable, action, runInAction } from 'mobx'
-import { Color, Vector3, Camera, AnimationClip, VectorKeyframeTrack, QuaternionKeyframeTrack, PerspectiveCamera, Group } from 'three'
+import { Color, Vector3, Camera, AnimationClip, VectorKeyframeTrack, QuaternionKeyframeTrack, PerspectiveCamera, Group, Quaternion, Matrix4 } from 'three'
 
 export class CameraFrame {
     cam_uuid: string
@@ -7,6 +7,14 @@ export class CameraFrame {
     constructor(camera_uuid: string, time: number) {
         this.cam_uuid = camera_uuid
         this.time = time
+    }
+}
+
+interface CamData {
+    object: {
+        uuid: string
+        name: string
+        matrix: number[]
     }
 }
 export class CameraDolly {
@@ -435,6 +443,34 @@ export class ViewerState {
         }
         this.animationChange = {index:idx, operation:"delete"};
         this.setAnimationsNeedUpdate(true);
+    }
+    addDollyAndCameras(newSequenceJson:CameraDolly, camerasJson: any[], targetsJson: any[]) {
+        // Add any cameras not already in list
+        let mapUuidToCam = new Map<string, Camera>();
+        camerasJson.forEach((camJson:CamData, index: number) => {
+            const data = camJson;
+            const existing = this.cameras.find(c => c.uuid === data.object.uuid);
+            if (!existing) {
+                let camera = new PerspectiveCamera();
+                camera.name = data.object.name
+                camera.matrix.fromArray(data.object.matrix)
+                camera.matrix.decompose(camera.position, camera.quaternion, camera.scale);
+                this.addCamera(camera, new Vector3(targetsJson[index]), camera.name);
+                mapUuidToCam.set(data.object.uuid, camera);
+            }
+        });
+        // Add the dolly
+        const newDolly = new CameraDolly(newSequenceJson.name, newSequenceJson.desc);
+        for (let i=0; i<newSequenceJson.cameraFrames.length; i++){
+            const frameJson = newSequenceJson.cameraFrames[i];
+            const camName = mapUuidToCam.get(frameJson.cam_uuid)?.name
+            const cam = this.cameras.find(c => c.name === camName);
+            if (cam) {
+                const newFrame = new CameraFrame(cam.uuid, frameJson.time);
+                newDolly.cameraFrames.push(newFrame);
+            }
+        }
+        this.addCameraDolly(newDolly);
     }
     setEnvironmentGroup(grp: Group) {
         this.environmentGroup = grp;

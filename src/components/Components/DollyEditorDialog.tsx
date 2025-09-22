@@ -17,7 +17,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { ModelUIState } from "../../state/ModelUIState";
 import { CameraFrame, CameraDolly } from "../../state/ViewerState";
-import { Camera } from 'three';
+import { Camera, Vector3 } from 'three';
 
 type CameraEntry = {
   id: string;
@@ -147,20 +147,25 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => 
     onClose();
   };
 
-    const handleSaveJson = () => {
+  const handleSaveJson = () => {
     handleSave();
     const currentDolly = uiState.viewerState.cameraDollies[uiState.viewerState.currentDollyIndex];
     let saveCameras: Camera[] = [];
+    let saveTargets: Vector3[] = [];
     currentDolly.cameraFrames.forEach((frame) => {
       const cam = uiState.viewerState.cameras.find(cam => cam.uuid === frame.cam_uuid);
       if (cam && !saveCameras.includes(cam)) {
         saveCameras.push(cam);
+        // find index of camera and corresponding target
+        const idx = uiState.viewerState.cameras.findIndex(c => c.uuid === cam.uuid);
+        saveTargets.push(uiState.viewerState.targets[idx]);
       } 
     });
     const jsonSave = {
       dolly: currentDolly,
       // You can transform, rename, or omit fields here
-      cameras: saveCameras
+      cameras: saveCameras,
+      targets: saveTargets
     }
     const blob = new Blob([JSON.stringify(jsonSave, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob)
@@ -175,6 +180,29 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => 
     URL.revokeObjectURL(url)
       
     onClose();
+  };
+
+  const handleLoadJson = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,application/json';
+    input.onchange = (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const json = e.target?.result;
+          if (json) {
+            const data = JSON.parse(json as string);
+            // Handle loaded data
+            console.log(data)
+            uiState.viewerState.addDollyAndCameras(data.dolly, data.cameras, data.targets);
+          }
+        };
+        reader.readAsText(file);
+      }
+    };
+    input.click();
   };
 
   return (
@@ -244,6 +272,7 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => 
         </Table>
       </DialogContent>
       <DialogActions>
+        {edit?null:<Button onClick={handleLoadJson}>Load...</Button>}
         <Button onClick={handleSaveJson}>Save...</Button>
         <Button onClick={onClose}>Cancel</Button>
         <Button onClick={handleSave} variant="contained">Ok</Button>
