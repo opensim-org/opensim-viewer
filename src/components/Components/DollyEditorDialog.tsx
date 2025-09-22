@@ -153,10 +153,12 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => 
     const currentDolly = uiState.viewerState.cameraDollies[uiState.viewerState.currentDollyIndex];
     let saveCameras: Camera[] = [];
     let saveTargets: Vector3[] = [];
+    const addedCameraUUIDs = new Set<string>();
     currentDolly.cameraFrames.forEach((frame) => {
       const cam = uiState.viewerState.cameras.find(cam => cam.uuid === frame.cam_uuid);
-      if (cam && !saveCameras.includes(cam)) {
+      if (cam && !addedCameraUUIDs.has(cam.uuid)) {
         saveCameras.push(cam);
+        addedCameraUUIDs.add(cam.uuid);
         // find index of camera and corresponding target
         const idx = uiState.viewerState.cameras.findIndex(c => c.uuid === cam.uuid);
         saveTargets.push(uiState.viewerState.targets[idx]);
