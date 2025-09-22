@@ -398,7 +398,7 @@ export class ViewerState {
             console.error("Error loading user preferences:", error);
         }
     }
-    addCamera(camera: PerspectiveCamera, target: Vector3, suggestedName: string | undefined) {
+    addCamera(camera: PerspectiveCamera, target: Vector3, suggestedName: string | undefined, setCurrent: boolean | undefined = true) {
         const camClone = camera.clone()
         if (suggestedName === undefined) 
             camClone.name = "Camera_"+this.cameras.length
@@ -408,7 +408,8 @@ export class ViewerState {
         this.cameras.push(camClone);
         this.targets.push(target.clone())
         this.environmentGroup?.add(camClone);
-        this.currentCameraIndex = (this.cameras.length - 1);
+        if (setCurrent!== false)
+            this.currentCameraIndex = (this.cameras.length - 1);
         this.setSceneVersion(this.sceneVersion +1);
         return camClone;
     }
@@ -455,7 +456,7 @@ export class ViewerState {
                 camera.name = data.object.name
                 camera.matrix.fromArray(data.object.matrix)
                 camera.matrix.decompose(camera.position, camera.quaternion, camera.scale);
-                this.addCamera(camera, new Vector3(targetsJson[index]), camera.name);
+                this.addCamera(camera, new Vector3(targetsJson[index]), camera.name, false);
                 mapUuidToCam.set(data.object.uuid, camera);
             }
         });
