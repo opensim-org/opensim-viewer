@@ -59,8 +59,9 @@ function CameraPanel(props :CameraPanelProps) {
     setAvailableDollies(curState.viewerState.cameraDollies);
     if (dollyMode){
       if (curState.viewerState.cameraDollies.length > 0 && curState.viewerState.currentDollyIndex !== -1) {
-        setSelectedDolly(curState.viewerState.cameraDollies[curState.viewerState.currentDollyIndex].name);
-        handleDollyChange(curState.viewerState.cameraDollies[curState.viewerState.currentDollyIndex].name);
+        const currentDolly = curState.viewerState.cameraDollies[curState.viewerState.currentDollyIndex];
+        setSelectedDolly(currentDolly.name);
+        handleDollyChange(currentDolly.name);
       }
       else if (curState.viewerState.currentDollyIndex === -1){
         setSelectedDolly("")
