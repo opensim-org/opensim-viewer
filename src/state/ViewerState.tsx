@@ -448,8 +448,8 @@ export class ViewerState {
     addDollyAndCameras(newSequenceJson:CameraDolly, camerasJson: any[], targetsJson: any[]) {
         // Add any cameras not already in list
         let mapUuidToCam = new Map<string, Camera>();
-        camerasJson.forEach((camJson:CamData, index: number) => {
-            const data = camJson;
+        camerasJson.forEach((camData:CamData, index: number) => {
+            const data = camData;
             const existing = this.cameras.find(c => c.uuid === data.object.uuid);
             if (!existing) {
                 let camera = new PerspectiveCamera();
