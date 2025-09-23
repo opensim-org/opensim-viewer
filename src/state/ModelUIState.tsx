@@ -48,6 +48,7 @@ export class KeyFrameProps {
 export class ModelUIState {
     scene: Scene | Group |null
     isGuiMode: boolean
+    isModernBrowser: boolean
     zooming: boolean
     zoom_inOut: number
     takeSnapshot: boolean
@@ -80,6 +81,7 @@ export class ModelUIState {
     ) {
         this.scene = null
         this.isGuiMode = false
+        this.isModernBrowser = true
         this.zooming = false
         this.zoom_inOut = 0.0
         this.takeSnapshot = false
@@ -117,6 +119,7 @@ export class ModelUIState {
             setCurrentFrame: action,
             simulationTime: observable,
             setIsGuiMode: action,
+            setIsModernBrowser: action,
         })
         console.log("Created ModelUIState instance ", currentModelPathState)
     }
@@ -171,13 +174,19 @@ export class ModelUIState {
         this.sceneTree = newTree
     }
     setLightsList(lights: Light[]) {
-      this.lights = lights
+        this.lights = lights
     }
     getGuiMode() {
         return this.isGuiMode;
     }
     setIsGuiMode(newGuiMode: boolean = false) {
         this.isGuiMode = newGuiMode;
+    }
+    getModernBrowserMode() {
+        return this.isModernBrowser;
+    }
+    setIsModernBrowser(newModernBrowser: boolean = true) {
+        this.isModernBrowser = newModernBrowser;
     }
     setSelected(uuid: string, notifyGUI: boolean = false) {
         if (this.selected !== uuid) {

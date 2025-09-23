@@ -60,16 +60,28 @@ function App({ signOut, user }: WithAuthenticatorProps) {
   React.useEffect(() => {
     // Parse URL parameters
     const urlParams = new URLSearchParams(window.location.search);
-    const cssParam = urlParams.get('css'); // Assuming 'css' is the parameter name
+
+    // Parameter to set gui mode
+    const cssParamGui = urlParams.get('css');
+    // Parameter to set if the browser being used is modern or not.
+    const cssParamModern = urlParams.get('modern')
 
     // Set gui mode if parameter is present unless we already know in gui mode.
     if (!curState.isGuiMode) {
-      if (cssParam === 'gui') {
-        curState.setIsGuiMode(true)
+      if (cssParamGui === 'gui') {
+        curState.setIsGuiMode(true);
       } else {
-        curState.setIsGuiMode(false)
+        curState.setIsGuiMode(false);
       }
     }
+    if (curState.isModernBrowser) {
+      if (cssParamModern === 'false') {
+        curState.setIsModernBrowser(false);
+      } else {
+        curState.setIsModernBrowser(true);
+      }
+    }
+    alert(curState.isModernBrowser)
   }, [curState, viewerState]);
 
     // On file system we'll have a folder per model containing cached/versioned gltf, possibly .osim file, data files, display 
