@@ -40,6 +40,7 @@ export class ViewerState {
     // scene options
     backgroundColor: Color
     backgroundImage: string | null
+    useTexture: boolean
     sceneLightPosition: Vector3
     // sky options
     skyTextureIndex: number
@@ -110,6 +111,7 @@ export class ViewerState {
         this.user_uuid = ''
         this.backgroundColor = new Color(0.7, 0.7, 0.7)
         this.backgroundImage = null
+        this.useTexture = true
         this.skyTextureIndex = 0
         this.defaultSkyTextures = [
             '/assets/skyTextures/death-valley-alberto.jpg',
@@ -187,6 +189,8 @@ export class ViewerState {
             setFloorTextureIndex: action,
             backgroundColor: observable,
             setBackgroundColor: action,
+            useTexture: observable,
+            setUseTexture: action,
             lightIntensity: observable,
             lightColor: observable,
             spotLight: observable,
@@ -263,6 +267,9 @@ export class ViewerState {
     }
     setBackgroundColor(newColor: Color) {
         this.backgroundColor = newColor
+    }
+    setUseTexture(useTexture: boolean) {
+        this.useTexture = useTexture
     }
     setFloorTextureIndex(newIndex: number) {
         this.textureIndex = newIndex
