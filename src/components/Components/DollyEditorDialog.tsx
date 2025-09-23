@@ -185,32 +185,66 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => 
     onClose();
   };
 
-  const handleLoadJson = () => {
+const handleLoadJson = () => {
+  try {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json,application/json';
-    input.onchange = (event) => {
-      const file = (event.target as HTMLInputElement).files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const json = e.target?.result;
-          if (json) {
-            const data = JSON.parse(json as string);
-            // Handle loaded data
-            uiState.viewerState.addDollyAndCameras(data.dolly, data.cameras, data.targets);
-            let currentDolly = uiState.viewerState.cameraDollies[uiState.viewerState.currentDollyIndex];
-            // console.log("Current dolly after load: ", currentDolly);
-            setLoadedFromFile(true);
-            setDollyName(currentDolly.name);
-            setEntries(currentDolly.cameraFrames.map((frame) => generateCameraEntryFromFrame(frame)))
-          }
-        };
-        reader.readAsText(file);
+
+    input.onchange = function (event) {
+      try {
+        const target = event && event.target ? event.target as HTMLInputElement : null;
+        const files = target && target.files ? target.files : null;
+        const file = files && files.length > 0 ? files[0] : null;
+
+        if (file) {
+          const reader = new FileReader();
+
+          reader.onload = function (e) {
+            try {
+              const result = e && e.target ? e.target.result : null;
+
+              if (result) {
+                const data = JSON.parse(result as string);
+
+                // Handle loaded data
+                uiState.viewerState.addDollyAndCameras(
+                  data.dolly,
+                  data.cameras,
+                  data.targets
+                );
+
+                var currentDolly =
+                  uiState.viewerState.cameraDollies[
+                    uiState.viewerState.currentDollyIndex
+                  ];
+
+                setLoadedFromFile(true);
+
+                setDollyName(currentDolly.name);
+
+                setEntries(
+                  currentDolly.cameraFrames.map(function (frame) {
+                    return generateCameraEntryFromFrame(frame);
+                  })
+                );
+              }
+            } catch (err) {
+              alert("Error in reader.onload: " + err);
+            }
+          };
+          reader.readAsText(file);
+        }
+      } catch (err) {
+        alert("Error in input.onchange: " + err);
       }
     };
     input.click();
-  };
+  } catch (err) {
+    alert("Error in handleLoadJson: " + err);
+  }
+};
+
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
