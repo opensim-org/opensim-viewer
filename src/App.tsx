@@ -81,7 +81,6 @@ function App({ signOut, user }: WithAuthenticatorProps) {
         curState.setIsModernBrowser(true);
       }
     }
-    alert(curState.isModernBrowser)
   }, [curState, viewerState]);
 
     // On file system we'll have a folder per model containing cached/versioned gltf, possibly .osim file, data files, display 
