@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react"
 import { ModelUIState } from "./ModelUIState"
-// /builtin/gait10dof18musc.json
+// /builtin/rajagopal.json
 export const MyModelContext = createContext<ModelUIState>(new ModelUIState('mt.json'))
 export const useModelContext = () => useContext(MyModelContext)

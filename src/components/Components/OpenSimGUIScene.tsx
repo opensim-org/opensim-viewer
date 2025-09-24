@@ -10,6 +10,7 @@ import { useModelContext } from '../../state/ModelUIStateContext'
 import { PerspectiveCamera } from 'three/src/cameras/PerspectiveCamera'
 import { OpenSimLoader } from '../../state/OpenSimLoader';
 import OpenSimFloor from './OpenSimFloor';
+import OpenSimSkySphere from './OpenSimSkySphere';
 
 interface OpenSimSceneProps {
     currentModelPath: string,
@@ -402,6 +403,13 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           </mesh>
         </group>
       </group>
+      <OpenSimSkySphere
+          texturePath={
+            curState.viewerState.userPreferences?.skyTexturePath?.trim()
+              ? curState.viewerState.userPreferences.skyTexturePath
+              : undefined
+          }
+      />
       <group name='Models' ref={modelsRef}  
             onClick={(e)=>{ handleClick(e);}}
             onPointerMissed={(e)=>{clearSelection();}} 
