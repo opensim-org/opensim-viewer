@@ -369,7 +369,7 @@ useEffect(() => {
                 {showDebug && (
                   <>
                     <Stats />
-                    {{ /*<Perf position="top-right" /> */}}
+                    { /* curState.isModernBrowser && (<Perf position="top-right" />) */}
                   </>
                 )}
               </Canvas>
