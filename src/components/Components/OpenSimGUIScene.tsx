@@ -35,7 +35,8 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     const envRef = useRef<THREE.Group>(null)
     const bboxRef = useRef<THREE.BoxHelper>(null)
     const modelsRef = useRef<THREE.Group>(null);
-
+    let frameCount = 0;
+    let renderTime = 0;
     const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
 
     let curState = useModelContext();
@@ -292,6 +293,14 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             }
           
       }
+      frameCount++;
+      renderTime+=delta;
+      if (frameCount === 60){
+        const fps = Math.round(frameCount/renderTime);
+        curState.setFPS(fps);
+        frameCount = 0;
+        renderTime = 0;
+      } 
     })
     // Next block would show bubble on selection with name
     // useFrame((state, delta) => {

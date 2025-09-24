@@ -75,6 +75,7 @@ export class ModelUIState {
     simulationTime: number
     isGUIAnimating: boolean = false
     processingSocketMessage: boolean = false
+    fps: number = 60
     constructor(
         currentModelPathState: string
     ) {
@@ -371,6 +372,7 @@ export class ModelUIState {
                 //this.scene?.updateMatrixWorld(true);
                 this.simulationTime = parsedMessage.time;
                 this.processingSocketMessage = false;
+                console.log("Processed frame at sim time ", this.simulationTime);
                 break;
             case "getOffsets":
                 this.sendText(this.getModelOffsetsJson());
@@ -391,9 +393,12 @@ export class ModelUIState {
                 break;
             case "startAnimation":
                 this.SetAnimatingGUI(true);
+                console.log("Processed startAnimation ");
                 break;
             case "endAnimation":
                 this.SetAnimatingGUI(false);
+                console.log("Processed endAnimation ");
+                console.log(this.socket!.bufferedAmount);
                 break;
         }
     }
@@ -416,5 +421,14 @@ export class ModelUIState {
         if (isAnimating) {
             this.viewerState.setAnimating(false);
         }
+    }
+    setFPS(fps: number) {
+        this.fps = fps;
+        var json = JSON.stringify({
+               type: "INFO",
+               "fps": fps});
+                console.log("FPS: ", fps);
+        if (this.socket !== null)
+            this.socket!.send(json);
     }
 }
