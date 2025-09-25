@@ -386,27 +386,55 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
 
       {(selectedNode?.nodeType === "skySphere") && (
         <>
+          <>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={uiState.viewerState.useTexture}
+                  onChange={(e) =>
+                  {
+                    uiState.viewerState.setUseTexture(e.target.checked)
+                  }}
+                />
+              }
+              label="Use Sky Texture"
+              style={{ marginTop: 16 }}
+            />
 
-          <TextField
-            select
-            label="Texture"
-            fullWidth
-            value={
-              uiState.viewerState.skyTextureIndex ?? 0
-            }
-            onChange={(e) => {
-              const idx = parseInt(e.target.value, 10);
-              uiState.viewerState.setSkyTextureIndex?.(idx);
-            }}
-            SelectProps={{ MenuProps: { keepMounted: true } }}
-            style={{ marginTop: 16 }}
-            size="small"
-          >
-            <MenuItem value={0}>Death Valley</MenuItem>
-            <MenuItem value={1}>San Carlo</MenuItem>
-            <MenuItem value={2}>Pozzolo</MenuItem>
-            <MenuItem value={3}>Agnone</MenuItem>
-          </TextField>
+            {uiState.viewerState.useTexture ? (
+              <TextField
+                select
+                label="Texture"
+                fullWidth
+                value={uiState.viewerState.skyTextureIndex ?? 0}
+                onChange={(e) => {
+                  const idx = parseInt(e.target.value, 10);
+                  uiState.viewerState.setSkyTextureIndex?.(idx);
+                }}
+                SelectProps={{ MenuProps: { keepMounted: true } }}
+                style={{ marginTop: 16 }}
+                size="small"
+              >
+                <MenuItem value={0}>Death Valley</MenuItem>
+                <MenuItem value={1}>San Carlo</MenuItem>
+                <MenuItem value={2}>Pozzolo</MenuItem>
+                <MenuItem value={3}>Agnone</MenuItem>
+              </TextField>
+            ) : (
+              <TextField
+                label="Color"
+                type="color"
+                fullWidth
+                value={uiState.viewerState.backgroundColor ? `#${uiState.viewerState.backgroundColor.getHexString()}` : `#${new Color(0.7, 0.7, 0.7).getHexString()}`}
+                onChange={(e) => {
+                  const colorStr = e.target.value;
+                  uiState.viewerState.setBackgroundColor?.(new Color(colorStr));
+                }}
+                style={{ marginTop: 16 }}
+                size="small"
+              />
+            )}
+          </>
         </>
       )}
 

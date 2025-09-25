@@ -1,37 +1,40 @@
-import { useTexture } from '@react-three/drei';
-import { useRef } from 'react';
-import * as THREE from 'three';
+import { useLoader } from '@react-three/fiber';
 import { observer } from 'mobx-react';
+import { useEffect, useRef } from "react";
+import { Mesh, TextureLoader, Color, MeshBasicMaterial} from 'three';
 import { useModelContext } from '../../state/ModelUIStateContext';
 
 interface SkySphereProps {
   texturePath?: string;
 }
 
-const SkySphere: React.FC<SkySphereProps> = observer(({ texturePath }) => {
-  // Load 360 sky texture
-  const curState = useModelContext();
-  const viewerState = curState.viewerState
-  const skyTexture = useTexture(viewerState.defaultSkyTextures[viewerState.skyTextureIndex]);
-  const skySphereRef = useRef<THREE.Mesh>(null);
+const SkySphere = ({ texturePath }: SkySphereProps) => {
+  const viewerState = useModelContext().viewerState;
+  const skySphereRef = useRef<Mesh>(null);
 
-  const skyGeometry = new THREE.SphereGeometry(50, 60, 40);
-  const skyMaterial = new THREE.MeshBasicMaterial({
-    map: skyTexture,
-    side: THREE.BackSide,
-    depthWrite: false,
-  });
+  const materialRef = useRef<MeshBasicMaterial>(null!);
+
+  const skyTexture = useLoader(TextureLoader, viewerState.defaultSkyTextures[viewerState.skyTextureIndex]);
+
+  useEffect(() => {
+    if (materialRef.current) {
+      materialRef.current.needsUpdate = true; // forces recompilation
+    }
+  }, [viewerState.useTexture, viewerState.backgroundColor, skyTexture]);
 
   return (
-    <mesh
-      name="SkySphere"
-      ref={skySphereRef}
-      geometry={skyGeometry}
-      material={skyMaterial}
-      renderOrder={-1} // Ensure it renders first as background
-      visible={viewerState.skyVisible}
-    />
+    <mesh name="SkySphere" ref={skySphereRef} renderOrder={-1}>
+      <sphereGeometry args={[50, 60, 40]} />
+      <meshBasicMaterial
+        ref={materialRef}
+        attach="material"
+        map={viewerState.useTexture ? skyTexture : null}
+        color={viewerState.useTexture ? new Color("#ffffff") : new Color(viewerState.backgroundColor)}
+        side={2} // THREE.BackSide
+        depthWrite={false}
+      />
+    </mesh>
   );
-});
+};
 
-export default SkySphere;
+export default observer(SkySphere);
