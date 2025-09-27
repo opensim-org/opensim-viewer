@@ -480,6 +480,40 @@ export class ViewerState {
         }
         this.addCameraDolly(newDolly);
     }
+    saveCamerasToJson() {
+        const camerasJson = this.cameras.map(cam => ({
+            object: {
+                uuid: cam.uuid,
+                name: cam.name,
+                position: cam.position.toArray(),
+                rotation: cam.rotation.toArray(),
+                scale: cam.scale.toArray()
+            }
+        }));
+        const targetsJson = this.targets.map(tgt => tgt.toArray());
+        // For now just log to console
+        console.log("Cameras to save:", camerasJson);
+        console.log("Targets to save:", targetsJson);
+        // Save camerasJson to a file or database
+        const jsonSave = {
+            cameras: camerasJson,
+            targets: targetsJson
+        }
+        return jsonSave;
+    }
+    loadCamerasFromFile() {
+        // Load camerasJson from a file or database
+        const camerasJson: any[] = []; // Replace with actual loading logic
+        camerasJson.forEach(camData => {
+            const camera = new PerspectiveCamera();
+            camera.name = camData.object.name;
+            camera.uuid = camData.object.uuid;
+            camera.position.fromArray(camData.object.position);
+            camera.rotation.fromArray(camData.object.rotation);
+            camera.scale.fromArray(camData.object.scale);
+            //this.addCamera(camera);
+        });
+    }
     setEnvironmentGroup(grp: Group) {
         this.environmentGroup = grp;
     }

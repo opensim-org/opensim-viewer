@@ -21,8 +21,9 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ViewInAr from '@mui/icons-material/ViewInAr';
 import PanoramaIcon from '@mui/icons-material/Panorama';
+import SaveIcon from '@mui/icons-material/Save';
 
-import { convertSceneToTree, mergeTreeWithScene } from '../../../helpers/sceneToTree';
+import { mergeTreeWithScene } from '../../../helpers/sceneToTree';
 import { useModelContext } from '../../../state/ModelUIStateContext';
 import { ModelUIState } from '../../../state/ModelUIState';
 
@@ -37,6 +38,7 @@ import { DirectionalLightHelper,
   Object3D
 } from 'three';
 import { observer } from 'mobx-react';
+import { saveAs } from 'file-saver';
 
 const PANEL_WIDTH = 300;
 
@@ -196,6 +198,13 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
       setTreeData([...treeData]);
     };
 
+    const handleSaveCameras = (node: any) => {
+      const json = uiState.viewerState.saveCamerasToJson();
+      // query for file name and save
+      const defaultName = "cameras.json";
+      const fileName = window.prompt("Enter file name:", defaultName) || defaultName;
+      saveAs(new Blob([JSON.stringify(json, null, 2)], { type: "application/json" }), fileName);
+    }
     const panelBg = alpha(theme.palette.background.paper, 0.9);
 
     return (
@@ -348,7 +357,11 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                             {node.object3D.visible ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
                           </IconButton>
                         )}
-
+                        {node.object3D && node.type === 'Group' && node.title === 'OpenSim Environment' && (
+                          <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleSaveCameras(node); }} style={{ marginLeft: 8 }}>
+                            <SaveIcon fontSize="small" />
+                          </IconButton>
+                        )}
                         {node.nodeType === 'addCameraButton' && (
                           <IconButton onClick={() => onAddCameraClick?.(true)}>
                             <AddIcon fontSize="small" />
