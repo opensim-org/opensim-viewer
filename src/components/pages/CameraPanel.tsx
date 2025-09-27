@@ -6,7 +6,8 @@ import {
   IconButton,
   Stack,
   InputLabel,
-  SelectChangeEvent
+  SelectChangeEvent,
+  ListItemIcon
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
@@ -16,8 +17,14 @@ import { ModelUIState } from '../../state/ModelUIState'
 import { observer } from 'mobx-react'
 import { CameraDolly } from '../../state/ViewerState'
 import DollyEditorDialog from '../Components/DollyEditorDialog'
-
+import tripodIcon from './tripod.png'
+import dollyIcon from './dolly.png'
 const attachmentType = ['Fixed Camera', 'Camera Dolly']
+
+const attachmentIcons: { [key: string]: React.ReactElement } = {
+  'Fixed Camera': <img src={tripodIcon} alt="Fixed Camera" />,
+  'Camera Dolly': <img src={dollyIcon} alt="Camera Dolly" />
+}
 
 type CameraPanelProps = {
   uState: ModelUIState;
@@ -130,22 +137,22 @@ function CameraPanel(props :CameraPanelProps) {
   return (
     <>
       <FormControl size="small" sx={{ minWidth: 100 }}>
-        <InputLabel shrink id="camera-att-label">Attachment</InputLabel>
+        {/* <InputLabel shrink id="camera-att-label">Attachment</InputLabel> */}
         <Select
           value={selectedAttachment}
-          labelId="camera-att-label"
           onChange={handleCameraTypeChange}
           displayEmpty
+          sx={{ border: 'none' }}
         >
           {attachmentType.map((obj) => (
             <MenuItem key={obj} value={obj}>
-              {obj}
+              <ListItemIcon sx={{ maxHeight: 16, paddingBottom: 0 }}>{attachmentIcons[obj]}</ListItemIcon>
             </MenuItem>
           ))}
         </Select>
       </FormControl>
       <FormControl size="small" sx={{ minWidth: 100 }}>
-        <InputLabel shrink id="camera-name-label">Camera</InputLabel>
+        <InputLabel shrink id="camera-name-label">{dollyMode?"Dolly":"Camera"}</InputLabel>
         {dollyMode?
           <Select
           value={selectedDolly}
