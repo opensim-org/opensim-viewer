@@ -133,15 +133,25 @@ function CameraPanel(props :CameraPanelProps) {
     setDollyMode(selectedAttachment==="Fixed Camera");
   }
 
-  const handleSaveCameras = () => {
-    const json = curState.viewerState.saveCamerasToJson();
-    // query for file name and save
-    const defaultName = "cameras.json";
-    const fileName = window.prompt("Enter file name:", defaultName) || defaultName;
-    saveAs(new Blob([JSON.stringify(json, null, 2)], { type: "application/json" }), fileName);
+  const handleSaveCamerasOrDollies = () => {
+    if (dollyMode) {
+      const json = curState.viewerState.saveDolliesToJson();
+      // query for file name and save
+      const defaultName = "dollies.json";
+      const fileName = window.prompt("Enter file name:", defaultName) || defaultName;
+      saveAs(new Blob([JSON.stringify(json, null, 2)], { type: "application/json" }), fileName);
+    }
+    else {
+      const json = curState.viewerState.saveCamerasToJson();
+      // query for file name and save
+      const defaultName = "cameras.json";
+      const fileName = window.prompt("Enter file name:", defaultName) || defaultName;
+      saveAs(new Blob([JSON.stringify(json, null, 2)], { type: "application/json" }), fileName);
+    }
   }
 
-  const handleLoadCameras = () => {
+  const handleLoadCamerasOrDollies = () => {
+    if (dollyMode) {
       // Create a file input element to select the JSON file
       const input = document.createElement('input');
       input.type = 'file';
@@ -152,7 +162,28 @@ function CameraPanel(props :CameraPanelProps) {
           const reader = new FileReader();
           reader.onload = (e) => {
             const json = e.target?.result;
-            console.log("Loaded cameras json: ", json);
+            //console.log("Loaded dollies json: ", json);
+            if (json) {
+              curState.viewerState.loadDolliesFromJson(JSON.parse(json as string));
+            }
+          };
+          reader.readAsText(file);
+        }
+      };
+      input.click();
+    }
+    else {
+      // Create a file input element to select the JSON file
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json,application/json';
+      input.onchange = (event) => {
+        const file = (event.target as HTMLInputElement).files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const json = e.target?.result;
+            //console.log("Loaded cameras json: ", json);
             if (json) {
               curState.viewerState.loadCamerasFromJson(JSON.parse(json as string));
             }
@@ -161,6 +192,7 @@ function CameraPanel(props :CameraPanelProps) {
         }
       };
       input.click();
+    }
     };
 
   return (
@@ -227,11 +259,11 @@ function CameraPanel(props :CameraPanelProps) {
         </IconButton>
         <IconButton color="primary" title="Save to File" 
             disabled={(!selectedCamera && !dollyMode) || (!selectedDolly && dollyMode)}
-            onClick={() => handleSaveCameras()}>
+            onClick={() => handleSaveCamerasOrDollies()}>
           <SaveTwoToneIcon />
         </IconButton>
         <IconButton color="primary" title="Load from File" 
-          onClick={() => handleLoadCameras()}>
+          onClick={() => handleLoadCamerasOrDollies()}>
           <FileOpenTwoToneIcon />
         </IconButton>
       </Stack>

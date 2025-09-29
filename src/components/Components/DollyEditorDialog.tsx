@@ -44,7 +44,7 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => 
   const [entries, setEntries] = useState<CameraEntry[]>(initalEntries);
   const [dollyName, setDollyName] = useState<string>('Dolly')
   const [cameras, ] = useState<Camera[]>(uiState.viewerState.cameras);
-  const [loadedFromFile, setLoadedFromFile] = useState<boolean>(false);
+
   const generateCameraEntryFromFrame = (frame: CameraFrame) =>{
     const cam = cameras.find(cam => cam.uuid === frame.cam_uuid)
     return {
@@ -62,7 +62,7 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => 
       setDollyName(currentDolly.name);
       setEntries(currentDolly.cameraFrames.map((frame) => generateCameraEntryFromFrame(frame)))
     }
-    else if (open && !edit && !loadedFromFile) {
+    else if (open && !edit) {
       setEntries([])
       setDollyName("Dolly")
     }
@@ -148,104 +148,6 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => 
     onClose();
   };
 
-  const handleSaveJson = () => {
-    handleSave();
-    const currentDolly = uiState.viewerState.cameraDollies[uiState.viewerState.currentDollyIndex];
-    let saveCameras: Camera[] = [];
-    let saveTargets: Vector3[] = [];
-    const addedCameraUUIDs = new Set<string>();
-    currentDolly.cameraFrames.forEach((frame) => {
-      const cam = uiState.viewerState.cameras.find(cam => cam.uuid === frame.cam_uuid);
-      if (cam && !addedCameraUUIDs.has(cam.uuid)) {
-        saveCameras.push(cam);
-        addedCameraUUIDs.add(cam.uuid);
-        // find index of camera and corresponding target
-        const idx = uiState.viewerState.cameras.findIndex(c => c.uuid === cam.uuid);
-        saveTargets.push(uiState.viewerState.targets[idx]);
-      } 
-    });
-    const jsonSave = {
-      dolly: currentDolly,
-      // You can transform, rename, or omit fields here
-      cameras: saveCameras,
-      targets: saveTargets
-    }
-    const blob = new Blob([JSON.stringify(jsonSave, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob)
-
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'dolly_' + currentDolly.name + ".json"
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-
-    URL.revokeObjectURL(url)
-      
-    onClose();
-  };
-
-const handleLoadJson = () => {
-  try {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json,application/json';
-
-    input.onchange = function (event) {
-      try {
-        const target = event && event.target ? event.target as HTMLInputElement : null;
-        const files = target && target.files ? target.files : null;
-        const file = files && files.length > 0 ? files[0] : null;
-
-        if (file) {
-          const reader = new FileReader();
-
-          reader.onload = function (e) {
-            try {
-              const result = e && e.target ? e.target.result : null;
-
-              if (result) {
-                const data = JSON.parse(result as string);
-
-                // Handle loaded data
-                uiState.viewerState.addDollyAndCameras(
-                  data.dolly,
-                  data.cameras,
-                  data.targets
-                );
-
-                var currentDolly =
-                  uiState.viewerState.cameraDollies[
-                    uiState.viewerState.currentDollyIndex
-                  ];
-
-                setLoadedFromFile(true);
-
-                setDollyName(currentDolly.name);
-
-                setEntries(
-                  currentDolly.cameraFrames.map(function (frame) {
-                    return generateCameraEntryFromFrame(frame);
-                  })
-                );
-              }
-            } catch (err) {
-              alert("Error in reader.onload: " + err);
-            }
-          };
-          reader.readAsText(file);
-        }
-      } catch (err) {
-        alert("Error in input.onchange: " + err);
-      }
-    };
-    input.click();
-  } catch (err) {
-    alert("Error in handleLoadJson: " + err);
-  }
-};
-
-
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle>Edit Dolly</DialogTitle>
@@ -313,8 +215,6 @@ const handleLoadJson = () => {
         </Table>
       </DialogContent>
       <DialogActions>
-        {edit?null:<Button onClick={handleLoadJson}>Load...</Button>}
-        <Button onClick={handleSaveJson}>Save...</Button>
         <Button onClick={onClose}>Cancel</Button>
         <Button onClick={handleSave} variant="contained">Ok</Button>
       </DialogActions>

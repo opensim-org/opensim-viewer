@@ -407,13 +407,19 @@ export class ViewerState {
             console.error("Error loading user preferences:", error);
         }
     }
-    addCamera(camera: PerspectiveCamera, target: Vector3, suggestedName: string | undefined, setCurrent: boolean | undefined = true) {
+    addCamera(camera: PerspectiveCamera, target: Vector3, 
+                suggestedName: string | undefined, 
+                setCurrent: boolean | undefined = true, 
+                preserveUuid: boolean = false) {
         const camClone = camera.clone()
         if (suggestedName === undefined) 
             camClone.name = "Camera_"+this.cameras.length
         else
             camClone.name = suggestedName;
-        
+        const uniqueName = this.getUniqueCameraName(camClone.name);
+        camClone.name = uniqueName;
+        if (preserveUuid === true && camera.uuid)
+            camClone.uuid = camera.uuid;
         this.cameras.push(camClone);
         this.targets.push(target.clone())
         this.environmentGroup?.add(camClone);
@@ -422,6 +428,22 @@ export class ViewerState {
         this.setSceneVersion(this.sceneVersion +1);
         return camClone;
     }
+    getUniqueCameraName(name: string) {
+        const cameraNames = new Set<string>();
+
+        this.cameras.forEach(cam => {
+            cameraNames.add(cam.name);
+        });
+
+        let uniqueName = name;
+        let counter = 1;
+        while (cameraNames.has(uniqueName)) {
+            uniqueName = `${name}_${counter}`;
+            counter++;
+        }
+        return uniqueName;
+    }
+
     deleteCurrentCamera() {
         const idx = this.currentCameraIndex;
         const cam = this.cameras[idx];
@@ -494,9 +516,6 @@ export class ViewerState {
             }
         }));
         const targetsJson = this.targets.map(tgt => tgt.toArray());
-        // For now just log to console
-        console.log("Cameras to save:", camerasJson);
-        console.log("Targets to save:", targetsJson);
         // Save camerasJson to a file or database
         const jsonSave = {
             cameras: camerasJson,
@@ -504,6 +523,45 @@ export class ViewerState {
         }
         return jsonSave;
     }
+    saveDolliesToJson() {
+        const camsJson = this.saveCamerasToJson();
+        const dolliesJson = this.cameraDollies.map(camDolly => ({
+            object: {
+                desc: camDolly.desc,
+                name: camDolly.name,
+                cameraFrames: camDolly.cameraFrames.map(frame => ({
+                    cam_uuid: frame.cam_uuid,
+                    time: frame.time
+                }))
+            }
+        }));
+        // Save camerasJson to json object, let client save to file or database
+        const jsonSave = {
+            cameras: camsJson.cameras,
+            targets: camsJson.targets,
+            dollies: dolliesJson
+        }
+        return jsonSave;
+    }
+    loadDolliesFromJson(json: any) {
+        // Load dolliesJson from a file or database
+        const readDollies: CameraDolly[] = [];
+        const dolliesJson: any[] = json.dollies;
+
+        this.loadCamerasFromJson(json);
+        dolliesJson.forEach(dollyData => {
+            const newDolly = new CameraDolly(dollyData.object.name, dollyData.object.desc);
+            dollyData.object.cameraFrames.forEach((frameData: CameraFrame) => {
+                const newFrame = new CameraFrame(frameData.cam_uuid, frameData.time);
+                newDolly.cameraFrames.push(newFrame);
+            });
+            readDollies.push(newDolly);
+        });
+        // for every read dolly add to state
+        readDollies.forEach(dolly => {
+            this.addCameraDolly(dolly);
+        });
+    } 
     loadCamerasFromJson(json: any) {
         // Load camerasJson from a file or database
         const readCameras: PerspectiveCamera[] = []
@@ -526,7 +584,7 @@ export class ViewerState {
         // for every read camera and associated target add to state
         readCameras.forEach((cam, index) => {
             const tgt = readTargets[index] || new Vector3(0,0,0);
-            this.addCamera(cam, tgt, cam.name, false);
+            this.addCamera(cam, tgt, cam.name, false, true);
         });
     }
     setEnvironmentGroup(grp: Group) {
