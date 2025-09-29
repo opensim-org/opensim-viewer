@@ -11,10 +11,15 @@ import {
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
+import SaveTwoToneIcon from '@mui/icons-material/SaveTwoTone';
+import FileOpenTwoToneIcon from '@mui/icons-material/FileOpenTwoTone';
+
 import { Camera } from 'three'
 import { ModelUIState } from '../../state/ModelUIState'
 import { observer } from 'mobx-react'
 import { CameraDolly } from '../../state/ViewerState'
+import { saveAs } from 'file-saver';
+
 import DollyEditorDialog from '../Components/DollyEditorDialog'
 
 const attachmentType = ['Fixed Camera', 'Camera Dolly']
@@ -127,6 +132,37 @@ function CameraPanel(props :CameraPanelProps) {
     setSelectedAttachment(targetName);
     setDollyMode(selectedAttachment==="Fixed Camera");
   }
+
+  const handleSaveCameras = () => {
+    const json = curState.viewerState.saveCamerasToJson();
+    // query for file name and save
+    const defaultName = "cameras.json";
+    const fileName = window.prompt("Enter file name:", defaultName) || defaultName;
+    saveAs(new Blob([JSON.stringify(json, null, 2)], { type: "application/json" }), fileName);
+  }
+
+  const handleLoadCameras = () => {
+      // Create a file input element to select the JSON file
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json,application/json';
+      input.onchange = (event) => {
+        const file = (event.target as HTMLInputElement).files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const json = e.target?.result;
+            console.log("Loaded cameras json: ", json);
+            if (json) {
+              curState.viewerState.loadCamerasFromJson(JSON.parse(json as string));
+            }
+          };
+          reader.readAsText(file);
+        }
+      };
+      input.click();
+    };
+
   return (
     <>
       <FormControl size="small" sx={{ minWidth: 100 }}>
@@ -188,6 +224,15 @@ function CameraPanel(props :CameraPanelProps) {
         <IconButton color="error" title="Delete Camera/Dolly" 
          disabled={(!selectedCamera && !dollyMode) || (!selectedDolly && dollyMode)} onClick={handleDelete}>
           <DeleteIcon />
+        </IconButton>
+        <IconButton color="primary" title="Save to File" 
+            disabled={(!selectedCamera && !dollyMode) || (!selectedDolly && dollyMode)}
+            onClick={() => handleSaveCameras()}>
+          <SaveTwoToneIcon />
+        </IconButton>
+        <IconButton color="primary" title="Load from File" 
+          onClick={() => handleLoadCameras()}>
+          <FileOpenTwoToneIcon />
         </IconButton>
       </Stack>
       </FormControl>

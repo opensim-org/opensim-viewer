@@ -14,7 +14,9 @@ interface CamData {
     object: {
         uuid: string
         name: string
-        matrix: number[]
+        position: Vector3
+        rotation: Vector3
+        scale: Vector3
     }
 }
 export class CameraDolly {
@@ -461,8 +463,9 @@ export class ViewerState {
             if (!existing) {
                 let camera = new PerspectiveCamera();
                 camera.name = data.object.name
-                camera.matrix.fromArray(data.object.matrix)
-                camera.matrix.decompose(camera.position, camera.quaternion, camera.scale);
+                camera.position.copy(data.object.position)
+                camera.rotation.fromArray(data.object.rotation.toArray())
+                camera.scale.copy(data.object.scale)
                 this.addCamera(camera, new Vector3(targetsJson[index]), camera.name, false);
                 mapUuidToCam.set(data.object.uuid, camera);
             }
@@ -501,9 +504,10 @@ export class ViewerState {
         }
         return jsonSave;
     }
-    loadCamerasFromFile() {
+    loadCamerasFromJson(json: any) {
         // Load camerasJson from a file or database
-        const camerasJson: any[] = []; // Replace with actual loading logic
+        const readCameras: PerspectiveCamera[] = []
+        const camerasJson: any[] = json.cameras; 
         camerasJson.forEach(camData => {
             const camera = new PerspectiveCamera();
             camera.name = camData.object.name;
@@ -511,7 +515,18 @@ export class ViewerState {
             camera.position.fromArray(camData.object.position);
             camera.rotation.fromArray(camData.object.rotation);
             camera.scale.fromArray(camData.object.scale);
-            //this.addCamera(camera);
+            readCameras.push(camera);
+        });
+        const readTargets: Vector3[] = [];
+        const targetsJson: any[] = json.targets;
+        targetsJson.forEach(tgtData => {
+            const target = new Vector3().fromArray(tgtData);
+            readTargets.push(target);
+        });
+        // for every read camera and associated target add to state
+        readCameras.forEach((cam, index) => {
+            const tgt = readTargets[index] || new Vector3(0,0,0);
+            this.addCamera(cam, tgt, cam.name, false);
         });
     }
     setEnvironmentGroup(grp: Group) {
