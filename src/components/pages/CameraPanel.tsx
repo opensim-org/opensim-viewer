@@ -137,7 +137,6 @@ function CameraPanel(props :CameraPanelProps) {
   return (
     <>
       <FormControl size="small" sx={{ minWidth: 100 }}>
-        {/* <InputLabel shrink id="camera-att-label">Attachment</InputLabel> */}
         <Select
           value={selectedAttachment}
           onChange={handleCameraTypeChange}
