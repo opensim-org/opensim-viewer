@@ -275,6 +275,14 @@ useEffect(() => {
     uiState.viewerState.setIsLocalUpload(false);
   }
 
+  const [Perf, setPerf] = useState<any>(null);
+
+  useEffect(() => {
+    if (curState.isModernBrowser) {
+      import('r3f-perf').then(mod => setPerf(() => mod.Perf));
+    }
+  }, [curState.isModernBrowser]);
+
   function toggleOpenMenu(name: string = "") {
     // If same name, or empty just toggle.
     if (name === selectedTabName || name === "") setMenuOpen(!menuOpen);
@@ -369,7 +377,7 @@ useEffect(() => {
                 {showDebug && (
                   <>
                     <Stats />
-                    { /* curState.isModernBrowser && (<Perf position="top-right" />) */}
+                    { curState.isModernBrowser && Perf &&  (<Perf position="top-right" />) }
                   </>
                 )}
               </Canvas>
