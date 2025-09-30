@@ -6,18 +6,30 @@ import {
   IconButton,
   Stack,
   InputLabel,
-  SelectChangeEvent
+  SelectChangeEvent,
+  ListItemIcon
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
+import SaveTwoToneIcon from '@mui/icons-material/SaveTwoTone';
+import FileOpenTwoToneIcon from '@mui/icons-material/FileOpenTwoTone';
+
 import { Camera } from 'three'
 import { ModelUIState } from '../../state/ModelUIState'
 import { observer } from 'mobx-react'
 import { CameraDolly } from '../../state/ViewerState'
-import DollyEditorDialog from '../Components/DollyEditorDialog'
+import { saveAs } from 'file-saver';
 
+import DollyEditorDialog from '../Components/DollyEditorDialog'
+import tripodIcon from './tripod.png'
+import dollyIcon from './dolly.png'
 const attachmentType = ['Fixed Camera', 'Camera Dolly']
+
+const attachmentIcons: { [key: string]: React.ReactElement } = {
+  'Fixed Camera': <img src={tripodIcon} alt="Fixed Camera" />,
+  'Camera Dolly': <img src={dollyIcon} alt="Camera Dolly" />
+}
 
 type CameraPanelProps = {
   uState: ModelUIState;
@@ -42,22 +54,46 @@ function CameraPanel(props :CameraPanelProps) {
     curState.viewerState.setCurrentCameraIndex(idx)
 
   }, [curState]);
+  
+  const handleDollyChange = useCallback((dollyName: string) => {
+    const targetName = dollyName
+    setSelectedDolly(dollyName);
+
+      const idx = curState.viewerState.cameraDollies.findIndex((value: CameraDolly)=>{return (value.name === targetName)})
+      if (idx !== -1) {
+          curState.viewerState.setCurrentDollyIndex(idx)
+      }
+  }, [curState]);
 
   useEffect(() => {
     // Effect logic here
     setAvailableCameras(curState.viewerState.cameras);
     setAvailableDollies(curState.viewerState.cameraDollies);
-    if (curState.viewerState.cameras.length > 0 && curState.viewerState.currentCameraIndex !== -1) {
-      setSelectedCamera(curState.viewerState.cameras[curState.viewerState.currentCameraIndex].name);
-      handleCameraChange(curState.viewerState.cameras[curState.viewerState.currentCameraIndex].name);
+    if (dollyMode){
+      if (curState.viewerState.cameraDollies.length > 0 && curState.viewerState.currentDollyIndex !== -1) {
+        const currentDolly = curState.viewerState.cameraDollies[curState.viewerState.currentDollyIndex];
+        setSelectedDolly(currentDolly.name);
+        handleDollyChange(currentDolly.name);
+      }
+      else if (curState.viewerState.currentDollyIndex === -1){
+        setSelectedDolly("")
+      }
     }
-    else if (curState.viewerState.currentCameraIndex === -1){
-      setSelectedCamera("")
+    else {
+      if (curState.viewerState.cameras.length > 0 && curState.viewerState.currentCameraIndex !== -1) {
+        setSelectedCamera(curState.viewerState.cameras[curState.viewerState.currentCameraIndex].name);
+        handleCameraChange(curState.viewerState.cameras[curState.viewerState.currentCameraIndex].name);
+      }
+      else if (curState.viewerState.currentCameraIndex === -1){
+        setSelectedCamera("")
+      }
     }
     return () => {
       // Optional cleanup logic
     };
-  }, [availableCameras, curState.viewerState.cameraDollies, curState.viewerState.cameras, curState.viewerState.cameras.length, curState.viewerState.currentCameraIndex, handleCameraChange]);
+  }, [availableCameras, curState.viewerState.cameraDollies, curState.viewerState.currentDollyIndex, curState.viewerState.cameras, 
+      curState.viewerState.cameras.length, curState.viewerState.currentCameraIndex, 
+      curState.viewerState.animationsNeedUpdate, handleCameraChange, dollyMode, handleDollyChange]);
 
   const handleCameraChangeEvent = (event: SelectChangeEvent) => {
     const targetName = event.target.value as string
@@ -69,17 +105,7 @@ function CameraPanel(props :CameraPanelProps) {
     handleDollyChange(targetName)
   };
 
-    const handleDollyChange = useCallback((dollyName: string) => {
-    const targetName = dollyName
-    setSelectedDolly(dollyName);
-
-      const idx = curState.viewerState.cameraDollies.findIndex((value: CameraDolly)=>{return (value.name === targetName)})
-      if (idx !== -1) {
-          curState.viewerState.setCurrentDollyIndex(idx)
-      }
-  }, [curState]);
-
-  const handleAdd = () => {
+  const handleAdd = function() {
     if (dollyMode) {
       setEditMode(false)
       setDollyEditorOpen(true)
@@ -89,7 +115,7 @@ function CameraPanel(props :CameraPanelProps) {
     }
   }
 
-    const handleEdit = () => {
+    const handleEdit = function() {
     if (dollyMode) {
       setEditMode(true);
       setDollyEditorOpen(true)
@@ -99,7 +125,7 @@ function CameraPanel(props :CameraPanelProps) {
     }
   }
 
-  const handleDelete = () => {
+  const handleDelete = function() {
     if (dollyMode) {
       curState.viewerState.deleteCurrentDolly();
     }
@@ -113,25 +139,98 @@ function CameraPanel(props :CameraPanelProps) {
     setSelectedAttachment(targetName);
     setDollyMode(selectedAttachment==="Fixed Camera");
   }
+
+  const handleSaveCamerasOrDollies = function() {
+    if (dollyMode) {
+      const json = curState.viewerState.saveDolliesToJson();
+      // query for file name and save
+      const defaultName = "dollies.json";
+      //const fileName = window.prompt("Enter file name:", defaultName) || defaultName;
+      saveAs(new Blob([JSON.stringify(json, null, 2)], { type: "application/json" }), defaultName);
+    }
+    else {
+      const json = curState.viewerState.saveCamerasToJson();
+      // query for file name and save
+      const defaultName = "cameras.json";
+      //const fileName = window.prompt("Enter file name:", defaultName) || defaultName;
+      saveAs(new Blob([JSON.stringify(json, null, 2)], { type: "application/json" }), defaultName);
+    }
+  }
+
+  const handleLoadCamerasOrDollies = function() {
+    if (dollyMode) {
+      // Create a file input element to select the JSON file
+      var input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json,application/json';
+      input.oninput = function(event) {
+        //alert(event);
+        const target = event && event.target ? event.target as HTMLInputElement : null;
+        const files = target && target.files ? target.files : null;
+        const file = files && files.length > 0 ? files[0] : null;
+        if (file) {
+          var reader = new FileReader();
+          reader.onload = function(e) {
+            var json = e && e.target && e.target.result;
+            //console.log("Loaded dollies json: ", json);
+            //alert(json);
+            if (json) {
+              var jsonString = String(json);
+              curState.viewerState.loadDolliesFromJson(JSON.parse(jsonString));
+            }
+          };
+          reader.readAsText(file);
+        }
+      };
+      input.click();
+    }
+    else {
+      // Create a file input element to select the JSON file
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json,application/json';
+      input.onclick = (event) => {
+        //alert(event)
+        const target = event && event.target ? event.target as HTMLInputElement : null;
+        const files = target && target.files ? target.files : null;
+        const file = files && files.length > 0 ? files[0] : null;
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const json = e && e.target && e.target.result;
+            //alert(json);
+            //console.log("Loaded cameras json: ", json);
+            if (json) {
+              var jsonString = String(json);
+              curState.viewerState.loadCamerasFromJson(JSON.parse(jsonString));
+            }
+          };
+          reader.readAsText(file);
+        }
+      };
+      input.click();
+    }
+    };
+
   return (
     <>
       <FormControl size="small" sx={{ minWidth: 100 }}>
-        <InputLabel shrink id="camera-att-label">Attachment</InputLabel>
+        {/* <InputLabel shrink id="camera-att-label">Attachment</InputLabel> */}
         <Select
           value={selectedAttachment}
-          labelId="camera-att-label"
           onChange={handleCameraTypeChange}
           displayEmpty
+          sx={{ border: 'none' }}
         >
           {attachmentType.map((obj) => (
             <MenuItem key={obj} value={obj}>
-              {obj}
+              <ListItemIcon sx={{ maxHeight: 16, paddingBottom: 0 }}>{attachmentIcons[obj]}</ListItemIcon>
             </MenuItem>
           ))}
         </Select>
       </FormControl>
       <FormControl size="small" sx={{ minWidth: 100 }}>
-        <InputLabel shrink id="camera-name-label">Camera</InputLabel>
+        <InputLabel shrink id="camera-name-label">{dollyMode?"Dolly":"Camera"}</InputLabel>
         {dollyMode?
           <Select
           value={selectedDolly}
@@ -175,12 +274,21 @@ function CameraPanel(props :CameraPanelProps) {
          disabled={(!selectedCamera && !dollyMode) || (!selectedDolly && dollyMode)} onClick={handleDelete}>
           <DeleteIcon />
         </IconButton>
+        <IconButton color="primary" title="Save to File" 
+            disabled={(!selectedCamera && !dollyMode) || (!selectedDolly && dollyMode)}
+            onClick={function() { handleSaveCamerasOrDollies();}}>
+          <SaveTwoToneIcon />
+        </IconButton>
+        <IconButton color="primary" title="Load from File" 
+          onClick={function() { handleLoadCamerasOrDollies();}}>
+          <FileOpenTwoToneIcon />
+        </IconButton>
       </Stack>
       </FormControl>
       <DollyEditorDialog
           open={dollyEditorOpen}
           edit={editMode}
-          onClose={() => setDollyEditorOpen(false)}
+          onClose={function() {setDollyEditorOpen(false)}}
           uiState={curState}
       />
     </>

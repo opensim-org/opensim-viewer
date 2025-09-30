@@ -1,5 +1,5 @@
 import { makeObservable, observable, action, runInAction } from 'mobx'
-import { Color, Vector3, Camera, AnimationClip, VectorKeyframeTrack, QuaternionKeyframeTrack, PerspectiveCamera, Group } from 'three'
+import { Color, Vector3, Camera, AnimationClip, VectorKeyframeTrack, QuaternionKeyframeTrack, PerspectiveCamera, Group, Quaternion, Matrix4 } from 'three'
 
 export class CameraFrame {
     cam_uuid: string
@@ -7,6 +7,16 @@ export class CameraFrame {
     constructor(camera_uuid: string, time: number) {
         this.cam_uuid = camera_uuid
         this.time = time
+    }
+}
+
+interface CamData {
+    object: {
+        uuid: string
+        name: string
+        position: Vector3
+        rotation: Vector3
+        scale: Vector3
     }
 }
 export class CameraDolly {
@@ -18,6 +28,18 @@ export class CameraDolly {
         this.desc = desc
         this.cameraFrames = []
     }
+    toJSON() {
+    return {
+      name: this.name,
+      // You can transform, rename, or omit fields here
+      desc: this.desc,
+      cameraFrames: this.cameraFrames.map(frame => ({
+        cam_uuid: frame.cam_uuid,
+        time: frame.time
+      })),
+    }
+  }
+
 }
 
 export class ViewerState {
@@ -76,6 +98,8 @@ export class ViewerState {
     animationSpeed: number
     animations: AnimationClip[]
     currentAnimationIndex: number
+    animationsNeedUpdate: boolean
+    animationChange: null | Object
     // Environment holders
     environmentGroup: Group | null
     constructor(
@@ -149,6 +173,8 @@ export class ViewerState {
         this.animationSpeed = 1.0
         this.animations = []
         this.currentAnimationIndex = -1
+        this.animationsNeedUpdate = false
+        this.animationChange = null
         this.environmentGroup = null
         makeObservable(this, {
             currentModelPath: observable,
@@ -210,6 +236,8 @@ export class ViewerState {
             setCurrentCameraIndex: action,
             sceneVersion: observable,
             setSceneVersion: action,
+            animationsNeedUpdate: observable,
+            setAnimationsNeedUpdate: action
         })
     }
 
@@ -316,11 +344,17 @@ export class ViewerState {
         this.animations.push(this.createAnimationClipFromSequence(newSequence));
         this.setCurrentAnimationIndex(this.animations.length - 1);
         this.setCurrentDollyIndex(this.cameraDollies.length - 1);
+        this.animationChange = {index:this.currentDollyIndex, operation:"add"};
+        this.setAnimationsNeedUpdate(true);
+
     }
     updateCameraDolly(newSequence:CameraDolly){
         // update entry at  this.currentDollyIndex
-        this.cameraDollies[this.currentDollyIndex]=(newSequence);
-        this.animations[this.currentDollyIndex]=(this.createAnimationClipFromSequence(newSequence));
+        this.cameraDollies.splice(this.currentDollyIndex, 1, newSequence);
+        const theClip = this.createAnimationClipFromSequence(newSequence);
+        this.animations.splice(this.currentDollyIndex, 1, theClip);
+        this.animationChange = {index:this.currentDollyIndex, operation:"update"};
+        this.setAnimationsNeedUpdate(true);
     }
     setAnimationList(animations: AnimationClip[]) {
         this.animations=animations
@@ -373,20 +407,43 @@ export class ViewerState {
             console.error("Error loading user preferences:", error);
         }
     }
-    addCamera(camera: PerspectiveCamera, target: Vector3, suggestedName: string | undefined) {
+    addCamera(camera: PerspectiveCamera, target: Vector3, 
+                suggestedName: string | undefined, 
+                setCurrent: boolean | undefined = true, 
+                preserveUuid: boolean = false) {
         const camClone = camera.clone()
         if (suggestedName === undefined) 
             camClone.name = "Camera_"+this.cameras.length
         else
             camClone.name = suggestedName;
-        
+        const uniqueName = this.getUniqueCameraName(camClone.name);
+        camClone.name = uniqueName;
+        if (preserveUuid === true && camera.uuid)
+            camClone.uuid = camera.uuid;
         this.cameras.push(camClone);
         this.targets.push(target.clone())
-        this.environmentGroup?.add(camClone);
-        this.currentCameraIndex = (this.cameras.length - 1);
+        this.environmentGroup!.add(camClone);
+        if (setCurrent!== false)
+            this.currentCameraIndex = (this.cameras.length - 1);
         this.setSceneVersion(this.sceneVersion +1);
         return camClone;
     }
+    getUniqueCameraName(name: string) {
+        const cameraNames = new Set<string>();
+
+        this.cameras.forEach(cam => {
+            cameraNames.add(cam.name);
+        });
+
+        let uniqueName = name;
+        let counter = 1;
+        while (cameraNames.has(uniqueName)) {
+            uniqueName = `${name}_${counter}`;
+            counter++;
+        }
+        return uniqueName;
+    }
+
     deleteCurrentCamera() {
         const idx = this.currentCameraIndex;
         const cam = this.cameras[idx];
@@ -412,12 +469,132 @@ export class ViewerState {
             if (idx > this.cameraDollies.length-1) 
                 this.setCurrentDollyIndex(this.cameraDollies.length-1)
         }
+        this.animations.splice(idx, 1);
+        if (this.currentAnimationIndex === idx) {
+            this.setCurrentAnimationIndex(-1);
+        }
+        this.animationChange = {index:idx, operation:"delete"};
+        this.setAnimationsNeedUpdate(true);
+    }
+    addDollyAndCameras(newSequenceJson:CameraDolly, camerasJson: any[], targetsJson: any[]) {
+        // Add any cameras not already in list
+        let mapUuidToCam = new Map<string, Camera>();
+        camerasJson.forEach((camData:CamData, index: number) => {
+            const data = camData;
+            const existing = this.cameras.find(c => c.uuid === data.object.uuid);
+            if (!existing) {
+                let camera = new PerspectiveCamera();
+                camera.name = data.object.name
+                camera.position.copy(data.object.position)
+                camera.rotation.fromArray(data.object.rotation.toArray())
+                camera.scale.copy(data.object.scale)
+                this.addCamera(camera, new Vector3(targetsJson[index]), camera.name, false);
+                mapUuidToCam.set(data.object.uuid, camera);
+            }
+        });
+        // Add the dolly
+        const newDolly = new CameraDolly(newSequenceJson.name, newSequenceJson.desc);
+        for (let i=0; i<newSequenceJson.cameraFrames.length; i++){
+            const frameJson = newSequenceJson.cameraFrames[i];
+            const camName = mapUuidToCam.get(frameJson.cam_uuid)!.name
+            const cam = this.cameras.find(c => c.name === camName);
+            if (cam) {
+                const newFrame = new CameraFrame(cam.uuid, frameJson.time);
+                newDolly.cameraFrames.push(newFrame);
+            }
+        }
+        this.addCameraDolly(newDolly);
+    }
+    saveCamerasToJson() {
+        const camerasJson = this.cameras.map(cam => ({
+            object: {
+                uuid: cam.uuid,
+                name: cam.name,
+                position: cam.position.toArray(),
+                rotation: cam.rotation.toArray(),
+                scale: cam.scale.toArray()
+            }
+        }));
+        const targetsJson = this.targets.map(tgt => tgt.toArray());
+        // Save camerasJson to a file or database
+        const jsonSave = {
+            cameras: camerasJson,
+            targets: targetsJson
+        }
+        return jsonSave;
+    }
+    saveDolliesToJson() {
+        const camsJson = this.saveCamerasToJson();
+        const dolliesJson = this.cameraDollies.map(camDolly => ({
+            object: {
+                desc: camDolly.desc,
+                name: camDolly.name,
+                cameraFrames: camDolly.cameraFrames.map(frame => ({
+                    cam_uuid: frame.cam_uuid,
+                    time: frame.time
+                }))
+            }
+        }));
+        // Save camerasJson to json object, let client save to file or database
+        const jsonSave = {
+            cameras: camsJson.cameras,
+            targets: camsJson.targets,
+            dollies: dolliesJson
+        }
+        return jsonSave;
+    }
+    loadDolliesFromJson(json: any) {
+        // Load dolliesJson from a file or database
+        const readDollies: CameraDolly[] = [];
+        const dolliesJson: any[] = json.dollies;
+
+        this.loadCamerasFromJson(json);
+        dolliesJson.forEach(dollyData => {
+            const newDolly = new CameraDolly(dollyData.object.name, dollyData.object.desc);
+            dollyData.object.cameraFrames.forEach((frameData: CameraFrame) => {
+                const newFrame = new CameraFrame(frameData.cam_uuid, frameData.time);
+                newDolly.cameraFrames.push(newFrame);
+            });
+            readDollies.push(newDolly);
+        });
+        // for every read dolly add to state
+        readDollies.forEach(dolly => {
+            this.addCameraDolly(dolly);
+        });
+    } 
+    loadCamerasFromJson(json: any) {
+        // Load camerasJson from a file or database
+        const readCameras: PerspectiveCamera[] = []
+        const camerasJson: any[] = json.cameras; 
+        camerasJson.forEach(camData => {
+            const camera = new PerspectiveCamera();
+            camera.name = camData.object.name;
+            camera.uuid = camData.object.uuid;
+            camera.position.fromArray(camData.object.position);
+            camera.rotation.fromArray(camData.object.rotation);
+            camera.scale.fromArray(camData.object.scale);
+            readCameras.push(camera);
+        });
+        const readTargets: Vector3[] = [];
+        const targetsJson: any[] = json.targets;
+        targetsJson.forEach(tgtData => {
+            const target = new Vector3().fromArray(tgtData);
+            readTargets.push(target);
+        });
+        // for every read camera and associated target add to state
+        readCameras.forEach((cam, index) => {
+            const tgt = readTargets[index] || new Vector3(0,0,0);
+            this.addCamera(cam, tgt, cam.name, false, true);
+        });
     }
     setEnvironmentGroup(grp: Group) {
         this.environmentGroup = grp;
     }
     setSceneVersion(version: number) {
         this.sceneVersion = version;
+    }
+    setAnimationsNeedUpdate(needsUpdate: boolean) {
+        this.animationsNeedUpdate = needsUpdate;
     }
 }
 

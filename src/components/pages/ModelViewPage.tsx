@@ -45,15 +45,6 @@ import VideoRecorder from "../Components/VideoRecorder"
 import { Color} from 'three';
 import { TransformControls } from "@react-three/drei";
 
-
-import TranslateIcon from '@mui/icons-material/OpenWith';
-import RotateIcon from '@mui/icons-material/RotateRight';
-
-import {
-  Button
-} from "@mui/material";
-
-
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
 }>(({ theme, open }) => ({
@@ -284,6 +275,14 @@ useEffect(() => {
     uiState.viewerState.setIsLocalUpload(false);
   }
 
+  const [Perf, setPerf] = useState<any>(null);
+
+  useEffect(() => {
+    if (curState.isModernBrowser) {
+      import('r3f-perf').then(mod => setPerf(() => mod.Perf));
+    }
+  }, [curState.isModernBrowser]);
+
   function toggleOpenMenu(name: string = "") {
     // If same name, or empty just toggle.
     if (name === selectedTabName || name === "") setMenuOpen(!menuOpen);
@@ -378,7 +377,7 @@ useEffect(() => {
                 {showDebug && (
                   <>
                     <Stats />
-                    {{ /*<Perf position="top-right" /> */}}
+                    { curState.isModernBrowser && Perf &&  (<Perf position="top-right" />) }
                   </>
                 )}
               </Canvas>

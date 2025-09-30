@@ -17,7 +17,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { ModelUIState } from "../../state/ModelUIState";
 import { CameraFrame, CameraDolly } from "../../state/ViewerState";
-import { Camera } from 'three';
+import { Camera, Vector3 } from 'three';
 
 type CameraEntry = {
   id: string;
@@ -44,6 +44,7 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => 
   const [entries, setEntries] = useState<CameraEntry[]>(initalEntries);
   const [dollyName, setDollyName] = useState<string>('Dolly')
   const [cameras, ] = useState<Camera[]>(uiState.viewerState.cameras);
+
   const generateCameraEntryFromFrame = (frame: CameraFrame) =>{
     const cam = cameras.find(cam => cam.uuid === frame.cam_uuid)
     return {
@@ -60,6 +61,10 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => 
       let currentDolly = uiState.viewerState.cameraDollies[uiState.viewerState.currentDollyIndex];
       setDollyName(currentDolly.name);
       setEntries(currentDolly.cameraFrames.map((frame) => generateCameraEntryFromFrame(frame)))
+    }
+    else if (open && !edit) {
+      setEntries([])
+      setDollyName("Dolly")
     }
   }, [open, edit, uiState.viewerState.currentDollyIndex, uiState.viewerState.cameraDollies]);
 
@@ -211,7 +216,7 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => 
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={handleSave} variant="contained">Save</Button>
+        <Button onClick={handleSave} variant="contained">Ok</Button>
       </DialogActions>
     </Dialog>
   );
