@@ -145,15 +145,15 @@ function CameraPanel(props :CameraPanelProps) {
       const json = curState.viewerState.saveDolliesToJson();
       // query for file name and save
       const defaultName = "dollies.json";
-      //const fileName = window.prompt("Enter file name:", defaultName) || defaultName;
-      saveAs(new Blob([JSON.stringify(json, null, 2)], { type: "application/json" }), defaultName);
+      const fileName = window.prompt("Enter file name:", defaultName) || defaultName;
+      saveAs(new Blob([JSON.stringify(json, null, 2)], { type: "application/json" }), fileName);
     }
     else {
       const json = curState.viewerState.saveCamerasToJson();
       // query for file name and save
       const defaultName = "cameras.json";
-      //const fileName = window.prompt("Enter file name:", defaultName) || defaultName;
-      saveAs(new Blob([JSON.stringify(json, null, 2)], { type: "application/json" }), defaultName);
+      const fileName = window.prompt("Enter file name:", defaultName) || defaultName;
+      saveAs(new Blob([JSON.stringify(json, null, 2)], { type: "application/json" }), fileName);
     }
   }
 
