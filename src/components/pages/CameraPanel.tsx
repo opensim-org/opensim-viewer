@@ -164,15 +164,19 @@ function CameraPanel(props :CameraPanelProps) {
       input.type = 'file';
       input.accept = '.json,application/json';
       input.oninput = function(event) {
-        var fileInput = event.target as HTMLInputElement;
-        var file = fileInput && fileInput.files && fileInput.files[0];
+        //alert(event);
+        const target = event && event.target ? event.target as HTMLInputElement : null;
+        const files = target && target.files ? target.files : null;
+        const file = files && files.length > 0 ? files[0] : null;
         if (file) {
           var reader = new FileReader();
           reader.onload = function(e) {
             var json = e && e.target && e.target.result;
             //console.log("Loaded dollies json: ", json);
+            //alert(json);
             if (json) {
-              curState.viewerState.loadDolliesFromJson(JSON.parse(json as string));
+              var jsonString = String(json);
+              curState.viewerState.loadDolliesFromJson(JSON.parse(jsonString));
             }
           };
           reader.readAsText(file);
@@ -185,16 +189,20 @@ function CameraPanel(props :CameraPanelProps) {
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = '.json,application/json';
-      input.oninput = (event) => {
-        const fileInput = event.target as HTMLInputElement;
-        const file = fileInput && fileInput.files && fileInput.files[0];
+      input.onclick = (event) => {
+        //alert(event)
+        const target = event && event.target ? event.target as HTMLInputElement : null;
+        const files = target && target.files ? target.files : null;
+        const file = files && files.length > 0 ? files[0] : null;
         if (file) {
           const reader = new FileReader();
-          reader.onload = (e) => {
+          reader.onload = function(e) {
             const json = e && e.target && e.target.result;
+            //alert(json);
             //console.log("Loaded cameras json: ", json);
             if (json) {
-              curState.viewerState.loadCamerasFromJson(JSON.parse(json as string));
+              var jsonString = String(json);
+              curState.viewerState.loadCamerasFromJson(JSON.parse(jsonString));
             }
           };
           reader.readAsText(file);
