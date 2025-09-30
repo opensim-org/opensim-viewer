@@ -98,7 +98,7 @@ function CameraPanel(props :CameraPanelProps) {
     handleDollyChange(targetName)
   };
 
-  const handleAdd = () => {
+  const handleAdd = function() {
     if (dollyMode) {
       setEditMode(false)
       setDollyEditorOpen(true)
@@ -108,7 +108,7 @@ function CameraPanel(props :CameraPanelProps) {
     }
   }
 
-    const handleEdit = () => {
+    const handleEdit = function() {
     if (dollyMode) {
       setEditMode(true);
       setDollyEditorOpen(true)
@@ -118,7 +118,7 @@ function CameraPanel(props :CameraPanelProps) {
     }
   }
 
-  const handleDelete = () => {
+  const handleDelete = function() {
     if (dollyMode) {
       curState.viewerState.deleteCurrentDolly();
     }
@@ -133,35 +133,36 @@ function CameraPanel(props :CameraPanelProps) {
     setDollyMode(selectedAttachment==="Fixed Camera");
   }
 
-  const handleSaveCamerasOrDollies = () => {
+  const handleSaveCamerasOrDollies = function() {
     if (dollyMode) {
       const json = curState.viewerState.saveDolliesToJson();
       // query for file name and save
       const defaultName = "dollies.json";
-      const fileName = window.prompt("Enter file name:", defaultName) || defaultName;
-      saveAs(new Blob([JSON.stringify(json, null, 2)], { type: "application/json" }), fileName);
+      //const fileName = window.prompt("Enter file name:", defaultName) || defaultName;
+      saveAs(new Blob([JSON.stringify(json, null, 2)], { type: "application/json" }), defaultName);
     }
     else {
       const json = curState.viewerState.saveCamerasToJson();
       // query for file name and save
       const defaultName = "cameras.json";
-      const fileName = window.prompt("Enter file name:", defaultName) || defaultName;
-      saveAs(new Blob([JSON.stringify(json, null, 2)], { type: "application/json" }), fileName);
+      //const fileName = window.prompt("Enter file name:", defaultName) || defaultName;
+      saveAs(new Blob([JSON.stringify(json, null, 2)], { type: "application/json" }), defaultName);
     }
   }
 
-  const handleLoadCamerasOrDollies = () => {
+  const handleLoadCamerasOrDollies = function() {
     if (dollyMode) {
       // Create a file input element to select the JSON file
-      const input = document.createElement('input');
+      var input = document.createElement('input');
       input.type = 'file';
       input.accept = '.json,application/json';
-      input.onchange = (event) => {
-        const file = (event.target as HTMLInputElement).files?.[0];
+      input.oninput = function(event) {
+        var fileInput = event.target as HTMLInputElement;
+        var file = fileInput && fileInput.files && fileInput.files[0];
         if (file) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const json = e.target?.result;
+          var reader = new FileReader();
+          reader.onload = function(e) {
+            var json = e && e.target && e.target.result;
             //console.log("Loaded dollies json: ", json);
             if (json) {
               curState.viewerState.loadDolliesFromJson(JSON.parse(json as string));
@@ -177,12 +178,13 @@ function CameraPanel(props :CameraPanelProps) {
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = '.json,application/json';
-      input.onchange = (event) => {
-        const file = (event.target as HTMLInputElement).files?.[0];
+      input.oninput = (event) => {
+        const fileInput = event.target as HTMLInputElement;
+        const file = fileInput && fileInput.files && fileInput.files[0];
         if (file) {
           const reader = new FileReader();
           reader.onload = (e) => {
-            const json = e.target?.result;
+            const json = e && e.target && e.target.result;
             //console.log("Loaded cameras json: ", json);
             if (json) {
               curState.viewerState.loadCamerasFromJson(JSON.parse(json as string));
@@ -259,11 +261,11 @@ function CameraPanel(props :CameraPanelProps) {
         </IconButton>
         <IconButton color="primary" title="Save to File" 
             disabled={(!selectedCamera && !dollyMode) || (!selectedDolly && dollyMode)}
-            onClick={() => handleSaveCamerasOrDollies()}>
+            onClick={function() { handleSaveCamerasOrDollies();}}>
           <SaveTwoToneIcon />
         </IconButton>
         <IconButton color="primary" title="Load from File" 
-          onClick={() => handleLoadCamerasOrDollies()}>
+          onClick={function() { handleLoadCamerasOrDollies();}}>
           <FileOpenTwoToneIcon />
         </IconButton>
       </Stack>
@@ -271,7 +273,7 @@ function CameraPanel(props :CameraPanelProps) {
       <DollyEditorDialog
           open={dollyEditorOpen}
           edit={editMode}
-          onClose={() => setDollyEditorOpen(false)}
+          onClose={function() {setDollyEditorOpen(false)}}
           uiState={curState}
       />
     </>

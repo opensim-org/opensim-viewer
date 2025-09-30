@@ -422,7 +422,7 @@ export class ViewerState {
             camClone.uuid = camera.uuid;
         this.cameras.push(camClone);
         this.targets.push(target.clone())
-        this.environmentGroup?.add(camClone);
+        this.environmentGroup!.add(camClone);
         if (setCurrent!== false)
             this.currentCameraIndex = (this.cameras.length - 1);
         this.setSceneVersion(this.sceneVersion +1);
@@ -496,7 +496,7 @@ export class ViewerState {
         const newDolly = new CameraDolly(newSequenceJson.name, newSequenceJson.desc);
         for (let i=0; i<newSequenceJson.cameraFrames.length; i++){
             const frameJson = newSequenceJson.cameraFrames[i];
-            const camName = mapUuidToCam.get(frameJson.cam_uuid)?.name
+            const camName = mapUuidToCam.get(frameJson.cam_uuid)!.name
             const cam = this.cameras.find(c => c.name === camName);
             if (cam) {
                 const newFrame = new CameraFrame(cam.uuid, frameJson.time);
