@@ -129,6 +129,9 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     }
 
     const startRecording = () => {
+      viewerState.setAnimating(false);
+      curState.setCurrentFrame(0);
+
       viewerState.setIsRecordingVideo(true);
       enqueueSnackbar(t('snackbars.recording_video'), {
         variant: 'info',
@@ -136,10 +139,33 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         persist: true
       });
 
+      // flag to detect we've left frame 0 at least once
+      let leftZero = false;
+
       if (useMediaRecorder && recorder) {
         recordedChunks.length = 0; // reset chunks before starting
+        viewerState.setAnimating(true);
         recorder.start();
+
+        // Watch currentFrame and stop when it cycles back to 0
+        const frameCheck = () => {
+          const frame = curState.currentFrame;
+
+          if (!leftZero && frame !== 0) {
+            leftZero = true;
+          }
+
+          if (leftZero && frame === 0 && viewerState.isRecordingVideo) {
+            stopRecording();
+            return;
+          }
+
+          requestAnimationFrame(frameCheck);
+        };
+        requestAnimationFrame(frameCheck);
+
       } else {
+        viewerState.setAnimating(true);
         capturedFrames.current = [];
         isRecordingRef.current = true;
 
@@ -157,6 +183,17 @@ function VideoRecorder(props: VideoRecorderViewProps) {
               console.log(`Duration: ${durationSec.toFixed(2)} seconds`);
               console.log(`Frames captured: ${frameCount}`);
               console.log(`Real framerate: ${realFps.toFixed(2)} fps`);
+              return;
+            }
+
+            const frame = curState.currentFrame;
+
+            if (!leftZero && frame !== 0) {
+              leftZero = true;
+            }
+
+            if (leftZero && frame === 0) {
+              stopRecording();
               return;
             }
 
@@ -181,12 +218,15 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       }
     };
 
+
     const stopRecording = async () => {
       closeSnackbar();
       viewerState.setIsRecordingVideo(false);
 
       if (useMediaRecorder && recorder) {
         recorder.stop();
+        viewerState.setAnimating(false);
+        curState.setCurrentFrame(100);
       } else {
         isRecordingRef.current = false;
         enqueueSnackbar(t('snackbars.processing_video'), {
@@ -208,6 +248,8 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         capturedFrames.current = []; // cleanup
         viewerState.setIsProcessingVideo(false);
         closeSnackbar();
+        viewerState.setAnimating(false);
+        curState.setCurrentFrame(100);
       }
     };
 
