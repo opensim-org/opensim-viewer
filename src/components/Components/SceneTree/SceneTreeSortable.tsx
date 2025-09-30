@@ -4,7 +4,7 @@ import SortableTree, { changeNodeAtPath } from '@nosferatu500/react-sortable-tre
 import FileExplorerTheme from '@nosferatu500/theme-file-explorer';
 import '@nosferatu500/react-sortable-tree/style.css';
 
-import {  Menu, MenuItem, Dialog, DialogTitle, DialogActions, Button, IconButton, useTheme, Theme, alpha } from '@mui/material';
+import {  Menu, MenuItem, Dialog, DialogTitle, DialogActions, Button, IconButton, useTheme, Theme, alpha} from '@mui/material';
 
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
@@ -22,7 +22,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ViewInAr from '@mui/icons-material/ViewInAr';
 import PanoramaIcon from '@mui/icons-material/Panorama';
 
-import { convertSceneToTree, mergeTreeWithScene } from '../../../helpers/sceneToTree';
+import { mergeTreeWithScene } from '../../../helpers/sceneToTree';
 import { useModelContext } from '../../../state/ModelUIStateContext';
 import { ModelUIState } from '../../../state/ModelUIState';
 
@@ -196,6 +196,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
       setTreeData([...treeData]);
     };
 
+
     const panelBg = alpha(theme.palette.background.paper, 0.9);
 
     return (
@@ -348,7 +349,6 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                             {node.object3D.visible ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
                           </IconButton>
                         )}
-
                         {node.nodeType === 'addCameraButton' && (
                           <IconButton onClick={() => onAddCameraClick?.(true)}>
                             <AddIcon fontSize="small" />
