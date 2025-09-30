@@ -432,7 +432,7 @@ export class ModelUIState {
         var json = JSON.stringify({
                type: "INFO",
                "fps": fps});
-                console.log("FPS: ", fps);
+        //console.log("FPS: ", fps);
         if (this.socket !== null)
             this.socket!.send(json);
     }
