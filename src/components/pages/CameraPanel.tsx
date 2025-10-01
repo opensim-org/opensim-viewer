@@ -164,7 +164,6 @@ function CameraPanel(props :CameraPanelProps) {
       input.type = 'file';
       input.accept = '.json,application/json';
       input.oninput = function(event) {
-        //alert(event);
         const target = event && event.target ? event.target as HTMLInputElement : null;
         const files = target && target.files ? target.files : null;
         const file = files && files.length > 0 ? files[0] : null;
@@ -172,8 +171,6 @@ function CameraPanel(props :CameraPanelProps) {
           var reader = new FileReader();
           reader.onload = function(e) {
             var json = e && e.target && e.target.result;
-            //console.log("Loaded dollies json: ", json);
-            //alert(json);
             if (json) {
               var jsonString = String(json);
               curState.viewerState.loadDolliesFromJson(JSON.parse(jsonString));
@@ -190,7 +187,7 @@ function CameraPanel(props :CameraPanelProps) {
       input.type = 'file';
       input.accept = '.json,application/json';
       input.onclick = (event) => {
-        //alert(event)
+
         const target = event && event.target ? event.target as HTMLInputElement : null;
         const files = target && target.files ? target.files : null;
         const file = files && files.length > 0 ? files[0] : null;
@@ -198,8 +195,6 @@ function CameraPanel(props :CameraPanelProps) {
           const reader = new FileReader();
           reader.onload = function(e) {
             const json = e && e.target && e.target.result;
-            //alert(json);
-            //console.log("Loaded cameras json: ", json);
             if (json) {
               var jsonString = String(json);
               curState.viewerState.loadCamerasFromJson(JSON.parse(jsonString));
