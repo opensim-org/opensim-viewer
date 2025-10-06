@@ -130,17 +130,38 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
     const startRecording = () => {
       viewerState.setIsRecordingVideo(true);
+      viewerState.setAnimating(false);
+
       enqueueSnackbar(t('snackbars.recording_video'), {
         variant: 'info',
         anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
         persist: true
       });
 
+      let prevFrame = 0
+
       if (useMediaRecorder && recorder) {
         recordedChunks.length = 0; // reset chunks before starting
+        viewerState.setAnimating(true);
         recorder.start();
+
+        // Check if it is recording, and we have not yet completing
+        // and animation cycle.
+        const frameCheck = () => {
+          const frame = curState.currentFrame;
+          if (viewerState.isRecordingVideo && frame < prevFrame) {
+            stopRecording();
+            return;
+          }
+          prevFrame = frame;
+          requestAnimationFrame(frameCheck);
+        }
+
+        requestAnimationFrame(frameCheck);
+
       } else {
         capturedFrames.current = [];
+        viewerState.setAnimating(true);
         isRecordingRef.current = true;
 
         let frameCount = 0;
@@ -160,6 +181,13 @@ function VideoRecorder(props: VideoRecorderViewProps) {
               return;
             }
 
+            const frame = curState.currentFrame;
+            if (viewerState.isRecordingVideo && frame < prevFrame) {
+              stopRecording();
+              return;
+            }
+            prevFrame = frame;
+
             const now = performance.now();
             const timeSinceLastCapture = now - lastCaptureTime;
             const frameDuration = 1000 / fps;
@@ -171,6 +199,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
               frameCount++;
             }
 
+            prevFrame = frame;
             requestAnimationFrame(loop);
           };
 
@@ -184,6 +213,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     const stopRecording = async () => {
       closeSnackbar();
       viewerState.setIsRecordingVideo(false);
+      viewerState.setAnimating(false);
 
       if (useMediaRecorder && recorder) {
         recorder.stop();
@@ -212,7 +242,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     };
 
     props.videoRecorderRef.current = { startRecording, stopRecording };
-  }, [props.videoRecorderRef, gl.domElement, enqueueSnackbar, closeSnackbar, t, viewerState]);
+  }, [props.videoRecorderRef, gl.domElement, enqueueSnackbar, closeSnackbar, t, viewerState, viewerState.recordedVideoFormat]);
 
   return null;
 }
