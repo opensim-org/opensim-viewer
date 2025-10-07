@@ -160,20 +160,18 @@ function CameraPanel(props :CameraPanelProps) {
   const handleLoadCamerasOrDollies = function() {
     if (dollyMode) {
       // Create a file input element to select the JSON file
-      var input = document.createElement('input');
+      const input = document.createElement('input');
       input.type = 'file';
       input.accept = '.json,application/json';
-      input.oninput = function(event) {
-        const target = event && event.target ? event.target as HTMLInputElement : null;
-        const files = target && target.files ? target.files : null;
-        const file = files && files.length > 0 ? files[0] : null;
+      input.onchange = (event) => {
+        const file = (event.target as HTMLInputElement).files?.[0];
         if (file) {
-          var reader = new FileReader();
-          reader.onload = function(e) {
-            var json = e && e.target && e.target.result;
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const json = e.target?.result;
+            //console.log("Loaded dollies json: ", json);
             if (json) {
-              var jsonString = String(json);
-              curState.viewerState.loadDolliesFromJson(JSON.parse(jsonString));
+              curState.viewerState.loadDolliesFromJson(JSON.parse(json as string));
             }
           };
           reader.readAsText(file);
@@ -186,18 +184,15 @@ function CameraPanel(props :CameraPanelProps) {
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = '.json,application/json';
-      input.onclick = (event) => {
-
-        const target = event && event.target ? event.target as HTMLInputElement : null;
-        const files = target && target.files ? target.files : null;
-        const file = files && files.length > 0 ? files[0] : null;
+      input.onchange = (event) => {
+        const file = (event.target as HTMLInputElement).files?.[0];
         if (file) {
           const reader = new FileReader();
-          reader.onload = function(e) {
-            const json = e && e.target && e.target.result;
+          reader.onload = (e) => {
+            const json = e.target?.result;
+            //console.log("Loaded cameras json: ", json);
             if (json) {
-              var jsonString = String(json);
-              curState.viewerState.loadCamerasFromJson(JSON.parse(jsonString));
+              curState.viewerState.loadCamerasFromJson(JSON.parse(json as string));
             }
           };
           reader.readAsText(file);
