@@ -120,16 +120,16 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
                     implementDolly(-0.1)
                     break;
                 case 'ArrowLeft':
-                    implementTruck(0.2)
+                    implementTruck(-0.1)
                     break;
                 case 'ArrowRight':
-                    implementTruck(-0.2)
+                    implementTruck(0.1)
                     break;
                 case 'ArrowUp':
-                    implementTruckUpDn(0.2)
+                    implementTruckUpDn(-0.1)
                     break;
                 case 'ArrowDown':
-                    implementTruckUpDn(-0.2)
+                    implementTruckUpDn(0.1)
                     break;
                 case 'f':
                 case 'F':
