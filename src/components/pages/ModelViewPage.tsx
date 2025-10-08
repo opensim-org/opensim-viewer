@@ -382,36 +382,6 @@ useEffect(() => {
                 )}
               </Canvas>
 
-              { /*
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: heightBottomBar + 20,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  zIndex: 1001,
-                  display: 'flex',
-                  flexDirection: 'row',
-                  gap: '12px',
-                }}
-              >
-                <Button
-                  variant={transformMode === 'translate' ? 'contained' : 'outlined'}
-                  onClick={() => setTransformMode('translate')}
-                  size="small"
-                >
-                  <TranslateIcon />
-                </Button>
-                <Button
-                  variant={transformMode === 'rotate' ? 'contained' : 'outlined'}
-                  onClick={() => setTransformMode('rotate')}
-                  size="small"
-                >
-                  <RotateIcon />
-                </Button>
-              </div>
-              */}
-
               <AddCameraDialog
                 open={addCameraDialogOpen}
                 onClose={() => setAddCameraDialogOpen(false)}
