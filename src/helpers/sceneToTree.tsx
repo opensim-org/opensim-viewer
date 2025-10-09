@@ -72,7 +72,10 @@ export function convertSceneToTree(scene: THREE.Scene | null) {
     if (!shouldProcess) return null;
 
     const isGroup = obj.type === "Group";
-    const isModel = title === "Model" || (obj.userData.opensimType!== undefined && obj.userData.opensimType=== "Model");
+    const isModel = title === "Model" ||
+                    title === "Models" ||
+                    (obj.userData.opensimType!== undefined && obj.userData.opensimType=== "Model") ||
+                    (obj.userData.opensimType!== undefined && obj.userData.opensimType=== "Models");
 
     if (obj.children?.length > 0) {
       if (isGroup) {
@@ -124,7 +127,7 @@ function mergeTreeWithScene(oldTree: any[], scene: THREE.Scene | null) {
   const traverse = (obj: THREE.Object3D): any | null => {
     const nodeType = determineNodeType(obj);
     const { id, uuid } = obj;
-    let title = obj.name === "Scene" ? "Model" : obj.name;
+    let title = obj.name === "Scene" ? "Models" : obj.name;
 
     const shouldProcess =
       (!(obj as TransformControls).isTransformControls &&

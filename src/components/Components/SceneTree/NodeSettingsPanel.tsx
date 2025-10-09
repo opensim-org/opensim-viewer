@@ -25,6 +25,9 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
   uiState,
   scene
 }) => {
+
+  const reservedWords = ["SkySphere", "Floor", "WCS", "Model", "Models", "OpenSimEnvironment"]
+
   if (!selectedNode) {
     return (
       <div style={{ padding: 16, color: "#999", fontStyle: "italic" }}>
@@ -62,21 +65,27 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
         {selectedNode.type ?? "Node"} settings
       </Typography>
 
-      <TextField
-        label="Name"
-        fullWidth
-        value={selectedNode.title ?? selectedNode.object3D?.name ?? ""}
-        onChange={(e) => {
-          const current_name = selectedNode.title ?? selectedNode.object3D?.name ?? ""
-          const helper = scene?.getObjectByName(current_name);
-          if (helper) {
-            helper.name = e.target.value + "_Helper"
+      {!reservedWords.includes(selectedNode?.title) && (
+        <TextField
+          label="Name"
+          fullWidth
+          value={selectedNode.title ?? selectedNode.object3D?.name ?? ""}
+          onChange={(e) => {
+            if (reservedWords.includes(e.target.value)) {
+              alert(e.target.value + " is a reserved word. Please, insert a different name.")
+              return
+            }
+            const current_name = selectedNode.title ?? selectedNode.object3D?.name ?? ""
+            const helper = scene?.getObjectByName(current_name);
+            if (helper) {
+              helper.name = e.target.value + "_Helper"
+            }
+            patch({ title: e.target.value })}
           }
-          patch({ title: e.target.value })}
-        }
-        style={{ marginBottom: 16 }}
-        size="small"
-      />
+          style={{ marginBottom: 16 }}
+          size="small"
+        />
+      )}
 
       {selectedNode?.type === "SpotLight" && (
         <>

@@ -155,7 +155,6 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
 
     const typesNotModifiable = ['skySphere', 'floor', 'axes', 'group', 'model', 'modelComponent', 'wcs'];
 
-
     useImperativeHandle(ref, () => ({
       getWidth: () => (isOpen ? PANEL_WIDTH : 0),
       open: () => setIsOpen(true),
