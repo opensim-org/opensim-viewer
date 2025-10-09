@@ -64,6 +64,7 @@ const iconMap: Record<string, JSX.Element> = {
   camera: <CameraAltIcon />,
   light: <LightbulbIcon />,
   axes: <ThreeDRotationIcon />,
+  wcs: <ThreeDRotationIcon />,
   skySphere: <PublicIcon />,
   floor: <GridOnIcon />,
   body: <PersonIcon />,
@@ -152,7 +153,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
     const [nodeToDelete, setNodeToDelete] = useState<{ node: any; path: number[] } | null>(null);
     const outerDivRef = useRef<HTMLDivElement>(null);
 
-    const typesNotModifiable = ['skySphere', 'floor', 'axes', 'group', 'model', 'modelComponent'];
+    const typesNotModifiable = ['skySphere', 'floor', 'axes', 'group', 'model', 'modelComponent', 'wcs'];
 
 
     useImperativeHandle(ref, () => ({
@@ -343,7 +344,11 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                       <span style={{ marginLeft: 10, display: 'inline-flex', alignItems: 'center' }}>
                         {node.title}
                         {/* {node.subtitle && node.subtitle !== 'Group' && ` (${node.subtitle})`} */}
-
+                        {node.title === 'WCS' && (
+                          <IconButton size="small" onClick={(e) => { e.stopPropagation(); uiState.setShowGlobalFrame(!uiState.showGlobalFrame); }} style={{ marginLeft: 8 }}>
+                            {node.object3D.visible ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
+                          </IconButton>
+                        )}
                         {node.object3D && node.type !== 'Group' && node.title !== 'Scene' && (
                           <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleVisibilityToggle(node); }} style={{ marginLeft: 8 }}>
                             {node.object3D.visible ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}

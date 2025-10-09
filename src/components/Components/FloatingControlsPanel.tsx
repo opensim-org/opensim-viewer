@@ -14,6 +14,7 @@ import { useModelContext } from '../../state/ModelUIStateContext';
 import SnapShotModal from './SnapShotModal';
 import { ToggleButton } from '@mui/material';
 import { ModelInfo } from '../../state/ModelUIState';
+import { observer } from "mobx-react";
 
 interface FloatingControlsPanelProps {
   videoRecorderRef: any;
@@ -74,7 +75,13 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
         <Grid item xs={6}>
           <Tooltip title={t('bottomBar.record')} placement="right">
             <IconButton
-              color={!viewerState.isRecordingVideo && !viewerState.isProcessingVideo ? "primary" : (viewerState.isProcessingVideo ? "warning" : "error")}
+            color={
+              viewerState.isProcessingVideo
+                ? "warning"
+                : viewerState.isRecordingVideo
+                  ? "error"
+                  : "primary"
+            }
               disabled={viewerState.isProcessingVideo}
               onClick={() => {
                 if (!viewerState.isRecordingVideo) {
@@ -112,4 +119,4 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
   );
 };
 
-export default FloatingControlsPanel;
+export default observer(FloatingControlsPanel);

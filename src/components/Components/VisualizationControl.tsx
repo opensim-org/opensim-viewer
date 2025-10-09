@@ -22,10 +22,6 @@ return (
       <Container disableGutters>
         <FormGroup>
             <Typography variant="h6" align='left'>{t('visualizationControl.visibility')}</Typography>
-            <Tooltip title={t('visualizationControl.wcsTooltip')} placement="top">
-                <FormControlLabel control={<Checkbox checked={curState.showGlobalFrame}/>} label={t('visualizationControl.wcs')}
-                        onChange={()=>curState.setShowGlobalFrame(!curState.showGlobalFrame)}/>
-            </Tooltip>
             <FormControlLabel control={<Checkbox />} label={t('visualizationControl.joints')} />
             <FormControlLabel control={<Checkbox checked={curState.getLayerVisibility(1)}/>} label={t('visualizationControl.bodies')}
                     onChange={()=>{curState.toggleLayerVisibility(1); setCameraLayerMask(curState.cameraLayersMask)}} />

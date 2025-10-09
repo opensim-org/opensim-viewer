@@ -9,6 +9,7 @@ function determineNodeType(obj: THREE.Object3D): string {
   if (obj.type === "Object3D" && obj.userData!==undefined && obj.userData.name!==undefined &&
           (obj.userData.name === "Ground" || obj.userData.name.startsWith("Body:"))
    ) return "body";
+  if (obj.type === "Group" && obj.name.includes("WCS")) return "wcs";
   if (obj.type === "Group") return "group";
   if (obj.type.includes("Light")) return "light";
   if (obj.name.includes("SkySphere")) return "skySphere";

@@ -23,7 +23,7 @@ const SkySphere = ({ texturePath }: SkySphereProps) => {
   }, [viewerState.useTexture, viewerState.backgroundColor, skyTexture]);
 
   return (
-    <mesh name="SkySphere" ref={skySphereRef} renderOrder={-1}>
+    <mesh name="SkySphere" ref={skySphereRef} renderOrder={-1} visible={viewerState.skyVisible}>
       <sphereGeometry args={[50, 60, 40]} />
       <meshBasicMaterial
         ref={materialRef}
