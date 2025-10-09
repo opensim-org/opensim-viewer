@@ -307,6 +307,20 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
                     : undefined
             }
         />}
+        <group name='WCS' visible={curState.showGlobalFrame}>
+          <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.2]}>
+              <cylinderGeometry args={[.005, .005, 0.4, 32]}/>
+              <meshStandardMaterial color="blue" />
+          </mesh>
+          <mesh rotation={[0, 0, 0]}  position={[0, 0.2, 0]}>
+            <cylinderGeometry args={[.005, .005, 0.4, 32]}/>
+            <meshStandardMaterial color="green" />
+          </mesh>
+          <mesh rotation={[0, 0, Math.PI / 2]}  position={[0.2, 0, 0]}>
+            <cylinderGeometry args={[.005, .005, 0.4, 32]}/>
+            <meshStandardMaterial color="red" />
+          </mesh>
+        </group>
         {supportControls && <OpenSimSkySphere
           texturePath={
             curState.viewerState.userPreferences?.skyTexturePath?.trim()

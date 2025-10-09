@@ -153,7 +153,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
     const [nodeToDelete, setNodeToDelete] = useState<{ node: any; path: number[] } | null>(null);
     const outerDivRef = useRef<HTMLDivElement>(null);
 
-    const typesNotModifiable = ['skySphere', 'floor', 'axes', 'group', 'model', 'modelComponent'];
+    const typesNotModifiable = ['skySphere', 'floor', 'axes', 'group', 'model', 'modelComponent', 'wcs'];
 
 
     useImperativeHandle(ref, () => ({
