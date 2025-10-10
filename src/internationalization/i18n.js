@@ -121,7 +121,7 @@ i18next
                         processing_video: "Processing video..."
                     },
                     floatingButton: {
-                        model_info: "Model info.",
+                        model_info: "Model info",
                     }
                 }
             },
