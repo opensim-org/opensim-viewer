@@ -26,9 +26,8 @@ function VideoRecorder(props: VideoRecorderViewProps) {
   const { t } = useTranslation();
   const viewerState = useModelContext().viewerState;
   const { gl } = useThree();
-
   const curState = useModelContext();
-  
+
   const ffmpegRef = useRef(new FFmpeg());
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
@@ -36,6 +35,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
   const isRecordingRef = useRef(false);
   const fps = 30;
 
+  // Load ffmpeg.wasm
   const load = async () => {
     const ffmpeg = ffmpegRef.current;
     ffmpeg.on('log', ({ message }) => console.log(message));
@@ -45,15 +45,36 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     });
   };
 
+  /**
+   * Capture the current WebGL frame and flatten transparency to white.
+   */
   const captureFrame = (): string => {
-    return gl.domElement.toDataURL('image/jpeg', 0.92);
+    const glCanvas = gl.domElement;
+    const w = glCanvas.width;
+    const h = glCanvas.height;
+
+    // Create an offscreen 2D canvas
+    const compositeCanvas = document.createElement('canvas');
+    compositeCanvas.width = w;
+    compositeCanvas.height = h;
+    const ctx = compositeCanvas.getContext('2d')!;
+
+    // Fill with white before drawing WebGL frame
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, w, h);
+
+    // Draw WebGL canvas (flattens transparency)
+    ctx.drawImage(glCanvas, 0, 0, w, h);
+
+    // Encode as JPEG (no alpha)
+    return compositeCanvas.toDataURL('image/jpeg', 0.92);
   };
 
   const encodeFramesToVideo = async (ext: 'mp4' | 'mov') => {
     const ffmpeg = ffmpegRef.current;
     await load();
 
-    // Clean up old files from previous runs
+    // Clean up any previous files
     try {
       const files = await ffmpeg.listDir('/');
       for (const file of files) {
@@ -73,6 +94,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       await ffmpeg.writeFile(`input${String(i).padStart(3, '0')}.jpg`, await fetchFile(blob));
     }
 
+    // Encoding args
     const args = [
       '-framerate', `${fps}`,
       '-i', 'input%03d.jpg',
@@ -105,11 +127,16 @@ function VideoRecorder(props: VideoRecorderViewProps) {
   };
 
   useEffect(() => {
+    // Ensure the renderer clears to white for MediaRecorder path
+    gl.setClearColor(0xffffff, 1);
+
     const stream = gl.domElement.captureStream(fps);
     const webmSupported = MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus');
     const useMediaRecorder = viewerState.recordedVideoFormat === 'webm' && webmSupported;
 
-    const recorder = useMediaRecorder ? new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8,opus' }) : null;
+    const recorder = useMediaRecorder
+      ? new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8,opus' })
+      : null;
 
     const recordedChunks: Blob[] = [];
 
@@ -123,7 +150,6 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         const url = URL.createObjectURL(blob);
         const timestamp = getTimestamp();
         downloadVideo(url, `${viewerState.recordedVideoName}_${timestamp}.webm`);
-
         recordedChunks.length = 0; // cleanup
       };
     }
@@ -135,10 +161,10 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       enqueueSnackbar(t('snackbars.recording_video'), {
         variant: 'info',
         anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
-        persist: true
+        persist: true,
       });
 
-      let prevFrame = 0
+      let prevFrame = 0;
 
       if (useMediaRecorder && recorder) {
         recordedChunks.length = 0; // reset chunks before starting
@@ -147,6 +173,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
         // Check if it is recording, and we have not yet completing
         // and animation cycle.
+
         const frameCheck = () => {
           const frame = curState.currentFrame;
           if (viewerState.isRecordingVideo && frame < prevFrame) {
@@ -155,10 +182,9 @@ function VideoRecorder(props: VideoRecorderViewProps) {
           }
           prevFrame = frame;
           requestAnimationFrame(frameCheck);
-        }
+        };
 
         requestAnimationFrame(frameCheck);
-
       } else {
         capturedFrames.current = [];
         viewerState.setAnimating(true);
@@ -168,45 +194,38 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         const startTime = performance.now();
         let lastCaptureTime = startTime;
 
-        const captureLoop = () => {
-          const loop = () => {
-            if (!isRecordingRef.current) {
-              const endTime = performance.now();
-              const durationSec = (endTime - startTime) / 1000;
-              const realFps = frameCount / durationSec;
-              console.log(`Recording stopped.`);
-              console.log(`Duration: ${durationSec.toFixed(2)} seconds`);
-              console.log(`Frames captured: ${frameCount}`);
-              console.log(`Real framerate: ${realFps.toFixed(2)} fps`);
-              return;
-            }
+        const loop = () => {
+          if (!isRecordingRef.current) {
+            const endTime = performance.now();
+            const durationSec = (endTime - startTime) / 1000;
+            const realFps = frameCount / durationSec;
+            console.log(`Recording stopped.`);
+            console.log(`Duration: ${durationSec.toFixed(2)}s`);
+            console.log(`Frames: ${frameCount}`);
+            console.log(`FPS: ${realFps.toFixed(2)}`);
+            return;
+          }
 
-            const frame = curState.currentFrame;
-            if (viewerState.isRecordingVideo && frame < prevFrame) {
-              stopRecording();
-              return;
-            }
-            prevFrame = frame;
+          const frame = curState.currentFrame;
+          if (viewerState.isRecordingVideo && frame < prevFrame) {
+            stopRecording();
+            return;
+          }
+          prevFrame = frame;
 
-            const now = performance.now();
-            const timeSinceLastCapture = now - lastCaptureTime;
-            const frameDuration = 1000 / fps;
-
-            if (timeSinceLastCapture >= frameDuration) {
-              lastCaptureTime = now;
-              const frameDataURL = captureFrame();
-              capturedFrames.current.push(frameDataURL);
-              frameCount++;
-            }
-
-            prevFrame = frame;
-            requestAnimationFrame(loop);
-          };
+          const now = performance.now();
+          const frameDuration = 1000 / fps;
+          if (now - lastCaptureTime >= frameDuration) {
+            lastCaptureTime = now;
+            const frameDataURL = captureFrame(); // white background flattening here
+            capturedFrames.current.push(frameDataURL);
+            frameCount++;
+          }
 
           requestAnimationFrame(loop);
         };
 
-        captureLoop();
+        requestAnimationFrame(loop);
       }
     };
 
@@ -219,10 +238,11 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         recorder.stop();
       } else {
         isRecordingRef.current = false;
+
         enqueueSnackbar(t('snackbars.processing_video'), {
           variant: 'info',
           anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
-          persist: true
+          persist: true,
         });
         viewerState.setIsProcessingVideo(true);
 
@@ -235,7 +255,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
           console.error(e);
         }
 
-        capturedFrames.current = []; // cleanup
+        capturedFrames.current = []; //cleanup
         viewerState.setIsProcessingVideo(false);
         closeSnackbar();
       }
