@@ -50,21 +50,26 @@ function VideoRecorder(props: VideoRecorderViewProps) {
    */
   const captureFrame = (): string => {
     const glCanvas = gl.domElement;
-    const w = glCanvas.width;
-    const h = glCanvas.height;
 
-    // Create an offscreen 2D canvas
+    const preserveAspect = viewerState.videoRecorderPreserveAspectRatio;
+    const canvasAspect = glCanvas.width / glCanvas.height;
+
+    // Target resolution from viewerState
+    const targetW = viewerState.videoRecorderWidth || glCanvas.width;
+    const targetH = preserveAspect ? Math.round(targetW / canvasAspect) : (viewerState.videoRecorderHeight || glCanvas.height);
+
+    // Create offscreen 2D canvas at desired resolution
     const compositeCanvas = document.createElement('canvas');
-    compositeCanvas.width = w;
-    compositeCanvas.height = h;
+    compositeCanvas.width = targetW;
+    compositeCanvas.height = targetH;
     const ctx = compositeCanvas.getContext('2d')!;
 
     // Fill with white before drawing WebGL frame
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, w, h);
+    ctx.fillRect(0, 0, targetW, targetH);
 
     // Draw WebGL canvas (flattens transparency)
-    ctx.drawImage(glCanvas, 0, 0, w, h);
+    ctx.drawImage(glCanvas, 0, 0, targetW, targetH);
 
     // Encode as JPEG (no alpha)
     return compositeCanvas.toDataURL('image/jpeg', 0.92);
@@ -75,6 +80,23 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     await load();
 
     // Clean up any previous files
+    const glCanvas = gl.domElement;
+
+    // Determine the same target size used in captureFrame()
+    const preserveAspect = viewerState.videoRecorderPreserveAspectRatio;
+    const canvasAspect = glCanvas.width / glCanvas.height;
+    const targetW = viewerState.videoRecorderWidth || glCanvas.width;
+    const targetH = preserveAspect
+      ? Math.round(targetW / canvasAspect)
+      : (viewerState.videoRecorderHeight || glCanvas.height);
+
+    // Ensure even numbers for YUV420p encoding
+    const evenW = targetW % 2 === 0 ? targetW : targetW - 1;
+    const evenH = targetH % 2 === 0 ? targetH : targetH - 1;
+
+    console.log(`Encoding video at ${evenW}x${evenH}`);
+
+    // Clean up previous files
     try {
       const files = await ffmpeg.listDir('/');
       for (const file of files) {
@@ -99,6 +121,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       '-framerate', `${fps}`,
       '-i', 'input%03d.jpg',
       '-r', `${fps}`,
+      '-vf', `scale=${evenW}:${evenH}:force_original_aspect_ratio=decrease,pad=${evenW}:${evenH}:(ow-iw)/2:(oh-ih)/2:white`,
       '-c:v', 'libx264',
       '-pix_fmt', 'yuv420p',
       '-preset', 'fast',
@@ -107,7 +130,6 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
     if (ext === 'mov') {
       args.push('-profile:v', 'high');
-      args.push('-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2');
     }
 
     args.push(`output.${ext}`);

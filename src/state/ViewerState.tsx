@@ -55,6 +55,9 @@ export class ViewerState {
     recordedVideoFormat: string
     isRecordingVideo: boolean
     isProcessingVideo: boolean
+    videoRecorderWidth: number | null
+    videoRecorderHeight: number | null
+    videoRecorderPreserveAspectRatio: boolean
     user_uuid: string
     // user preferences
     userPreferencesJsonPath: string = ''
@@ -114,7 +117,7 @@ export class ViewerState {
         recordedVideoName: string,
         recordedVideoFormat: string,
         isRecordingVideo: boolean,
-        isProcessingVideo: boolean
+        isProcessingVideo: boolean,
     ) {
         this.userPreferences = observable({
             skyTexturePath: '',
@@ -132,6 +135,10 @@ export class ViewerState {
         this.recordedVideoFormat = recordedVideoFormat
         this.isRecordingVideo = isRecordingVideo
         this.isProcessingVideo = isProcessingVideo
+        this.videoRecorderWidth = null
+        this.videoRecorderHeight = null
+
+        this.videoRecorderPreserveAspectRatio = true
         this.user_uuid = ''
         this.backgroundColor = new Color(0.7, 0.7, 0.7)
         this.backgroundImage = null
@@ -197,6 +204,9 @@ export class ViewerState {
             recordedVideoName: observable,
             recordedVideoFormat: observable,
             isRecordingVideo: observable,
+            videoRecorderWidth: observable,
+            videoRecorderHeight: observable,
+            videoRecorderPreserveAspectRatio: observable,
             userPreferencesJsonPath: observable,
             userPreferences: observable,
             setUserPreferencesJsonPath: action,
@@ -283,6 +293,15 @@ export class ViewerState {
     }
     setRecordedVideoFormat(newState: string) {
         this.recordedVideoFormat = newState
+    }
+    setVideoRecorderWidth(newWidth: number | null) {
+      this.videoRecorderWidth = newWidth
+    }
+    setVideoRecorderHeight(newHeight: number | null) {
+      this.videoRecorderHeight = newHeight
+    }
+    setVideoRecorderPreserveAspectRatio(newAspectRatio: boolean) {
+      this.videoRecorderPreserveAspectRatio = newAspectRatio
     }
     setIsProcessingVideo(newState: boolean) {
         this.isProcessingVideo = newState
