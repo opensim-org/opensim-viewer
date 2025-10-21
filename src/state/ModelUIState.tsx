@@ -121,6 +121,8 @@ export class ModelUIState {
             simulationTime: observable,
             setIsGuiMode: action,
             setIsModernBrowser: action,
+            isGUIAnimating: observable,
+            SetGUIAnimating: action
         })
         console.log("Created ModelUIState instance ", currentModelPathState)
     }
@@ -400,10 +402,10 @@ export class ModelUIState {
                 //editor.processPathEdit(msg);
                 break;
             case "startAnimation":
-                this.SetAnimatingGUI(true);
+                this.SetGUIAnimating(true);
                 break;
             case "endAnimation":
-                this.SetAnimatingGUI(false);
+                this.SetGUIAnimating(false);
                 break;
         }
     }
@@ -420,12 +422,9 @@ export class ModelUIState {
         this.fitToBox = objectbbox;
     }
 
-    SetAnimatingGUI(isAnimating: boolean) {
+    SetGUIAnimating(isAnimating: boolean) {
         // Implement animation state handling here if needed
         this.isGUIAnimating = isAnimating;
-        if (isAnimating) {
-            this.viewerState.setAnimating(false);
-        }
     }
     setFPS(fps: number) {
         this.fps = fps;

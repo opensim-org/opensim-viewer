@@ -15,7 +15,7 @@ import { getTimestamp } from "../../helpers/timeHelpers";
 
 type VideoRecorderRef = {
   startRecording: () => void;
-  stopRecording: () => void;
+  stopRecording: (save:boolean) => void;
 };
 
 type VideoRecorderViewProps = {
@@ -28,7 +28,8 @@ function VideoRecorder(props: VideoRecorderViewProps) {
   const { gl } = useThree();
 
   const curState = useModelContext();
-  
+  const [gAnimating, setGAnimating] = React.useState(curState.isGUIAnimating);
+
   const ffmpegRef = useRef(new FFmpeg());
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
@@ -150,7 +151,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         const frameCheck = () => {
           const frame = curState.currentFrame;
           if (viewerState.isRecordingVideo && frame < prevFrame) {
-            stopRecording();
+            stopRecording(false);
             return;
           }
           prevFrame = frame;
@@ -183,7 +184,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
             const frame = curState.currentFrame;
             if (viewerState.isRecordingVideo && frame < prevFrame) {
-              stopRecording();
+              stopRecording(true);
               return;
             }
             prevFrame = frame;
@@ -210,7 +211,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       }
     };
 
-    const stopRecording = async () => {
+    const stopRecording = async (save: boolean) => {
       closeSnackbar();
       viewerState.setIsRecordingVideo(false);
       viewerState.setAnimating(false);
@@ -224,25 +225,40 @@ function VideoRecorder(props: VideoRecorderViewProps) {
           anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
           persist: true
         });
-        viewerState.setIsProcessingVideo(true);
-
-        try {
-          const ext = viewerState.recordedVideoFormat as 'mp4' | 'mov';
-          const url = await encodeFramesToVideo(ext);
-          const timestamp = getTimestamp();
-          downloadVideo(url, `${viewerState.recordedVideoName}_${timestamp}.${ext}`);
-        } catch (e) {
-          console.error(e);
+        if (save) {
+          viewerState.setIsProcessingVideo(true);
+          try {
+            const ext = viewerState.recordedVideoFormat as 'mp4' | 'mov';
+            const url = await encodeFramesToVideo(ext);
+            const timestamp = getTimestamp();
+            downloadVideo(url, `${viewerState.recordedVideoName}_${timestamp}.${ext}`);
+          } catch (e) {
+            console.error(e);
+          }
+          viewerState.setIsProcessingVideo(false);
         }
-
         capturedFrames.current = []; // cleanup
-        viewerState.setIsProcessingVideo(false);
         closeSnackbar();
       }
     };
 
+    if (curState.isGUIAnimating && !gAnimating) {
+      // We were not animating, but now we are - stop recording if we are
+      stopRecording(false);
+      console.log("Restarting recording due to GUI animation start");
+      setGAnimating(true);
+      startRecording();
+    }
+    else if (!curState.isGUIAnimating && gAnimating) {
+      // We were animating, but now we are not - stop recording if we are
+      setGAnimating(false);
+      stopRecording(true);
+      console.log("Terminate recording due to GUI animation finish.");
+    }
+
     props.videoRecorderRef.current = { startRecording, stopRecording };
-  }, [props.videoRecorderRef, gl.domElement, enqueueSnackbar, closeSnackbar, t, viewerState, viewerState.recordedVideoFormat]);
+  }, [props.videoRecorderRef, gl.domElement, enqueueSnackbar, closeSnackbar, t, 
+            viewerState, viewerState.recordedVideoFormat, curState.isGUIAnimating]);
 
   return null;
 }
