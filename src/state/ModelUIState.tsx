@@ -118,6 +118,7 @@ export class ModelUIState {
             cameraLayersMask: observable,
             currentFrame: observable,
             setCurrentFrame: action,
+            incrementCurrentFrame: action,
             simulationTime: observable,
             setIsGuiMode: action,
             setIsModernBrowser: action,
@@ -219,6 +220,9 @@ export class ModelUIState {
     }
     setCurrentFrame(currentFrame: number) {
         this.currentFrame = currentFrame
+    }
+    incrementCurrentFrame() {
+        this.currentFrame += 1;
     }
     setModelInfo(curName: string, curDescription: string, curAuth: string) {
         this.modelInfo.model_name = curName

@@ -201,108 +201,117 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         }
     )
 
- 
-    useFrame((state, delta) => {
-    //console.log(camera.position)
-    //console.log(camera.quaternion)
-      if (!useEffectRunning) {
-            if (curState.selected === "") {
-              bboxRef.current!.visible = false
-            }
-            else {
-              let selectedObject = sceneObjectMap.get(curState.selected)!
-              if (selectedObject !== undefined && selectedObject.type !== 'BoxHelper') {
-                  if (bboxRef.current !== null) {
-                    bboxRef.current.setFromObject(selectedObject);
-                    bboxRef.current!.visible = true
-                }
-              }
-            }
-            csRef.current!.visible =  curState.showGlobalFrame
-            const viewerState = curState.viewerState
-            if (viewerState.currentAnimationIndex !== animationIndex) {
-              const newAnimationIndex = viewerState.currentAnimationIndex
-              const oldIndex  = animationIndex
-              // animation has changed
-              if (oldIndex !== -1 && mixers[oldIndex]!==undefined) {
-                mixers[oldIndex].stopAllAction()
-              }
-              setAnimationIndex(newAnimationIndex)
-              if (mixers.length -1 < newAnimationIndex) {
-                // create a mixer for the animation
-                const nextMixer = new AnimationMixer(camera)
-                // targetMixerRef.current = new AnimationMixer(targetRef.current!);
-                const nextAnimation = viewerState.animations[viewerState.currentAnimationIndex];
-                nextAnimation.tracks[0].setInterpolation(THREE.InterpolateLinear);
-                nextAnimation.tracks[1].setInterpolation(THREE.InterpolateLinear);
-                nextMixer.clipAction(nextAnimation, nextAnimation.name.startsWith("cam")?camera:scene);
-                mixers.push(nextMixer);
-                //const targetClip = new THREE.AnimationClip('targetMove', nextAnimation.duration, [nextAnimation.tracks[2]]);
-                //targetMixerRef.current.clipAction(targetClip, targetRef.current!).play();
-                
-                //(controls as unknown as CameraControls).enabled = true;
-                // (controls as unknown as CameraControls).setLookAt(nextAnimation.tracks[0].values[0],
-                //       nextAnimation.tracks[0].values[1], 
-                //       nextAnimation.tracks[0].values[2], 
-                //       nextAnimation.tracks[2].values[0],
-                //       nextAnimation.tracks[2].values[1], 
-                //       nextAnimation.tracks[2].values[2], true);
-              }
-              // Leave to animate button to start playing
-              mixers[viewerState.currentAnimationIndex]?.clipAction(viewerState.animations[viewerState.currentAnimationIndex]).play()
-            }
-            if (viewerState.animating || curState.isGUIAnimating){
-              if (viewerState.currentAnimationIndex!==-1) {
-                let duration = mixers[viewerState.currentAnimationIndex].clipAction(viewerState.animations[viewerState.currentAnimationIndex]).getClip().duration;
-                if(curState.currentFrame !== startTime && viewerState.animating) {
-                  const framePercentage = curState.currentFrame / 100;
-                  const currentTimeInSlider = duration * framePercentage;
-                  mixers[viewerState.currentAnimationIndex].clipAction(viewerState.animations[viewerState.currentAnimationIndex]).time =  currentTimeInSlider;
-                }
-                const currentTime = mixers[viewerState.currentAnimationIndex].clipAction(viewerState.animations[viewerState.currentAnimationIndex]).time
-                //mixers[viewerState.currentAnimationIndex].setTime(viewerState.animating?animationTime:curState.simulationTime)
-                mixers[viewerState.currentAnimationIndex].update(delta * viewerState.animationSpeed);
-                //targetMixerRef.current!.update(delta * curState.animationSpeed);
-                //camera.lookAt(targetRef.current!.position)
 
-                // For material at index "key" setColor to nodes["value"].translation
-                applyAnimationColors();
-                curState.setCurrentFrame(Math.trunc((currentTime / duration) * 100));
-                setStartTime(Math.trunc((currentTime / duration) * 100));
-                // Disable looping for now
-                // if (curState.currentFrame < prevFrame && curState.viewerState.animating){
-                //   curState.viewerState.setAnimating(false);
-                //   curState.setCurrentFrame(0);
-                // }
-                //console.log(currentTime, duration, startTime, curState.currentFrame);
-              }
-            } else {
-              if (viewerState.currentAnimationIndex!==-1) {
-                if(curState.currentFrame !== startTime) {
-                  let duration = mixers[viewerState.currentAnimationIndex]?.clipAction(viewerState.animations[viewerState.currentAnimationIndex]).getClip().duration;
-                  const framePercentage = curState.currentFrame / 100;
-                  const currentTime = duration * framePercentage;
-                  // For material at index "key" setColor to nodes["value"].translation
-                  applyAnimationColors();
-                  mixers[viewerState.currentAnimationIndex].clipAction(viewerState.animations[viewerState.currentAnimationIndex]).time = currentTime;
-                  setStartTime(curState.currentFrame)
-                  mixers[viewerState.currentAnimationIndex].update(delta * viewerState.animationSpeed)
-                  //targetMixerRef.current!.update(delta * curState.animationSpeed);
-                  //camera.lookAt(targetRef.current!.position)
-                }
-              }
+     useFrame((state, delta) => {
+      if (!useEffectRunning) {
+        // Selection bounding box
+        if (curState.selected === "") {
+          bboxRef.current!.visible = false;
+        } else {
+          let selectedObject = sceneObjectMap.get(curState.selected)!;
+          if (selectedObject !== undefined && selectedObject.type !== 'BoxHelper') {
+            if (bboxRef.current !== null) {
+              bboxRef.current.setFromObject(selectedObject);
+              bboxRef.current!.visible = true;
             }
-          
+          }
+        }
+
+        // Coordinate system visibility
+        csRef.current!.visible = curState.showGlobalFrame;
+
+        const viewerState = curState.viewerState;
+
+        // Handle animation index change
+        if (viewerState.currentAnimationIndex !== animationIndex) {
+          const newAnimationIndex = viewerState.currentAnimationIndex;
+          const oldIndex = animationIndex;
+
+          // Stop old animation
+          if (oldIndex !== -1 && mixers[oldIndex] !== undefined) {
+            mixers[oldIndex].stopAllAction();
+          }
+
+          setAnimationIndex(newAnimationIndex);
+
+          // Create mixer if needed (GUI-specific camera animation setup)
+          if (mixers.length - 1 < newAnimationIndex) {
+            const nextMixer = new AnimationMixer(camera);
+            const nextAnimation = viewerState.animations[viewerState.currentAnimationIndex];
+            nextAnimation.tracks[0].setInterpolation(THREE.InterpolateLinear);
+            nextAnimation.tracks[1].setInterpolation(THREE.InterpolateLinear);
+            nextMixer.clipAction(nextAnimation, nextAnimation.name.startsWith("cam") ? camera : scene);
+            mixers.push(nextMixer);
+          }
+
+          // Start new animation
+          mixers[viewerState.currentAnimationIndex]?.clipAction(viewerState.animations[viewerState.currentAnimationIndex]).play();
+        }
+
+        // Handle animation playback with the three cases
+        const idx = viewerState.currentAnimationIndex;
+        if (idx !== -1) {
+          const mixer = mixers[idx];
+          const action = mixer.clipAction(viewerState.animations[idx]);
+          const duration = action.getClip().duration;
+
+          // CASE 1: PLAYING (animating OR GUI animating)
+          if (viewerState.animating || curState.isGUIAnimating) {
+            // Handle slider-driven time when animating
+            if (curState.currentFrame !== startTime && viewerState.animating) {
+              const framePercentage = curState.currentFrame / 100;
+              const currentTimeInSlider = duration * framePercentage;
+              action.time = currentTimeInSlider;
+            }
+
+            mixer.update(delta * viewerState.animationSpeed);
+            applyAnimationColors();
+
+            // Update slider value for React re-renders
+            const currentTime = action.time;
+            const newFrame = Math.trunc((currentTime / duration) * 100);
+            if (newFrame !== curState.currentFrame) {
+              curState.setCurrentFrame(newFrame);
+              setStartTime(newFrame);
+            }
+
+          // CASE 2: PAUSED but user moves slider
+          } else if (!viewerState.isRecordingVideo) {
+            if (curState.currentFrame !== startTime) {
+              const framePercentage = curState.currentFrame / 100;
+              const scrubTime = duration * framePercentage;
+              action.time = scrubTime;
+              mixer.update(delta * viewerState.animationSpeed); // Small update to apply changes
+              applyAnimationColors();
+              setStartTime(curState.currentFrame);
+            }
+
+          // CASE 3: RECORDING deterministic frame stepping
+          } else {
+            if (curState.currentFrame !== startTime) {
+              const framePercentage = curState.currentFrame / 100;
+              const recTime = duration * framePercentage;
+              action.time = recTime;
+              mixer.update(delta * viewerState.animationSpeed); // Small update to apply changes
+              applyAnimationColors();
+              setStartTime(curState.currentFrame);
+            }
+          }
+        }
       }
+
+      // FPS counter
       frameCount++;
-      renderTime+=delta;
-      if (frameCount === 60){
-        const fps = Math.round(frameCount/renderTime);
+      renderTime += delta;
+      if (frameCount === 60) {
+        const fps = Math.round(frameCount / renderTime);
         curState.setFPS(fps);
         frameCount = 0;
         renderTime = 0;
-      } 
-    })
+      }
+    });
+
+
     // Next block would show bubble on selection with name
     // useFrame((state, delta) => {
     //   if (curState.selectedObject!==null){

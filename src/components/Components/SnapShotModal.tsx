@@ -13,8 +13,6 @@ interface FormData {
   transparent_background: string
 }
 
-
-
 const SnapShotModal: React.FC<{open:boolean}> = () => {
   const { t } = useTranslation();
   const [open, setOpen] = React.useState(false);

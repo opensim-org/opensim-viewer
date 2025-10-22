@@ -189,72 +189,74 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
 
     useFrame((state, delta) => {
       if (!useEffectRunning) {
-          if (curState !== undefined) {
-            if (supportControls ) {
-              if (curState.selected === "") {
-                if (objectSelectionBox !== null)
-                    objectSelectionBox!.visible = false
-              }
-              else {
-                let selectedObject = sceneObjectMap.get(curState.selected)!
-                if (selectedObject !== undefined && selectedObject.type === "Mesh") {
-                    if (objectSelectionBox !== null) {
-                      objectSelectionBox?.setFromObject(selectedObject);
-                      objectSelectionBox!.visible = true
-                  }
-                }
-              }
-            }
-
-            if (curState.viewerState.currentAnimationIndex !== animationIndex) {
-              const newAnimationIndex = curState.viewerState.currentAnimationIndex
-              const oldIndex  = animationIndex
-              // animation has changed
-              if (oldIndex !== -1){
-                mixers[oldIndex].stopAllAction()
-              }
-              setAnimationIndex(newAnimationIndex)
-              mixers[curState.viewerState.currentAnimationIndex]?.clipAction(animations[curState.viewerState.currentAnimationIndex]).play()
-            }
-            if (supportControls && curState.viewerState.animating){
-              if (curState.viewerState.currentAnimationIndex!==-1) {
-                let duration = mixers[curState.viewerState.currentAnimationIndex].clipAction(animations[curState.viewerState.currentAnimationIndex]).getClip().duration;
-
-                if(curState.currentFrame !== startTime) {
-                  const framePercentage = curState.currentFrame / 100;
-                  const currentTimeInSlider = duration * framePercentage;
-                  mixers[curState.viewerState.currentAnimationIndex].clipAction(animations[curState.viewerState.currentAnimationIndex]).time =  currentTimeInSlider;
-                }
-                const currentTime = mixers[curState.viewerState.currentAnimationIndex].clipAction(animations[curState.viewerState.currentAnimationIndex]).time
-                mixers[curState.viewerState.currentAnimationIndex].update(delta * curState.viewerState.animationSpeed)
-                //console.log(duration)
-                // For material at index "key" setColor to nodes["value"].translation
-                applyAnimationColors();
-                curState.setCurrentFrame(Math.trunc((currentTime / duration) * 100))
-                setStartTime(Math.trunc((currentTime / duration) * 100))
-              }
-            } else if (supportControls) {
-              if (curState.viewerState.currentAnimationIndex!==-1) {
-                if(curState.currentFrame !== startTime) {
-                  let duration = mixers[curState.viewerState.currentAnimationIndex]?.clipAction(animations[curState.viewerState.currentAnimationIndex]).getClip().duration;
-                  const framePercentage = curState.currentFrame / 100;
-                  const currentTime = duration * framePercentage;
-                  // For material at index "key" setColor to nodes["value"].translation
-                  applyAnimationColors();
-                  mixers[curState.viewerState.currentAnimationIndex].clipAction(animations[curState.viewerState.currentAnimationIndex]).time = currentTime;
-                  setStartTime(curState.currentFrame)
-                  mixers[curState.viewerState.currentAnimationIndex].update(delta * curState.viewerState.animationSpeed)
+        if (curState !== undefined) {
+          if (supportControls) {
+            if (curState.selected === "") {
+              if (objectSelectionBox !== null)
+                objectSelectionBox!.visible = false;
+            } else {
+              let selectedObject = sceneObjectMap.get(curState.selected)!;
+              if (selectedObject !== undefined && selectedObject.type === "Mesh") {
+                if (objectSelectionBox !== null) {
+                  objectSelectionBox?.setFromObject(selectedObject);
+                  objectSelectionBox!.visible = true;
                 }
               }
             }
           }
+
+          if (curState.viewerState.currentAnimationIndex !== animationIndex) {
+            const newAnimationIndex = curState.viewerState.currentAnimationIndex;
+            const oldIndex = animationIndex;
+            if (oldIndex !== -1) mixers[oldIndex].stopAllAction();
+            setAnimationIndex(newAnimationIndex);
+            mixers[newAnimationIndex]?.clipAction(animations[newAnimationIndex]).play();
+          }
+
+          const idx = curState.viewerState.currentAnimationIndex;
+          if (supportControls && idx !== -1) {
+            const mixer = mixers[idx];
+            const action = mixer.clipAction(animations[idx]);
+            const duration = action.getClip().duration;
+
+            // CASE 1: PLAYING (animating)
+            if (curState.viewerState.animating) {
+              mixer.update(delta * curState.viewerState.animationSpeed);
+              applyAnimationColors();
+
+              // Always update slider value so React re-renders
+              const newFrame = Math.trunc((action.time / duration) * 100);
+              if (newFrame !== curState.currentFrame) {
+                curState.setCurrentFrame(newFrame);
+                setStartTime(newFrame);
+              }
+
+            // CASE 2: PAUSED but user moves slider
+            } else if (!curState.viewerState.isRecordingVideo) {
+              if (curState.currentFrame !== startTime) {
+                const framePercentage = curState.currentFrame / 100;
+                const scrubTime = duration * framePercentage;
+                mixer.setTime(scrubTime);
+                applyAnimationColors();
+                setStartTime(curState.currentFrame);
+              }
+
+            // CASE 3: RECORDING deterministic frame stepping
+            } else {
+              if (curState.currentFrame !== startTime) {
+                const framePercentage = curState.currentFrame / 100;
+                const recTime = duration * framePercentage;
+                mixer.setTime(recTime);
+                applyAnimationColors();
+                setStartTime(curState.currentFrame);
+              }
+            }
+          }
+        }
       }
-      if (lightRef.current) {
-        setDirectionalVisible(lightRef.current.visible);
-      }
-      if (spotlightRef.current) {
-        setSpotVisible(spotlightRef.current.visible);
-      }
+
+      if (lightRef.current) setDirectionalVisible(lightRef.current.visible);
+      if (spotlightRef.current) setSpotVisible(spotlightRef.current.visible);
       if (dirLightHelperRef.current && lightRef.current) {
         dirLightHelperRef.current.visible = lightRef.current.visible;
         dirLightHelperRef.current.update();
@@ -263,7 +265,8 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
         spotLightHelperRef.current.visible = spotlightRef.current.visible;
         spotLightHelperRef.current.update();
       }
-    })
+    });
+
 
     useEffect(() => {
         //console.log("OpenSimScene.useEffect called ", curState.currentModelPath)
