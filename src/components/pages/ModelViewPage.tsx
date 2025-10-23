@@ -354,7 +354,7 @@ useEffect(() => {
                     currentModelPath={uiState.viewerState.currentModelPath}
                     supportControls={true}
                   />
-                : <OpenSimScene
+                : <OpenSimGUIScene
                   currentModelPath={uiState.viewerState.currentModelPath}
                   supportControls={true}
                 />}
