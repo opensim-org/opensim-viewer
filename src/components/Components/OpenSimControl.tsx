@@ -31,7 +31,7 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
    const viewerState = useModelContext().viewerState;
    const controlsRef = useRef<OrbitControlsImpl | null>(null)
    const lastPosition = useRef(new Vector3())
-   camera.layers.enable(2); // Enable layer 2 for OpenSim helpers like frames and arrows
+   camera.layers.enable(2); // Enable layer 2 for OpenSim helpers like Frames (these mess up bounding boxes and selection if on layer 1)
 
   useImperativeHandle(ref, () => ({
     addCamera: (cameraName: any, parent: Object3D | null) => {
