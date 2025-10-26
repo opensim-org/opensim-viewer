@@ -437,7 +437,7 @@ export class ModelUIState {
             this.socket!.send(json);
     }
     sendModelOffsets() {
-        var offsetsJson = this.getModelOffsetsJson();
+        const offsetsJson = this.getModelOffsetsJson();
         this.sendText(offsetsJson);
     }
 }
