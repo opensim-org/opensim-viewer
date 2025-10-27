@@ -109,11 +109,12 @@ const BottomBar = React.forwardRef(function CustomContent(
 
     return (
       <Container ref={(ref as any) || bottomBarRef}>
-        <Grid container spacing={1} justifyContent="center">
-          <Grid item sx={{ mt: 1 }}>
+        <Grid container spacing={1}>
+          <Grid item sx={{ mt: 1, display: { xs: 'none', lg: 'block' }
+ }}>
             <CameraPanel uState={curState} />
           </Grid>
-          <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+          <Divider orientation="vertical" sx={{ mx: 2, display: { xs: 'none', lg: 'block' } }} />
           { curState.viewerState.animations.length < 1 ? null : (
           <Grid item sx={{ mt: 1 }}>
             <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
