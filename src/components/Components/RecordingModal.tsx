@@ -31,7 +31,6 @@ const qualityLevels = [
 
 const videoFormats = [
   { label: "MP4", value: "mp4" },
-  { label: "WEBM", value: "webm" },
   { label: "MOV", value: "mov" },
 ];
 
