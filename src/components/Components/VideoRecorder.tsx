@@ -1,17 +1,14 @@
 import * as React from "react";
 import { useEffect, useRef } from "react";
-
 import { observer } from "mobx-react";
 import { useThree } from '@react-three/fiber';
-
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile } from '@ffmpeg/util';
-
 import { useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
 import { useModelContext } from "../../state/ModelUIStateContext";
-
 import { getTimestamp } from "../../helpers/timeHelpers";
+import { PerspectiveCamera } from 'three';
 
 type VideoRecorderRef = {
   startRecording: () => void;
@@ -20,12 +17,49 @@ type VideoRecorderRef = {
 
 type VideoRecorderViewProps = {
   videoRecorderRef: React.MutableRefObject<VideoRecorderRef | null>;
-}
+};
+
+// Aspect ratio utility functions
+const parseAspectRatio = (aspectRatio: string): { width: number; height: number } => {
+  const [widthStr, heightStr] = aspectRatio.split(':');
+  return {
+    width: parseInt(widthStr, 10),
+    height: parseInt(heightStr, 10)
+  };
+};
+
+const calculateDimensionsFromAspectRatio = (
+  baseDimension: number,
+  aspectRatio: string,
+  useWidthAsBase: boolean = true
+): { width: number; height: number } => {
+  const { width: ratioW, height: ratioH } = parseAspectRatio(aspectRatio);
+  const aspect = ratioW / ratioH;
+
+  if (useWidthAsBase) {
+    return {
+      width: baseDimension,
+      height: Math.round(baseDimension / aspect)
+    };
+  } else {
+    return {
+      width: Math.round(baseDimension * aspect),
+      height: baseDimension
+    };
+  }
+};
+
+const ensureEvenDimensions = (width: number, height: number): { width: number; height: number } => {
+  return {
+    width: width % 2 === 0 ? width : width - 1,
+    height: height % 2 === 0 ? height : height - 1
+  };
+};
 
 function VideoRecorder(props: VideoRecorderViewProps) {
   const { t } = useTranslation();
   const viewerState = useModelContext().viewerState;
-  const { gl } = useThree();
+  const { gl, size, camera } = useThree();
   const curState = useModelContext();
 
   const ffmpegRef = useRef(new FFmpeg());
@@ -35,6 +69,10 @@ function VideoRecorder(props: VideoRecorderViewProps) {
   const isRecordingRef = useRef(false);
   const animationDurationRef = useRef(0);
   const startAnimationTimeRef = useRef(0);
+
+  const originalCameraAspectRef = useRef<number | null>(null);
+  const originalCameraFovRef = useRef<number | null>(null);
+  const originalRendererSizeRef = useRef<{ width: number; height: number } | null>(null);
 
   const load = async () => {
     const ffmpeg = ffmpegRef.current;
@@ -47,64 +85,97 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     }
   };
 
+  const getTargetDimensions = (): { width: number; height: number } => {
+    const glCanvas = gl.domElement;
+
+    // Always use aspect ratio to determine dimensions
+    if (viewerState.recordedVideoAspectRatio) {
+      const { width: ratioW, height: ratioH } = parseAspectRatio(viewerState.recordedVideoAspectRatio);
+      const aspect = ratioW / ratioH;
+
+      // Use base dimension as the primary dimension
+      const baseDimension = viewerState.videoRecorderBaseDimension || 720;
+
+      // For landscape (width >= height), prioritize width
+      // For portrait (height > width), prioritize height
+      if (ratioW >= ratioH) {
+        // Landscape or square - prioritize width
+        const width = baseDimension;
+        const height = Math.round(width / aspect);
+        return ensureEvenDimensions(width, height);
+      } else {
+        // Portrait - prioritize height
+        const height = baseDimension;
+        const width = Math.round(height * aspect);
+        return ensureEvenDimensions(width, height);
+      }
+    }
+
+    // Fallback: use canvas dimensions
+    return {
+      width: glCanvas.width,
+      height: glCanvas.height
+    };
+  };
+
+  const setupCameraAndRendererForRecording = () => {
+    const perspectiveCamera = camera as PerspectiveCamera;
+
+    // Save original state
+    originalCameraAspectRef.current = perspectiveCamera.aspect;
+    originalCameraFovRef.current = perspectiveCamera.fov;
+    originalRendererSizeRef.current = { width: size.width, height: size.height };
+
+    // Get target dimensions for recording
+    const { width: targetW, height: targetH } = getTargetDimensions();
+    const { width: evenW, height: evenH } = ensureEvenDimensions(targetW, targetH);
+
+    console.log(`Setting up recording: ${evenW}x${evenH}, aspect ratio: ${viewerState.recordedVideoAspectRatio}`);
+
+    // Update camera aspect ratio and projection matrix
+    perspectiveCamera.aspect = evenW / evenH;
+    perspectiveCamera.updateProjectionMatrix();
+
+    // Update renderer size
+    gl.setSize(evenW, evenH, false);
+    gl.setPixelRatio(1); // Ensure crisp rendering at exact dimensions
+
+    return { width: evenW, height: evenH };
+  };
+
+  const restoreCameraAndRenderer = () => {
+    if (originalCameraAspectRef.current !== null) {
+      const perspectiveCamera = camera as PerspectiveCamera;
+
+      perspectiveCamera.aspect = originalCameraAspectRef.current;
+      perspectiveCamera.updateProjectionMatrix();
+
+      originalCameraAspectRef.current = null;
+    }
+
+    if (originalRendererSizeRef.current) {
+      gl.setSize(originalRendererSizeRef.current.width, originalRendererSizeRef.current.height, false);
+      originalRendererSizeRef.current = null;
+    }
+  };
+
   const captureFrameReadPixels = (): string => {
     const glCanvas = gl.domElement;
-    const preserveAspect = viewerState.videoRecorderPreserveAspectRatio;
-    const canvasAspect = glCanvas.width / glCanvas.height;
+    const { width: targetW, height: targetH } = getTargetDimensions();
+    const { width: evenW, height: evenH } = ensureEvenDimensions(targetW, targetH);
 
-     // Target resolution from viewerState
-    const targetW = viewerState.videoRecorderWidth || glCanvas.width;
-    const targetH = preserveAspect ? Math.round(targetW / canvasAspect) : (viewerState.videoRecorderHeight || glCanvas.height);
-
-    // Create offscreen 2D canvas at desired resolution
+    // Create offscreen canvas for rendering
     const compositeCanvas = document.createElement('canvas');
-    compositeCanvas.width = targetW;
-    compositeCanvas.height = targetH;
+    compositeCanvas.width = evenW;
+    compositeCanvas.height = evenH;
     const ctx = compositeCanvas.getContext('2d')!;
 
-    // Fill with white before drawing WebGL frame
+    // Set white background
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, targetW, targetH);
+    ctx.fillRect(0, 0, evenW, evenH);
 
-    // Draw WebGL canvas (flattens transparency)
-    const glCtx: WebGLRenderingContext | WebGL2RenderingContext = (gl as any).getContext ? (gl as any).getContext() : (gl as any).context;
-    if (!glCtx) {
-      ctx.drawImage(glCanvas, 0, 0, targetW, targetH);
-      return compositeCanvas.toDataURL('image/jpeg', 0.92);
-    }
-
-    if (typeof (glCtx as any).finish === 'function') {
-      try { (glCtx as any).finish(); } catch (e) {}
-    }
-
-    const w = glCanvas.width;
-    const h = glCanvas.height;
-    const pixels = new Uint8Array(w * h * 4);
-
-    try {
-      glCtx.pixelStorei(glCtx.PACK_ALIGNMENT, 1);
-      glCtx.readPixels(0, 0, w, h, glCtx.RGBA, glCtx.UNSIGNED_BYTE, pixels);
-    } catch (e) {
-      console.warn('readPixels failed, fallback to drawImage', e);
-      ctx.drawImage(glCanvas, 0, 0, targetW, targetH);
-      return compositeCanvas.toDataURL('image/jpeg', 0.92);
-    }
-
-    const rowSize = w * 4;
-    const flipped = new Uint8ClampedArray(pixels.length);
-    for (let y = 0; y < h; y++) {
-      const srcStart = y * rowSize;
-      const dstStart = (h - 1 - y) * rowSize;
-      flipped.set(pixels.subarray(srcStart, srcStart + rowSize), dstStart);
-    }
-
-    const tmp = document.createElement('canvas');
-    tmp.width = w;
-    tmp.height = h;
-    const tmpCtx = tmp.getContext('2d')!;
-    tmpCtx.putImageData(new ImageData(flipped, w, h), 0, 0);
-
-    ctx.drawImage(tmp, 0, 0, targetW, targetH);
+    // Draw the WebGL canvas content
+    ctx.drawImage(glCanvas, 0, 0, evenW, evenH);
 
     // Encode as JPEG (no alpha)
     return compositeCanvas.toDataURL('image/jpeg', 0.92);
@@ -114,23 +185,11 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     const ffmpeg = ffmpegRef.current;
     await load();
 
-    // Clean up any previous files
-    const glCanvas = gl.domElement;
+    const { width: targetW, height: targetH } = getTargetDimensions();
+    const { width: evenW, height: evenH } = ensureEvenDimensions(targetW, targetH);
 
-    // Determine the same target size used in captureFrame()
-    const preserveAspect = viewerState.videoRecorderPreserveAspectRatio;
-    const canvasAspect = glCanvas.width / glCanvas.height;
+    console.log(`Encoding video at ${evenW}x${evenH} (aspect ratio: ${viewerState.recordedVideoAspectRatio})`);
 
-    // Ensure even numbers for YUV420p encoding
-    const targetW = viewerState.videoRecorderWidth || glCanvas.width;
-    const targetH = preserveAspect
-      ? Math.round(targetW / canvasAspect)
-      : (viewerState.videoRecorderHeight || glCanvas.height);
-
-    const evenW = targetW % 2 === 0 ? targetW : targetW - 1;
-    const evenH = targetH % 2 === 0 ? targetH : targetH - 1;
-
-    // Clean up previous files
     try {
       const files = await ffmpeg.listDir('/');
       for (const file of files) {
@@ -142,7 +201,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       console.warn("Cleanup skipped:", e);
     }
 
-    // Write new frames
+    // Write all frames to FFmpeg
     for (let i = 0; i < capturedFrames.current.length; i++) {
       const dataURL = capturedFrames.current[i];
       const res = await fetch(dataURL);
@@ -150,34 +209,24 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       await ffmpeg.writeFile(`input${String(i).padStart(3, '0')}.jpg`, await fetchFile(blob));
     }
 
-    // Encoding args
     const fps = viewerState.recordedVideoFPS || 30;
+
+    // FFmpeg arguments - ensure correct aspect ratio and no distortion
     const args = [
       '-framerate', `${fps}`,
       '-i', 'input%03d.jpg',
       '-r', `${fps}`,
-      '-vf', `scale=${evenW}:${evenH}:force_original_aspect_ratio=decrease,pad=${evenW}:${evenH}:(ow-iw)/2:(oh-ih)/2:white`
+      '-vf', `scale=${evenW}:${evenH}:flags=lanczos:force_original_aspect_ratio=disable`
     ];
 
     if (ext === 'webm') {
-
-      // Encoding args webm
-      args.push(
-        '-c:v', 'libvpx',
-        '-b:v', '4M',
-        '-pix_fmt', 'yuv420p'
-      );
+      args.push('-c:v', 'libvpx', '-b:v', '4M', '-pix_fmt', 'yuv420p');
     } else {
-      args.push(
-        '-c:v', 'libx264',
-        '-pix_fmt', 'yuv420p',
-        '-preset', 'fast',
-        '-crf', '17'
-      );
+      args.push('-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-preset', 'fast', '-crf', '17');
       if (ext === 'mov') args.push('-profile:v', 'high');
     }
 
-    args.push(`output.${ext}`);
+    args.push('-y', `output.${ext}`);
     await ffmpeg.exec(args);
 
     const data = await ffmpeg.readFile(`output.${ext}`);
@@ -199,9 +248,8 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
     const startRecording = () => {
       const fps = viewerState.recordedVideoFPS || 30;
-      const frameDuration = 1000 / fps; // ms per frame
+      const frameDuration = 1000 / fps;
 
-      // Get animation duration from current animation
       const currentAnimationIndex = viewerState.currentAnimationIndex;
       if (currentAnimationIndex === -1) {
         enqueueSnackbar(t('snackbars.no_animation_selected'), { variant: 'error' });
@@ -211,10 +259,21 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       const currentAnimation = viewerState.animations[currentAnimationIndex];
       animationDurationRef.current = currentAnimation.duration;
 
-      // Calculate total frames needed for the entire animation
-      const totalFrames = Math.ceil(animationDurationRef.current * fps);
+      // Set up camera and renderer FIRST, before saving original state
+      const { width: targetW, height: targetH } = setupCameraAndRendererForRecording();
 
-      console.log(`Recording: ${totalFrames} frames at ${fps} FPS, duration: ${animationDurationRef.current.toFixed(2)}s`);
+      console.log(`First recording setup: ${targetW}x${targetH}, aspect: ${viewerState.recordedVideoAspectRatio}`);
+
+      // Give the renderer a moment to complete the resize
+      setTimeout(() => {
+        startCaptureProcess();
+      }, 100);
+    };
+
+    const startCaptureProcess = () => {
+      const fps = viewerState.recordedVideoFPS || 30;
+      const frameDuration = 1000 / fps;
+      const totalFrames = Math.ceil(animationDurationRef.current * fps);
 
       viewerState.setIsRecordingVideo(true);
       viewerState.setAnimating(false);
@@ -222,7 +281,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       enqueueSnackbar(t('snackbars.recording_video'), {
         variant: 'info',
         anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
-        persist: true,
+        persist: true
       });
 
       capturedFrames.current = [];
@@ -238,6 +297,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
           const frameDataURL = captureFrameReadPixels();
           capturedFrames.current.push(frameDataURL);
           frameCount++;
+          console.log(`Captured frame ${frameCount}/${totalFrames}`);
         } catch (e) {
           console.error('Capture failed', e);
         }
@@ -247,22 +307,28 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         const startTime = performance.now();
         lastCaptureTime = startTime;
 
+        // CAPTURE THE FIRST FRAME IMMEDIATELY with proper setup
+        if (frameCount === 0) {
+          viewerState.setCurrentAnimationTime(0);
+          curState.setCurrentFrame(0);
+          captureAndPush();
+          frameCount++;
+          lastCaptureTime = performance.now();
+        }
+
         while (isRecordingRef.current && frameCount < totalFrames) {
           const now = performance.now();
           const elapsedTime = now - lastCaptureTime;
 
           // Wait until next frame is due
+
           if (elapsedTime < frameDuration) {
             await new Promise<void>(r => requestAnimationFrame(() => r()));
             continue;
           }
 
           lastCaptureTime = now;
-
-          // Calculate exact animation time for this frame
-          const currentFrameTime = (frameCount / fps);
-
-          // Set the exact animation time
+          const currentFrameTime = frameCount / fps;
           viewerState.setCurrentAnimationTime(currentFrameTime);
 
           // Update frame percentage for UI
@@ -288,15 +354,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
           await new Promise<void>(r => requestAnimationFrame(() => r()));
         }
 
-        // If we exit the loop for other reasons, stop recording
-        if (isRecordingRef.current) {
-          stopRecording();
-        }
-
-        const endTime = performance.now();
-        const durationSec = (endTime - startTime) / 1000;
-        const realFps = frameCount / durationSec;
-        console.log(`Recording complete. Duration: ${durationSec.toFixed(2)}s, Frames: ${frameCount}, FPS: ${realFps.toFixed(2)}`);
+        if (isRecordingRef.current) stopRecording();
       };
 
       recordLoop();
@@ -308,13 +366,15 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       closeSnackbar();
       viewerState.setIsRecordingVideo(false);
       viewerState.setAnimating(false);
-
       isRecordingRef.current = false;
+
+      // Restore original camera and renderer settings
+      restoreCameraAndRenderer();
 
       enqueueSnackbar(t('snackbars.processing_video'), {
         variant: 'info',
         anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
-        persist: true,
+        persist: true
       });
       viewerState.setIsProcessingVideo(true);
 
@@ -325,21 +385,19 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         downloadVideo(url, `${viewerState.recordedVideoName}_${timestamp}.${ext}`);
       } catch (e) {
         console.error(e);
-        enqueueSnackbar("Error:", { variant: 'error' });
+        enqueueSnackbar("Error processing video", { variant: 'error' });
       }
 
       capturedFrames.current = [];
       viewerState.setIsProcessingVideo(false);
       closeSnackbar();
 
-      // Reset animation time to start
       viewerState.setCurrentAnimationTime(0);
       curState.setCurrentFrame(0);
     };
 
     props.videoRecorderRef.current = { startRecording, stopRecording };
-
-  }, [props.videoRecorderRef, gl.domElement, enqueueSnackbar, closeSnackbar, t, viewerState, curState, gl]);
+  }, [props.videoRecorderRef, gl, camera, size, enqueueSnackbar, closeSnackbar, t, viewerState, curState]);
 
   return null;
 }
