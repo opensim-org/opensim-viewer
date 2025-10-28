@@ -431,6 +431,34 @@ export class ModelUIState {
             this.viewerState.setAnimating(false);
         }
     }
+
+    startGUIAnimationIfAvailable(requiredTimeStep: number) {
+        const json = JSON.stringify({
+        type: "Animation",
+        "OP": "Start",
+        "timestep": requiredTimeStep});
+        if (this.socket !== null)
+            this.socket!.send(json);
+    }
+    
+    stopGUIAnimation() {
+        const json = JSON.stringify({
+        type: "Animation",
+        "OP": "Stop"});
+        if (this.socket !== null)
+            this.socket!.send(json);
+    }
+    
+    setTimeGUIAnimation(time: number) {
+        const json = JSON.stringify({
+        type: "Animation",
+        "OP": "setTime",
+        "value": time
+        });
+        if (this.socket !== null)
+            this.socket!.send(json);
+    }
+    
     setFPS(fps: number) {
         this.fps = fps;
         var json = JSON.stringify({

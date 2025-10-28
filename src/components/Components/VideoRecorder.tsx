@@ -199,7 +199,9 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     const startRecording = () => {
       viewerState.setIsRecordingVideo(true);
       viewerState.setAnimating(false);
-
+      if (curState.isGuiMode) {
+        curState.startGUIAnimationIfAvailable(0.);
+      }
       enqueueSnackbar(t('snackbars.recording_video'), {
         variant: 'info',
         anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
