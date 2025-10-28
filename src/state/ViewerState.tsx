@@ -53,6 +53,8 @@ export class ViewerState {
     snapshotFormat: string
     recordedVideoName: string
     recordedVideoFormat: string
+    recordedVideoFPS: number
+    recordedVideoAspectRatio: string
     isRecordingVideo: boolean
     isProcessingVideo: boolean
     videoRecorderWidth: number | null
@@ -103,6 +105,7 @@ export class ViewerState {
     currentAnimationIndex: number
     animationsNeedUpdate: boolean
     animationChange: null | Object
+    currentAnimationTime: number
     // Environment holders
     environmentGroup: Group | null
     constructor(
@@ -133,6 +136,8 @@ export class ViewerState {
         this.snapshotFormat = snapshotFormat
         this.recordedVideoName = recordedVideoName
         this.recordedVideoFormat = recordedVideoFormat
+        this.recordedVideoFPS = 30
+        this.recordedVideoAspectRatio = "4:3"
         this.isRecordingVideo = isRecordingVideo
         this.isProcessingVideo = isProcessingVideo
         this.videoRecorderWidth = null
@@ -182,6 +187,7 @@ export class ViewerState {
         this.currentAnimationIndex = -1
         this.animationsNeedUpdate = false
         this.animationChange = null
+        this.currentAnimationTime = 0
         this.environmentGroup = null
         makeObservable(this, {
             currentModelPath: observable,
@@ -196,6 +202,8 @@ export class ViewerState {
             setSnapshotFormat: action,
             setRecordedVideoName: action,
             setRecordedVideoFormat: action,
+            setRecorderFPS: action,
+            setRecorderAspectRatio: action,
             setIsLoggedIn: action,
             setFloorHeight: action,
             setFloorRound: action,
@@ -203,6 +211,8 @@ export class ViewerState {
             snapshotFormat: observable,
             recordedVideoName: observable,
             recordedVideoFormat: observable,
+            recordedVideoFPS: observable,
+            recordedVideoAspectRatio: observable,
             isRecordingVideo: observable,
             videoRecorderWidth: observable,
             videoRecorderHeight: observable,
@@ -247,7 +257,9 @@ export class ViewerState {
             sceneVersion: observable,
             setSceneVersion: action,
             animationsNeedUpdate: observable,
-            setAnimationsNeedUpdate: action
+            setAnimationsNeedUpdate: action,
+            currentAnimationTime: observable,
+            setCurrentAnimationTime: action,
         })
     }
 
@@ -293,6 +305,12 @@ export class ViewerState {
     }
     setRecordedVideoFormat(newState: string) {
         this.recordedVideoFormat = newState
+    }
+    setRecorderFPS(newFPS: number) {
+        this.recordedVideoFPS = newFPS
+    }
+    setRecorderAspectRatio(newAspectRatio: string) {
+        this.recordedVideoAspectRatio = newAspectRatio
     }
     setVideoRecorderWidth(newWidth: number | null) {
       this.videoRecorderWidth = newWidth
@@ -614,6 +632,9 @@ export class ViewerState {
     }
     setAnimationsNeedUpdate(needsUpdate: boolean) {
         this.animationsNeedUpdate = needsUpdate;
+    }
+    setCurrentAnimationTime(time: number) {
+        this.currentAnimationTime = time;
     }
 }
 

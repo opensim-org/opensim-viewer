@@ -202,7 +202,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     )
 
 
-     useFrame((state, delta) => {
+    useFrame((state, delta) => {
       if (!useEffectRunning) {
         // Selection bounding box
         if (curState.selected === "") {
@@ -245,7 +245,14 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           }
 
           // Start new animation
-          mixers[viewerState.currentAnimationIndex]?.clipAction(viewerState.animations[viewerState.currentAnimationIndex]).play();
+          const action = mixers[viewerState.currentAnimationIndex]?.clipAction(viewerState.animations[viewerState.currentAnimationIndex]);
+          action?.play();
+
+          // Update animation time immediately when animation changes
+          if (action) {
+            const currentTime = action.time;
+            viewerState.setCurrentAnimationTime(currentTime);
+          }
         }
 
         // Handle animation playback with the three cases
@@ -267,8 +274,10 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             mixer.update(delta * viewerState.animationSpeed);
             applyAnimationColors();
 
-            // Update slider value for React re-renders
+            // Update animation time and slider value for React re-renders
             const currentTime = action.time;
+            viewerState.setCurrentAnimationTime(currentTime); // Always update animation time
+
             const newFrame = Math.trunc((currentTime / duration) * 100);
             if (newFrame !== curState.currentFrame) {
               curState.setCurrentFrame(newFrame);
@@ -281,9 +290,15 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
               const framePercentage = curState.currentFrame / 100;
               const scrubTime = duration * framePercentage;
               action.time = scrubTime;
-              mixer.update(delta * viewerState.animationSpeed); // Small update to apply changes
+              mixer.update(0); // Zero delta to apply time change without advancing
               applyAnimationColors();
+
+              // Update animation time
+              viewerState.setCurrentAnimationTime(scrubTime);
               setStartTime(curState.currentFrame);
+            } else {
+              // Even when paused, ensure animation time is current
+              viewerState.setCurrentAnimationTime(action.time);
             }
 
           // CASE 3: RECORDING deterministic frame stepping
@@ -292,10 +307,21 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
               const framePercentage = curState.currentFrame / 100;
               const recTime = duration * framePercentage;
               action.time = recTime;
-              mixer.update(delta * viewerState.animationSpeed); // Small update to apply changes
+              mixer.update(0); // Zero delta to apply time change without advancing
               applyAnimationColors();
+
+              // Update animation time
+              viewerState.setCurrentAnimationTime(recTime);
               setStartTime(curState.currentFrame);
+            } else {
+              // Ensure animation time is current during recording
+              viewerState.setCurrentAnimationTime(action.time);
             }
+          }
+        } else {
+          // No active animation, reset animation time
+          if (viewerState.currentAnimationTime !== 0) {
+            viewerState.setCurrentAnimationTime(0);
           }
         }
       }

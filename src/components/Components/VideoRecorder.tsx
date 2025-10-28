@@ -1,4 +1,3 @@
-
 import * as React from "react";
 import { useEffect, useRef } from "react";
 
@@ -34,7 +33,8 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
   const capturedFrames = useRef<string[]>([]);
   const isRecordingRef = useRef(false);
-  const fps = 30;
+  const animationDurationRef = useRef(0);
+  const startAnimationTimeRef = useRef(0);
 
   const load = async () => {
     const ffmpeg = ffmpegRef.current;
@@ -52,7 +52,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     const preserveAspect = viewerState.videoRecorderPreserveAspectRatio;
     const canvasAspect = glCanvas.width / glCanvas.height;
 
-    // Target resolution from viewerState
+     // Target resolution from viewerState
     const targetW = viewerState.videoRecorderWidth || glCanvas.width;
     const targetH = preserveAspect ? Math.round(targetW / canvasAspect) : (viewerState.videoRecorderHeight || glCanvas.height);
 
@@ -120,16 +120,15 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     // Determine the same target size used in captureFrame()
     const preserveAspect = viewerState.videoRecorderPreserveAspectRatio;
     const canvasAspect = glCanvas.width / glCanvas.height;
+
+    // Ensure even numbers for YUV420p encoding
     const targetW = viewerState.videoRecorderWidth || glCanvas.width;
     const targetH = preserveAspect
       ? Math.round(targetW / canvasAspect)
       : (viewerState.videoRecorderHeight || glCanvas.height);
 
-    // Ensure even numbers for YUV420p encoding
     const evenW = targetW % 2 === 0 ? targetW : targetW - 1;
     const evenH = targetH % 2 === 0 ? targetH : targetH - 1;
-
-    console.log(`Encoding video at ${evenW}x${evenH}`);
 
     // Clean up previous files
     try {
@@ -152,6 +151,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     }
 
     // Encoding args
+    const fps = viewerState.recordedVideoFPS || 30;
     const args = [
       '-framerate', `${fps}`,
       '-i', 'input%03d.jpg',
@@ -160,6 +160,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     ];
 
     if (ext === 'webm') {
+
       // Encoding args webm
       args.push(
         '-c:v', 'libvpx',
@@ -197,6 +198,24 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     gl.setClearColor(0xffffff, 1);
 
     const startRecording = () => {
+      const fps = viewerState.recordedVideoFPS || 30;
+      const frameDuration = 1000 / fps; // ms per frame
+
+      // Get animation duration from current animation
+      const currentAnimationIndex = viewerState.currentAnimationIndex;
+      if (currentAnimationIndex === -1) {
+        enqueueSnackbar(t('snackbars.no_animation_selected'), { variant: 'error' });
+        return;
+      }
+
+      const currentAnimation = viewerState.animations[currentAnimationIndex];
+      animationDurationRef.current = currentAnimation.duration;
+
+      // Calculate total frames needed for the entire animation
+      const totalFrames = Math.ceil(animationDurationRef.current * fps);
+
+      console.log(`Recording: ${totalFrames} frames at ${fps} FPS, duration: ${animationDurationRef.current.toFixed(2)}s`);
+
       viewerState.setIsRecordingVideo(true);
       viewerState.setAnimating(false);
 
@@ -207,14 +226,11 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       });
 
       capturedFrames.current = [];
-      curState.setCurrentFrame(0);
       isRecordingRef.current = true;
+      startAnimationTimeRef.current = viewerState.currentAnimationTime;
 
       let frameCount = 0;
-      let prevFrame = 0;
-      const startTime = performance.now();
-      let lastCaptureTime = startTime;
-      const frameDuration = 1000 / fps;
+      let lastCaptureTime = 0;
       let isCapturing = false;
 
       const captureAndPush = () => {
@@ -228,49 +244,67 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       };
 
       const recordLoop = async () => {
-        while (isRecordingRef.current) {
+        const startTime = performance.now();
+        lastCaptureTime = startTime;
+
+        while (isRecordingRef.current && frameCount < totalFrames) {
           const now = performance.now();
-          if (now - lastCaptureTime < frameDuration) {
+          const elapsedTime = now - lastCaptureTime;
+
+          // Wait until next frame is due
+          if (elapsedTime < frameDuration) {
             await new Promise<void>(r => requestAnimationFrame(() => r()));
             continue;
           }
-          lastCaptureTime = performance.now();
 
-          if (curState.currentFrame + 1 > 99) {
-            curState.setCurrentFrame(0);
-          } else {
-            curState.incrementCurrentFrame();
-          }
+          lastCaptureTime = now;
 
-          const frame = curState.currentFrame;
-          if (frame < prevFrame) {
-            console.log("Frame wrapped — stopping recording");
-            stopRecording();
-            break;
-          }
-          prevFrame = frame;
+          // Calculate exact animation time for this frame
+          const currentFrameTime = (frameCount / fps);
 
-          await new Promise<void>(r => requestAnimationFrame(() => r()));
+          // Set the exact animation time
+          viewerState.setCurrentAnimationTime(currentFrameTime);
+
+          // Update frame percentage for UI
+          const framePercentage = (currentFrameTime / animationDurationRef.current) * 100;
+          curState.setCurrentFrame(Math.min(framePercentage, 100));
 
           if (!isCapturing) {
             isCapturing = true;
-            try { captureAndPush(); } finally { isCapturing = false; }
+            try {
+              captureAndPush();
+            } finally {
+              isCapturing = false;
+            }
           }
 
-          await new Promise<void>(r => setTimeout(() => r(), 0));
+          // Check if we've reached the end of the animation
+          if (frameCount >= totalFrames) {
+            console.log("Animation complete — stopping recording");
+            stopRecording();
+            break;
+          }
+
+          await new Promise<void>(r => requestAnimationFrame(() => r()));
+        }
+
+        // If we exit the loop for other reasons, stop recording
+        if (isRecordingRef.current) {
+          stopRecording();
         }
 
         const endTime = performance.now();
         const durationSec = (endTime - startTime) / 1000;
         const realFps = frameCount / durationSec;
-        console.log('Recording stopped.');
-        console.log(`Duration: ${durationSec.toFixed(2)}s, Frames: ${frameCount}, FPS: ${realFps.toFixed(2)}`);
+        console.log(`Recording complete. Duration: ${durationSec.toFixed(2)}s, Frames: ${frameCount}, FPS: ${realFps.toFixed(2)}`);
       };
 
       recordLoop();
     };
 
     const stopRecording = async () => {
+      if (!isRecordingRef.current) return;
+
       closeSnackbar();
       viewerState.setIsRecordingVideo(false);
       viewerState.setAnimating(false);
@@ -291,16 +325,21 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         downloadVideo(url, `${viewerState.recordedVideoName}_${timestamp}.${ext}`);
       } catch (e) {
         console.error(e);
+        enqueueSnackbar("Error:", { variant: 'error' });
       }
 
       capturedFrames.current = [];
       viewerState.setIsProcessingVideo(false);
       closeSnackbar();
+
+      // Reset animation time to start
+      viewerState.setCurrentAnimationTime(0);
+      curState.setCurrentFrame(0);
     };
 
     props.videoRecorderRef.current = { startRecording, stopRecording };
 
-  }, [props.videoRecorderRef, gl.domElement, enqueueSnackbar, closeSnackbar, t, viewerState, viewerState.recordedVideoFormat]);
+  }, [props.videoRecorderRef, gl.domElement, enqueueSnackbar, closeSnackbar, t, viewerState, curState, gl]);
 
   return null;
 }
