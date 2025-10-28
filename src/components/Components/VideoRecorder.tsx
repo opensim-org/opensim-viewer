@@ -252,7 +252,11 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
       const currentAnimationIndex = viewerState.currentAnimationIndex;
       if (currentAnimationIndex === -1) {
-        enqueueSnackbar(t('snackbars.no_animation_selected'), { variant: 'error' });
+        enqueueSnackbar(t('snackbars.no_animation_selected'), {
+          variant: 'error',
+          anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
+          autoHideDuration: 5000, // 5 seconds
+        });
         return;
       }
 
