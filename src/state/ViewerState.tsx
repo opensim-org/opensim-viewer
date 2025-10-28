@@ -22,7 +22,7 @@ interface CamData {
 export class CameraDolly {
     name: string
     desc: string | null
-    cameraFrames: CameraFrame[] 
+    cameraFrames: CameraFrame[]
     constructor(name:string| "", desc:string|null=null){
         this.name = name
         this.desc = desc
@@ -53,10 +53,11 @@ export class ViewerState {
     snapshotFormat: string
     recordedVideoName: string
     recordedVideoFormat: string
+    recordedVideoFPS: number
+    recordedVideoAspectRatio: string
     isRecordingVideo: boolean
     isProcessingVideo: boolean
-    videoRecorderWidth: number | null
-    videoRecorderHeight: number | null
+    videoRecorderBaseDimension: number
     videoRecorderPreserveAspectRatio: boolean
     user_uuid: string
     // user preferences
@@ -103,6 +104,7 @@ export class ViewerState {
     currentAnimationIndex: number
     animationsNeedUpdate: boolean
     animationChange: null | Object
+    currentAnimationTime: number
     // Environment holders
     environmentGroup: Group | null
     constructor(
@@ -133,10 +135,11 @@ export class ViewerState {
         this.snapshotFormat = snapshotFormat
         this.recordedVideoName = recordedVideoName
         this.recordedVideoFormat = recordedVideoFormat
+        this.recordedVideoFPS = 30
+        this.recordedVideoAspectRatio = "16:9"
         this.isRecordingVideo = isRecordingVideo
         this.isProcessingVideo = isProcessingVideo
-        this.videoRecorderWidth = null
-        this.videoRecorderHeight = null
+        this.videoRecorderBaseDimension = 720
 
         this.videoRecorderPreserveAspectRatio = true
         this.user_uuid = ''
@@ -182,6 +185,7 @@ export class ViewerState {
         this.currentAnimationIndex = -1
         this.animationsNeedUpdate = false
         this.animationChange = null
+        this.currentAnimationTime = 0
         this.environmentGroup = null
         makeObservable(this, {
             currentModelPath: observable,
@@ -196,6 +200,8 @@ export class ViewerState {
             setSnapshotFormat: action,
             setRecordedVideoName: action,
             setRecordedVideoFormat: action,
+            setRecorderFPS: action,
+            setRecorderAspectRatio: action,
             setIsLoggedIn: action,
             setFloorHeight: action,
             setFloorRound: action,
@@ -203,9 +209,11 @@ export class ViewerState {
             snapshotFormat: observable,
             recordedVideoName: observable,
             recordedVideoFormat: observable,
+            recordedVideoFPS: observable,
+            recordedVideoAspectRatio: observable,
             isRecordingVideo: observable,
-            videoRecorderWidth: observable,
-            videoRecorderHeight: observable,
+            videoRecorderBaseDimension: observable,
+            setVideoRecorderBaseDimension: action,
             videoRecorderPreserveAspectRatio: observable,
             userPreferencesJsonPath: observable,
             userPreferences: observable,
@@ -247,7 +255,9 @@ export class ViewerState {
             sceneVersion: observable,
             setSceneVersion: action,
             animationsNeedUpdate: observable,
-            setAnimationsNeedUpdate: action
+            setAnimationsNeedUpdate: action,
+            currentAnimationTime: observable,
+            setCurrentAnimationTime: action,
         })
     }
 
@@ -294,11 +304,14 @@ export class ViewerState {
     setRecordedVideoFormat(newState: string) {
         this.recordedVideoFormat = newState
     }
-    setVideoRecorderWidth(newWidth: number | null) {
-      this.videoRecorderWidth = newWidth
+    setRecorderFPS(newFPS: number) {
+        this.recordedVideoFPS = newFPS
     }
-    setVideoRecorderHeight(newHeight: number | null) {
-      this.videoRecorderHeight = newHeight
+    setRecorderAspectRatio(newAspectRatio: string) {
+        this.recordedVideoAspectRatio = newAspectRatio
+    }
+    setVideoRecorderBaseDimension(dimension: number) {
+      this.videoRecorderBaseDimension = dimension
     }
     setVideoRecorderPreserveAspectRatio(newAspectRatio: boolean) {
       this.videoRecorderPreserveAspectRatio = newAspectRatio
@@ -332,7 +345,7 @@ export class ViewerState {
     }
     setSkyTextureIndex(newIndex: number) {
         this.skyTextureIndex = newIndex
-        if (newIndex === -1) 
+        if (newIndex === -1)
             this.skyVisible = false
         else
             this.skyVisible = true
@@ -426,12 +439,12 @@ export class ViewerState {
             console.error("Error loading user preferences:", error);
         }
     }
-    addCamera(camera: PerspectiveCamera, target: Vector3, 
-                suggestedName: string | undefined, 
-                setCurrent: boolean | undefined = true, 
+    addCamera(camera: PerspectiveCamera, target: Vector3,
+                suggestedName: string | undefined,
+                setCurrent: boolean | undefined = true,
                 preserveUuid: boolean = false) {
         const camClone = camera.clone()
-        if (suggestedName === undefined) 
+        if (suggestedName === undefined)
             camClone.name = "Camera_"+this.cameras.length
         else
             camClone.name = suggestedName;
@@ -473,11 +486,11 @@ export class ViewerState {
             this.cameras.splice(idx, 1);
             this.targets.splice(idx,1);
             // Fix current if needed
-            if (idx > this.cameras.length-1) 
+            if (idx > this.cameras.length-1)
                 this.setCurrentCameraIndex(this.cameras.length-1)
         }
         this.setSceneVersion(this.sceneVersion +1);
-    }    
+    }
     deleteCurrentDolly() {
         const idx = this.currentDollyIndex;
         const dolly = this.cameraDollies[idx];
@@ -485,7 +498,7 @@ export class ViewerState {
             // remove from cached arrays
             this.cameraDollies.splice(idx, 1);
            // Fix current if needed
-            if (idx > this.cameraDollies.length-1) 
+            if (idx > this.cameraDollies.length-1)
                 this.setCurrentDollyIndex(this.cameraDollies.length-1)
         }
         this.animations.splice(idx, 1);
@@ -580,11 +593,11 @@ export class ViewerState {
         readDollies.forEach(dolly => {
             this.addCameraDolly(dolly);
         });
-    } 
+    }
     loadCamerasFromJson(json: any) {
         // Load camerasJson from a file or database
         const readCameras: PerspectiveCamera[] = []
-        const camerasJson: any[] = json.cameras; 
+        const camerasJson: any[] = json.cameras;
         camerasJson.forEach(camData => {
             const camera = new PerspectiveCamera();
             camera.name = camData.object.name;
@@ -614,6 +627,9 @@ export class ViewerState {
     }
     setAnimationsNeedUpdate(needsUpdate: boolean) {
         this.animationsNeedUpdate = needsUpdate;
+    }
+    setCurrentAnimationTime(time: number) {
+        this.currentAnimationTime = time;
     }
 }
 

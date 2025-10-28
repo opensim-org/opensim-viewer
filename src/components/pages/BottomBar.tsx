@@ -30,6 +30,21 @@ interface BottomBarProps {
   animationBounds?: number[];
 }
 
+// Helper function to format seconds to mm:ss.dd
+const formatTime = (seconds: number): string => {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  const hundredths = Math.floor((seconds % 1) * 100);
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${hundredths.toString().padStart(2, '0')}`;
+};
+
+// Helper function to parse mm:ss.dd to seconds
+const parseTime = (timeString: string): number => {
+  const [timePart, hundredthsPart] = timeString.split('.');
+  const [mins, secs] = timePart.split(':').map(Number);
+  const hundredths = hundredthsPart ? Number(hundredthsPart) : 0;
+  return (mins * 60) + (secs || 0) + (hundredths / 100);
+};
 
 const BottomBar = React.forwardRef(function CustomContent(
     props: BottomBarProps,
@@ -42,12 +57,34 @@ const BottomBar = React.forwardRef(function CustomContent(
     const [speed, setSpeed] = useState(1.0);
     const [play, setPlay] = useState(false);
     const [selectedAnim, setSelectedAnim] = useState("");
+    const [currentTimeDisplay, setCurrentTimeDisplay] = useState("00:00.00");
+    const [totalDuration, setTotalDuration] = useState(0);
+    const [totalDurationDisplay, setTotalDurationDisplay] = useState("00:00.00");
     const isExtraSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('xs'));
     const isSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('sm'));
     const isMediumScreen = useMediaQuery((theme:any) => theme.breakpoints.only('md'));
 
-    const minWidthSlider = isExtraSmallScreen ? 150 : isSmallScreen ? 175 : isMediumScreen ? 250 : 300; // Adjust values as needed
-    const maxWidthTime = 45;
+    const minWidthSlider = isExtraSmallScreen ? 150 : isSmallScreen ? 175 : isMediumScreen ? 250 : 300;
+    const maxWidthTime = 60; // Increased to accommodate mm:ss.dd format
+
+    // Update time display when animation time changes
+    useEffect(() => {
+      if (viewerState.currentAnimationIndex !== -1 && viewerState.animations.length > 0) {
+        const currentTime = viewerState.currentAnimationTime;
+        setCurrentTimeDisplay(formatTime(currentTime));
+
+        // Update total duration when animation changes
+        const currentAnimation = viewerState.animations[viewerState.currentAnimationIndex];
+        if (currentAnimation && currentAnimation.duration !== totalDuration) {
+          setTotalDuration(currentAnimation.duration);
+          setTotalDurationDisplay(formatTime(currentAnimation.duration));
+        }
+      } else {
+        setCurrentTimeDisplay("00:00.00");
+        setTotalDuration(0);
+        setTotalDurationDisplay("00:00.00");
+      }
+    }, [viewerState.currentAnimationTime, viewerState.currentAnimationIndex, viewerState.animations, totalDuration]);
 
     const handleAnimationChange = useCallback((animationName: string, animate: boolean) => {
       const targetName = animationName
@@ -61,6 +98,13 @@ const BottomBar = React.forwardRef(function CustomContent(
       }
       const idx = curState.viewerState.animations.findIndex((value: AnimationClip)=>{return (value.name === targetName)});
       curState.viewerState.setCurrentAnimationIndex(idx);
+
+      // Set total duration for new animation
+      if (idx !== -1) {
+        const animation = curState.viewerState.animations[idx];
+        setTotalDuration(animation.duration);
+        setTotalDurationDisplay(formatTime(animation.duration));
+      }
     }, [curState.viewerState]);
 
     const handleAnimationChangeEvent = (event: SelectChangeEvent) => {
@@ -78,24 +122,71 @@ const BottomBar = React.forwardRef(function CustomContent(
         setSpeed(Number(event.target.value))
     }
 
-    const handleBlur = () => {
-      if (curState.currentFrame < 0) {
-        curState.setCurrentFrame(0);
-      } else if (curState.currentFrame > 100) {
-        curState.setCurrentFrame(100);
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (viewerState.currentAnimationIndex === -1) return;
+
+      const timeString = event.target.value;
+      setCurrentTimeDisplay(timeString);
+    };
+
+    const handleInputBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+      if (viewerState.currentAnimationIndex === -1) return;
+
+      const timeString = event.target.value;
+      if (/^\d{1,2}:\d{2}\.\d{2}$/.test(timeString)) {
+        const newTime = parseTime(timeString);
+        const currentAnimation = viewerState.animations[viewerState.currentAnimationIndex];
+        if (currentAnimation) {
+          if (newTime < 0) {
+            viewerState.setCurrentAnimationTime(0);
+            setCurrentTimeDisplay("00:00.00");
+          } else if (newTime > currentAnimation.duration) {
+            viewerState.setCurrentAnimationTime(currentAnimation.duration);
+            setCurrentTimeDisplay(formatTime(currentAnimation.duration));
+          } else {
+            viewerState.setCurrentAnimationTime(newTime);
+            setCurrentTimeDisplay(formatTime(newTime));
+          }
+        }
+      } else {
+        setCurrentTimeDisplay(formatTime(viewerState.currentAnimationTime));
       }
     };
 
-    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      curState.setCurrentFrame(event.target.value === '' ? 0 : Number(event.target.value));
+    const handleSliderChange = (event: Event, newValue: number | number[]) => {
+      if (viewerState.currentAnimationIndex === -1) return;
+
+      const percentage = newValue as number;
+      const currentAnimation = viewerState.animations[viewerState.currentAnimationIndex];
+      if (currentAnimation) {
+        const newTime = (percentage / 100) * currentAnimation.duration;
+        viewerState.setCurrentAnimationTime(newTime);
+      }
     };
 
-    const handleSliderChange = (event: Event, newValue: number | number[]) => {
-      curState.setCurrentFrame(newValue as number)
+
+    const handleInputKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === 'Enter') {
+        (event.target as HTMLInputElement).blur();
+      }
+    };
+
+
+    // Calculate current percentage for slider
+    const getCurrentPercentage = (): number => {
+      if (viewerState.currentAnimationIndex === -1 || totalDuration === 0) return 0;
+      return (viewerState.currentAnimationTime / totalDuration) * 100;
+    };
+
+    // Format value for slider tooltip
+    const valueLabelFormat = (value: number): string => {
+      if (viewerState.currentAnimationIndex === -1 || totalDuration === 0) return "00:00.00";
+      const time = (value / 100) * totalDuration;
+      return formatTime(time);
     };
 
     useEffect(() => {
-      if (curState.viewerState.animations.length > 0 && curState.viewerState.currentAnimationIndex !== -1) 
+      if (curState.viewerState.animations.length > 0 && curState.viewerState.currentAnimationIndex !== -1)
       {
         setSelectedAnim(curState.viewerState.animations[curState.viewerState.currentAnimationIndex].name)
         handleAnimationChange(curState.viewerState.animations[curState.viewerState.currentAnimationIndex].name, false)
@@ -103,13 +194,13 @@ const BottomBar = React.forwardRef(function CustomContent(
       else if (curState.viewerState.currentAnimationIndex === -1){
         setSelectedAnim("")
       }
-    }, [curState.viewerState.animations, curState.viewerState.currentAnimationIndex, 
+    }, [curState.viewerState.animations, curState.viewerState.currentAnimationIndex,
         curState.viewerState.cameraDollies, curState.viewerState.currentDollyIndex,
             handleAnimationChange, selectedAnim, curState.viewerState.animationsNeedUpdate]);
 
     return (
       <Container ref={(ref as any) || bottomBarRef}>
-        <Grid container spacing={1} justifyContent="center">
+        <Grid container spacing={1} justifyContent="center" alignItems="center">
           <Grid item sx={{ mt: 1 }}>
             <CameraPanel uState={curState} />
           </Grid>
@@ -172,33 +263,44 @@ const BottomBar = React.forwardRef(function CustomContent(
           <Grid item sx={{ mt: 1 }}>
             <FormControl margin="dense" size="small" sx={{minWidth: minWidthSlider}}>
               <NonAnimatedSlider
-                defaultValue={50}
-                value={typeof curState.currentFrame === 'number' ? curState.currentFrame : 0}
-                aria-label="Default"
+                value={getCurrentPercentage()}
+                aria-label="Animation timeline"
                 valueLabelDisplay="auto"
+                valueLabelFormat={valueLabelFormat}
                 onChange={handleSliderChange}
                 disabled={curState.viewerState.animations.length < 1}/>
             </FormControl>
           </Grid>
-          {/// frame number
+          {/// Time display in mm:ss.dd format with total duration
           }
           <Grid item sx={{ mt: 1 }}>
             <FormControl margin="dense" size="small" variant="filled">
               <Input
                 sx={{maxWidth: maxWidthTime}}
                 size="small"
-                value={curState.currentFrame}
+                value={currentTimeDisplay}
                 onChange={handleInputChange}
-                onBlur={handleBlur}
+                onBlur={handleInputBlur}
+                onKeyPress={handleInputKeyPress}
                 inputProps={{
-                  step: 1,
-                  min: 0,
-                  max: 100,
-                  type: 'number',
-                  'aria-labelledby': 'input-slider'}}
+                  pattern: '^\\d{1,2}:\\d{2}\\.\\d{2}$',
+                  placeholder: 'mm:ss.dd',
+                  'aria-labelledby': 'time-input'}}
                 disabled={curState.viewerState.animations.length < 1}/>
             </FormControl>
           </Grid>
+          {/// Total duration display
+          curState.viewerState.animations.length > 0 && viewerState.currentAnimationIndex !== -1 && (
+            <Grid item sx={{ mt: 1 }}>
+              <span style={{
+                fontSize: '0.875rem',
+                color: 'text.secondary',
+                marginLeft: '4px'
+              }}>
+                / {totalDurationDisplay}
+              </span>
+            </Grid>
+          )}
           {curState.getGuiMode()?"":
           <Grid item sx={{ mt: 1 }}>
             <Tooltip title={t('bottomBar.autoRotate')}>

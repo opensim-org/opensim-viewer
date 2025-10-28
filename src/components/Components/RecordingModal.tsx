@@ -21,21 +21,28 @@ interface RecordingModalProps {
   videoRecorderRef: React.MutableRefObject<any>;
 }
 
-const resolutions = [
-  { label: "144p", width: 256, height: 144 },
-  { label: "240p", width: 426, height: 240 },
-  { label: "360p", width: 640, height: 360 },
-  { label: "480p", width: 854, height: 480 },
-  { label: "720p_HD", width: 1280, height: 720 },
-  { label: "1080p_HD", width: 1920, height: 1080 },
-  { label: "1440p_HD", width: 2560, height: 1440 },
-  { label: "2160p_4K", width: 3840, height: 2160 },
+// Define quality levels that will be used as base dimensions
+const qualityLevels = [
+  { label: "720p HD", baseDimension: 720 },
+  { label: "1080p HD", baseDimension: 1080 },
+  { label: "1440p HD", baseDimension: 1440 },
+  { label: "2160p 4K", baseDimension: 2160 },
 ];
 
 const videoFormats = [
-  { label: "WEBM", value: "webm" },
   { label: "MP4", value: "mp4" },
   { label: "MOV", value: "mov" },
+];
+
+const fpsValues = [24, 30, 60];
+
+const aspectRatios = [
+  { label: "4:3", value: "4:3", description: "standard" },
+  { label: "16:9", value: "16:9", description: "widescreen" },
+  { label: "21:9", value: "21:9", description: "ultrawide" },
+  { label: "9:16", value: "9:16", description: "vertical" },
+  { label: "1:1", value: "1:1", description: "square" },
+  { label: "3:2", value: "3:2", description: "photo size" },
 ];
 
 const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => {
@@ -44,8 +51,10 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
   const viewerState = curState.viewerState;
 
   const [open, setOpen] = useState(false);
-  const [selectedResolution, setSelectedResolution] = useState("720p_HD");
-  const [selectedFormat, setSelectedFormat] = useState("webm");
+  const [selectedQuality, setSelectedQuality] = useState("720p HD");
+  const [selectedFormat, setSelectedFormat] = useState("mp4");
+  const [selectedFPS, setSelectedFPS] = useState(30);
+  const [selectedAspectRatio, setSelectedAspectRatio] = useState("16:9");
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -60,15 +69,25 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
 
   const handleFormatChange = (value: string) => {
     setSelectedFormat(value);
-    viewerState.recordedVideoFormat = value;
+    viewerState.setRecordedVideoFormat(value);
   };
 
-  const handleResolutionChange = (value: string) => {
-    setSelectedResolution(value);
-    const chosen = resolutions.find((r) => r.label === value);
+  const handleFPSChange = (value: number) => {
+    setSelectedFPS(Number(value));
+    viewerState.setRecorderFPS(Number(value));
+  };
+
+  const handleAspectRatioChange = (value: string) => {
+    setSelectedAspectRatio(value);
+    viewerState.setRecorderAspectRatio(value);
+  };
+
+  const handleQualityChange = (value: string) => {
+    setSelectedQuality(value);
+    const chosen = qualityLevels.find((q) => q.label === value);
     if (chosen) {
-      viewerState.videoRecorderWidth = chosen.width;
-      viewerState.videoRecorderHeight = chosen.height;
+      // Only set the base dimension, let the aspect ratio calculation determine final dimensions
+      viewerState.setVideoRecorderBaseDimension(chosen.baseDimension);
     }
   };
 
@@ -97,6 +116,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
         <DialogTitle>{t("bottomBar.record")}</DialogTitle>
 
         <DialogContent sx={{ minWidth: 300 }}>
+          {/* Video Format */}
           <FormControl fullWidth margin="dense">
             <InputLabel>Video Format</InputLabel>
             <Select
@@ -112,21 +132,56 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
             </Select>
           </FormControl>
 
+          {/* Quality Level */}
           <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
-            <InputLabel>Select Resolution</InputLabel>
+            <InputLabel>Quality Level</InputLabel>
             <Select
-              value={selectedResolution}
-              label="Select Resolution"
-              onChange={(e) => handleResolutionChange(e.target.value)}
+              value={selectedQuality}
+              label="Quality Level"
+              onChange={(e) => handleQualityChange(e.target.value)}
             >
-              {resolutions.map((res) => (
-                <MenuItem key={res.label} value={res.label}>
-                  {res.label} ({res.width}×{res.height})
+              {qualityLevels.map((quality) => (
+                <MenuItem key={quality.label} value={quality.label}>
+                  {quality.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {/* Aspect Ratio */}
+          <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
+            <InputLabel>Aspect Ratio</InputLabel>
+            <Select
+              value={selectedAspectRatio}
+              label="Aspect Ratio"
+              onChange={(e) => handleAspectRatioChange(e.target.value)}
+            >
+              {aspectRatios.map((ar) => (
+                <MenuItem key={ar.value} value={ar.value}>
+                  {ar.label} ({ar.description})
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+
+          {/* FPS */}
+          <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
+            <InputLabel>FPS</InputLabel>
+            <Select
+              value={selectedFPS}
+              label="FPS"
+              onChange={(e) => handleFPSChange(Number(e.target.value))}
+            >
+              {fpsValues.map((fps) => (
+                <MenuItem key={fps} value={fps}>
+                  {fps}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
         </DialogContent>
+
 
         <DialogActions>
           <Button onClick={handleRecord}>Record</Button>
