@@ -7,7 +7,6 @@
 }
 
 #canvas-element {
-  width: 100% !important;
   left: 0 !important;
   height: calc(100vh - 68px) !important;
 }
