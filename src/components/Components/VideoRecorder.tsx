@@ -251,7 +251,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       const frameDuration = 1000 / fps;
 
       const currentAnimationIndex = viewerState.currentAnimationIndex;
-      if (currentAnimationIndex === -1) {
+      if (currentAnimationIndex === -1 && !curState.isGuiMode) {
         enqueueSnackbar(t('snackbars.no_animation_selected'), {
           variant: 'error',
           anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
@@ -260,9 +260,9 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         return;
       }
 
-      const currentAnimation = viewerState.animations[currentAnimationIndex];
-      animationDurationRef.current = currentAnimation.duration;
-
+      else if (curState.isGuiMode && curState.guiHasAnimation) {
+        animationDurationRef.current = curState.guiAnimationEndTime - curState.guiAnimationStartTime;
+      }
       // Set up camera and renderer FIRST, before saving original state
       const { width: targetW, height: targetH } = setupCameraAndRendererForRecording();
 
@@ -282,7 +282,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       viewerState.setIsRecordingVideo(true);
       viewerState.setAnimating(false);
       if (curState.isGuiMode) {
-        curState.startGUIAnimationIfAvailable(0.);
+        curState.startGUIAnimationIfAvailable(frameDuration);
       }
       enqueueSnackbar(t('snackbars.recording_video'), {
         variant: 'info',

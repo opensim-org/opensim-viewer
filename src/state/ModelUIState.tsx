@@ -77,6 +77,9 @@ export class ModelUIState {
     isGUIAnimating: boolean = false
     processingSocketMessage: boolean = false
     fps: number = 60
+    guiHasAnimation: boolean = false
+    guiAnimationStartTime: number = 0.0
+    guiAnimationEndTime: number = 0.0
     constructor(
         currentModelPathState: string
     ) {
@@ -408,6 +411,16 @@ export class ModelUIState {
                 break;
             case "endAnimation":
                 this.SetAnimatingGUI(false);
+                break;
+            case "SetCurrentAnimation":
+                this.guiHasAnimation = true;
+                this.guiAnimationStartTime = parsedMessage.Start;
+                this.guiAnimationEndTime = parsedMessage.End;
+                break;
+            case "ClearCurrentAnimation":
+                this.guiHasAnimation = false;
+                this.guiAnimationStartTime = 0.0;
+                this.guiAnimationEndTime = 0.0;
                 break;
         }
     }
