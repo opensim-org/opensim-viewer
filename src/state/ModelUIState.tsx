@@ -80,6 +80,7 @@ export class ModelUIState {
     guiHasAnimation: boolean = false
     guiAnimationStartTime: number = 0.0
     guiAnimationEndTime: number = 0.0
+    guiAnimationSpeed: number = 1.0
     constructor(
         currentModelPathState: string
     ) {
@@ -408,6 +409,7 @@ export class ModelUIState {
                 break;
             case "startAnimation":
                 this.SetAnimatingGUI(true);
+                this.guiAnimationSpeed = parsedMessage.Speed;
                 break;
             case "endAnimation":
                 this.SetAnimatingGUI(false);

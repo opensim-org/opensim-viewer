@@ -262,6 +262,9 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
       else if (curState.isGuiMode && curState.guiHasAnimation) {
         animationDurationRef.current = curState.guiAnimationEndTime - curState.guiAnimationStartTime;
+        if (curState.guiAnimationSpeed !== 1.0) {
+          animationDurationRef.current /= curState.guiAnimationSpeed;
+        }
       }
       // Set up camera and renderer FIRST, before saving original state
       const { width: targetW, height: targetH } = setupCameraAndRendererForRecording();
