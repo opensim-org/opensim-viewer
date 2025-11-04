@@ -12,6 +12,7 @@ import AddAPhotoTwoToneIcon from '@mui/icons-material/AddAPhotoTwoTone';
 import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
 import { useModelContext } from '../../state/ModelUIStateContext';
 import SnapShotModal from './SnapShotModal';
+import RecordingModal from './RecordingModal';
 import { ToggleButton } from '@mui/material';
 import { ModelInfo } from '../../state/ModelUIState';
 import { observer } from "mobx-react";
@@ -73,25 +74,7 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
         </Grid>
 
         <Grid item xs={6}>
-          <Tooltip title={t('bottomBar.record')} placement="right">
-            <IconButton
-            color={
-              viewerState.isProcessingVideo
-                ? "warning"
-                : viewerState.isRecordingVideo
-                  ? "error"
-                  : "primary"
-            }
-              disabled={viewerState.isProcessingVideo}
-              onClick={() => {
-                if (!viewerState.isRecordingVideo) {
-                  props.videoRecorderRef.current.startRecording();
-                } else {
-                  props.videoRecorderRef.current.stopRecording();}}
-              }>
-                <VideoCameraFrontTwoToneIcon />
-            </IconButton>
-          </Tooltip>
+          <RecordingModal videoRecorderRef={props.videoRecorderRef} />
         </Grid>
 
         <Grid item xs={6}>

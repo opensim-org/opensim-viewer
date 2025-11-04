@@ -118,7 +118,8 @@ i18next
                     },
                     snackbars: {
                         recording_video: "Recording Video...",
-                        processing_video: "Processing video..."
+                        processing_video: "Processing video...",
+                        no_animation_selected: "Select an animation to record."
                     },
                     floatingButton: {
                         model_info: "Model info",
