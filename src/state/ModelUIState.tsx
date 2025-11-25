@@ -389,6 +389,7 @@ export class ModelUIState {
                 //this.scene?.updateMatrixWorld(true);
                 this.simulationTime = parsedMessage.time;
                 this.processingSocketMessage = false;
+                console.log("Receive frame simulation time="+this.simulationTime);
                 break;
             case "getOffsets":
                 this.sendText(this.getModelOffsetsJson());
@@ -410,9 +411,11 @@ export class ModelUIState {
             case "startAnimation":
                 this.SetAnimatingGUI(true);
                 this.guiAnimationSpeed = parsedMessage.Speed;
+                console.log("Receive startAnimation, speed="+this.guiAnimationSpeed);
                 break;
             case "endAnimation":
                 this.SetAnimatingGUI(false);
+                console.log("Receive endAnimation");
                 break;
             case "SetCurrentAnimation":
                 this.guiHasAnimation = true;
@@ -442,6 +445,7 @@ export class ModelUIState {
     SetAnimatingGUI(isAnimating: boolean) {
         // Implement animation state handling here if needed
         this.isGUIAnimating = isAnimating;
+        console.log("SetAnimatingGUI="+isAnimating);
         if (isAnimating) {
             this.viewerState.setAnimating(false);
         }
@@ -475,6 +479,8 @@ export class ModelUIState {
     }
     
     setFPS(fps: number) {
+        if (this.isGUIAnimating)
+            return; // Don't interfer with animation while playing
         this.fps = fps;
         var json = JSON.stringify({
                type: "INFO",

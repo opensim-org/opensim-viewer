@@ -265,7 +265,10 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         if (curState.guiAnimationSpeed !== 1.0) {
           animationDurationRef.current /= curState.guiAnimationSpeed;
         }
+        console.log("Duration in clock time ="+animationDurationRef.current+" seconds.");
       }
+      else
+        console.log("isGuiMode, has no animation");
       // Set up camera and renderer FIRST, before saving original state
       const { width: targetW, height: targetH } = setupCameraAndRendererForRecording();
 
@@ -280,7 +283,8 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     const startCaptureProcess = () => {
       const fps = viewerState.recordedVideoFPS || 30;
       const frameDuration = 1000 / fps;
-      const totalFrames = Math.ceil(animationDurationRef.current * fps);
+      console.log("animationDurationRef.current, fps", animationDurationRef.current, fps);
+      const totalFrames = Math.ceil(animationDurationRef.current * fps );
 
       viewerState.setIsRecordingVideo(true);
       viewerState.setAnimating(false);
@@ -305,8 +309,12 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         try {
           const frameDataURL = captureFrameReadPixels();
           capturedFrames.current.push(frameDataURL);
+          if (curState.isGuiMode){
+            curState.sendFrameAcknowledge(frameCount);
+            console.log("Captured gui frame # count",curState.guiFrameNumber, frameCount);
+          }
+          //console.log(`Captured frame ${frameCount}/${totalFrames}`);
           frameCount++;
-          console.log(`Captured frame ${frameCount}/${totalFrames}`);
         } catch (e) {
           console.error('Capture failed', e);
         }
@@ -316,6 +324,15 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         const startTime = performance.now();
         lastCaptureTime = startTime;
 
+        async function waitForData() {
+          while (!curState.isGUIAnimating) {
+            await new Promise((resolve) => setTimeout(resolve, 100));
+          }
+        }
+        
+        // Call the function to wait for the data
+        await waitForData();
+        console.log("Fininshed waiting for data. Expecting "+totalFrames+ "Frames");
         // CAPTURE THE FIRST FRAME IMMEDIATELY with proper setup
         if (frameCount === 0) {
           viewerState.setCurrentAnimationTime(0);
@@ -357,6 +374,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
           if (frameCount >= totalFrames) {
             console.log("Animation complete — stopping recording");
             stopRecording();
+            curState.finishRecording();
             break;
           }
 
