@@ -105,6 +105,8 @@ export class ViewerState {
     animationsNeedUpdate: boolean
     animationChange: null | Object
     currentAnimationTime: number
+    forceAnimationUpdate: boolean;
+
     // Environment holders
     environmentGroup: Group | null
     constructor(
@@ -186,6 +188,7 @@ export class ViewerState {
         this.animationsNeedUpdate = false
         this.animationChange = null
         this.currentAnimationTime = 0
+        this.forceAnimationUpdate = false
         this.environmentGroup = null
         makeObservable(this, {
             currentModelPath: observable,
@@ -258,6 +261,8 @@ export class ViewerState {
             setAnimationsNeedUpdate: action,
             currentAnimationTime: observable,
             setCurrentAnimationTime: action,
+            forceAnimationUpdate: observable,
+            setForceAnimationUpdate: action
         })
     }
 
@@ -630,6 +635,9 @@ export class ViewerState {
     }
     setCurrentAnimationTime(time: number) {
         this.currentAnimationTime = time;
+    }
+    setForceAnimationUpdate(value: boolean) {
+      this.forceAnimationUpdate = value;
     }
 }
 

@@ -222,6 +222,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         csRef.current!.visible = curState.showGlobalFrame;
 
         const viewerState = curState.viewerState;
+        const idx = viewerState.currentAnimationIndex;
 
         // Handle animation index change
         if (viewerState.currentAnimationIndex !== animationIndex) {
@@ -235,7 +236,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
           setAnimationIndex(newAnimationIndex);
 
-          // Create mixer if needed (GUI-specific camera animation setup)
+          // Create mixer if needed
           if (mixers.length - 1 < newAnimationIndex) {
             const nextMixer = new AnimationMixer(camera);
             const nextAnimation = viewerState.animations[viewerState.currentAnimationIndex];
@@ -248,75 +249,47 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           // Start new animation
           const action = mixers[viewerState.currentAnimationIndex]?.clipAction(viewerState.animations[viewerState.currentAnimationIndex]);
           action?.play();
-
-          // Update animation time immediately when animation changes
-          if (action) {
-            const currentTime = action.time;
-            viewerState.setCurrentAnimationTime(currentTime);
-          }
         }
 
-        // Handle animation playback with the three cases
-        const idx = viewerState.currentAnimationIndex;
+        // Handle animation playback
         if (idx !== -1) {
           const mixer = mixers[idx];
           const action = mixer.clipAction(viewerState.animations[idx]);
           const duration = action.getClip().duration;
 
-          // CASE 1: PLAYING (animating OR GUI animating)
+          // If we're animating (playing), update the mixer with delta time
           if (viewerState.animating || curState.isGUIAnimating) {
-            // Handle slider-driven time when animating
-            if (curState.currentFrame !== startTime && viewerState.animating) {
-              const framePercentage = curState.currentFrame / 100;
-              const currentTimeInSlider = duration * framePercentage;
-              action.time = currentTimeInSlider;
-            }
-
             mixer.update(delta * viewerState.animationSpeed);
             applyAnimationColors();
 
-            // Update animation time and slider value for React re-renders
+            // Update animation time from the action
             const currentTime = action.time;
-            viewerState.setCurrentAnimationTime(currentTime); // Always update animation time
+            viewerState.setCurrentAnimationTime(currentTime);
 
+            // Update slider frame
             const newFrame = Math.trunc((currentTime / duration) * 100);
             if (newFrame !== curState.currentFrame) {
               curState.setCurrentFrame(newFrame);
-              setStartTime(newFrame);
+            }
+          }
+          // If we're NOT animating but time was changed manually
+          else if (viewerState.forceAnimationUpdate ||
+                   Math.abs(action.time - viewerState.currentAnimationTime) > 0.001) {
+
+            // Sync the action time with the current animation time from state
+            action.time = viewerState.currentAnimationTime;
+            mixer.update(0); // Apply the time change without advancing
+            applyAnimationColors();
+
+            // Update slider frame to match
+            const newFrame = Math.trunc((viewerState.currentAnimationTime / duration) * 100);
+            if (newFrame !== curState.currentFrame) {
+              curState.setCurrentFrame(newFrame);
             }
 
-          // CASE 2: PAUSED but user moves slider
-          } else if (!viewerState.isRecordingVideo) {
-            if (curState.currentFrame !== startTime) {
-              const framePercentage = curState.currentFrame / 100;
-              const scrubTime = duration * framePercentage;
-              action.time = scrubTime;
-              mixer.update(0); // Zero delta to apply time change without advancing
-              applyAnimationColors();
-
-              // Update animation time
-              viewerState.setCurrentAnimationTime(scrubTime);
-              setStartTime(curState.currentFrame);
-            } else {
-              // Even when paused, ensure animation time is current
-              viewerState.setCurrentAnimationTime(action.time);
-            }
-
-          // CASE 3: RECORDING deterministic frame stepping
-          } else {
-            if (curState.currentFrame !== startTime) {
-              const framePercentage = curState.currentFrame / 100;
-              const recTime = duration * framePercentage;
-              action.time = recTime;
-              mixer.update(0); // Zero delta to apply time change without advancing
-              applyAnimationColors();
-
-              // Update animation time
-              viewerState.setCurrentAnimationTime(recTime);
-              setStartTime(curState.currentFrame);
-            } else {
-              // Ensure animation time is current during recording
-              viewerState.setCurrentAnimationTime(action.time);
+            // Reset the force update flag
+            if (viewerState.forceAnimationUpdate) {
+              viewerState.forceAnimationUpdate = false;
             }
           }
         } else {
