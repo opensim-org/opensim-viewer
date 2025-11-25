@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { getTimestamp } from "../../helpers/timeHelpers";
 import { PerspectiveCamera } from 'three';
+import JSZip from "jszip";
 
 type VideoRecorderRef = {
   startRecording: () => void;
@@ -84,6 +85,29 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       });
     }
   };
+
+
+  const downloadFramesAsZip = async () => {
+    const zip = new JSZip();
+
+    // Put each frame into /frames/frame_0001.jpeg
+    capturedFrames.current.forEach((dataURL, i) => {
+      const base64 = dataURL.split(",")[1];
+      zip.file(`frame_${String(i).padStart(4, "0")}.jpeg`, base64, { base64: true });
+    });
+
+    const content = await zip.generateAsync({ type: "blob" });
+    const url = URL.createObjectURL(content);
+
+    const timestamp = getTimestamp();
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${viewerState.recordedVideoName}_${timestamp}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
 
   const getTargetDimensions = (): { width: number; height: number } => {
     const glCanvas = gl.domElement;
@@ -388,10 +412,17 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       viewerState.setIsProcessingVideo(true);
 
       try {
-        const ext = viewerState.recordedVideoFormat as 'mp4' | 'mov' | 'webm';
-        const url = await encodeFramesToVideo(ext);
-        const timestamp = getTimestamp();
-        downloadVideo(url, `${viewerState.recordedVideoName}_${timestamp}.${ext}`);
+        const format = viewerState.recordedVideoFormat;
+
+        if (format === "jpeg-zip") {
+          await downloadFramesAsZip();
+        } else {
+          const ext = format as 'mp4' | 'mov' | 'webm';
+          const url = await encodeFramesToVideo(ext);
+          const timestamp = getTimestamp();
+          downloadVideo(url, `${viewerState.recordedVideoName}_${timestamp}.${ext}`);
+        }
+
       } catch (e) {
         console.error(e);
         enqueueSnackbar("Error processing video", { variant: 'error' });

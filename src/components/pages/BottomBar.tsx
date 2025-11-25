@@ -201,7 +201,7 @@ const BottomBar = React.forwardRef(function CustomContent(
     return (
       <Container ref={(ref as any) || bottomBarRef}>
         <Grid container spacing={1}>
-          <Grid item sx={{ mt: 1, display: { xs: 'none', lg: 'block' } }}>
+          <Grid item sx={{ mt: 1, display: { lg: 'block' } }}>
             <CameraPanel uState={curState} />
           </Grid>
           <Divider orientation="vertical" sx={{ mx: 2, display: { xs: 'none', lg: 'block' } }} />
@@ -226,7 +226,7 @@ const BottomBar = React.forwardRef(function CustomContent(
           </Grid>
           )}
 
-          {// Control Speed only through the GUI
+          {curState.getGuiMode()?"":
             <Grid item sx={{ mt: 1 }}>
               <FormControl margin="dense" size="small" variant="standard">
                 <Select

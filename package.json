@@ -38,6 +38,7 @@
     "i18next": "^22.4.15",
     "i18next-browser-languagedetector": "^7.0.1",
     "jest": "^29.5.0",
+    "jszip": "^3.10.1",
     "lil-gui": "^0.19.2",
     "mobx": "^6.9.0",
     "mobx-react": "^7.6.0",
