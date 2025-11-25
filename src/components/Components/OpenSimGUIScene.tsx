@@ -22,6 +22,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     // useGLTF suspends the component, it literally stops processing
     const { set, gl} = useThree();
     const { scene, camera } = useThree();
+    const modelUIState = useModelContext()
     const viewerState = useModelContext().viewerState;
 
     const sceneRef = useRef<THREE.Scene>(scene);
@@ -259,7 +260,10 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
           // If we're animating (playing), update the mixer with delta time
           if (viewerState.animating || curState.isGUIAnimating) {
-            mixer.update(delta * viewerState.animationSpeed);
+            if (curState.isGuiMode)
+              mixer.update(delta * modelUIState.guiAnimationSpeed);
+            else
+              mixer.update(delta * viewerState.animationSpeed);
             applyAnimationColors();
 
             // Update animation time from the action
