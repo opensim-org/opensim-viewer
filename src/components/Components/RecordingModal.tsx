@@ -32,6 +32,7 @@ const qualityLevels = [
 const videoFormats = [
   { label: "MP4", value: "mp4" },
   { label: "MOV", value: "mov" },
+  { label: "JPEG (Zip)", value: "jpeg-zip"}
 ];
 
 const fpsValues = [24, 30, 60];

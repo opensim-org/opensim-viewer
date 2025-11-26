@@ -129,30 +129,6 @@ const BottomBar = React.forwardRef(function CustomContent(
       setCurrentTimeDisplay(timeString);
     };
 
-    const handleInputBlur = (event: React.FocusEvent<HTMLInputElement>) => {
-      if (viewerState.currentAnimationIndex === -1) return;
-
-      const timeString = event.target.value;
-      if (/^\d{1,2}:\d{2}\.\d{2}$/.test(timeString)) {
-        const newTime = parseTime(timeString);
-        const currentAnimation = viewerState.animations[viewerState.currentAnimationIndex];
-        if (currentAnimation) {
-          if (newTime < 0) {
-            viewerState.setCurrentAnimationTime(0);
-            setCurrentTimeDisplay("00:00.00");
-          } else if (newTime > currentAnimation.duration) {
-            viewerState.setCurrentAnimationTime(currentAnimation.duration);
-            setCurrentTimeDisplay(formatTime(currentAnimation.duration));
-          } else {
-            viewerState.setCurrentAnimationTime(newTime);
-            setCurrentTimeDisplay(formatTime(newTime));
-          }
-        }
-      } else {
-        setCurrentTimeDisplay(formatTime(viewerState.currentAnimationTime));
-      }
-    };
-
     const handleSliderChange = (event: Event, newValue: number | number[]) => {
       if (viewerState.currentAnimationIndex === -1) return;
 
@@ -161,6 +137,40 @@ const BottomBar = React.forwardRef(function CustomContent(
       if (currentAnimation) {
         const newTime = (percentage / 100) * currentAnimation.duration;
         viewerState.setCurrentAnimationTime(newTime);
+
+        // Force the animation to update immediately when manually scrubbing
+        if (!viewerState.animating && !curState.isGUIAnimating) {
+          // This will trigger the scene to update the animation pose
+          curState.viewerState.forceAnimationUpdate = true;
+        }
+      }
+    };
+
+    const handleInputBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+      if (viewerState.currentAnimationIndex === -1) return;
+
+      const timeString = event.target.value;
+      if (/^\d{1,2}:\d{2}\.\d{2}$/.test(timeString)) {
+        const newTime = parseTime(timeString);
+        const currentAnimation = viewerState.animations[viewerState.currentAnimationIndex];
+        if (currentAnimation) {
+          let clampedTime = newTime;
+          if (newTime < 0) {
+            clampedTime = 0;
+          } else if (newTime > currentAnimation.duration) {
+            clampedTime = currentAnimation.duration;
+          }
+
+          viewerState.setCurrentAnimationTime(clampedTime);
+          setCurrentTimeDisplay(formatTime(clampedTime));
+
+          // Force update when manually setting time
+          if (!viewerState.animating && !curState.isGUIAnimating) {
+            curState.viewerState.forceAnimationUpdate = true;
+          }
+        }
+      } else {
+        setCurrentTimeDisplay(formatTime(viewerState.currentAnimationTime));
       }
     };
 
@@ -196,12 +206,12 @@ const BottomBar = React.forwardRef(function CustomContent(
       }
     }, [curState.viewerState.animations, curState.viewerState.currentAnimationIndex,
         curState.viewerState.cameraDollies, curState.viewerState.currentDollyIndex,
-            handleAnimationChange, selectedAnim, curState.viewerState.animationsNeedUpdate]);
+            selectedAnim, curState.viewerState.animationsNeedUpdate]);
 
     return (
       <Container ref={(ref as any) || bottomBarRef}>
         <Grid container spacing={1}>
-          <Grid item sx={{ mt: 1, display: { xs: 'none', lg: 'block' } }}>
+          <Grid item sx={{ mt: 1, display: { lg: 'block' } }}>
             <CameraPanel uState={curState} />
           </Grid>
           <Divider orientation="vertical" sx={{ mx: 2, display: { xs: 'none', lg: 'block' } }} />
@@ -226,7 +236,7 @@ const BottomBar = React.forwardRef(function CustomContent(
           </Grid>
           )}
 
-          {// Control Speed only through the GUI
+          {curState.getGuiMode()?"":
             <Grid item sx={{ mt: 1 }}>
               <FormControl margin="dense" size="small" variant="standard">
                 <Select

@@ -81,6 +81,8 @@ export class ModelUIState {
     guiAnimationStartTime: number = 0.0
     guiAnimationEndTime: number = 0.0
     guiAnimationSpeed: number = 1.0
+    guiFrameNumber: number = 0;
+
     constructor(
         currentModelPathState: string
     ) {
@@ -388,7 +390,10 @@ export class ModelUIState {
                 }
                 //this.scene?.updateMatrixWorld(true);
                 this.simulationTime = parsedMessage.time;
+                this.viewerState.setCurrentAnimationTime(this.simulationTime);
+                this.guiFrameNumber = parsedMessage.frameNumber;
                 this.processingSocketMessage = false;
+                console.log("Receive frame simulation time="+this.simulationTime);
                 break;
             case "getOffsets":
                 this.sendText(this.getModelOffsetsJson());
@@ -408,11 +413,14 @@ export class ModelUIState {
                 //editor.processPathEdit(msg);
                 break;
             case "startAnimation":
+                this.guiHasAnimation = true;
                 this.SetAnimatingGUI(true);
                 this.guiAnimationSpeed = parsedMessage.Speed;
+                console.log("Receive startAnimation, speed="+this.guiAnimationSpeed);
                 break;
             case "endAnimation":
                 this.SetAnimatingGUI(false);
+                console.log("Receive endAnimation");
                 break;
             case "SetCurrentAnimation":
                 this.guiHasAnimation = true;
@@ -442,6 +450,7 @@ export class ModelUIState {
     SetAnimatingGUI(isAnimating: boolean) {
         // Implement animation state handling here if needed
         this.isGUIAnimating = isAnimating;
+        console.log("SetAnimatingGUI="+isAnimating);
         if (isAnimating) {
             this.viewerState.setAnimating(false);
         }
@@ -463,7 +472,12 @@ export class ModelUIState {
         if (this.socket !== null)
             this.socket!.send(json);
     }
-    
+    finishRecording() {
+        const json = JSON.stringify({
+            type: "FinishRecording"});
+            if (this.socket !== null)
+                this.socket!.send(json);
+    }
     setTimeGUIAnimation(time: number) {
         const json = JSON.stringify({
         type: "Animation",
@@ -473,8 +487,17 @@ export class ModelUIState {
         if (this.socket !== null)
             this.socket!.send(json);
     }
-    
+    sendFrameAcknowledge(frameNumber: number) {
+        const json = JSON.stringify({
+            type: "frameack",
+            "#": frameNumber
+            });
+        if (this.socket !== null)
+            this.socket!.send(json);
+    }
     setFPS(fps: number) {
+        if (this.isGUIAnimating)
+            return; // Don't interfer with animation while playing
         this.fps = fps;
         var json = JSON.stringify({
                type: "INFO",
