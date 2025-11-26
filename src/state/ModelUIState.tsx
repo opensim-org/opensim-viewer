@@ -82,6 +82,7 @@ export class ModelUIState {
     guiAnimationEndTime: number = 0.0
     guiAnimationSpeed: number = 1.0
     guiFrameNumber: number = 0;
+
     constructor(
         currentModelPathState: string
     ) {
@@ -412,6 +413,7 @@ export class ModelUIState {
                 //editor.processPathEdit(msg);
                 break;
             case "startAnimation":
+                this.guiHasAnimation = true;
                 this.SetAnimatingGUI(true);
                 this.guiAnimationSpeed = parsedMessage.Speed;
                 console.log("Receive startAnimation, speed="+this.guiAnimationSpeed);

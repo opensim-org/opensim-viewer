@@ -268,7 +268,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
             // Update animation time from the action
             const currentTime = action.time;
-            viewerState.setCurrentAnimationTime(currentTime);
+            //Ayman viewerState.setCurrentAnimationTime(currentTime);
 
             // Update slider frame
             const newFrame = Math.trunc((currentTime / duration) * 100);
