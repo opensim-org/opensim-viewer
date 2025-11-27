@@ -359,7 +359,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         console.log("Fininshed waiting for data. Expecting "+totalFrames+ "Frames");
         // CAPTURE THE FIRST FRAME IMMEDIATELY with proper setup
         if (frameCount === 0) {
-          viewerState.setCurrentAnimationTime(0);
+          //viewerState.setCurrentAnimationTime(0);
           curState.setCurrentFrame(0);
           captureAndPush();
           frameCount++;
@@ -379,7 +379,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
           lastCaptureTime = now;
           const currentFrameTime = frameCount / fps;
-          viewerState.setCurrentAnimationTime(currentFrameTime);
+          //viewerState.setCurrentAnimationTime(currentFrameTime);
 
           // Update frame percentage for UI
           const framePercentage = (currentFrameTime / animationDurationRef.current) * 100;
@@ -450,7 +450,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       viewerState.setIsProcessingVideo(false);
       closeSnackbar();
 
-      viewerState.setCurrentAnimationTime(0);
+      //viewerState.setCurrentAnimationTime(0);
       curState.setCurrentFrame(0);
     };
 

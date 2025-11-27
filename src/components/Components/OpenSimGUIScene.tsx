@@ -261,14 +261,14 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           // If we're animating (playing), update the mixer with delta time
           if (viewerState.animating || curState.isGUIAnimating) {
             if (curState.isGuiMode)
-              mixer.update(delta * modelUIState.guiAnimationSpeed);
+              mixer.update(delta * curState.guiAnimationSpeed);
             else
               mixer.update(delta * viewerState.animationSpeed);
             applyAnimationColors();
 
             // Update animation time from the action
             const currentTime = action.time;
-            //Ayman viewerState.setCurrentAnimationTime(currentTime);
+            viewerState.setCurrentAnimationTime(currentTime);
 
             // Update slider frame
             const newFrame = Math.trunc((currentTime / duration) * 100);

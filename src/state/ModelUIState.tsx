@@ -82,7 +82,6 @@ export class ModelUIState {
     guiAnimationEndTime: number = 0.0
     guiAnimationSpeed: number = 1.0
     guiFrameNumber: number = 0;
-
     constructor(
         currentModelPathState: string
     ) {
@@ -390,7 +389,7 @@ export class ModelUIState {
                 }
                 //this.scene?.updateMatrixWorld(true);
                 this.simulationTime = parsedMessage.time;
-                this.viewerState.setCurrentAnimationTime(this.simulationTime);
+                this.viewerState.currentAnimationTime = this.simulationTime;
                 this.guiFrameNumber = parsedMessage.frameNumber;
                 this.processingSocketMessage = false;
                 console.log("Receive frame simulation time="+this.simulationTime);
