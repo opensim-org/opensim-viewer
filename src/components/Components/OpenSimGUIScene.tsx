@@ -22,6 +22,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     // useGLTF suspends the component, it literally stops processing
     const { set, gl} = useThree();
     const { scene, camera } = useThree();
+    const modelUIState = useModelContext()
     const viewerState = useModelContext().viewerState;
 
     const sceneRef = useRef<THREE.Scene>(scene);
@@ -114,6 +115,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         }
         // mark scene version changed so that listeners can update
         curState.viewerState.sceneVersion+=1;
+        curState.sendModelOffsets();
       }
       const cameras = scene.getObjectsByProperty( 'isPerspectiveCamera', true )
       if (cameras.length > 0) {
@@ -200,108 +202,119 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         }
     )
 
- 
-    useFrame((state, delta) => {
-    //console.log(camera.position)
-    //console.log(camera.quaternion)
-      if (!useEffectRunning) {
-            if (curState.selected === "") {
-              bboxRef.current!.visible = false
-            }
-            else {
-              let selectedObject = sceneObjectMap.get(curState.selected)!
-              if (selectedObject !== undefined && selectedObject.type !== 'BoxHelper') {
-                  if (bboxRef.current !== null) {
-                    bboxRef.current.setFromObject(selectedObject);
-                    bboxRef.current!.visible = true
-                }
-              }
-            }
-            csRef.current!.visible =  curState.showGlobalFrame
-            const viewerState = curState.viewerState
-            if (viewerState.currentAnimationIndex !== animationIndex) {
-              const newAnimationIndex = viewerState.currentAnimationIndex
-              const oldIndex  = animationIndex
-              // animation has changed
-              if (oldIndex !== -1 && mixers[oldIndex]!==undefined) {
-                mixers[oldIndex].stopAllAction()
-              }
-              setAnimationIndex(newAnimationIndex)
-              if (mixers.length -1 < newAnimationIndex) {
-                // create a mixer for the animation
-                const nextMixer = new AnimationMixer(camera)
-                // targetMixerRef.current = new AnimationMixer(targetRef.current!);
-                const nextAnimation = viewerState.animations[viewerState.currentAnimationIndex];
-                nextAnimation.tracks[0].setInterpolation(THREE.InterpolateLinear);
-                nextAnimation.tracks[1].setInterpolation(THREE.InterpolateLinear);
-                nextMixer.clipAction(nextAnimation, nextAnimation.name.startsWith("cam")?camera:scene);
-                mixers.push(nextMixer);
-                //const targetClip = new THREE.AnimationClip('targetMove', nextAnimation.duration, [nextAnimation.tracks[2]]);
-                //targetMixerRef.current.clipAction(targetClip, targetRef.current!).play();
-                
-                //(controls as unknown as CameraControls).enabled = true;
-                // (controls as unknown as CameraControls).setLookAt(nextAnimation.tracks[0].values[0],
-                //       nextAnimation.tracks[0].values[1], 
-                //       nextAnimation.tracks[0].values[2], 
-                //       nextAnimation.tracks[2].values[0],
-                //       nextAnimation.tracks[2].values[1], 
-                //       nextAnimation.tracks[2].values[2], true);
-              }
-              // Leave to animate button to start playing
-              mixers[viewerState.currentAnimationIndex]?.clipAction(viewerState.animations[viewerState.currentAnimationIndex]).play()
-            }
-            if (viewerState.animating || curState.isGUIAnimating){
-              if (viewerState.currentAnimationIndex!==-1) {
-                let duration = mixers[viewerState.currentAnimationIndex].clipAction(viewerState.animations[viewerState.currentAnimationIndex]).getClip().duration;
-                if(curState.currentFrame !== startTime && viewerState.animating) {
-                  const framePercentage = curState.currentFrame / 100;
-                  const currentTimeInSlider = duration * framePercentage;
-                  mixers[viewerState.currentAnimationIndex].clipAction(viewerState.animations[viewerState.currentAnimationIndex]).time =  currentTimeInSlider;
-                }
-                const currentTime = mixers[viewerState.currentAnimationIndex].clipAction(viewerState.animations[viewerState.currentAnimationIndex]).time
-                //mixers[viewerState.currentAnimationIndex].setTime(viewerState.animating?animationTime:curState.simulationTime)
-                mixers[viewerState.currentAnimationIndex].update(delta * viewerState.animationSpeed);
-                //targetMixerRef.current!.update(delta * curState.animationSpeed);
-                //camera.lookAt(targetRef.current!.position)
 
-                // For material at index "key" setColor to nodes["value"].translation
-                applyAnimationColors();
-                curState.setCurrentFrame(Math.trunc((currentTime / duration) * 100));
-                setStartTime(Math.trunc((currentTime / duration) * 100));
-                // Disable looping for now
-                // if (curState.currentFrame < prevFrame && curState.viewerState.animating){
-                //   curState.viewerState.setAnimating(false);
-                //   curState.setCurrentFrame(0);
-                // }
-                //console.log(currentTime, duration, startTime, curState.currentFrame);
-              }
-            } else {
-              if (viewerState.currentAnimationIndex!==-1) {
-                if(curState.currentFrame !== startTime) {
-                  let duration = mixers[viewerState.currentAnimationIndex]?.clipAction(viewerState.animations[viewerState.currentAnimationIndex]).getClip().duration;
-                  const framePercentage = curState.currentFrame / 100;
-                  const currentTime = duration * framePercentage;
-                  // For material at index "key" setColor to nodes["value"].translation
-                  applyAnimationColors();
-                  mixers[viewerState.currentAnimationIndex].clipAction(viewerState.animations[viewerState.currentAnimationIndex]).time = currentTime;
-                  setStartTime(curState.currentFrame)
-                  mixers[viewerState.currentAnimationIndex].update(delta * viewerState.animationSpeed)
-                  //targetMixerRef.current!.update(delta * curState.animationSpeed);
-                  //camera.lookAt(targetRef.current!.position)
-                }
-              }
+    useFrame((state, delta) => {
+      if (!useEffectRunning) {
+        // Selection bounding box
+        if (curState.selected === "") {
+          bboxRef.current!.visible = false;
+        } else {
+          let selectedObject = sceneObjectMap.get(curState.selected)!;
+          if (selectedObject !== undefined && selectedObject.type !== 'BoxHelper') {
+            if (bboxRef.current !== null) {
+              bboxRef.current.setFromObject(selectedObject);
+              bboxRef.current!.visible = true;
             }
-          
+          }
+        }
+
+        // Coordinate system visibility
+        csRef.current!.visible = curState.showGlobalFrame;
+
+        const viewerState = curState.viewerState;
+        const idx = viewerState.currentAnimationIndex;
+
+        // Handle animation index change
+        if (viewerState.currentAnimationIndex !== animationIndex) {
+          const newAnimationIndex = viewerState.currentAnimationIndex;
+          const oldIndex = animationIndex;
+
+          // Stop old animation
+          if (oldIndex !== -1 && mixers[oldIndex] !== undefined) {
+            mixers[oldIndex].stopAllAction();
+          }
+
+          setAnimationIndex(newAnimationIndex);
+
+          // Create mixer if needed
+          if (mixers.length - 1 < newAnimationIndex) {
+            const nextMixer = new AnimationMixer(camera);
+            const nextAnimation = viewerState.animations[viewerState.currentAnimationIndex];
+            nextAnimation.tracks[0].setInterpolation(THREE.InterpolateLinear);
+            nextAnimation.tracks[1].setInterpolation(THREE.InterpolateLinear);
+            nextMixer.clipAction(nextAnimation, nextAnimation.name.startsWith("cam") ? camera : scene);
+            mixers.push(nextMixer);
+          }
+
+          // Start new animation
+          const action = mixers[viewerState.currentAnimationIndex]?.clipAction(viewerState.animations[viewerState.currentAnimationIndex]);
+          action?.play();
+        }
+
+        // Handle animation playback
+        if (idx !== -1) {
+          const mixer = mixers[idx];
+          const action = mixer.clipAction(viewerState.animations[idx]);
+          const duration = action.getClip().duration;
+
+          // If we're animating (playing), update the mixer with delta time
+          if (viewerState.animating || curState.isGUIAnimating) {
+            if (curState.isGuiMode)
+              mixer.update(delta * curState.guiAnimationSpeed);
+            else
+              mixer.update(delta * viewerState.animationSpeed);
+            applyAnimationColors();
+
+            // Update animation time from the action
+            const currentTime = action.time;
+            viewerState.setCurrentAnimationTime(currentTime);
+
+            // Update slider frame
+            const newFrame = Math.trunc((currentTime / duration) * 100);
+            if (newFrame !== curState.currentFrame) {
+              curState.setCurrentFrame(newFrame);
+            }
+          }
+          // If we're NOT animating but time was changed manually
+          else if (viewerState.forceAnimationUpdate ||
+                   Math.abs(action.time - viewerState.currentAnimationTime) > 0.001) {
+
+            // Sync the action time with the current animation time from state
+            action.time = viewerState.currentAnimationTime;
+            mixer.update(0); // Apply the time change without advancing
+            applyAnimationColors();
+
+            // Update slider frame to match
+            const newFrame = Math.trunc((viewerState.currentAnimationTime / duration) * 100);
+            if (newFrame !== curState.currentFrame) {
+              curState.setCurrentFrame(newFrame);
+            }
+
+            // Reset the force update flag
+            if (viewerState.forceAnimationUpdate) {
+              viewerState.forceAnimationUpdate = false;
+            }
+          }
+        } else {
+          // No active animation, reset animation time
+          if (viewerState.currentAnimationTime !== 0) {
+            viewerState.setCurrentAnimationTime(0);
+          }
+        }
       }
+
+      // FPS counter
       frameCount++;
-      renderTime+=delta;
-      if (frameCount === 60){
-        const fps = Math.round(frameCount/renderTime);
+      renderTime += delta;
+      if (frameCount === 60) {
+        const fps = Math.round(frameCount / renderTime);
         curState.setFPS(fps);
         frameCount = 0;
         renderTime = 0;
-      } 
-    })
+      }
+    });
+
+
     // Next block would show bubble on selection with name
     // useFrame((state, delta) => {
     //   if (curState.selectedObject!==null){
@@ -384,7 +397,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           shadow-camera-top={2}
           shadow-camera-bottom={-2}/>
         <ambientLight name="Ambient Light" intensity={0.02} color="white"/>
-        <directionalLight name="Dir Light2" position={[0.02, .01, .02]} intensity={1.0} color="gray" castShadow={false}/>
+        <directionalLight name="Dir Light2" position={[0.02, .01, .02]} intensity={1.5} color="grey" castShadow={false}/>
         {supportControls && <OpenSimFloor />}
         {supportControls && <OpenSimSkySphere
             texturePath={

@@ -44,6 +44,7 @@ function RecordView() {
           <MenuItem value="mp4">MP4</MenuItem>
           <MenuItem value="mov">MOV</MenuItem>
           <MenuItem value="webm">WEBM</MenuItem>
+          <MenuItem value="jpg-zip">JPEG (ZIP)</MenuItem>
         </Select>
       </FormControl>
 
