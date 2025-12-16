@@ -7,9 +7,10 @@ import { Canvas } from '@react-three/fiber'
 import { useTheme } from '@mui/material'
 import { Bounds, Environment } from '@react-three/drei'
 import Typography from '@mui/material/Typography'
+import { Suspense } from 'react'
 
 import OpenSimControl from '../../Components/OpenSimControl'
-import OpenSimGUIScene  from '../../Components/OpenSimGUIScene'
+import SimpleModelScene  from '../../Components/SimpleModelScene'
 import { ModelMetadataType } from './ModelListPage'
 import { NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -45,18 +46,16 @@ const GridList = ({ modelMetadata }: GridListProps) => {
                                     attach="background"
                                     args={theme.palette.mode === 'dark' ? ['#151518'] : ['#aaaaaa']}
                                 />
-                                <OpenSimGUIScene currentModelPath={element.path} supportControls={false}/>
-                                <OpenSimControl />
+                                <Suspense fallback={null}>
+                                  <SimpleModelScene modelPath={element.path} />
+                                </Suspense>
                             </Canvas>
                         </div>
                         <CardContent sx={{ flexGrow: 1 }}>
                             <Typography gutterBottom variant="h5" component="h2">
-                                <Link
-                                    component={NavLink}
-                                    to={"/viewer/"+encodeURIComponent(element.path)}
-                                >
-                                    {element.name}
-                                </Link>
+                              <Link href={"/viewer/" + encodeURIComponent(element.path)}>
+                                {element.name}
+                              </Link>
                             </Typography>
                             <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'left' }}>
                                 {element.description}

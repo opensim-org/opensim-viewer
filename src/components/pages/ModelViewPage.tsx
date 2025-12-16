@@ -17,7 +17,6 @@ import AddLightDialog from "../Components/Dialogs/AddLightDialog"
 import SceneTreeBridge from "../Components/SceneTree/SceneTreeBridge"
 import SceneTreeSortable, { SceneTreeSortableHandle } from "../Components/SceneTree/SceneTreeSortable"
 import DrawerMenu from "../Components/DrawerMenu";
-import OpenSimScene from "../Components/OpenSimScene";
 import OpenSimGUIScene from "../Components/OpenSimGUIScene";
 import { ModelInfo, ModelUIState } from "../../state/ModelUIState";
 import { observer } from "mobx-react";
@@ -192,6 +191,34 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const [camera, setCamera] = useState<THREE.Camera | null>(null);
   const [transformTarget, setTransformTargetInternal] = useState<THREE.Object3D | null>(null);
   const [transformMode, setTransformMode] = useState<'translate' | 'rotate'>('translate');
+
+  useEffect(() => {
+    const path = uiState.viewerState.currentModelPath;
+    if (path && path != "mt.json") {
+      localStorage.setItem("lastModelPath", path);
+    }
+  }, [uiState.viewerState.currentModelPath]);
+
+  useEffect(() => {
+    let pathToLoad: string | null = null;
+
+    if (urlParam !== undefined) {
+      pathToLoad = decodeURIComponent(urlParam);
+      uiState.viewerState.setIsLocalUpload(false);
+    } else {
+      const savedPath = localStorage.getItem("lastModelPath");
+      if (savedPath) {
+        pathToLoad = savedPath;
+        // Update uri
+        const newUrl = `${window.location.pathname}?model=${encodeURIComponent(savedPath)}`;
+        window.history.replaceState(null, '', newUrl);
+      }
+    }
+
+    if (pathToLoad) {
+      uiState.viewerState.setCurrentModelPath(pathToLoad);
+    }
+  }, [urlParam, uiState.viewerState]);
 
   function isImmovableObject(name: string){
     return name==="Ground" || name.startsWith("Body");

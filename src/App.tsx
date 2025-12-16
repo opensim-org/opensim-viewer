@@ -111,7 +111,7 @@ function App({ signOut, user }: WithAuthenticatorProps) {
                             />
                             <Route
                                 path="/viewer/:urlParam?"
-                                element={<ModelViewPage />}
+                                element={<ModelViewPage/>}
                             />
                             <Route
                                 path="/log_in"
