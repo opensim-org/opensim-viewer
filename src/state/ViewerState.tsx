@@ -147,7 +147,7 @@ export class ViewerState {
         this.user_uuid = ''
         this.backgroundColor = new Color(0.7, 0.7, 0.7)
         this.backgroundImage = null
-        this.useTexture = true
+        this.useTexture = false
         this.skyTextureIndex = 0
         this.defaultSkyTextures = [
             '/assets/skyTextures/death-valley-alberto.jpg',
@@ -155,7 +155,7 @@ export class ViewerState {
             '/assets/skyTextures/Photosphere_in_Pozzolo_(Domaso)_2.jpg',
             '/assets/skyTextures/Photosphere_VML4_between_Nessa_and_L\'Agnone_01.jpg',
         ]
-        this.skyVisible = false
+        this.skyVisible = true
         this.textureIndex = 0
         this.defaultFloorTextures = [
             '/assets/floorTextures/tile.jpg',
