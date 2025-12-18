@@ -128,6 +128,7 @@ function mergeTreeWithScene(oldTree: any[], scene: THREE.Scene | null) {
     const nodeType = determineNodeType(obj);
     const { id, uuid } = obj;
     let title = obj.name === "Scene" ? "Models" : obj.name;
+    title = obj.name === "SkySphere" ? "Background" : obj.name;
 
     const shouldProcess =
       (!(obj as TransformControls).isTransformControls &&
