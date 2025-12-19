@@ -8,7 +8,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 
 import { getTimestamp } from "../../helpers/timeHelpers"
 
-import THREE, { Box3, Object3D, PerspectiveCamera, Sphere, Vector2, Vector3 } from 'three';
+import THREE, { Color, Box3, Object3D, PerspectiveCamera, Sphere, Vector2, Vector3 } from 'three';
 
 // OpenSimControl.tsx
 import { forwardRef, useImperativeHandle, useRef } from 'react';
@@ -164,15 +164,53 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
         else if (curState.takeSnapshot){
             if (curState.snapshotProps.size_choice==="screen"){
                 const link = document.createElement('a')
-                if (curState.snapshotProps.transparent_background){
-                    let clearAlpha = gl.getClearAlpha ();
-                    gl.setClearAlpha (0.0);
-                    link.setAttribute('download', viewerState.snapshotName + "." + viewerState.snapshotFormat)
-                    link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
-                    link.click()
-                    curState.takeSnapshot = false;
-                    gl.setClearAlpha (clearAlpha);
-                }
+                if (curState.snapshotProps.transparent_background) {
+                  // Save clear state
+                  const prevColor = new Color();
+                  gl.getClearColor(prevColor);
+                  const prevAlpha = gl.getClearAlpha();
+
+                  // Find the skysphere object
+                  const skySphere = scene.getObjectByName("SkySphere");
+                  let prevSkyVisibility = true;
+                  if (skySphere) {
+                      prevSkyVisibility = skySphere.visible;
+                      skySphere.visible = false; // hide sky
+                  }
+
+                  // Set transparent clear
+                  gl.setClearColor(prevColor, 0);
+                  gl.clear(true, true, true);
+
+                  // Render ONE frame with transparency
+                  gl.render(scene, camera);
+
+                  // Capture snapshot
+                  const link = document.createElement("a");
+                  link.setAttribute(
+                      "download",
+                      viewerState.snapshotName + "." + viewerState.snapshotFormat
+                  );
+                  link.setAttribute(
+                      "href",
+                      gl.domElement
+                          .toDataURL("image/png")
+                          .replace("image/png", "image/octet-stream")
+                  );
+                  link.click();
+                  curState.takeSnapshot = false;
+
+                  // Restore skysphere visibility
+                  if (skySphere) {
+                      skySphere.visible = prevSkyVisibility;
+                  }
+
+                  // Restore clear state
+                  gl.setClearColor(prevColor, prevAlpha);
+
+                  // Re-render normal frame
+                  gl.render(scene, camera);
+              }
                 else{
                     link.setAttribute('download', viewerState.snapshotName + "." + viewerState.snapshotFormat)
                     link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
