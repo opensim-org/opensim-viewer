@@ -162,7 +162,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
     // Update renderer size
     gl.setSize(evenW, evenH, false);
-    gl.setPixelRatio(1); // Ensure crisp rendering at exact dimensions
+    gl.setPixelRatio(2); // Ensure crisp rendering at exact dimensions
 
     return { width: evenW, height: evenH };
   };
@@ -199,10 +199,10 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     ctx.fillRect(0, 0, evenW, evenH);
 
     // Draw the WebGL canvas content
-    ctx.drawImage(glCanvas, 0, 0, evenW, evenH);
+    ctx.drawImage(glCanvas, 0, 0);
 
     // Encode as JPEG (no alpha)
-    return compositeCanvas.toDataURL('image/jpeg', 0.92);
+    return compositeCanvas.toDataURL('image/jpeg');
   };
 
   const encodeFramesToVideo = async (ext: 'mp4' | 'mov' | 'webm') => {
@@ -240,7 +240,6 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       '-framerate', `${fps}`,
       '-i', 'input%03d.jpg',
       '-r', `${fps}`,
-      '-vf', `scale=${evenW}:${evenH}:flags=lanczos:force_original_aspect_ratio=disable`
     ];
 
     if (ext === 'webm') {
