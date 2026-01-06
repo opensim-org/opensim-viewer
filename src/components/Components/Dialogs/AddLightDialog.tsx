@@ -7,6 +7,8 @@ import * as THREE from 'three';
 import { ModelUIState } from '../../../state/ModelUIState';
 import Autocomplete from '@mui/material/Autocomplete';
 
+import { useTranslation } from 'react-i18next'
+
 interface AddLightDialogProps {
   open: boolean;
   onClose: () => void;
@@ -20,14 +22,16 @@ const AddLightDialog: React.FC<AddLightDialogProps> = ({ open, onClose, onAddLig
   const [lightName, setLightName] = useState("NewLight");
   const [lightType, setLightType] = useState("SpotLight")
 
+  const { t } = useTranslation();
+
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Add New Light</DialogTitle>
+      <DialogTitle>{t("addLightDialog.add_new_light")}</DialogTitle>
       <DialogContent>
         <TextField
           autoFocus
           margin="dense"
-          label="Light Name"
+          label={t("addLightDialog.light_name")}
           fullWidth
           value={lightName}
           onChange={(e) => setLightName(e.target.value)}
@@ -43,14 +47,14 @@ const AddLightDialog: React.FC<AddLightDialogProps> = ({ open, onClose, onAddLig
               {...params}
               autoFocus
               margin="dense"
-              label="Light Type"
+              label={t("addLightDialog.light_type")}
               fullWidth
             />
           )}
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={onClose}>{t("addLightDialog.cancel")}</Button>
         <Button
           onClick={() => {
               if (scene) {
@@ -61,7 +65,7 @@ const AddLightDialog: React.FC<AddLightDialogProps> = ({ open, onClose, onAddLig
             }
           }
         >
-          Add
+          {t("addLightDialog.add_light")}
         </Button>
       </DialogActions>
     </Dialog>

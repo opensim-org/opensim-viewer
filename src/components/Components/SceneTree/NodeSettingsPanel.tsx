@@ -10,6 +10,8 @@ import { ModelUIState } from '../../../state/ModelUIState';
 import { observer } from 'mobx-react-lite';
 import { Color, MathUtils } from 'three'
 
+import { useTranslation } from 'react-i18next'
+
 interface NodeSettingsPanelProps {
   selectedNode: any;
   setSelectedNode: (node: any) => void;
@@ -26,12 +28,14 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
   scene
 }) => {
 
+  const { t } = useTranslation();
+
   const reservedWords = ["SkySphere", "Background", "Floor", "WCS", "Model", "Models", "OpenSimEnvironment"]
 
   if (!selectedNode) {
     return (
       <div style={{ padding: 16, color: "#999", fontStyle: "italic" }}>
-        Select a node to edit its settings…
+        {t("nodeSettingsPanel.select_node")}
       </div>
     );
   }
@@ -62,17 +66,20 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
       }}
     >
       <Typography variant="subtitle1" style={{ marginBottom: 8 }}>
-        {selectedNode.type ?? "Node"} settings
+        {t("nodeSettingsPanel.selected_node_title", {title: selectedNode.type ?? "Node"})}
       </Typography>
 
       {!reservedWords.includes(selectedNode?.title) && (
         <TextField
-          label="Name"
+          label={t("nodeSettingsPanel.name")}
           fullWidth
           value={selectedNode.title ?? selectedNode.object3D?.name ?? ""}
           onChange={(e) => {
             if (reservedWords.includes(e.target.value)) {
-              alert(e.target.value + " is a reserved word. Please, insert a different name.")
+              alert(t("nodeSettingsPanel.reserved_word_warning", {
+                      value: e.target.value
+                    })
+              )
               return
             }
             const current_name = selectedNode.title ?? selectedNode.object3D?.name ?? ""
@@ -90,7 +97,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
       {selectedNode?.type === "SpotLight" && (
         <>
           <TextField
-            label="Color"
+            label={t("nodeSettingsPanel.lightSettings.color")}
             type="color"
             fullWidth
             value={selectedNode.color ?? selectedNode.object3D?.color.getHexString() ?? "#ffffff"}
@@ -105,7 +112,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             size="small"
           />
           <TextField
-            label="Intensity"
+            label={t("nodeSettingsPanel.lightSettings.intensity")}
             type="number"
             fullWidth
             value={selectedNode.intensity ?? selectedNode.object3D?.intensity ?? 0.25}
@@ -119,7 +126,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             size="small"
           />
           <TextField
-            label="Angle (rad)"
+            label={t("nodeSettingsPanel.lightSettings.angle_rad")}
             type="number"
             fullWidth
             inputProps={{ min: 0, max: Math.PI, step: 0.01 }}
@@ -134,7 +141,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             size="small"
           />
           <TextField
-            label="Distance"
+            label={t("nodeSettingsPanel.lightSettings.distance")}
             type="number"
             fullWidth
             value={selectedNode.distance ?? selectedNode.object3D?.distance ?? 5}
@@ -148,7 +155,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             size="small"
           />
           <TextField
-            label="Penumbra"
+            label={t("nodeSettingsPanel.lightSettings.penumbra")}
             type="number"
             fullWidth
             inputProps={{ min: 0, max: 1, step: 0.01 }}
@@ -174,7 +181,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
                 }
               />
             }
-            label="Cast Shadow"
+            label={t("nodeSettingsPanel.lightSettings.cast_shadow")}
             style={{ marginTop: 16 }}
           />
         </>
@@ -183,7 +190,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
       {selectedNode?.type === "PointLight" && (
         <>
           <TextField
-            label="Color"
+            label={t("nodeSettingsPanel.lightSettings.color")}
             type="color"
             fullWidth
             value={selectedNode.color ?? selectedNode.object3D?.color.getHexString() ?? "#ffffff"}
@@ -198,7 +205,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             size="small"
           />
           <TextField
-            label="Intensity"
+            label={t("nodeSettingsPanel.lightSettings.intensity")}
             type="number"
             fullWidth
             value={selectedNode.intensity ?? selectedNode.object3D?.intensity ?? 0.25}
@@ -212,7 +219,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             size="small"
           />
           <TextField
-            label="Distance"
+            label={t("nodeSettingsPanel.lightSettings.distance")}
             type="number"
             fullWidth
             value={selectedNode.distance ?? selectedNode.object3D?.distance ?? 5}
@@ -226,7 +233,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             size="small"
           />
           <TextField
-            label="Penumbra"
+            label={t("nodeSettingsPanel.lightSettings.penumbra")}
             type="number"
             fullWidth
             inputProps={{ min: 0, max: 1, step: 0.01 }}
@@ -252,7 +259,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
                 }
               />
             }
-            label="Cast Shadow"
+            label={t("nodeSettingsPanel.lightSettings.cast_shadow")}
             style={{ marginTop: 16 }}
           />
         </>
@@ -261,7 +268,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
       {selectedNode?.type === "DirectionalLight" && (
         <>
         <TextField
-            label="Color"
+            label={t("nodeSettingsPanel.lightSettings.color")}
             type="color"
             fullWidth
             value={selectedNode.color ?? `#${selectedNode.object3D.color.getHexString()}` ?? "#ffffff"}
@@ -276,7 +283,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             size="small"
           />
           <TextField
-            label="Intensity"
+            label={t("nodeSettingsPanel.lightSettings.intensity")}
             type="number"
             fullWidth
             value={selectedNode.intensity ?? selectedNode.object3D?.intensity ?? 0.25}
@@ -301,7 +308,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
                 }
               />
             }
-            label="Cast Shadow"
+            label={t("nodeSettingsPanel.lightSettings.cast_shadow")}
             style={{ marginTop: 16 }}
           />
         </>
@@ -310,7 +317,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
       {selectedNode?.type === "PerspectiveCamera" && (
         <>
           <TextField
-            label="Field of view (°)"
+            label={t("nodeSettingsPanel.cameraSettings.field_of_view")}
             type="number"
             fullWidth
             inputProps={{ min: 1, max: 179, step: 1 }}
@@ -332,7 +339,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
       {(selectedNode?.nodeType === "floor") && (
         <>
           <TextField
-            label="Height"
+            label={t("nodeSettingsPanel.floorSettings.height")}
             type="number"
             fullWidth
             inputProps={{ min: -2, max: 2, step: 0.01 }}
@@ -357,7 +364,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
 
           <TextField
             select
-            label="Texture"
+            label={t("nodeSettingsPanel.floorSettings.texture")}
             fullWidth
             value={
               uiState.viewerState.textureIndex ?? 0
@@ -386,7 +393,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
                 }}
               />
             }
-            label="Round Floor"
+            label={t("nodeSettingsPanel.floorSettings.round_floor")}
             style={{ marginTop: 16 }}
           />
         </>
@@ -446,7 +453,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
 //          </>
 //        </>
           <TextField
-                label="Color"
+                label={t("nodeSettingsPanel.floorSettings.round_floor")}
                 type="color"
                 fullWidth
                 value={uiState.viewerState.backgroundColor ? `#${uiState.viewerState.backgroundColor.getHexString()}` : `#${new Color(0.7, 0.7, 0.7).getHexString()}`}
@@ -468,11 +475,11 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
           selectedNode?.type === "DirectionalLight")
        && (
         <>
-          <Typography variant="subtitle2" style={{ marginTop: 24 }}>Transform</Typography>
+          <Typography variant="subtitle2" style={{ marginTop: 24 }}>{t("nodeSettingsPanel.locationSettings.transform")}</Typography>
 
           {/* Translation */}
           <TextField
-            label="Position X"
+            label={t("nodeSettingsPanel.locationSettings.position_x")}
             type="number"
             fullWidth
             value={selectedNode.object3D?.position.x ?? 0}
@@ -487,7 +494,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             size="small"
           />
           <TextField
-            label="Position Y"
+            label={t("nodeSettingsPanel.locationSettings.position_y")}
             type="number"
             fullWidth
             value={selectedNode.object3D?.position.y ?? 0}
@@ -502,7 +509,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             size="small"
           />
           <TextField
-            label="Position Z"
+            label={t("nodeSettingsPanel.locationSettings.position_z")}
             type="number"
             fullWidth
             value={selectedNode.object3D?.position.z ?? 0}
@@ -519,7 +526,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
 
           {/* Rotation (degrees) */}
           <TextField
-              label="Rotation X (°)"
+              label={t("nodeSettingsPanel.locationSettings.rotation_x")}
               type="number"
               fullWidth
               value={MathUtils.radToDeg(selectedNode.object3D?.rotation.x ?? 0)}
@@ -534,7 +541,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               size="small"
             />
             <TextField
-              label="Rotation Y (°)"
+              label={t("nodeSettingsPanel.locationSettings.rotation_y")}
               type="number"
               fullWidth
               value={MathUtils.radToDeg(selectedNode.object3D?.rotation.y ?? 0)}
@@ -549,7 +556,7 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               size="small"
             />
             <TextField
-              label="Rotation Z (°)"
+              label={t("nodeSettingsPanel.locationSettings.rotation_z")}
               type="number"
               fullWidth
               value={MathUtils.radToDeg(selectedNode.object3D?.rotation.z ?? 0)}

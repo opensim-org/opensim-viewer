@@ -114,15 +114,15 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
       </Tooltip>
 
       <Dialog open={open} onClose={handleClose} aria-labelledby="recording-dialog">
-        <DialogTitle>{t("bottomBar.record")}</DialogTitle>
+        <DialogTitle>{t("captureVideoOptions.capture_video_title")}</DialogTitle>
 
         <DialogContent sx={{ minWidth: 300 }}>
           {/* Video Format */}
           <FormControl fullWidth margin="dense">
-            <InputLabel>Video Format</InputLabel>
+            <InputLabel>{t("captureVideoOptions.video_format")}</InputLabel>
             <Select
               value={selectedFormat}
-              label="Video Format"
+              label={t("captureVideoOptions.video_format")}
               onChange={(e) => handleFormatChange(e.target.value)}
             >
               {videoFormats.map((fmt) => (
@@ -135,10 +135,10 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
 
           {/* Quality Level */}
           <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
-            <InputLabel>Quality Level</InputLabel>
+            <InputLabel>{t("captureVideoOptions.quality_level")}</InputLabel>
             <Select
               value={selectedQuality}
-              label="Quality Level"
+              label={t("captureVideoOptions.quality_level")}
               onChange={(e) => handleQualityChange(e.target.value)}
             >
               {qualityLevels.map((quality) => (
@@ -151,10 +151,10 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
 
           {/* Aspect Ratio */}
           <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
-            <InputLabel>Aspect Ratio</InputLabel>
+            <InputLabel>{t("captureVideoOptions.aspect_ratio")}</InputLabel>
             <Select
               value={selectedAspectRatio}
-              label="Aspect Ratio"
+              label={t("captureVideoOptions.aspect_ratio")}
               onChange={(e) => handleAspectRatioChange(e.target.value)}
             >
               {aspectRatios.map((ar) => (
@@ -168,10 +168,10 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
 
           {/* FPS */}
           <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
-            <InputLabel>FPS</InputLabel>
+            <InputLabel>{t("captureVideoOptions.fps")}</InputLabel>
             <Select
               value={selectedFPS}
-              label="FPS"
+              label={t("captureVideoOptions.fps")}
               onChange={(e) => handleFPSChange(Number(e.target.value))}
             >
               {fpsValues.map((fps) => (
@@ -185,8 +185,8 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
 
 
         <DialogActions>
-          <Button onClick={handleRecord}>Record</Button>
-          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleRecord}>{t("captureVideoOptions.capture")}</Button>
+          <Button onClick={handleClose}>{t("captureVideoOptions.cancel")}</Button>
         </DialogActions>
       </Dialog>
     </>

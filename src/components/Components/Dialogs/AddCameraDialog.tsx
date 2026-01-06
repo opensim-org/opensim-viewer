@@ -7,6 +7,8 @@ import * as THREE from 'three';
 import { ModelUIState } from '../../../state/ModelUIState';
 import Autocomplete from '@mui/material/Autocomplete';
 
+import { useTranslation } from 'react-i18next'
+
 interface AddCameraDialogProps {
   open: boolean;
   onClose: () => void;
@@ -20,21 +22,23 @@ const AddCameraDialog: React.FC<AddCameraDialogProps> = ({ open, onClose, onAddC
   const [cameraName, setCameraName] = useState("NewCamera");
   const [cameraType, setCameraType] = useState("PerspectiveCamera");
 
+  const { t } = useTranslation();
+
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Add Camera From View</DialogTitle>
+      <DialogTitle>{t("addCameraDialog.add_camera_from_view")}</DialogTitle>
       <DialogContent>
         <TextField
           autoFocus
           margin="dense"
-          label="Camera Name"
+          label={t("addCameraDialog.camera_name")}
           fullWidth
           value={cameraName}
           onChange={(e) => setCameraName(e.target.value)}
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={onClose}>{t("addCameraDialog.cancel")}</Button>
         <Button
           onClick={() => {
               if (scene) {
@@ -45,7 +49,7 @@ const AddCameraDialog: React.FC<AddCameraDialogProps> = ({ open, onClose, onAddC
             }
           }
         >
-          Add
+          {t("addCameraDialog.add_camera")}
         </Button>
       </DialogActions>
     </Dialog>

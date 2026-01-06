@@ -6,6 +6,8 @@ import '@nosferatu500/react-sortable-tree/style.css';
 
 import {  Menu, MenuItem, Dialog, DialogTitle, DialogActions, Button, IconButton, useTheme, Theme, alpha} from '@mui/material';
 
+import { useTranslation } from 'react-i18next'
+
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import PersonIcon from '@mui/icons-material/Person';
@@ -142,6 +144,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
   ) => {
     const theme = useTheme<Theme>();
     const uiState = useModelContext();
+    const { t } = useTranslation();
 
     const [treeData, setTreeData] = useState<any[]>([]);
     const [isOpen, setIsOpen] = useState(false);
@@ -413,11 +416,12 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
               : undefined
           }
         >
+
           <MenuItem onClick={() => { onAddCameraClick?.(contextMenu?.node); setContextMenu(null); }}>
-            Add Camera
+            {t('contextMenu.add_camera')}
           </MenuItem>
           <MenuItem onClick={() => { onAddLightClick?.(contextMenu?.node); setContextMenu(null); }}>
-            Add Light
+            {t('contextMenu.add_light')}
           </MenuItem>
 
           {/* Conditionally render Remove Node */}
@@ -428,7 +432,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                 setContextMenu(null);
               }}
             >
-              Remove Node
+              {t('contextMenu.remove_node')}
             </MenuItem>
           )}
         </Menu>
@@ -436,9 +440,9 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={!!nodeToDelete} onClose={() => setNodeToDelete(null)}>
-          <DialogTitle>Are you sure you want to remove this node?</DialogTitle>
+          <DialogTitle>{t('contextMenu.remove_confirmation_text')}</DialogTitle>
           <DialogActions>
-            <Button onClick={() => setNodeToDelete(null)}>Cancel</Button>
+            <Button onClick={() => setNodeToDelete(null)}>{t('contextMenu.remove_cancel')}</Button>
             <Button
               color="error"
               onClick={() => {
@@ -465,7 +469,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                 setNodeToDelete(null);
               }}
             >
-              Remove
+              {t('contextMenu.remove_confirmation')}
             </Button>
           </DialogActions>
         </Dialog>

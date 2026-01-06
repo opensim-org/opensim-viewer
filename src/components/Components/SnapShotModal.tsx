@@ -1,4 +1,4 @@
-import { Button, Checkbox, Dialog, DialogActions, DialogContent, FormControl, FormControlLabel, FormLabel, IconButton, Radio, RadioGroup, TextField } from '@mui/material';
+import { Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormControlLabel, FormLabel, IconButton, Radio, RadioGroup, TextField } from '@mui/material';
 import React from 'react';
 import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone';
 import { useModelContext } from '../../state/ModelUIStateContext';
@@ -74,23 +74,24 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
         onClose={handleClose}
         aria-labelledby="Capture Snapshot"
       >
+        <DialogTitle>{t("captureSnapshotOptions.capture_snapshot_title")}</DialogTitle>
         <DialogContent>
           <FormControl>
-              <FormLabel id="demo-controlled-radio-buttons-group">Size</FormLabel>
+              <FormLabel id="demo-controlled-radio-buttons-group">{t("captureSnapshotOptions.size")}</FormLabel>
               <RadioGroup
                 aria-labelledby="demo-controlled-radio-buttons-group"
                 name="size_choice"
                 value={formData.size_choice}
                 onChange={handleChange}
               >
-                <FormControlLabel value="screen" control={<Radio />} label="Default Size" />
-                <FormControlLabel value="custom" control={<Radio />} label="Custom" />
+                <FormControlLabel value="screen" control={<Radio />} label={t("captureSnapshotOptions.default_size")} />
+                <FormControlLabel value="custom" control={<Radio />} label={t("captureSnapshotOptions.custom_size")} />
               </RadioGroup>
               <TextField
                 autoFocus
                 margin="dense"
                 name="width"
-                label="Width"
+                label={t("captureSnapshotOptions.width")}
                 type="text"
                 variant="outlined"
                 value={formData.width}
@@ -101,7 +102,7 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
                 autoFocus
                 margin="dense"
                 name="height"
-                label="Height"
+                label={t("captureSnapshotOptions.height")}
                 type="text"
                 variant="outlined"
                 value={formData.height}
@@ -109,7 +110,7 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
                 disabled={formData.preserve_aspect_ratio==="true" || formData.size_choice==="screen"}
               />
               <FormControlLabel 
-                  label="Preserve Aspect Ratio"
+                  label={t("captureSnapshotOptions.preserve_aspect_ratio")}
                   control={<Checkbox name="preserve_aspect_ratio" 
                     value={formData.preserve_aspect_ratio==="true"}
                     checked={formData.preserve_aspect_ratio==="true"} 
@@ -117,7 +118,7 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
                     onChange={handleAspectRatioChange} />}
                 />
                 <FormControlLabel 
-                  label="Make background Transparent"
+                  label={t("captureSnapshotOptions.make_background_transparent")}
                   control={<Checkbox name="transparent_background" 
                     value={formData.transparent_background==="true"}
                     checked={formData.transparent_background==="true"} 
@@ -126,8 +127,8 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
           </FormControl>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCapture}>Capture</Button>
-          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleCapture}>{t("captureSnapshotOptions.capture")}</Button>
+          <Button onClick={handleClose}>{t("captureSnapshotOptions.cancel")}</Button>
         </DialogActions>
       </Dialog>
       </>

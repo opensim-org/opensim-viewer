@@ -6,8 +6,8 @@ i18next
     .use(initReactI18next)
     .use(LanguageDetector)
     .init({
-        fallbackLng: 'en',
-        lng: 'en',
+        fallbackLng: 'es',
+        lng: 'es',
         resources: {
             en: {
                 translation: {
@@ -60,6 +60,7 @@ i18next
                         snapshot: "Snapshot",
                         fit: "Fit Model",
                         record: "Record",
+                        camera: "Camera"
                     },
                     login: {
                         title: "Login",
@@ -123,6 +124,82 @@ i18next
                     },
                     floatingButton: {
                         model_info: "Model info",
+                    },
+                    contextMenu: {
+                        add_camera: "Add Camera",
+                        add_light: "Add Light",
+                        remove_node: "Remove Node",
+                        remove_confirmation_text: "Are you sure you want to remove this node?",
+                        remove_confirmation: "Remove",
+                        remove_cancel: "Cancel"
+                    },
+                    captureSnapshotOptions: {
+                        capture_snapshot_title: "Take a Snapshot",
+                        size: "Size",
+                        default_size: "Default Size",
+                        custom_size: "Custom Size",
+                        width: "Width",
+                        height: "Height",
+                        preserve_aspect_ratio: "Preserve Aspect Ratio",
+                        make_background_transparent: "Make Background Transparent",
+                        capture: "Capture",
+                        cancel: "Cancel"
+                    },
+                    captureVideoOptions: {
+                        capture_video_title: "Record a Video",
+                        video_format: "Video Format",
+                        quality_level: "Quality Level",
+                        aspect_ratio: "Aspect Ratio",
+                        fps: "FPS",
+                        capture: "Record",
+                        cancel: "Cancel"
+                    },
+                    nodeSettingsPanel: {
+                        selected_node_title: "{{title}} Settings",
+                        select_node: "Select a node to show its settings…",
+                        reserved_word_warning: "{{value}} is a reserved word. Please, use a different name.",
+                        name: "Name",
+                        lightSettings: {
+                          color: "Color",
+                          intensity: "Intensity",
+                          angle_rad: "Angle (rad)",
+                          distance: "Distance",
+                          penumbra: "Penumbra",
+                          cast_shadow: "Cast Shadow"
+                        },
+                        cameraSettings: {
+                          field_of_view: "Field of View (°)"
+                        },
+                        floorSettings: {
+                          height: "Height",
+                          texture: "Texture",
+                          round_floor: "Circular Floor"
+                        },
+                        backgroundSettings: {
+                          color: "Color",
+                        },
+                        locationSettings: {
+                          transform: "Transforms",
+                          position_x: "Position X",
+                          position_y: "Position Y",
+                          position_z: "Position Z",
+                          rotation_x: "Rotation X (°)",
+                          rotation_y: "Rotation Y (°)",
+                          rotation_z: "Rotation Z (°)",
+                        }
+                    },
+                    addCameraDialog: {
+                      add_camera_from_view: "Add Camera from Current View",
+                      camera_name: "Name",
+                      cancel: "Cancel",
+                      add_camera: "Add Camera"
+                    },
+                    addLightDialog: {
+                      add_new_light: "Add New Light Source",
+                      light_name: "Name",
+                      light_type: "Type",
+                      cancel: "Cancel",
+                      add_light: "Add Light"
                     }
                 }
             },
@@ -173,8 +250,10 @@ i18next
                         zoomOut: "Alejar",
                         measure: "Medir",
                         annotate: "Anotar",
-                        snapshoot: "Instantánea",
+                        snapshot: "Capturar Pantalla",
+                        fit: "Encajar Modelo",
                         record: "Grabar",
+                        camera: "Cámara"
                     },
                     login: {
                         title: "Iniciar Sesión",
@@ -236,7 +315,84 @@ i18next
                         processing_video: "Procesando video..."
                     },
                     floatingButton: {
-                        model_info: "Info modelo.",
+                        model_info: "Info modelo",
+                    },
+                    contextMenu: {
+                        add_camera: "Añadir Cámara",
+                        add_light: "Añadir Luz",
+                        remove_node: "Eliminar Nodo",
+                        remove_node: "Eliminar Nodo",
+                        remove_confirmation_text: "¿Seguro que quieres eliminar ese nodo?",
+                        remove_confirmation: "Eliminar",
+                        remove_cancel: "Cancelar"
+                    },
+                    captureSnapshotOptions: {
+                        capture_snapshot_title: "Captura de Pantalla",
+                        size: "Tamaño",
+                        default_size: "Tamaño predeterminado",
+                        custom_size: "Tamaño personalizado",
+                        width: "Ancho",
+                        height: "Alto",
+                        preserve_aspect_ratio: "Conservar Relación de Aspecto",
+                        make_background_transparent: "Hacer Fondo Transparente",
+                        capture: "Capturar",
+                        cancel: "Cancelar"
+                    },
+                    captureVideoOptions: {
+                        capture_video_title: "Grabar Video",
+                        video_format: "Formato de Video",
+                        quality_level: "Nivel de Calidad",
+                        aspect_ratio: "Relación de Aspecto",
+                        fps: "FPS",
+                        capture: "Grabar",
+                        cancel: "Cancelar"
+                    },
+                    nodeSettingsPanel: {
+                        selected_node_title: "Parámetros de {{title}}",
+                        select_node: "Selecciona un nodo para mostrar su configuración…",
+                        reserved_word_warning: "{{value}} es una palabra reservada. Por favor, usa un nombre diferente.",
+                        name: "Nombre",
+                        lightSettings: {
+                          color: "Color",
+                          intensity: "Intensidad",
+                          angle_rad: "Ángulo (rad)",
+                          distance: "Distancia",
+                          penumbra: "Penumbra",
+                          cast_shadow: "Produce Sombra"
+                        },
+                        cameraSettings: {
+                          field_of_view: "Campo de Visión (°)"
+                        },
+                        floorSettings: {
+                          height: "Altura",
+                          texture: "Textura",
+                          round_floor: "Suelo Circular"
+                        },
+                        backgroundSettings: {
+                          color: "Color",
+                        },
+                        locationSettings: {
+                          transform: "Ubicación",
+                          position_x: "Posición X",
+                          position_y: "Posición Y",
+                          position_z: "Posición Z",
+                          rotation_x: "Rotación X (°)",
+                          rotation_y: "Rotación Y (°)",
+                          rotation_z: "Rotación Z (°)",
+                        }
+                    },
+                    addCameraDialog: {
+                      add_camera_from_view: "Añadir Camara en Posición Actual",
+                      camera_name: "Nombre",
+                      cancel: "Cancelar",
+                      add_camera: "Añadir Camara"
+                    },
+                    addLightDialog: {
+                      add_new_light: "Añadir Nueva Fuente de Luz",
+                      light_name: "Nombre",
+                      light_type: "Tipo",
+                      cancel: "Cancelar",
+                      add_light: "Añadir Luz"
                     }
                 }
             }
