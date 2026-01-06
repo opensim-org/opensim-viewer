@@ -26,10 +26,22 @@ import tripodIcon from './tripod.png'
 import dollyIcon from './dolly.png'
 const attachmentType = ['Fixed Camera', 'Camera Dolly']
 
-const attachmentIcons: { [key: string]: React.ReactElement } = {
-  'Fixed Camera': <img src={tripodIcon} alt="Fixed Camera" />,
-  'Camera Dolly': <img src={dollyIcon} alt="Camera Dolly" />
-}
+const attachmentIcons = (dark: boolean): { [key: string]: React.ReactElement } => ({
+  'Fixed Camera': (
+    <img
+      src={tripodIcon}
+      alt="Fixed Camera"
+      style={{ filter: dark ? 'invert(1)' : 'invert(0)' }}
+    />
+  ),
+  'Camera Dolly': (
+    <img
+      src={dollyIcon}
+      alt="Camera Dolly"
+      style={{ filter: dark ? 'invert(1)' : 'invert(0)' }}
+    />
+  )
+});
 
 type CameraPanelProps = {
   uState: ModelUIState;
@@ -214,7 +226,7 @@ function CameraPanel(props :CameraPanelProps) {
         >
           {attachmentType.map((obj) => (
             <MenuItem key={obj} value={obj}>
-              <ListItemIcon sx={{ maxHeight: 16, paddingBottom: 0 }}>{attachmentIcons[obj]}</ListItemIcon>
+              <ListItemIcon sx={{ maxHeight: 16, paddingBottom: 0 }}>{attachmentIcons(curState.viewerState.dark)[obj]}</ListItemIcon>
             </MenuItem>
           ))}
         </Select>
