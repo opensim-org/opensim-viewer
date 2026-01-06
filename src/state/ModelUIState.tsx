@@ -82,6 +82,7 @@ export class ModelUIState {
     guiAnimationEndTime: number = 0.0
     guiAnimationSpeed: number = 1.0
     guiFrameNumber: number = 0;
+    showCameraDolliesInGUI: boolean = false
     constructor(
         currentModelPathState: string
     ) {
