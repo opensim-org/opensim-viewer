@@ -22,6 +22,7 @@ interface FloatingControlsPanelProps {
   info: ModelInfo;
   top: string;
   left: string;
+  zIndex: number;
 }
 
 function FloatingControlsPanel(props :FloatingControlsPanelProps) {
@@ -37,7 +38,7 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
   };
 
   return (
-    <div className="floating-buttons-container" style={{top: props.top, left: props.left,}}>
+    <div className="floating-buttons-container" style={{top: props.top, left: props.left, zIndex: props.zIndex}}>
 
       <Grid container spacing={-4} direction="column">
         <Grid item xs={6}>

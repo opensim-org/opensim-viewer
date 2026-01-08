@@ -314,24 +314,138 @@ useEffect(() => {
               <div
                 style={{
                   position: 'absolute',
-                  top: 0,
+                  top: uiState.isGuiMode ? 0 : '66px',
                   left: 0,
+                  bottom: heightBottomBar,
                   width: '100%',
-                  height: '100%',
+                  height: canvasHeight,
+                  display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: 'rgba(255, 255, 255, 0.8)', // Optional: semi-transparent background
-                  zIndex: 1000, // Ensure it's above the canvas
+                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                  zIndex: 2000,
                 }}
               >
                 <CircularProgress size={200} color={'primary'} disableShrink />
               </div>
             )}
+
+            {uiState.viewerState.isRecordingVideo && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: uiState.isGuiMode ? 0 : '66px',
+                  left: 0,
+                  bottom: heightBottomBar,
+                  width: '100%',
+                  height: canvasHeight,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                  backdropFilter: 'blur(5px)',
+                  zIndex: 1000,
+                }}
+              >
+                <CircularProgress
+                  size={60}
+                  color={'primary'}
+                  disableShrink
+                  style={{ marginBottom: '20px' }}
+                />
+
+                <div
+                  style={{
+                    color: 'white',
+                    fontSize: '18px',
+                    fontWeight: '500',
+                    textAlign: 'center',
+                    lineHeight: '1.5',
+                    maxWidth: '300px',
+                    padding: '0 20px',
+                    marginBottom: '10px',
+                  }}
+                >
+                  Your animation is recording. Please wait until it is complete or stop it by clicking on the red button.
+                </div>
+
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    fontSize: '14px',
+                  }}
+                >
+                  <span>Recording in progress...</span>
+                </div>
+              </div>
+            )}
+
+            {uiState.viewerState.isProcessingVideo && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: uiState.isGuiMode ? 0 : '66px',
+                  left: 0,
+                  bottom: heightBottomBar,
+                  width: '100%',
+                  height: canvasHeight,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                  backdropFilter: 'blur(5px)',
+                  zIndex: 1000,
+                }}
+              >
+                <CircularProgress
+                  size={60}
+                  color={'primary'}
+                  disableShrink
+                  style={{ marginBottom: '20px' }}
+                />
+
+                <div
+                  style={{
+                    color: 'white',
+                    fontSize: '18px',
+                    fontWeight: '500',
+                    textAlign: 'center',
+                    lineHeight: '1.5',
+                    maxWidth: '300px',
+                    padding: '0 20px',
+                    marginBottom: '10px',
+                  }}
+                >
+                  Your animation is processing. Please wait until it is completed and the download video pop-up appears.
+                </div>
+
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    fontSize: '14px',
+                  }}
+                >
+                  <span>Recording in progress...</span>
+                </div>
+              </div>
+          )}
+
               <FloatingControlsPanel
                 videoRecorderRef={videoRecorderRef}
                 info={new ModelInfo(uiState.modelInfo.model_name, uiState.modelInfo.desc, uiState.modelInfo.authors)}
                 top={floatingButtonsContainerTop}
-                left={floatingButtonsContainerLeft}/>
+                left={floatingButtonsContainerLeft}
+                zIndex={1500}
+              />
+
               <Canvas
                 id="canvas-element"
                 gl={{ alpha: true, autoClearColor: true, preserveDrawingBuffer: true }}
