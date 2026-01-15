@@ -137,17 +137,18 @@ export class ViewerState {
         this.snapshotFormat = snapshotFormat
         this.recordedVideoName = recordedVideoName
         this.recordedVideoFormat = recordedVideoFormat
-        this.recordedVideoFPS = 30
-        this.recordedVideoAspectRatio = "16:9"
         this.isRecordingVideo = isRecordingVideo
         this.isProcessingVideo = isProcessingVideo
-        this.videoRecorderBaseDimension = 720
+        // Default values here is not used as selected in interface before start recording.
+        this.recordedVideoFPS = 30
+        this.recordedVideoAspectRatio = "16:9"
+        this.videoRecorderBaseDimension = 1080
 
         this.videoRecorderPreserveAspectRatio = true
         this.user_uuid = ''
         this.backgroundColor = new Color(0.7, 0.7, 0.7)
         this.backgroundImage = null
-        this.useTexture = true
+        this.useTexture = false
         this.skyTextureIndex = 0
         this.defaultSkyTextures = [
             '/assets/skyTextures/death-valley-alberto.jpg',
@@ -155,7 +156,7 @@ export class ViewerState {
             '/assets/skyTextures/Photosphere_in_Pozzolo_(Domaso)_2.jpg',
             '/assets/skyTextures/Photosphere_VML4_between_Nessa_and_L\'Agnone_01.jpg',
         ]
-        this.skyVisible = false
+        this.skyVisible = true
         this.textureIndex = 0
         this.defaultFloorTextures = [
             '/assets/floorTextures/tile.jpg',

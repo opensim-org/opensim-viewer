@@ -10,12 +10,6 @@ import { useSnackbar } from 'notistack'
 import { useModelContext } from '../../state/ModelUIStateContext';
 
 
-AWS.config.update({
-  accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID, // replace with own credentials to test
-  secretAccessKey: process.env.REACT_APP_AWS_SECRET_KEY_ID,
-  region: 'us-west-2' // replace with your region
-});
-
 const lambda = new AWS.Lambda({
   region: 'us-west-2', // replace with your region
 });
