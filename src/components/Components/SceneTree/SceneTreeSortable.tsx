@@ -197,6 +197,18 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
       }
     }, [uiState.visibleHelpers, scene]);
 
+    // Clear selection when panel closes
+    useEffect(() => {
+      if (!isOpen) {
+        // Clear all selections and helpers
+        setSelectedPath(null);
+        setSettingsNode(null);
+        uiState.setSelected("");
+        setTransformTargetFunction?.(null);
+        removeTempHelper(scene);
+      }
+    }, [isOpen, scene, uiState, setTransformTargetFunction]);
+
     const handleSettingsClick = (node: any, path: number[]) => {
       setSettingsNode(node);
 
@@ -251,7 +263,15 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
           {/* Close Button */}
           {isOpen && (
             <IconButton
-              onClick={() => setIsOpen(false)}
+              onClick={() => {
+                setIsOpen(false);
+                // Immediate cleanup when manually closing
+                setSelectedPath(null);
+                setSettingsNode(null);
+                uiState.setSelected("");
+                setTransformTargetFunction?.(null);
+                removeTempHelper(scene);
+              }}
               style={{
                 position: 'absolute',
                 left: '-20px',
