@@ -368,7 +368,7 @@ useEffect(() => {
                 <OpenSimControl ref={openSimControlsRef}/>
                 <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
-                {transformTarget && (
+                {transformTarget && uiState.visibleHelpers && (
                   <>
                       <TransformControls object={transformTarget} mode={transformMode} />
                   </>
