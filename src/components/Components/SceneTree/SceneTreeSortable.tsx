@@ -75,7 +75,7 @@ const iconMap: Record<string, JSX.Element> = {
 };
 
 
-export function createTempHelper(node:any, scene: THREE.Scene | null) {
+export function createTempHelper(node:any, scene: THREE.Scene | null, uiState?: ModelUIState) {
   let helper: Object3D | null = null;
 
   switch (node.type) {
@@ -100,7 +100,13 @@ export function createTempHelper(node:any, scene: THREE.Scene | null) {
 
   if (helper) {
     helper.name = "temp_helper";
-    helper.visible = true;
+
+    const isVisible = uiState ? uiState.visibleHelpers : true;
+    helper.visible = isVisible;
+    helper.traverse((child) => {
+      child.visible = isVisible;
+    });
+
     scene?.add(helper);
   }
 
@@ -112,6 +118,16 @@ export function removeTempHelper(scene: THREE.Scene | null) {
     if (helper && helper.parent) {
       helper.parent.remove(helper);
     }
+}
+
+export function updateTempHelperVisibility(scene: THREE.Scene | null, visible: boolean) {
+  const helper = scene?.getObjectByName("temp_helper");
+  if (helper) {
+    helper.visible = visible;
+    helper.traverse((child) => {
+      child.visible = visible;
+    });
+  }
 }
 
 function applyTreeToScene(tree: any[], scene: THREE.Scene) {
@@ -173,6 +189,13 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
         setTreeData((old) => mergeTreeWithScene(old, null));
       }
     }, [scene, camera, uiState.viewerState.sceneVersion]);
+
+    // Update helper visibility
+    useEffect(() => {
+      if (scene) {
+        updateTempHelperVisibility(scene, uiState.visibleHelpers);
+      }
+    }, [uiState.visibleHelpers, scene]);
 
     const handleSettingsClick = (node: any, path: number[]) => {
       setSettingsNode(node);
@@ -302,7 +325,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                         removeTempHelper(scene)
 
                         // Create new helper.
-                        createTempHelper(node.object3D, scene)
+                        createTempHelper(node.object3D, scene, uiState)
                       }
                     },
                     onContextMenu: (e: React.MouseEvent) => {
@@ -336,7 +359,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                       removeTempHelper(scene)
 
                       // Create new helper.
-                      createTempHelper(node.object3D, scene)
+                      createTempHelper(node.object3D, scene, uiState)
                     },
                     icons: [icon],
                     title: (
