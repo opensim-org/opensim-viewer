@@ -431,6 +431,9 @@ export class ModelUIState {
                 this.guiAnimationStartTime = 0.0;
                 this.guiAnimationEndTime = 0.0;
                 break;
+            case "HeartBeat":
+                console.log("Hearbeat received")
+                break;
         }
     }
     sendText(json: string) {
