@@ -82,6 +82,7 @@ export class ModelUIState {
     guiAnimationEndTime: number = 0.0
     guiAnimationSpeed: number = 1.0
     guiFrameNumber: number = 0;
+    visibleHelpers: boolean = true;
     constructor(
         currentModelPathState: string
     ) {
@@ -127,6 +128,7 @@ export class ModelUIState {
             simulationTime: observable,
             setIsGuiMode: action,
             setIsModernBrowser: action,
+            visibleHelpers: observable,
         })
         console.log("Created ModelUIState instance ", currentModelPathState)
     }
@@ -511,5 +513,8 @@ export class ModelUIState {
     sendModelOffsets() {
         const offsetsJson = this.getModelOffsetsJson();
         this.sendText(offsetsJson);
+    }
+    setVisibleHelpers(visible: boolean) {
+      this.visibleHelpers = visible;
     }
 }

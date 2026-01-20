@@ -22,6 +22,7 @@ return (
       <Container disableGutters>
         <FormGroup>
             <Typography variant="h6" align='left'>{t('visualizationControl.visibility')}</Typography>
+
             <FormControlLabel control={<Checkbox />} label={t('visualizationControl.joints')} />
             <FormControlLabel control={<Checkbox checked={curState.getLayerVisibility(1)}/>} label={t('visualizationControl.bodies')}
                     onChange={()=>{curState.toggleLayerVisibility(1); setCameraLayerMask(curState.cameraLayersMask)}} />
@@ -29,8 +30,10 @@ return (
                     onChange={()=>{curState.toggleLayerVisibility(7); setCameraLayerMask(curState.cameraLayersMask)}} />
             <FormControlLabel control={<Checkbox checked={curState.getLayerVisibility(8)}/>} label={t('visualizationControl.contactObjects')}
                     onChange={()=>{curState.toggleLayerVisibility(8); setCameraLayerMask(curState.cameraLayersMask)}} />
-            <FormControlLabel control={<Checkbox checked={curState.getLayerVisibility(4)}/>} label={t('visualizationControl.markers')} 
+            <FormControlLabel control={<Checkbox checked={curState.getLayerVisibility(4)}/>} label={t('visualizationControl.markers')}
                     onChange={()=>{curState.toggleLayerVisibility(4); setCameraLayerMask(curState.cameraLayersMask)}}/>
+            <FormControlLabel control={<Checkbox checked={curState.visibleHelpers} onChange={(e) => curState.setVisibleHelpers(e.target.checked)}/>}
+                  label={t('visualizationControl.helpers')}/>
         </FormGroup>
       </Container>
     </>
@@ -38,4 +41,3 @@ return (
 }
 
 export default VisualizationControl
- 
