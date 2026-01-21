@@ -71,6 +71,9 @@ function VideoRecorder(props: VideoRecorderViewProps) {
   const animationDurationRef = useRef(0);
   const startAnimationTimeRef = useRef(0);
 
+  // Store original helper visibility state
+  const originalVisibleHelpersRef = useRef<boolean>(true);
+
   const originalCameraAspectRef = useRef<number | null>(null);
   const originalCameraFovRef = useRef<number | null>(null);
   const originalRendererSizeRef = useRef<{ width: number; height: number } | null>(null);
@@ -292,6 +295,11 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       }
       else
         console.log("isGuiMode, has no animation");
+
+      // Store original helper visibility and hide helpers
+      originalVisibleHelpersRef.current = curState.visibleHelpers;
+      curState.setVisibleHelpers(false);
+
       // Set up camera and renderer FIRST, before saving original state
       const { width: targetW, height: targetH } = setupCameraAndRendererForRecording();
 
@@ -352,7 +360,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
             await new Promise((resolve) => setTimeout(resolve, 100));
           }
         }
-        
+
         // Call the function to wait for the data
         await waitForData();
         console.log("Fininshed waiting for data. Expecting "+totalFrames+ "Frames");
@@ -420,6 +428,9 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
       // Restore original camera and renderer settings
       restoreCameraAndRenderer();
+
+      // Restore original helper visibility
+      curState.setVisibleHelpers(originalVisibleHelpersRef.current);
 
       enqueueSnackbar(t('snackbars.processing_video'), {
         variant: 'info',

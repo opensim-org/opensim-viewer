@@ -23,7 +23,6 @@ interface RecordingModalProps {
 
 // Define quality levels that will be used as base dimensions
 const qualityLevels = [
-  { label: "720p HD", baseDimension: 720 },
   { label: "1080p HD", baseDimension: 1080 },
   { label: "1440p HD", baseDimension: 1440 },
   { label: "2160p 4K", baseDimension: 2160 },
@@ -35,7 +34,7 @@ const videoFormats = [
   { label: "JPEG (Zip)", value: "jpeg-zip"}
 ];
 
-const fpsValues = [24, 30, 60];
+const fpsValues = [30, 60];
 
 const aspectRatios = [
   { label: "4:3", value: "4:3", description: "standard" },
@@ -52,7 +51,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
   const viewerState = curState.viewerState;
 
   const [open, setOpen] = useState(false);
-  const [selectedQuality, setSelectedQuality] = useState("720p HD");
+  const [selectedQuality, setSelectedQuality] = useState("1080p HD");
   const [selectedFormat, setSelectedFormat] = useState("mp4");
   const [selectedFPS, setSelectedFPS] = useState(30);
   const [selectedAspectRatio, setSelectedAspectRatio] = useState("16:9");

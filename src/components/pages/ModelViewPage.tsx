@@ -25,12 +25,12 @@ import { MyModelContext } from "../../state/ModelUIStateContext";
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { useParams } from 'react-router-dom';
 import { CircularProgress } from "@mui/material";
-import OpenSimHtmlLogo from '../Components/OpenSimLogo';  
+import OpenSimHtmlLogo from '../Components/OpenSimLogo';
 
 import { Stats } from '@react-three/drei'
 import { Perf } from 'r3f-perf'
 
-import { createTempHelper, removeTempHelper } from '../Components/SceneTree/SceneTreeSortable'
+import { createTempHelper, removeTempHelper, updateTempHelperVisibility } from '../Components/SceneTree/SceneTreeSortable'
 
 import * as THREE from 'three';
 
@@ -78,11 +78,10 @@ export const addNewCamera = (
 
   // Remove previous helper and create current.
   removeTempHelper(scene)
-  createTempHelper(camera, scene)
+  createTempHelper(camera, scene, uiState)
 
   onSceneUpdated();
 
-  camera.layers.enableAll()
   return camera;
 };
 
@@ -128,7 +127,7 @@ export const addNewLight = (
 
   // Remove previous helper and create current.
   removeTempHelper(scene)
-  createTempHelper(light, scene)
+  createTempHelper(light, scene, uiState)
 
   onSceneUpdated();
 
@@ -210,7 +209,10 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   useEffect(() => {
     if (bottomBarRef.current) {
       const heightBottomBar = bottomBarRef.current.offsetHeight;
-      setHeightBottomBar(bottomBarRef.current.offsetHeight);
+      if(!curState.showBottomBar)
+        setHeightBottomBar(0);
+      else
+        setHeightBottomBar(bottomBarRef.current.offsetHeight);
 
       setCanvasHeight("calc(100vh - 68px - " + heightBottomBar + "px)");
     }
@@ -228,6 +230,12 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     }
     setBgndColor(uiState.viewerState.backgroundColor);
   }, [uiState.viewerState.backgroundColor, uiState.isGuiMode]);
+
+  useEffect(() => {
+    if (scene) {
+      updateTempHelperVisibility(scene, uiState.visibleHelpers);
+    }
+  }, [uiState.visibleHelpers, scene]);
 
 useEffect(() => {
     // Create fresh WebSocket
@@ -363,7 +371,7 @@ useEffect(() => {
                 <OpenSimControl ref={openSimControlsRef}/>
                 <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
-                {transformTarget && (
+                {transformTarget && uiState.visibleHelpers && (
                   <>
                       <TransformControls object={transformTarget} mode={transformMode} />
                   </>
@@ -405,11 +413,13 @@ useEffect(() => {
                 parent={treeRef.current?.selectedNode() ?? null}
               />
 
+              {curState.showBottomBar && (
               <BottomBar
                 ref={bottomBarRef}
                 animationPlaySpeed={1.0}
                 animating={uiState.viewerState.animating}
                 animationList={uiState.viewerState.animations}/>
+              )}
 
               {scene && camera && (
                 <div
@@ -442,7 +452,7 @@ useEffect(() => {
 
 
           </div>
-          <OpenSimHtmlLogo />
+          <OpenSimHtmlLogo/>
         </Main>
       </Box>
     </MyModelContext.Provider>
