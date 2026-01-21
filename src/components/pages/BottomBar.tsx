@@ -210,11 +210,13 @@ const BottomBar = React.forwardRef(function CustomContent(
 
     return (
       <Container ref={(ref as any) || bottomBarRef}>
-        <Grid container spacing={1}>
-          <Grid item sx={{ mt: 1, display: { lg: 'block' } }}>
-            <CameraPanel uState={curState} />
-          </Grid>
-          <Divider orientation="vertical" sx={{ mx: 2, display: { xs: 'none', lg: 'block' } }} />
+        <Grid container spacing={1} alignItems="center" justifyContent="center">
+            <>
+              <Grid item sx={{ mt: 1, display: { lg: 'block' } }}>
+                  <CameraPanel uState={curState} />
+              </Grid>
+              <Divider orientation="vertical" sx={{ mx: 2, display: { xs: 'none', lg: 'block' } }} />
+            </>
           { curState.viewerState.animations.length < 1 ? null : (
           <Grid item sx={{ mt: 1 }}>
             <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
@@ -312,18 +314,18 @@ const BottomBar = React.forwardRef(function CustomContent(
             </Grid>
           )}
           {curState.getGuiMode()?"":
-          <Grid item sx={{ mt: 1 }}>
-            <Tooltip title={t('bottomBar.autoRotate')}>
-              <ToggleButton
-                color="primary"
-                selected={viewerState.rotating}
-                value={'Rotate'}
-                onClick={() => viewerState.setRotating(!viewerState.rotating)}>
-                  <ThreeSixtyTwoToneIcon />
-              </ToggleButton>
-            </Tooltip>
-          </Grid>
-        }
+            <Grid item sx={{ mt: 1 }}>
+              <Tooltip title={t('bottomBar.autoRotate')}>
+                <ToggleButton
+                  color="primary"
+                  selected={viewerState.rotating}
+                  value={'Rotate'}
+                  onClick={() => viewerState.setRotating(!viewerState.rotating)}>
+                    <ThreeSixtyTwoToneIcon />
+                </ToggleButton>
+              </Tooltip>
+            </Grid>
+          }
         </Grid>
       </Container>
     )
