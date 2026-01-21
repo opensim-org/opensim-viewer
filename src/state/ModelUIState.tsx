@@ -433,8 +433,15 @@ export class ModelUIState {
                 this.guiAnimationStartTime = 0.0;
                 this.guiAnimationEndTime = 0.0;
                 break;
-            case "HeartBeat":
+            case "AddAnimationClipList":
+                this.guiHasAnimation = true;
+                // Create AnimationClips for each clip in the message,
+                // We should have OpenSimGUISCene create one mixer for all these clips
+                // so that playing animations works as expected
+                break;
+            case "Heartbeat":
                 console.log("Hearbeat received")
+                this.sendFrameAcknowledge(-1);
                 break;
         }
     }
