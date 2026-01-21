@@ -210,7 +210,10 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   useEffect(() => {
     if (bottomBarRef.current) {
       const heightBottomBar = bottomBarRef.current.offsetHeight;
-      setHeightBottomBar(bottomBarRef.current.offsetHeight);
+      if(!curState.showBottomBar)
+        setHeightBottomBar(0);
+      else
+        setHeightBottomBar(bottomBarRef.current.offsetHeight);
 
       setCanvasHeight("calc(100vh - 68px - " + heightBottomBar + "px)");
     }
@@ -405,11 +408,13 @@ useEffect(() => {
                 parent={treeRef.current?.selectedNode() ?? null}
               />
 
+              {curState.showBottomBar && (
               <BottomBar
                 ref={bottomBarRef}
                 animationPlaySpeed={1.0}
                 animating={uiState.viewerState.animating}
                 animationList={uiState.viewerState.animations}/>
+              )}
 
               {scene && camera && (
                 <div
@@ -442,7 +447,7 @@ useEffect(() => {
 
 
           </div>
-          <OpenSimHtmlLogo />
+          <OpenSimHtmlLogo/>
         </Main>
       </Box>
     </MyModelContext.Provider>

@@ -414,7 +414,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
           }
         >
 
-          {uiState.showCameraDolliesInGUI && (
+          {uiState.showBottomBar && (
             <MenuItem onClick={() => { onAddCameraClick?.(contextMenu?.node); setContextMenu(null); }}>
               Add Camera
             </MenuItem>
