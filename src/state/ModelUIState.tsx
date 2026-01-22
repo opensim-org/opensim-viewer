@@ -1,5 +1,5 @@
 import { makeObservable, observable, action } from 'mobx'
-import { Group, PerspectiveCamera } from 'three'
+import { AnimationClip, Group, PerspectiveCamera } from 'three'
 import { Light } from 'three'
 import { Box3, Object3D, Scene, Vector3 } from 'three'
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
@@ -131,7 +131,15 @@ export class ModelUIState {
             setIsModernBrowser: action,
             visibleHelpers: observable,
         })
-        console.log("Created ModelUIState instance ", currentModelPathState)
+        console.log("Created ModelUIState instance ", currentModelPathState);
+        setTimeout(() => {
+            if (this.socket !== null){
+                var json = JSON.stringify({
+                   type: "INFO",
+                   "Op": "keepAlive"});
+                this.socket!.send(json);
+                }
+        }, 60000);
     }
 
     addModelFromPath(newJsonFile: string) {
@@ -372,6 +380,8 @@ export class ModelUIState {
             case "Frame":
                 if (this.processingSocketMessage)
                     return;
+                if (this.isGUIAnimating) // viewer taking over animation
+                    return;
                 this.processingSocketMessage = true;
                 this.setSelected("", false)
                 var transforms = parsedMessage.Transforms;
@@ -439,6 +449,10 @@ export class ModelUIState {
                 // Create AnimationClips for each clip in the message,
                 // We should have OpenSimGUISCene create one mixer for all these clips
                 // so that playing animations works as expected
+                this.createAnimationClipsFromClipList(parsedMessage.clip_list);
+                this.viewerState.setAnimationsNeedUpdate(true);
+                break;
+            case "RemoveAnimationClipList": {}
                 break;
             case "Heartbeat":
                 console.log("Hearbeat received")
@@ -477,6 +491,19 @@ export class ModelUIState {
             this.socket!.send(json);
     }
     
+    createAnimationClipsFromClipList(clipList: any[]) {
+        // Placeholder for creating AnimationClips from clipList
+        const guiAnimations = [];
+        for (let i = 0; i < clipList.length; i++) {
+            const clipJson = clipList[i];
+            const clip = AnimationClip.parse(clipJson); // This creates an AnimationClip instance
+            guiAnimations.push(clip);
+            console.log(`Creating Animation Clip: Name=${clip.name}, Duration=${clip.duration}`);
+            // Actual implementation would create AnimationClip instances here
+        }
+        this.viewerState.setAnimationList( guiAnimations );
+        console.log("Creating Animation Clips from Clip List:", clipList);
+    }
     stopGUIAnimation() {
         const json = JSON.stringify({
         type: "Animation",
