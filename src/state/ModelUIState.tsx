@@ -1,7 +1,7 @@
 import { makeObservable, observable, action } from 'mobx'
 import { AnimationClip, Group, PerspectiveCamera } from 'three'
 import { Light } from 'three'
-import { Box3, Object3D, Scene, Vector3 } from 'three'
+import { Box3, Object3D, Scene, Vector3, Matrix4 } from 'three'
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
 import { CommandFactory } from './commands/CommandFactory'
 import { saveAs } from 'file-saver';
@@ -81,8 +81,8 @@ export class ModelUIState {
     guiAnimationStartTime: number = 0.0
     guiAnimationEndTime: number = 0.0
     guiAnimationSpeed: number = 1.0
-    guiFrameNumber: number = 0;
-    showBottomBar: boolean = false
+    guiAnimationLoop: boolean = false
+    showBottomBar: boolean = false;
     visibleHelpers: boolean = true;
     constructor(
         currentModelPathState: string
@@ -380,19 +380,21 @@ export class ModelUIState {
             case "Frame":
                 if (this.processingSocketMessage)
                     return;
-                if (this.isGUIAnimating) // viewer taking over animation
+                if (this.viewerState.animating){
+                    // If we are animating, ignore frame updates from server
                     return;
+                }
                 this.processingSocketMessage = true;
                 this.setSelected("", false)
                 var transforms = parsedMessage.Transforms;
+                const tempMatrix = new Matrix4();
                 for (var i = 0; i < transforms.length; i ++ ) {
                     var oneBodyTransform = transforms[i];
                     var o = this.objectByUuid( oneBodyTransform.uuid);
-                    //alert("mat before: " + o.matrix);
-                    if (o !== undefined) {
-                        o.matrixAutoUpdate = false;
-                        o.matrix.fromArray(oneBodyTransform.matrix);
-                    }
+                    // set position, quaternion and scale and leave matrixAutoUpdate on
+                    // as Animation clips work by interpolating each separately with the flag on
+                    tempMatrix.fromArray(oneBodyTransform.matrix);
+                    tempMatrix.decompose(o.position, o.quaternion, o.scale);
                 }
                 var paths = parsedMessage.paths;
                 if (paths !== undefined){
@@ -403,7 +405,6 @@ export class ModelUIState {
                 //this.scene?.updateMatrixWorld(true);
                 this.simulationTime = parsedMessage.time;
                 this.viewerState.currentAnimationTime = this.simulationTime;
-                this.guiFrameNumber = parsedMessage.frameNumber;
                 this.processingSocketMessage = false;
                 console.log("Receive frame simulation time="+this.simulationTime);
                 break;
@@ -425,38 +426,50 @@ export class ModelUIState {
                 //editor.processPathEdit(msg);
                 break;
             case "startAnimation":
-                this.guiHasAnimation = true;
-                this.SetAnimatingGUI(true);
-                this.guiAnimationSpeed = parsedMessage.Speed;
+                // this.guiHasAnimation = true;
+                // this.SetAnimatingGUI(true);
+                // this.guiAnimationSpeed = parsedMessage.Speed;
+                // this.guiAnimationLoop = parsedMessage.Loop;
                 console.log("Receive startAnimation, speed="+this.guiAnimationSpeed);
                 break;
             case "endAnimation":
                 this.SetAnimatingGUI(false);
+                this.viewerState.animating = false;
+                this.viewerState.setAnimationsNeedUpdate(true);
                 console.log("Receive endAnimation");
                 break;
-            case "SetCurrentAnimation":
-                this.guiHasAnimation = true;
-                this.guiAnimationStartTime = parsedMessage.Start;
-                this.guiAnimationEndTime = parsedMessage.End;
-                break;
             case "ClearCurrentAnimation":
+                // TODO Major cleanup needed here
                 this.guiHasAnimation = false;
                 this.guiAnimationStartTime = 0.0;
                 this.guiAnimationEndTime = 0.0;
+                this.viewerState.setAnimationList([]);
+                this.viewerState.setAnimationsNeedUpdate(true);
+                console.log("Receive ClearCurrentAnimation");
                 break;
             case "AddAnimationClipList":
+                // TODO Major cleanup needed here from earlier animation if any
                 this.guiHasAnimation = true;
                 // Create AnimationClips for each clip in the message,
                 // We should have OpenSimGUISCene create one mixer for all these clips
                 // so that playing animations works as expected
-                this.createAnimationClipsFromClipList(parsedMessage.clip_list);
+                this.createAnimationClipsFromMessage(parsedMessage);
+                this.viewerState.animating = true;
                 this.viewerState.setAnimationsNeedUpdate(true);
                 break;
-            case "RemoveAnimationClipList": {}
+            case "RemoveAnimationClipList": 
+                console.log("Receive RemoveAnimationClipList");
                 break;
-            case "Heartbeat":
+            case "PlayAnimation":
+                console.log("Receive PlayAnimation at time="+parsedMessage.Time);
+                this.SetAnimatingGUI(true);
+                this.viewerState.animating = true; 
+                this.viewerState.animationChange = {index:0, operation:"start", time:parsedMessage.start_time};
+                this.viewerState.setAnimationsNeedUpdate(true)
+                break;
+            case "HeartBeat":
                 console.log("Hearbeat received")
-                this.sendFrameAcknowledge(-1);
+                this.sendModelOffsets();
                 break;
         }
     }
@@ -477,9 +490,6 @@ export class ModelUIState {
         // Implement animation state handling here if needed
         this.isGUIAnimating = isAnimating;
         console.log("SetAnimatingGUI="+isAnimating);
-        if (isAnimating) {
-            this.viewerState.setAnimating(false);
-        }
     }
 
     startGUIAnimationIfAvailable(requiredTimeStep: number) {
@@ -491,17 +501,29 @@ export class ModelUIState {
             this.socket!.send(json);
     }
     
-    createAnimationClipsFromClipList(clipList: any[]) {
+    createAnimationClipsFromMessage(clipMessage: any) {
         // Placeholder for creating AnimationClips from clipList
         const guiAnimations = [];
+        const guiAnimationRoots = [];
+        // clipList has an AnimationClip per model
+        // clipRoots has the root object uuid for each clip, the associated model
+        // clips end up as viewerState.animations
+        // Every clip gets its own mixer in OpenSimGUIScene
+        // Each clip is associated with its root object for the mixer
+        // viewerState.currentAnimation index will be retired and all mixers are played,
+        const clipList =  clipMessage.clip_list;
+        const clipRoots = clipMessage.clip_roots;
         for (let i = 0; i < clipList.length; i++) {
             const clipJson = clipList[i];
             const clip = AnimationClip.parse(clipJson); // This creates an AnimationClip instance
             guiAnimations.push(clip);
             console.log(`Creating Animation Clip: Name=${clip.name}, Duration=${clip.duration}`);
-            // Actual implementation would create AnimationClip instances here
+            const clipRoot = clipRoots[i];
+            console.log(`  Root Object UUID: ${clipRoot}`);
+            guiAnimationRoots.push(this.nodeDictionary[clipRoot]);
         }
-        this.viewerState.setAnimationList( guiAnimations );
+        this.viewerState.setAnimationListWithRoots( guiAnimations, guiAnimationRoots);
+        this.viewerState.setCurrentAnimationIndex(0);
         console.log("Creating Animation Clips from Clip List:", clipList);
     }
     stopGUIAnimation() {
@@ -534,7 +556,7 @@ export class ModelUIState {
         if (this.socket !== null)
             this.socket!.send(json);
     }
-    setFPS(fps: number) {
+    sendMeasuredFPS(fps: number) {
         if (this.isGUIAnimating)
             return; // Don't interfer with animation while playing
         this.fps = fps;

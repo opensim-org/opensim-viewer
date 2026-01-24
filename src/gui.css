@@ -8,7 +8,7 @@
 
 #canvas-element {
   left: 0 !important;
-  height: calc(100vh - 68px) !important;
+  height: 100vh !important;
 }
 
 .floating-buttons-container {

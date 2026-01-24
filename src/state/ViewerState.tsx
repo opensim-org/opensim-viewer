@@ -1,5 +1,6 @@
 import { makeObservable, observable, action, runInAction } from 'mobx'
-import { Color, Vector3, Camera, AnimationClip, VectorKeyframeTrack, QuaternionKeyframeTrack, PerspectiveCamera, Group, Quaternion, Matrix4 } from 'three'
+import { Color, Vector3, Camera, AnimationClip, 
+    VectorKeyframeTrack, QuaternionKeyframeTrack, PerspectiveCamera, Group, Object3D } from 'three'
 
 export class CameraFrame {
     cam_uuid: string
@@ -101,6 +102,7 @@ export class ViewerState {
     animating: boolean
     animationSpeed: number
     animations: AnimationClip[]
+    animationRoots: Object3D[] // roots for each animation clip
     currentAnimationIndex: number
     animationsNeedUpdate: boolean
     animationChange: null | Object
@@ -185,6 +187,7 @@ export class ViewerState {
         this.animating = false
         this.animationSpeed = 1.0
         this.animations = []
+        this.animationRoots = []
         this.currentAnimationIndex = -1
         this.animationsNeedUpdate = false
         this.animationChange = null
@@ -253,6 +256,8 @@ export class ViewerState {
             animationSpeed: observable,
             animations: observable,
             setAnimationList: action,
+            setAnimationListWithRoots: action,
+            animationRoots: observable,
             setAnimationSpeed: action,
             currentCameraIndex: observable,
             setCurrentCameraIndex: action,
@@ -380,6 +385,7 @@ export class ViewerState {
     addCameraDolly(newSequence:CameraDolly){
         this.cameraDollies.push(newSequence);
         this.animations.push(this.createAnimationClipFromSequence(newSequence));
+        this.animationRoots.push(this.cameras[0]);
         this.setCurrentAnimationIndex(this.animations.length - 1);
         this.setCurrentDollyIndex(this.cameraDollies.length - 1);
         this.animationChange = {index:this.currentDollyIndex, operation:"add"};
@@ -391,11 +397,17 @@ export class ViewerState {
         this.cameraDollies.splice(this.currentDollyIndex, 1, newSequence);
         const theClip = this.createAnimationClipFromSequence(newSequence);
         this.animations.splice(this.currentDollyIndex, 1, theClip);
+        this.animationRoots.splice(this.currentDollyIndex, 1, this.cameras[0]);
         this.animationChange = {index:this.currentDollyIndex, operation:"update"};
         this.setAnimationsNeedUpdate(true);
     }
     setAnimationList(animations: AnimationClip[]) {
         this.animations=animations
+    }
+    setAnimationListWithRoots(animations: AnimationClip[], roots: Object3D[]) {
+        this.setAnimationList(animations);
+        this.animationRoots=roots;
+        this.setAnimationsNeedUpdate(true);
     }
     setAnimationSpeed(newSpeed: number) {
         this.animationSpeed = newSpeed
@@ -508,6 +520,7 @@ export class ViewerState {
                 this.setCurrentDollyIndex(this.cameraDollies.length-1)
         }
         this.animations.splice(idx, 1);
+        this.animationRoots.splice(idx, 1);
         if (this.currentAnimationIndex === idx) {
             this.setCurrentAnimationIndex(-1);
         }

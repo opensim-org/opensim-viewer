@@ -340,10 +340,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         try {
           const frameDataURL = captureFrameReadPixels();
           capturedFrames.current.push(frameDataURL);
-          if (curState.isGuiMode){
-            curState.sendFrameAcknowledge(frameCount);
-            console.log("Captured gui frame # count",curState.guiFrameNumber, frameCount);
-          }
+
           //console.log(`Captured frame ${frameCount}/${totalFrames}`);
           frameCount++;
         } catch (e) {
