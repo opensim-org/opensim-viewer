@@ -103,7 +103,7 @@ export class ViewerState {
     animationSpeed: number
     animations: AnimationClip[]
     animationRoots: Object3D[] // roots for each animation clip
-    currentAnimationIndex: number
+    currentAnimationIndices: number[]
     animationsNeedUpdate: boolean
     animationChange: null | Object
     currentAnimationTime: number
@@ -188,7 +188,7 @@ export class ViewerState {
         this.animationSpeed = 1.0
         this.animations = []
         this.animationRoots = []
-        this.currentAnimationIndex = -1
+        this.currentAnimationIndices = []; // support multiple selection
         this.animationsNeedUpdate = false
         this.animationChange = null
         this.currentAnimationTime = 0
@@ -386,7 +386,7 @@ export class ViewerState {
         this.cameraDollies.push(newSequence);
         this.animations.push(this.createAnimationClipFromSequence(newSequence));
         this.animationRoots.push(this.cameras[0]);
-        this.setCurrentAnimationIndex(this.animations.length - 1);
+        this.addCurrentAnimationIndex(this.animations.length - 1);
         this.setCurrentDollyIndex(this.cameraDollies.length - 1);
         this.animationChange = {index:this.currentDollyIndex, operation:"add"};
         this.setAnimationsNeedUpdate(true);
@@ -415,8 +415,17 @@ export class ViewerState {
     setAnimating(newState: boolean){
         this.animating = newState
     }
-    setCurrentAnimationIndex(newIndex: number) {
-        this.currentAnimationIndex = newIndex
+
+    addCurrentAnimationIndex(newIndex: number) {
+        if (!this.currentAnimationIndices.includes(newIndex)) {
+            this.currentAnimationIndices.push(newIndex);
+        }
+    }
+    removeCurrentAnimationIndex(removeIndex: number) {
+        this.currentAnimationIndices = this.currentAnimationIndices.filter(index => index !== removeIndex);
+    }
+    clearCurrentAnimationIndices() {
+        this.currentAnimationIndices = [];
     }
     createAnimationClipFromSequence(newSequence: CameraDolly): AnimationClip {
         const numFrames = newSequence.cameraFrames.length
@@ -521,9 +530,7 @@ export class ViewerState {
         }
         this.animations.splice(idx, 1);
         this.animationRoots.splice(idx, 1);
-        if (this.currentAnimationIndex === idx) {
-            this.setCurrentAnimationIndex(-1);
-        }
+        this.removeCurrentAnimationIndex(idx);
         this.animationChange = {index:idx, operation:"delete"};
         this.setAnimationsNeedUpdate(true);
     }

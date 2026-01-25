@@ -82,6 +82,7 @@ export class ModelUIState {
     guiAnimationEndTime: number = 0.0
     guiAnimationSpeed: number = 1.0
     guiAnimationLoop: boolean = false
+    guiAnimationReverse: boolean = false
     showBottomBar: boolean = false;
     visibleHelpers: boolean = true;
     constructor(
@@ -425,13 +426,6 @@ export class ModelUIState {
                 // TODO: support path edit message type
                 //editor.processPathEdit(msg);
                 break;
-            case "startAnimation":
-                // this.guiHasAnimation = true;
-                // this.SetAnimatingGUI(true);
-                // this.guiAnimationSpeed = parsedMessage.Speed;
-                // this.guiAnimationLoop = parsedMessage.Loop;
-                console.log("Receive startAnimation, speed="+this.guiAnimationSpeed);
-                break;
             case "endAnimation":
                 this.SetAnimatingGUI(false);
                 this.viewerState.animating = false;
@@ -447,25 +441,42 @@ export class ModelUIState {
                 this.viewerState.setAnimationsNeedUpdate(true);
                 console.log("Receive ClearCurrentAnimation");
                 break;
-            case "AddAnimationClipList":
-                // TODO Major cleanup needed here from earlier animation if any
+            case "AddAnimationClip":
                 this.guiHasAnimation = true;
-                // Create AnimationClips for each clip in the message,
-                // We should have OpenSimGUISCene create one mixer for all these clips
-                // so that playing animations works as expected
-                this.createAnimationClipsFromMessage(parsedMessage);
-                this.viewerState.animating = true;
-                this.viewerState.setAnimationsNeedUpdate(true);
-                break;
-            case "RemoveAnimationClipList": 
-                console.log("Receive RemoveAnimationClipList");
+                // check for existing clip with same uuid?
+                for (let existingClip of this.viewerState.animations) {
+                    if (existingClip.uuid === parsedMessage.Clip.uuid) {
+                        console.log(`Animation clip with name ${existingClip.name} already exists. Skipping addition.`);
+                        return;
+                    }
+                }
+                // Create AnimationClips for the clip in the message,
+                this.createAnimationClipFromMessage(parsedMessage);
                 break;
             case "PlayAnimation":
-                console.log("Receive PlayAnimation at time="+parsedMessage.Time);
+                console.log("Receive PlayAnimation from time "+parsedMessage.start_time);
+                this.SetAnimatingGUI(false);
+                this.viewerState.animating = false; 
+                const animationUUIDs = parsedMessage.UUIDs;
+                this.viewerState.clearCurrentAnimationIndices();
+                for (let uuid of animationUUIDs) {
+                    for (let i = 0; i < this.viewerState.animations.length; i++) {
+                        if (this.viewerState.animations[i].uuid === uuid) {
+                            this.viewerState.addCurrentAnimationIndex(i);
+                            break;
+                        }
+                    }
+                }
+                this.guiAnimationLoop = parsedMessage.loop;
+                this.guiAnimationSpeed = parsedMessage.speed;
+                this.guiAnimationStartTime = parsedMessage.start_time;
+                this.guiAnimationEndTime = parsedMessage.end_time;
+                this.guiAnimationLoop = parsedMessage.loop;
+                this.guiAnimationReverse = parsedMessage.reverse;
+                this.viewerState.animationChange = {index:0, operation:"start"};
+                this.viewerState.setAnimationsNeedUpdate(true)
                 this.SetAnimatingGUI(true);
                 this.viewerState.animating = true; 
-                this.viewerState.animationChange = {index:0, operation:"start", time:parsedMessage.start_time};
-                this.viewerState.setAnimationsNeedUpdate(true)
                 break;
             case "HeartBeat":
                 console.log("Hearbeat received")
@@ -501,30 +512,18 @@ export class ModelUIState {
             this.socket!.send(json);
     }
     
-    createAnimationClipsFromMessage(clipMessage: any) {
-        // Placeholder for creating AnimationClips from clipList
-        const guiAnimations = [];
-        const guiAnimationRoots = [];
-        // clipList has an AnimationClip per model
-        // clipRoots has the root object uuid for each clip, the associated model
-        // clips end up as viewerState.animations
-        // Every clip gets its own mixer in OpenSimGUIScene
-        // Each clip is associated with its root object for the mixer
-        // viewerState.currentAnimation index will be retired and all mixers are played,
-        const clipList =  clipMessage.clip_list;
-        const clipRoots = clipMessage.clip_roots;
-        for (let i = 0; i < clipList.length; i++) {
-            const clipJson = clipList[i];
-            const clip = AnimationClip.parse(clipJson); // This creates an AnimationClip instance
-            guiAnimations.push(clip);
-            console.log(`Creating Animation Clip: Name=${clip.name}, Duration=${clip.duration}`);
-            const clipRoot = clipRoots[i];
-            console.log(`  Root Object UUID: ${clipRoot}`);
-            guiAnimationRoots.push(this.nodeDictionary[clipRoot]);
-        }
-        this.viewerState.setAnimationListWithRoots( guiAnimations, guiAnimationRoots);
-        this.viewerState.setCurrentAnimationIndex(0);
-        console.log("Creating Animation Clips from Clip List:", clipList);
+    createAnimationClipFromMessage(clipMessage: any) {
+        // Creating AnimationClip from clipMessage
+        // We probably should check to avoid duplicates here
+        const clip = AnimationClip.parse(clipMessage.Clip); // This creates an AnimationClip instance
+        this.viewerState.animations.push(clip);
+        const index = this.viewerState.animations.length - 1;
+        console.log(`Creating Animation Clip: Name=${clip.name}, Duration=${clip.duration}`);
+        const clipRoot = clipMessage.Root;
+        console.log(`  Root Object UUID: ${clipRoot}`);
+        this.viewerState.animationRoots.push(this.nodeDictionary[clipRoot]);
+        this.viewerState.animationChange = {index:index, operation:"add"};
+        this.viewerState.setAnimationsNeedUpdate(true)
     }
     stopGUIAnimation() {
         const json = JSON.stringify({
@@ -558,7 +557,7 @@ export class ModelUIState {
     }
     sendMeasuredFPS(fps: number) {
         if (this.isGUIAnimating)
-            return; // Don't interfer with animation while playing
+            return; // Don't interfere with animation while playing
         this.fps = fps;
         var json = JSON.stringify({
                type: "INFO",

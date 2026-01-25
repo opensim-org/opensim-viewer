@@ -3,7 +3,7 @@ import { ThreeEvent, useFrame, useLoader, useThree } from '@react-three/fiber'
 import * as THREE from 'three';
 
 import { useEffect, useRef, useState } from 'react'
-import { AnimationMixer, AnimationClip, Color, Group, Mesh, Object3D} from 'three'
+import { AnimationMixer, Color, Group, Mesh, Object3D} from 'three'
 import { observer } from 'mobx-react'
 
 import { useModelContext } from '../../state/ModelUIStateContext'
@@ -28,8 +28,6 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     const sceneRef = useRef<THREE.Scene>(scene);
     const [sceneObjectMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
     const [useEffectRunning, setUseEffectRunning] = useState<boolean>(false)
-    const [animationIndex, setAnimationIndex] = useState<number>(-1)
-    const [startTime, setStartTime] = useState<number>(0)
     const [mixers, ] = useState<AnimationMixer[]>([])
     const [colorNodeMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
     const lightRef = useRef<THREE.DirectionalLight | null>(null)
@@ -163,25 +161,24 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         setCurrentCamera(selectedCamera);
         set({ camera: selectedCamera });
       }
-      // Make sure mixers match animations
-      if ((curState.viewerState.animations.length > 0 && mixers.length !==curState.viewerState.animations.length)) {
-          mixers.length = 0
-          curState.viewerState.animations.forEach((clip, index) => {
-              const nextMixer = new AnimationMixer(curState.viewerState.animationRoots[index])
-              const action = nextMixer.clipAction(clip)
-              if (curState.guiAnimationLoop) {
-                action.setLoop(THREE.LoopRepeat, Infinity);
-              }
-              else {
-                action.setLoop(THREE.LoopOnce, 1);
-              }
-              mixers.push(nextMixer);
-          });
-      }
       if (curState.viewerState.animationsNeedUpdate && curState.viewerState.animationChange !== null) {
         const change = curState.viewerState.animationChange as {index:number, operation:string, time: number};
-        setAnimationIndex(-1); // reset animation index to force update
-        if (change.operation === "update") {
+        if (change.operation === "add") {
+          const clipIndex = change.index;
+          if (clipIndex !== -1) {
+            const nextMixer = new AnimationMixer(curState.viewerState.animationRoots[clipIndex])
+            const clip = curState.viewerState.animations[clipIndex]
+            nextMixer.clipAction(clip)
+            if (curState.guiAnimationLoop) {
+              nextMixer.clipAction(clip).setLoop(THREE.LoopRepeat, Infinity);
+            }
+            else {
+              nextMixer.clipAction(clip).setLoop(THREE.LoopOnce, 1);
+            }
+            mixers[clipIndex] = nextMixer
+          }
+        }
+        else if (change.operation === "update") {
           const clipIndex = curState.viewerState.animations[change.index]?change.index:-1
           if (clipIndex !== -1) {
             const nextMixer = new AnimationMixer(curState.viewerState.animationRoots[clipIndex])
@@ -203,23 +200,20 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           }
         }
         else if (change.operation === "start") {
-          const nextMixer = mixers[change.index]; // may need to do this for all mixers if multiple animations can play
-          const clip = curState.viewerState.animations[change.index]
-          const action = nextMixer.clipAction(clip);
-          action.enabled = true;
-          action.time = change.time;
-          if (curState.guiAnimationLoop) {
-            action.setLoop(THREE.LoopRepeat, Infinity);
-          } else {
-            action.setLoop(THREE.LoopOnce, 1);
-            nextMixer.addEventListener("finished", ()=>{
-              curState.SetAnimatingGUI(false);
-              viewerState.animating = false;
-            }); 
-          }
-          action.play();
+          // start all mixers by playing their actions
+          mixers.forEach((mixer, idx) => {
+            const action = mixer.clipAction(curState.viewerState.animations[idx]);
+            if (curState.guiAnimationLoop) {
+              action.setLoop(THREE.LoopRepeat, Infinity);
+            }
+            else {
+              action.setLoop(THREE.LoopOnce, 1);
+            }
+            action.time = curState.guiAnimationStartTime;
+            action.play();
+          });
         }
-      }
+    }
       curState.viewerState.setAnimationsNeedUpdate(false);
   }, [currentCamera, set, curState.viewerState.currentCameraIndex, 
         curState.viewerState.cameras, curState.viewerState.cameras.length, 
@@ -255,55 +249,19 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         csRef.current!.visible = curState.showGlobalFrame;
 
         const viewerState = curState.viewerState;
-        const idx = viewerState.currentAnimationIndex;
-
-        // Handle animation index change
-        if (viewerState.currentAnimationIndex !== animationIndex) {
-          const newAnimationIndex = viewerState.currentAnimationIndex;
-          const oldIndex = animationIndex;
-
-          // Stop old animation
-          if (oldIndex !== -1 && mixers[oldIndex] !== undefined) {
-            mixers[oldIndex].stopAllAction();
-          }
-
-          setAnimationIndex(newAnimationIndex);
-
-          // Create mixer if needed
-          if (mixers.length - 1 < newAnimationIndex) {
-            const nextMixer = new AnimationMixer(curState.viewerState.animationRoots[viewerState.currentAnimationIndex]);
-            const nextAnimation = viewerState.animations[viewerState.currentAnimationIndex];
-            //nextAnimation.tracks[0].setInterpolation(THREE.InterpolateLinear);
-            //nextAnimation.tracks[1].setInterpolation(THREE.InterpolateLinear);
-            const action = nextMixer.clipAction(nextAnimation);
-            if (curState.guiAnimationLoop) {
-              action.setLoop(THREE.LoopRepeat, Infinity);
-            }
-            else {
-              action.setLoop(THREE.LoopOnce, 1);
-              nextMixer.addEventListener("finished", ()=>{
-                curState.SetAnimatingGUI(false);
-                viewerState.animating = false;
-              }); 
-            }
-            mixers.push(nextMixer);
-          }
-
-          // Start new animation
-          const action = mixers[viewerState.currentAnimationIndex]?.clipAction(viewerState.animations[viewerState.currentAnimationIndex]);
-          action?.play();
-        }
+        const indices = viewerState.currentAnimationIndices;
 
         // Handle animation playback
-        if (idx !== -1) {
+        for (const idx in indices) {
           const mixer = mixers[idx];
           const action = mixer.clipAction(viewerState.animations[idx]);
           const duration = action.getClip().duration;
 
           // If we're animating (playing), update the mixer with delta time
           if (viewerState.animating || curState.isGUIAnimating) {
+            const direction = curState.guiAnimationReverse ? -1 : 1;
             if (curState.isGuiMode)
-              mixer.update(delta * curState.guiAnimationSpeed);
+              mixer.update(delta * curState.guiAnimationSpeed * direction);
             else
               mixer.update(delta * viewerState.animationSpeed);
             applyAnimationColors();
@@ -407,28 +365,6 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     curState.setSelected("", true);
   }
 
-  // function handleBoxSelect(selected: Object3D<THREE.Event>[]): void {
-  //   let default_box = new THREE.Box3()
-  //   let firstObjectFound = false;
-  //   for (let i = 0; i < selected.length; i++){
-  //     if (selected[i].visible){
-  //       if (!firstObjectFound){
-  //         default_box = new THREE.Box3().setFromObject(selected[i])
-  //         curState.setSelected(selected[i].uuid, true);
-  //       }
-  //       else { // Union boxes
-  //         const newBox = new THREE.Box3().setFromObject(selected[i]);
-  //         default_box.union(newBox)
-  //       }
-  //       firstObjectFound = true
-  //     }
-  //   }
-  //   if (firstObjectFound){
-  //     const boxHelper = new THREE.Box3Helper(default_box)
-  //     sceneRef.current!.add(boxHelper)
-  //     curState.fitCameraTo(default_box);
-  //   }
-  // }
 
     // By the time we're here the model is guaranteed to be available
     return <>

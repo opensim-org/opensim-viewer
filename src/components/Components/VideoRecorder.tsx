@@ -276,8 +276,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       const fps = viewerState.recordedVideoFPS || 30;
       const frameDuration = 1000 / fps;
 
-      const currentAnimationIndex = viewerState.currentAnimationIndex;
-      if (currentAnimationIndex === -1 && !curState.isGuiMode) {
+      if (viewerState.currentAnimationIndices.length === 0 && !curState.isGuiMode) {
         enqueueSnackbar(t('snackbars.no_animation_selected'), {
           variant: 'error',
           anchorOrigin: { horizontal: 'right', vertical: 'bottom' },

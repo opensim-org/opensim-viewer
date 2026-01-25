@@ -205,8 +205,8 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
             }
           }
 
-          if (curState.viewerState.currentAnimationIndex !== animationIndex) {
-            const newAnimationIndex = curState.viewerState.currentAnimationIndex;
+          if (curState.viewerState.currentAnimationIndices[0] !== animationIndex) {
+            const newAnimationIndex = curState.viewerState.currentAnimationIndices[0];
             const oldIndex = animationIndex;
             if (oldIndex !== -1 && mixers[oldIndex]) mixers[oldIndex].stopAllAction();
             setAnimationIndex(newAnimationIndex);
@@ -216,10 +216,10 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
             }
           }
 
-          const idx = curState.viewerState.currentAnimationIndex;
-          if (supportControls && idx !== -1 && mixers[idx]) {
-            const mixer = mixers[idx];
-            const action = mixer.clipAction(animations[idx]);
+          const idx = curState.viewerState.currentAnimationIndices;
+          if (supportControls && idx.length>0 && mixers[idx[0]]) {
+            const mixer = mixers[idx[0]];
+            const action = mixer.clipAction(animations[idx[0]]);
             const duration = action.getClip().duration;
 
             // CASE 1: PLAYING (animating) - Update animation time and UI
