@@ -22,7 +22,6 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     // useGLTF suspends the component, it literally stops processing
     const { set, gl} = useThree();
     const { scene, camera } = useThree();
-    const modelUIState = useModelContext()
     const viewerState = useModelContext().viewerState;
 
     const sceneRef = useRef<THREE.Scene>(scene);
@@ -201,7 +200,10 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         }
         else if (change.operation === "start") {
           // start all mixers by playing their actions
+          const indices = viewerState.currentAnimationIndices;
           mixers.forEach((mixer, idx) => {
+            if (mixer === undefined) return;
+            if (indices.indexOf(idx) === -1) return; // only start if in current indices
             const action = mixer.clipAction(curState.viewerState.animations[idx]);
             if (curState.guiAnimationLoop) {
               action.setLoop(THREE.LoopRepeat, Infinity);
@@ -209,7 +211,9 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             else {
               action.setLoop(THREE.LoopOnce, 1);
             }
+            action.reset();
             action.time = curState.guiAnimationStartTime;
+            action.clampWhenFinished = true;
             action.play();
           });
         }
@@ -253,12 +257,13 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
         // Handle animation playback
         for (const idx in indices) {
-          const mixer = mixers[idx];
-          const action = mixer.clipAction(viewerState.animations[idx]);
+          const animIndex = indices[idx];
+          const mixer = mixers[animIndex];
+          const action = mixer.clipAction(viewerState.animations[animIndex]);
           const duration = action.getClip().duration;
 
           // If we're animating (playing), update the mixer with delta time
-          if (viewerState.animating || curState.isGUIAnimating) {
+          if (viewerState.animating) {
             const direction = curState.guiAnimationReverse ? -1 : 1;
             if (curState.isGuiMode)
               mixer.update(delta * curState.guiAnimationSpeed * direction);
@@ -297,12 +302,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
               viewerState.forceAnimationUpdate = false;
             }
           }
-        } else {
-          // No active animation, reset animation time
-          if (viewerState.currentAnimationTime !== 0) {
-            viewerState.setCurrentAnimationTime(0);
-          }
-        }
+        } 
       }
 
       // FPS counter

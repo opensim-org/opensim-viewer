@@ -74,7 +74,6 @@ export class ModelUIState {
     fitToBox: Box3 | null
     debug: boolean
     simulationTime: number
-    isGUIAnimating: boolean = false
     processingSocketMessage: boolean = false
     fps: number = 60
     guiHasAnimation: boolean = false
@@ -427,17 +426,13 @@ export class ModelUIState {
                 //editor.processPathEdit(msg);
                 break;
             case "endAnimation":
-                this.SetAnimatingGUI(false);
                 this.viewerState.animating = false;
                 this.viewerState.setAnimationsNeedUpdate(true);
                 console.log("Receive endAnimation");
                 break;
             case "ClearCurrentAnimation":
                 // TODO Major cleanup needed here
-                this.guiHasAnimation = false;
-                this.guiAnimationStartTime = 0.0;
-                this.guiAnimationEndTime = 0.0;
-                this.viewerState.setAnimationList([]);
+                this.viewerState.currentAnimationIndices = [];
                 this.viewerState.setAnimationsNeedUpdate(true);
                 console.log("Receive ClearCurrentAnimation");
                 break;
@@ -453,30 +448,48 @@ export class ModelUIState {
                 // Create AnimationClips for the clip in the message,
                 this.createAnimationClipFromMessage(parsedMessage);
                 break;
-            case "PlayAnimation":
-                console.log("Receive PlayAnimation from time "+parsedMessage.start_time);
-                this.SetAnimatingGUI(false);
+            case "SetCurrentAnimations":
                 this.viewerState.animating = false; 
-                const animationUUIDs = parsedMessage.UUIDs;
+                const animationIDs = parsedMessage.clip_list;
                 this.viewerState.clearCurrentAnimationIndices();
-                for (let uuid of animationUUIDs) {
+                for (let uuid of animationIDs) {
                     for (let i = 0; i < this.viewerState.animations.length; i++) {
                         if (this.viewerState.animations[i].uuid === uuid) {
                             this.viewerState.addCurrentAnimationIndex(i);
+                            //console.log("  set as current animation at index "+i+" uuid "+uuid);
                             break;
                         }
                     }
                 }
+                break;
+            case "PlayAnimation":
+                //console.log("Receive PlayAnimation from time "+parsedMessage.start_time);
+                if (this.viewerState.animating){
+                    // If we are animating, ignore play command, likely a redundant message
+                    console.log(" Already animating, ignoring PlayAnimation command");
+                    return;
+                }                
+                //this.viewerState.animating = false; 
+                //const animationUUIDs = parsedMessage.UUIDs;
+                // this.viewerState.clearCurrentAnimationIndices();
+                // for (let uuid of animationUUIDs) {
+                //     for (let i = 0; i < this.viewerState.animations.length; i++) {
+                //         if (this.viewerState.animations[i].uuid === uuid) {
+                //             this.viewerState.addCurrentAnimationIndex(i);
+                //             console.log("  Playing animation at index "+i+" uuid "+uuid);
+                //             break;
+                //         }
+                //     }
+                // }
                 this.guiAnimationLoop = parsedMessage.loop;
                 this.guiAnimationSpeed = parsedMessage.speed;
                 this.guiAnimationStartTime = parsedMessage.start_time;
                 this.guiAnimationEndTime = parsedMessage.end_time;
                 this.guiAnimationLoop = parsedMessage.loop;
                 this.guiAnimationReverse = parsedMessage.reverse;
+                this.viewerState.animating = true; 
                 this.viewerState.animationChange = {index:0, operation:"start"};
                 this.viewerState.setAnimationsNeedUpdate(true)
-                this.SetAnimatingGUI(true);
-                this.viewerState.animating = true; 
                 break;
             case "HeartBeat":
                 console.log("Hearbeat received")
@@ -495,12 +508,6 @@ export class ModelUIState {
     }
     fitCameraTo(objectbbox: Box3) {
         this.fitToBox = objectbbox;
-    }
-
-    SetAnimatingGUI(isAnimating: boolean) {
-        // Implement animation state handling here if needed
-        this.isGUIAnimating = isAnimating;
-        console.log("SetAnimatingGUI="+isAnimating);
     }
 
     startGUIAnimationIfAvailable(requiredTimeStep: number) {
@@ -556,7 +563,7 @@ export class ModelUIState {
             this.socket!.send(json);
     }
     sendMeasuredFPS(fps: number) {
-        if (this.isGUIAnimating)
+        if (this.viewerState.animating)
             return; // Don't interfere with animation while playing
         this.fps = fps;
         var json = JSON.stringify({

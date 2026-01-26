@@ -139,7 +139,7 @@ const BottomBar = React.forwardRef(function CustomContent(
         viewerState.setCurrentAnimationTime(newTime);
 
         // Force the animation to update immediately when manually scrubbing
-        if (!viewerState.animating && !curState.isGUIAnimating) {
+        if (!viewerState.animating) {
           // This will trigger the scene to update the animation pose
           curState.viewerState.forceAnimationUpdate = true;
         }
@@ -165,7 +165,7 @@ const BottomBar = React.forwardRef(function CustomContent(
           setCurrentTimeDisplay(formatTime(clampedTime));
 
           // Force update when manually setting time
-          if (!viewerState.animating && !curState.isGUIAnimating) {
+          if (!viewerState.animating) {
             curState.viewerState.forceAnimationUpdate = true;
           }
         }
@@ -266,7 +266,7 @@ const BottomBar = React.forwardRef(function CustomContent(
                 size="small"
                 color="primary"
                 value={'Animation'}
-                disabled={curState.viewerState.animations.length < 1 || curState.isGUIAnimating}
+                disabled={curState.viewerState.animations.length < 1 }
                 onClick={togglePlayAnimation}>
                   {play?<PauseCircleTwoToneIcon/>:<PlayCircleTwoToneIcon/>}
               </IconButton>

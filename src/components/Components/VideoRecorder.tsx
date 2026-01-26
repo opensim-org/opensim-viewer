@@ -352,7 +352,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         lastCaptureTime = startTime;
 
         async function waitForData() {
-          while (!curState.isGUIAnimating) {
+          while (!curState.viewerState.animating) {
             await new Promise((resolve) => setTimeout(resolve, 100));
           }
         }
