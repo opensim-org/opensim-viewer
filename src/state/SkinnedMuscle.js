@@ -59,9 +59,9 @@ class SkinnedMuscle extends SkinnedMesh {
 	}
 
     setColor(newColor) {
-        this.material.color.setHex(newColor);
+        this.material.color.setHex(newColor, THREE.LinearSRGBColorSpace);
         if (this.firstPointMaterial !== undefined)
-            this.firstPointMaterial.color.setHex(newColor);
+            this.firstPointMaterial.color.setHex(newColor, THREE.LinearSRGBColorSpace);
     }
 
     updateMatrixWorld( force ) {
