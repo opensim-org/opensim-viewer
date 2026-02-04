@@ -424,6 +424,22 @@ export class ViewerState {
     removeCurrentAnimationIndex(removeIndex: number) {
         this.currentAnimationIndices = this.currentAnimationIndices.filter(index => index !== removeIndex);
     }
+    removeAnimationsForModelUUID(modelUUID: string) {
+        // Implement logic to remove animations related to the given model UUID
+        // This is a placeholder for the actual implementation
+        const indicesToRemove: number[] = [];
+        this.animationRoots.forEach((anim, index) => {
+            if (anim.uuid === modelUUID) {
+                indicesToRemove.push(index);
+            }
+        });
+        for (let i = indicesToRemove.length - 1; i >= 0; i--) {
+            const idx = indicesToRemove[i];
+            this.animations.splice(idx, 1);
+            this.animationRoots.splice(idx, 1);
+            this.removeCurrentAnimationIndex(idx);
+        }
+    }
     clearCurrentAnimationIndices() {
         this.currentAnimationIndices = [];
     }
