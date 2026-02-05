@@ -1,5 +1,6 @@
 import { makeObservable, observable, action, runInAction } from 'mobx'
-import { Color, Vector3, Camera, AnimationClip, VectorKeyframeTrack, QuaternionKeyframeTrack, PerspectiveCamera, Group, Quaternion, Matrix4 } from 'three'
+import { Color, Vector3, Camera, AnimationClip, 
+    VectorKeyframeTrack, QuaternionKeyframeTrack, PerspectiveCamera, Group, Object3D } from 'three'
 
 export class CameraFrame {
     cam_uuid: string
@@ -101,7 +102,8 @@ export class ViewerState {
     animating: boolean
     animationSpeed: number
     animations: AnimationClip[]
-    currentAnimationIndex: number
+    animationRoots: Object3D[] // roots for each animation clip
+    currentAnimationIndices: number[]
     animationsNeedUpdate: boolean
     animationChange: null | Object
     currentAnimationTime: number
@@ -185,7 +187,8 @@ export class ViewerState {
         this.animating = false
         this.animationSpeed = 1.0
         this.animations = []
-        this.currentAnimationIndex = -1
+        this.animationRoots = []
+        this.currentAnimationIndices = []; // support multiple selection
         this.animationsNeedUpdate = false
         this.animationChange = null
         this.currentAnimationTime = 0
@@ -253,6 +256,8 @@ export class ViewerState {
             animationSpeed: observable,
             animations: observable,
             setAnimationList: action,
+            setAnimationListWithRoots: action,
+            animationRoots: observable,
             setAnimationSpeed: action,
             currentCameraIndex: observable,
             setCurrentCameraIndex: action,
@@ -380,7 +385,8 @@ export class ViewerState {
     addCameraDolly(newSequence:CameraDolly){
         this.cameraDollies.push(newSequence);
         this.animations.push(this.createAnimationClipFromSequence(newSequence));
-        this.setCurrentAnimationIndex(this.animations.length - 1);
+        this.animationRoots.push(this.cameras[0]);
+        this.addCurrentAnimationIndex(this.animations.length - 1);
         this.setCurrentDollyIndex(this.cameraDollies.length - 1);
         this.animationChange = {index:this.currentDollyIndex, operation:"add"};
         this.setAnimationsNeedUpdate(true);
@@ -391,11 +397,17 @@ export class ViewerState {
         this.cameraDollies.splice(this.currentDollyIndex, 1, newSequence);
         const theClip = this.createAnimationClipFromSequence(newSequence);
         this.animations.splice(this.currentDollyIndex, 1, theClip);
+        this.animationRoots.splice(this.currentDollyIndex, 1, this.cameras[0]);
         this.animationChange = {index:this.currentDollyIndex, operation:"update"};
         this.setAnimationsNeedUpdate(true);
     }
     setAnimationList(animations: AnimationClip[]) {
         this.animations=animations
+    }
+    setAnimationListWithRoots(animations: AnimationClip[], roots: Object3D[]) {
+        this.setAnimationList(animations);
+        this.animationRoots=roots;
+        this.setAnimationsNeedUpdate(true);
     }
     setAnimationSpeed(newSpeed: number) {
         this.animationSpeed = newSpeed
@@ -403,8 +415,33 @@ export class ViewerState {
     setAnimating(newState: boolean){
         this.animating = newState
     }
-    setCurrentAnimationIndex(newIndex: number) {
-        this.currentAnimationIndex = newIndex
+
+    addCurrentAnimationIndex(newIndex: number) {
+        if (!this.currentAnimationIndices.includes(newIndex)) {
+            this.currentAnimationIndices.push(newIndex);
+        }
+    }
+    removeCurrentAnimationIndex(removeIndex: number) {
+        this.currentAnimationIndices = this.currentAnimationIndices.filter(index => index !== removeIndex);
+    }
+    removeAnimationsForModelUUID(modelUUID: string) {
+        // Implement logic to remove animations related to the given model UUID
+        // This is a placeholder for the actual implementation
+        const indicesToRemove: number[] = [];
+        this.animationRoots.forEach((anim, index) => {
+            if (anim.uuid === modelUUID) {
+                indicesToRemove.push(index);
+            }
+        });
+        for (let i = indicesToRemove.length - 1; i >= 0; i--) {
+            const idx = indicesToRemove[i];
+            this.animations.splice(idx, 1);
+            this.animationRoots.splice(idx, 1);
+            this.removeCurrentAnimationIndex(idx);
+        }
+    }
+    clearCurrentAnimationIndices() {
+        this.currentAnimationIndices = [];
     }
     createAnimationClipFromSequence(newSequence: CameraDolly): AnimationClip {
         const numFrames = newSequence.cameraFrames.length
@@ -508,9 +545,8 @@ export class ViewerState {
                 this.setCurrentDollyIndex(this.cameraDollies.length-1)
         }
         this.animations.splice(idx, 1);
-        if (this.currentAnimationIndex === idx) {
-            this.setCurrentAnimationIndex(-1);
-        }
+        this.animationRoots.splice(idx, 1);
+        this.removeCurrentAnimationIndex(idx);
         this.animationChange = {index:idx, operation:"delete"};
         this.setAnimationsNeedUpdate(true);
     }

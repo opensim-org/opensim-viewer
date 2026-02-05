@@ -276,8 +276,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       const fps = viewerState.recordedVideoFPS || 30;
       const frameDuration = 1000 / fps;
 
-      const currentAnimationIndex = viewerState.currentAnimationIndex;
-      if (currentAnimationIndex === -1 && !curState.isGuiMode) {
+      if (viewerState.currentAnimationIndices.length === 0 && !curState.isGuiMode) {
         enqueueSnackbar(t('snackbars.no_animation_selected'), {
           variant: 'error',
           anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
@@ -340,10 +339,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         try {
           const frameDataURL = captureFrameReadPixels();
           capturedFrames.current.push(frameDataURL);
-          if (curState.isGuiMode){
-            curState.sendFrameAcknowledge(frameCount);
-            console.log("Captured gui frame # count",curState.guiFrameNumber, frameCount);
-          }
+
           //console.log(`Captured frame ${frameCount}/${totalFrames}`);
           frameCount++;
         } catch (e) {
@@ -356,7 +352,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         lastCaptureTime = startTime;
 
         async function waitForData() {
-          while (!curState.isGUIAnimating) {
+          while (!curState.viewerState.animating) {
             await new Promise((resolve) => setTimeout(resolve, 100));
           }
         }

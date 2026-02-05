@@ -214,16 +214,16 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
       else
         setHeightBottomBar(bottomBarRef.current.offsetHeight);
 
-      setCanvasHeight("calc(100vh - 68px - " + heightBottomBar + "px)");
+      setCanvasHeight("calc(100vh - " + heightBottomBar + "px)");
     }
-  }, []);
+  }, [curState.showBottomBar]);
 
   React.useEffect(() => {
     // Change interface if we are in GUI mode.
     if (uiState.isGuiMode) {
       setDisplaySideBar('none');
       setCanvasWidth('100%');
-      setCanvasHeight('calc(100vh - 68px)');
+      setCanvasHeight('calc(100vh)');
       setCanvasLeft(0);
       setFloatingButtonsContainerTop("12px")
       setFloatingButtonsContainerLeft("12px")
@@ -239,7 +239,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 
 useEffect(() => {
     // Create fresh WebSocket
-    if (uiState.isGuiMode) {
+    if (uiState.isGuiMode && uiState.socket === null) {
       const socket = new WebSocket('ws://127.0.0.1:8002/visEndpoint');
       socket.onopen = () => { uiState.setSocketHandle(socket); console.log("socket opened");}
       socket.onmessage = function(evt) {
