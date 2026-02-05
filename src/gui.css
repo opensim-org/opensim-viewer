@@ -6,11 +6,6 @@
   display: none;
 }
 
-#canvas-element {
-  left: 0 !important;
-  height: calc(100vh - 68px) !important;
-}
-
 .floating-buttons-container {
   top: 12px !important;
 }
