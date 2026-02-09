@@ -425,7 +425,7 @@ useEffect(() => {
                 <div
                   style={{
                     position: "absolute",
-                    top: 66,
+                    top: 0,
                     right: 0,
                     zIndex: 1002,
                     height: canvasHeight,          // full canvas height
