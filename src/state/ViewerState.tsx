@@ -148,7 +148,7 @@ export class ViewerState {
 
         this.videoRecorderPreserveAspectRatio = true
         this.user_uuid = ''
-        this.backgroundColor = new Color(0.7, 0.7, 0.7)
+        this.backgroundColor = new Color(0.12, 0.12, 0.12)
         this.backgroundImage = null
         this.useTexture = false
         this.skyTextureIndex = 0

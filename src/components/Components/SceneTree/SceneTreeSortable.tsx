@@ -239,7 +239,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
         ref={outerDivRef}
         style={{
           position: 'absolute',
-          top: uiState.isGuiMode ? '-66px' : '0px',
+          top: uiState.isGuiMode ? '0px' : '0px',
           right: 0,
           height,
           display: 'flex',
