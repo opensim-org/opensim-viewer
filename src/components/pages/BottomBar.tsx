@@ -114,6 +114,8 @@ const BottomBar = React.forwardRef(function CustomContent(
 
     function togglePlayAnimation() {
         curState.viewerState.setAnimating(!curState.viewerState.animating);
+        curState.viewerState.animationChange = {index:0, operation:"start"};
+        curState.viewerState.setAnimationsNeedUpdate(true)
         setPlay(!play);
     }
 
