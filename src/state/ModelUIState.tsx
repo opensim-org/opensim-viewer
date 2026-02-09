@@ -355,6 +355,8 @@ export class ModelUIState {
                     delete this.modelDictionary[modeltoClose]
                     // update sceneVersion to force tree rendering
                     this.viewerState.setSceneVersion(this.viewerState.sceneVersion+1);
+                    // delete all animations related to this model
+                    this.viewerState.removeAnimationsForModelUUID(modeltoClose);
                 }
                 break;
             case "Select" :
