@@ -55,7 +55,7 @@ export class ViewerState {
     recordedVideoName: string
     recordedVideoFormat: string
     recordedVideoFPS: number
-    recordedVideoAspectRatio: string
+    //recordedVideoAspectRatio: string
     isRecordingVideo: boolean
     isProcessingVideo: boolean
     videoRecorderBaseDimension: number
@@ -143,7 +143,7 @@ export class ViewerState {
         this.isProcessingVideo = isProcessingVideo
         // Default values here is not used as selected in interface before start recording.
         this.recordedVideoFPS = 30
-        this.recordedVideoAspectRatio = "16:9"
+        //this.recordedVideoAspectRatio = "16:9"
         this.videoRecorderBaseDimension = 1080
 
         this.videoRecorderPreserveAspectRatio = true
@@ -217,7 +217,7 @@ export class ViewerState {
             recordedVideoName: observable,
             recordedVideoFormat: observable,
             recordedVideoFPS: observable,
-            recordedVideoAspectRatio: observable,
+            //recordedVideoAspectRatio: observable,
             isRecordingVideo: observable,
             videoRecorderBaseDimension: observable,
             setVideoRecorderBaseDimension: action,
@@ -319,7 +319,7 @@ export class ViewerState {
         this.recordedVideoFPS = newFPS
     }
     setRecorderAspectRatio(newAspectRatio: string) {
-        this.recordedVideoAspectRatio = newAspectRatio
+        //this.recordedVideoAspectRatio = newAspectRatio
     }
     setVideoRecorderBaseDimension(dimension: number) {
       this.videoRecorderBaseDimension = dimension

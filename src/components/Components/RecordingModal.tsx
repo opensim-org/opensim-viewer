@@ -31,7 +31,8 @@ const qualityLevels = [
 const videoFormats = [
   { label: "MP4", value: "mp4" },
   { label: "MOV", value: "mov" },
-  { label: "JPEG (Zip)", value: "jpeg-zip"}
+  { label: "JPEG (Zip)", value: "jpeg-zip"},
+  { label: "GIF", value: "gif"}
 ];
 
 const fpsValues = [30, 60];
@@ -148,7 +149,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
             </Select>
           </FormControl>
 
-          {/* Aspect Ratio */}
+          {/* Aspect Ratio
           <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
             <InputLabel>Aspect Ratio</InputLabel>
             <Select
@@ -163,7 +164,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
               ))}
             </Select>
           </FormControl>
-
+*/}
 
           {/* FPS */}
           <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
