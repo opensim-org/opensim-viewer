@@ -493,6 +493,9 @@ export class ModelUIState {
                 this.viewerState.animationChange = {index:0, operation:"start"};
                 this.viewerState.setAnimationsNeedUpdate(true)
                 break;
+            case "SetAnimationSpeed":
+                this.guiAnimationSpeed = parsedMessage.speed;
+                break;
             case "HeartBeat":
                 console.log("Hearbeat received")
                 this.sendModelOffsets();
