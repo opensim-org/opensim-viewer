@@ -204,7 +204,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
         setSelectedPath(null);
         setSettingsNode(null);
         //uiState.setSelected("");
-        setTransformTargetFunction?.(null);
+        //setTransformTargetFunction?.(null);
         removeTempHelper(scene);
       }
     }, [isOpen, scene, uiState, setTransformTargetFunction]);
