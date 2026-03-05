@@ -148,6 +148,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const drawerContentWidth = 250;
 
   const [showDebug, setShowDebug] = useState(false);
+  const [showBottomBar, setShowBottomBar] = useState(false);
 
   const [canvasLoaded, setCanvasLoaded] = useState(false);
 
@@ -269,6 +270,11 @@ useEffect(() => {
       if (e.ctrlKey && e.key.toLowerCase() === "d") {
         e.preventDefault(); // prevent browser bookmark shortcut
         setShowDebug(prev => !prev);
+      }
+      if (e.ctrlKey && e.key.toLowerCase() === "b") {
+        e.preventDefault(); // prevent browser bookmark shortcut
+        uiState.showBottomBar = !uiState.showBottomBar;
+        setShowBottomBar(uiState.showBottomBar);
       }
     };
 
@@ -413,7 +419,7 @@ useEffect(() => {
                 parent={treeRef.current?.selectedNode() ?? null}
               />
 
-              {curState.showBottomBar && (
+              {showBottomBar && (
               <BottomBar
                 ref={bottomBarRef}
                 animationPlaySpeed={1.0}
