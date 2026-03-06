@@ -355,6 +355,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
       const selected_uuid = event.object.uuid;
       if (selected_uuid !== undefined){
         curState.setSelected(selected_uuid, true);
+        event.stopPropagation();
       }
       else
         curState.setSelected("", true);
