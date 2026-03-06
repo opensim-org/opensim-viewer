@@ -493,6 +493,12 @@ export class ModelUIState {
                 this.viewerState.animationChange = {index:0, operation:"start"};
                 this.viewerState.setAnimationsNeedUpdate(true)
                 break;
+            case "AnimationTime":
+                //console.log("Receive AnimationTimeUpdate time="+parsedMessage.time);
+                this.viewerState.animationChange = {index:0, operation:"timeChange"};
+                this.viewerState.currentAnimationTime = parsedMessage.time;
+                this.viewerState.setAnimationsNeedUpdate(true)
+                break;
             case "SetAnimationSpeed":
                 this.guiAnimationSpeed = parsedMessage.speed;
                 break;
