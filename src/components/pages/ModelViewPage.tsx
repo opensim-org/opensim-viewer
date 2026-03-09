@@ -190,7 +190,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const [scene, setScene] = useState<THREE.Scene | null>(null);
   const [camera, setCamera] = useState<THREE.Camera | null>(null);
   const [transformTarget, setTransformTargetInternal] = useState<THREE.Object3D | null>(null);
-  const [transformMode, setTransformMode] = useState<'translate' | 'rotate'>('translate');
+  const [transformMode, ] = useState<'translate' | 'rotate'>('translate');
 
   function isImmovableObject(name: string){
     return name==="Ground" || name.startsWith("Body");
