@@ -11,6 +11,11 @@ import { getTimestamp } from "../../helpers/timeHelpers";
 import { PerspectiveCamera } from 'three';
 import JSZip from 'jszip';
 
+// Extend Navigator interface to include deviceMemory
+interface NavigatorWithMemory extends Navigator {
+  deviceMemory?: number;
+}
+
 type VideoRecorderRef = {
   startRecording: () => void;
   stopRecording: () => void;
@@ -21,6 +26,12 @@ type VideoRecorderViewProps = {
 };
 
 type VideoFormat = 'mp4' | 'mov' | 'webm' | 'gif' | 'zip';
+
+// Type for FFmpeg error event
+interface FFmpegErrorEvent {
+  message: string;
+  type?: string;
+}
 
 function VideoRecorder(props: VideoRecorderViewProps) {
   const { t } = useTranslation();
@@ -39,25 +50,131 @@ function VideoRecorder(props: VideoRecorderViewProps) {
   const originalCameraAspectRef = useRef<number | null>(null);
   const originalRendererSizeRef = useRef<{ width: number; height: number } | null>(null);
 
+  // Check if local file exists
+  const checkLocalFileExists = async (url: string): Promise<boolean> => {
+    try {
+      const response = await fetch(url);
+      return response.ok;
+    } catch (error) {
+      console.warn(`Failed to check local file ${url}:`, error);
+      return false;
+    }
+  };
+
   // Load FFmpeg once and track loading state
   const loadFFmpeg = async (): Promise<boolean> => {
     if (ffmpegLoadedRef.current) return true;
 
     const ffmpeg = ffmpegRef.current;
-    ffmpeg.on('log', ({ message }) => console.log('[FFmpeg]', message));
+    ffmpeg.on('log', ({ message }: { message: string }) => console.log('[FFmpeg]', message));
+
+    // FFmpeg doesn't have an error event, but we can catch errors in the exec calls
 
     try {
       if (!ffmpeg.loaded) {
-        await ffmpeg.load({
-          coreURL: '/ffmpeg/ffmpeg-core.js',
-          wasmURL: '/ffmpeg/ffmpeg-core.wasm',
+        // Check local files first
+        console.log('Checking for local FFmpeg files...');
+        const localCoreExists = await checkLocalFileExists('/ffmpeg/ffmpeg-core.js');
+        const localWasmExists = await checkLocalFileExists('/ffmpeg/ffmpeg-core.wasm');
+
+        console.log('Local files status:', {
+          core: localCoreExists ? 'Yes' : 'No',
+          wasm: localWasmExists ? 'Yes' : 'No'
         });
+
+
+        const baseUrl = window.location.origin;
+        const localCoreUrl = `${baseUrl}/ffmpeg/ffmpeg-core.js`;
+        const localWasmUrl = `${baseUrl}/ffmpeg/ffmpeg-core.wasm`;
+
+
+        // Try local files if they exist
+        if (localCoreExists && localWasmExists) {
+          try {
+            enqueueSnackbar('Loading video encoder from local files...', {
+              variant: 'info',
+              autoHideDuration: 2000
+            });
+
+            await ffmpeg.load({
+              coreURL: localCoreUrl,
+              wasmURL: localWasmUrl,
+            });
+
+            ffmpegLoadedRef.current = true;
+            console.log('FFmpeg loaded successfully from local files');
+
+            enqueueSnackbar('Video encoder loaded successfully (local)', {
+              variant: 'success',
+              autoHideDuration: 3000
+            });
+            return true;
+          } catch (localError) {
+            console.error('Local files found but failed to load:', localError);
+            enqueueSnackbar('Local video encoder files found but failed to load. Trying CDN fallback...', {
+              variant: 'warning',
+              autoHideDuration: 10000
+            });
+          }
+        } else {
+          enqueueSnackbar('Local video encoder files not found at ' + localCoreUrl + ' Downloading from CDN...', {
+            variant: 'info',
+            autoHideDuration: 5000
+          });
+        }
+
+        // Fallback to CDN
+        console.log('Loading FFmpeg from CDN fallback...');
+
+        // Try multiple CDN sources
+        const cdnSources = [
+          {
+            name: 'unpkg',
+            coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.2/dist/umd/ffmpeg-core.js',
+            wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.2/dist/umd/ffmpeg-core.wasm',
+          },
+          {
+            name: 'jsdelivr',
+            coreURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.2/dist/umd/ffmpeg-core.js',
+            wasmURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.2/dist/umd/ffmpeg-core.wasm',
+          }
+        ];
+
+        let cdnLoaded = false;
+        for (const source of cdnSources) {
+          try {
+            console.log(`Attempting to load from ${source.name}...`);
+            await ffmpeg.load({
+              coreURL: source.coreURL,
+              wasmURL: source.wasmURL,
+            });
+            cdnLoaded = true;
+            ffmpegLoadedRef.current = true;
+            console.log(`FFmpeg loaded successfully from ${source.name}`);
+
+            enqueueSnackbar(`Video encoder loaded from ${source.name}`, {
+              variant: 'success',
+              autoHideDuration: 3000
+            });
+            break;
+          } catch (cdnError) {
+            console.warn(`Failed to load from ${source.name}:`, cdnError);
+          }
+        }
+
+        if (!cdnLoaded) {
+          throw new Error('All CDN sources failed to load');
+        }
       }
-      ffmpegLoadedRef.current = true;
+
       return true;
     } catch (error) {
-      console.error('Failed to load FFmpeg:', error);
-      enqueueSnackbar('Failed to load video encoder', { variant: 'error' });
+      console.error('Failed to load FFmpeg from all sources:', error);
+      enqueueSnackbar('Failed to load video encoder. Please check your internet connection and try again.', {
+        variant: 'error',
+        autoHideDuration: 10000,
+        persist: false
+      });
       return false;
     }
   };
@@ -107,11 +224,50 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       // Ensure dimensions are valid
       if (width === 0 || height === 0) {
         console.error('Invalid dimensions for capture');
+        enqueueSnackbar('Invalid video dimensions for capture', {
+          variant: 'error',
+          autoHideDuration: 10000
+        });
+        return null;
+      }
+
+      // Check if context is lost
+      if (ctx.isContextLost()) {
+        console.error('WebGL context lost');
+        enqueueSnackbar('WebGL context lost during recording', {
+          variant: 'error',
+          autoHideDuration: 10000
+        });
+        return null;
+      }
+
+      // Check max texture size
+      const maxTextureSize = ctx.getParameter(ctx.MAX_TEXTURE_SIZE);
+      if (width > maxTextureSize || height > maxTextureSize) {
+        console.error(`Dimensions (${width}x${height}) exceed max texture size (${maxTextureSize})`);
+        enqueueSnackbar(`Video dimensions too large for this device (max: ${maxTextureSize}px)`, {
+          variant: 'error',
+          autoHideDuration: 10000
+        });
         return null;
       }
 
       const buffer = new Uint8Array(width * height * 4);
       ctx.readPixels(0, 0, width, height, ctx.RGBA, ctx.UNSIGNED_BYTE, buffer);
+
+      // Validate buffer (check if all zeros)
+      let hasData = false;
+      for (let i = 0; i < buffer.length; i += 4) {
+        if (buffer[i] !== 0 || buffer[i+1] !== 0 || buffer[i+2] !== 0) {
+          hasData = true;
+          break;
+        }
+      }
+
+      if (!hasData) {
+        console.error('Captured frame is all black/empty');
+        return null;
+      }
 
       const canvas = document.createElement('canvas');
       canvas.width = width;
@@ -135,6 +291,10 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       return canvas.toDataURL('image/jpeg', 0.95);
     } catch (error) {
       console.error('Frame capture failed:', error);
+      enqueueSnackbar(`Frame capture failed: ${error instanceof Error ? error.message : 'Unknown error'}`, {
+        variant: 'error',
+        autoHideDuration: 10000
+      });
       return null;
     }
   };
@@ -153,6 +313,21 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       throw new Error('No frames captured');
     }
 
+    // Add validation for reasonable frame count
+    const MAX_FRAMES = 3000; // ~100 seconds at 30fps
+    if (capturedFrames.current.length > MAX_FRAMES) {
+      throw new Error(`Too many frames (${capturedFrames.current.length}). Maximum supported: ${MAX_FRAMES}`);
+    }
+
+    // Check device memory with type-safe approach
+    const navigatorWithMemory = navigator as NavigatorWithMemory;
+    if (navigatorWithMemory.deviceMemory && navigatorWithMemory.deviceMemory < 4) {
+      enqueueSnackbar('Low device memory detected. Encoding may be slow or fail.', {
+        variant: 'warning',
+        autoHideDuration: 10000
+      });
+    }
+
     const ffmpeg = ffmpegRef.current;
     const loaded = await loadFFmpeg();
     if (!loaded) throw new Error('FFmpeg not loaded');
@@ -162,6 +337,12 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       for (let i = 0; i < capturedFrames.current.length; i++) {
         const response = await fetch(capturedFrames.current[i]);
         const blob = await response.blob();
+
+        // Check blob size
+        if (blob.size === 0) {
+          throw new Error(`Frame ${i} is empty`);
+        }
+
         await ffmpeg.writeFile(`input${String(i).padStart(3, '0')}.jpg`, await fetchFile(blob));
 
         // Progress notification for long recordings
@@ -198,6 +379,10 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       }
     } catch (error) {
       console.error('FFmpeg encoding error:', error);
+      enqueueSnackbar(`Encoding error: ${error instanceof Error ? error.message : 'Unknown error'}`, {
+        variant: 'error',
+        autoHideDuration: 10000
+      });
       throw error;
     }
   };
@@ -205,6 +390,11 @@ function VideoRecorder(props: VideoRecorderViewProps) {
   const encodeFramesToGif = async () => {
     if (capturedFrames.current.length === 0) {
       throw new Error('No frames captured');
+    }
+
+    const MAX_FRAMES = 500; // GIFs have lower limit
+    if (capturedFrames.current.length > MAX_FRAMES) {
+      throw new Error(`Too many frames for GIF (${capturedFrames.current.length}). Maximum supported: ${MAX_FRAMES}`);
     }
 
     const ffmpeg = ffmpegRef.current;
@@ -236,6 +426,10 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       return URL.createObjectURL(new Blob([data], { type: 'image/gif' }));
     } catch (error) {
       console.error('GIF encoding error:', error);
+      enqueueSnackbar(`GIF encoding error: ${error instanceof Error ? error.message : 'Unknown error'}`, {
+        variant: 'error',
+        autoHideDuration: 10000
+      });
       throw error;
     }
   };
@@ -274,16 +468,64 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     }, 100);
   };
 
+  const getSupportedFormat = (desiredFormat: VideoFormat): VideoFormat => {
+    const video = document.createElement('video');
+
+    const formatSupport: Record<VideoFormat, boolean> = {
+      mp4: video.canPlayType('video/mp4') !== '',
+      mov: video.canPlayType('video/quicktime') !== '',
+      webm: video.canPlayType('video/webm') !== '',
+      gif: true,
+      zip: true
+    };
+
+    if (formatSupport[desiredFormat]) {
+      return desiredFormat;
+    }
+
+    if (desiredFormat === 'mp4' || desiredFormat === 'mov') {
+      if (formatSupport.webm) {
+        enqueueSnackbar(`${desiredFormat.toUpperCase()} not supported, falling back to WEBM`, {
+          variant: 'warning',
+          autoHideDuration: 10000
+        });
+        return 'webm';
+      }
+    }
+
+    enqueueSnackbar(`No video format supported, falling back to ZIP of frames`, {
+      variant: 'warning',
+      autoHideDuration: 10000
+    });
+    return 'zip';
+  };
+
   useEffect(() => {
     // Pre-load FFmpeg
-    loadFFmpeg();
+    loadFFmpeg().then(loaded => {
+      if (loaded) {
+        console.log('FFmpeg pre-loaded successfully');
+      }
+    });
 
     gl.setClearColor(0xffffff, 1);
 
     const startRecording = async () => {
       const current = viewerState.currentAnimationIndices;
       if (current[0] === -1) {
-        enqueueSnackbar(t('snackbars.no_animation_selected'), { variant: 'error' });
+        enqueueSnackbar(t('snackbars.no_animation_selected'), {
+          variant: 'error',
+          autoHideDuration: 10000
+        });
+        return;
+      }
+
+      // Check if FFmpeg is loaded
+      if (!ffmpegLoadedRef.current) {
+        enqueueSnackbar('Video encoder not ready yet. Please try again in a moment.', {
+          variant: 'warning',
+          autoHideDuration: 10000
+        });
         return;
       }
 
@@ -295,6 +537,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       curState.setCurrentFrame(0);
 
       // Wait for animation to reset and render
+
       await waitForNextFrame();
 
       startCaptureProcess();
@@ -304,12 +547,24 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       const fps = viewerState.recordedVideoFPS || 30;
       const totalFrames = Math.ceil(animationDurationRef.current * fps);
 
+      // Validate total frames
+      if (totalFrames > 5000) {
+        enqueueSnackbar(`Recording ${totalFrames} frames may take a while and use significant memory`, {
+          variant: 'warning',
+          autoHideDuration: 10000
+        });
+      }
+
       viewerState.setIsRecordingVideo(true);
 
       curState.viewerState.animationChange = {index: 0, operation: "start"};
       curState.viewerState.setAnimationsNeedUpdate(true);
 
-      enqueueSnackbar(t('snackbars.recording_video'), { variant: 'info', persist: true });
+      enqueueSnackbar(t('snackbars.recording_video'), {
+        variant: 'info',
+        persist: true,
+        autoHideDuration: 10000
+      });
 
       capturedFrames.current = [];
       isRecordingRef.current = true;
@@ -344,7 +599,10 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         }
 
         if (captureErrors >= MAX_ERRORS) {
-          enqueueSnackbar('Too many frame capture errors', { variant: 'error' });
+          enqueueSnackbar('Too many frame capture errors. Recording stopped.', {
+            variant: 'error',
+            autoHideDuration: 10000
+          });
         }
 
         stopRecording();
@@ -359,7 +617,11 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       closeSnackbar();
       isRecordingRef.current = false;
 
-      enqueueSnackbar(t('snackbars.processing_video'), { variant: 'info', persist: true });
+      enqueueSnackbar(t('snackbars.processing_video'), {
+        variant: 'info',
+        persist: true,
+        autoHideDuration: 10000
+      });
       viewerState.setIsRecordingVideo(false);
       viewerState.setIsProcessingVideo(true);
 
@@ -368,7 +630,31 @@ function VideoRecorder(props: VideoRecorderViewProps) {
           throw new Error('No frames were captured');
         }
 
-        const format = viewerState.recordedVideoFormat as VideoFormat;
+        // Get WebGL vendor info safely
+        let webglVendor = 'unknown';
+        try {
+          webglVendor = gl.getContext().getParameter(gl.getContext().VENDOR);
+        } catch (e) {
+          console.warn('Could not get WebGL vendor');
+        }
+
+        // Get device memory safely
+        const navigatorWithMemory = navigator as NavigatorWithMemory;
+
+        // Log debug info
+        console.debug('Recording stats:', {
+          frameCount: capturedFrames.current.length,
+          firstFrameSize: capturedFrames.current[0]?.length,
+          format: viewerState.recordedVideoFormat,
+          fps: viewerState.recordedVideoFPS,
+          webglContext: webglVendor,
+          browser: navigator.userAgent,
+          memory: navigatorWithMemory.deviceMemory,
+          ffmpegLoaded: ffmpegLoadedRef.current
+        });
+
+        const desiredFormat = viewerState.recordedVideoFormat as VideoFormat;
+        const format = getSupportedFormat(desiredFormat);
         const timestamp = getTimestamp();
 
         let url = '';
@@ -388,12 +674,18 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
         if (url) {
           downloadFile(url, `${viewerState.recordedVideoName}_${timestamp}.${format}`);
-          enqueueSnackbar(`Export successful: ${capturedFrames.current.length} frames`, { variant: 'success' });
+          enqueueSnackbar(`Export successful: ${capturedFrames.current.length} frames`, {
+            variant: 'success',
+            autoHideDuration: 10000
+          });
         }
       } catch (e) {
         console.error('Export error:', e);
         const errorMessage = e instanceof Error ? e.message : 'Unknown error occurred';
-        enqueueSnackbar(`Error processing export: ${errorMessage}`, { variant: 'error' });
+        enqueueSnackbar(`Error processing export: ${errorMessage}`, {
+          variant: 'error',
+          autoHideDuration: 10000
+        });
       }
 
       // Cleanup
