@@ -700,11 +700,6 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
     props.videoRecorderRef.current = { startRecording, stopRecording };
 
-    return () => {
-      if (isRecordingRef.current) {
-        stopRecording();
-      }
-    };
   }, [props.videoRecorderRef, gl, camera, size, enqueueSnackbar, closeSnackbar, t, viewerState, curState]);
 
   return null;
