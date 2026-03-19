@@ -563,7 +563,29 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
     const startCaptureProcess = () => {
       const fps = viewerState.recordedVideoFPS || 30;
-      const totalFrames = Math.ceil(animationDurationRef.current * fps);
+
+      // Speed from currentState
+      const animationSpeed = curState.guiAnimationSpeed;
+
+      let effectiveDuration = animationDurationRef.current;
+      let effectiveFps = fps;
+
+      if (animationSpeed > 0) {
+        // Adjust duration based on speed
+        effectiveDuration = animationDurationRef.current / animationSpeed;
+      } else {
+        // Speed is 0. Cancel recording.
+        console.warn('Animation speed is 0, recording may not work as expected');
+        enqueueSnackbar('Animation speed is 0. Recording canceled.', {
+          variant: 'warning',
+          autoHideDuration: 10000
+        });
+        stopRecording();
+        return
+      }
+
+      // Calculate total frames based on effective duration
+      const totalFrames = Math.ceil(effectiveDuration * fps);
 
       // Validate total frames
       if (totalFrames > 5000) {
@@ -593,9 +615,18 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
       const loop = async () => {
         while (isRecordingRef.current && frameCount < totalFrames && captureErrors < MAX_ERRORS) {
+          // Calculate animation time based on speed
+          const animationTime = (frameCount / fps) * animationSpeed;
+
+          // Clamp to animation duration to avoid going beyond
+          const clampedTime = Math.min(animationTime, animationDurationRef.current);
+
           // Set animation time
-          viewerState.setCurrentAnimationTime(frameCount / fps);
-          curState.setCurrentFrame((frameCount / totalFrames) * 100);
+          viewerState.setCurrentAnimationTime(clampedTime);
+
+          // Calculate progress percentage based on actual frames captured vs total frames we expect to capture
+          const progressPercent = (frameCount / totalFrames) * 100;
+          curState.setCurrentFrame(progressPercent);
 
           // Wait for rendering to complete
           await waitForNextFrame();
@@ -608,19 +639,12 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
             // Log progress
             if (frameCount % 10 === 0) {
-              console.log(`Captured ${frameCount}/${totalFrames} frames`);
+              console.log(`Captured ${frameCount}/${totalFrames} frames (speed: ${animationSpeed}x)`);
             }
           } else {
             captureErrors++;
             console.error(`Frame capture failed (${captureErrors}/${MAX_ERRORS})`);
           }
-        }
-
-        if (captureErrors >= MAX_ERRORS) {
-          enqueueSnackbar('Too many frame capture errors. Recording stopped.', {
-            variant: 'error',
-            autoHideDuration: 10000
-          });
         }
 
         stopRecording();
