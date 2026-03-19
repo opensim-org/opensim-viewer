@@ -91,10 +91,12 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         // Try local files if they exist
         if (localCoreExists && localWasmExists) {
           try {
-            enqueueSnackbar('Loading video encoder from local files...', {
-              variant: 'info',
-              autoHideDuration: 2000
-            });
+            if (curState.debug) {
+              enqueueSnackbar('Loading video encoder from local files...', {
+                variant: 'info',
+                autoHideDuration: 2000
+              });
+            }
 
             await ffmpeg.load({
               coreURL: localCoreUrl,
@@ -104,23 +106,31 @@ function VideoRecorder(props: VideoRecorderViewProps) {
             ffmpegLoadedRef.current = true;
             console.log('FFmpeg loaded successfully from local files');
 
-            enqueueSnackbar('Video encoder loaded successfully (local)', {
-              variant: 'success',
-              autoHideDuration: 3000
-            });
+
+            if (curState.debug) {
+              enqueueSnackbar('Video encoder loaded successfully (local)', {
+                variant: 'success',
+                autoHideDuration: 3000
+              });
+            }
             return true;
           } catch (localError) {
             console.error('Local files found but failed to load:', localError);
-            enqueueSnackbar('Local video encoder files found but failed to load. Trying CDN fallback...', {
-              variant: 'warning',
-              autoHideDuration: 10000
-            });
+
+            if (curState.debug) {
+              enqueueSnackbar('Local video encoder files found but failed to load. Trying CDN fallback...', {
+                variant: 'warning',
+                autoHideDuration: 10000
+              });
+            }
           }
         } else {
-          enqueueSnackbar('Local video encoder files not found at ' + localCoreUrl + ' Downloading from CDN...', {
-            variant: 'info',
-            autoHideDuration: 5000
-          });
+          if (curState.debug) {
+            enqueueSnackbar('Local video encoder files not found at ' + localCoreUrl + ' Downloading from CDN...', {
+              variant: 'info',
+              autoHideDuration: 5000
+            });
+          }
         }
 
         // Fallback to CDN
@@ -152,10 +162,12 @@ function VideoRecorder(props: VideoRecorderViewProps) {
             ffmpegLoadedRef.current = true;
             console.log(`FFmpeg loaded successfully from ${source.name}`);
 
-            enqueueSnackbar(`Video encoder loaded from ${source.name}`, {
-              variant: 'success',
-              autoHideDuration: 3000
-            });
+            if (curState.debug) {
+              enqueueSnackbar(`Video encoder loaded from ${source.name}`, {
+                variant: 'success',
+                autoHideDuration: 3000
+              });
+            }
             break;
           } catch (cdnError) {
             console.warn(`Failed to load from ${source.name}:`, cdnError);
@@ -170,11 +182,14 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       return true;
     } catch (error) {
       console.error('Failed to load FFmpeg from all sources:', error);
-      enqueueSnackbar('Failed to load video encoder. Please check your internet connection and try again.', {
-        variant: 'error',
-        autoHideDuration: 10000,
-        persist: false
-      });
+
+      if (curState.debug) {
+        enqueueSnackbar('Failed to load video encoder. Please check your internet connection and try again.', {
+          variant: 'error',
+          autoHideDuration: 10000,
+          persist: false
+        });
+      }
       return false;
     }
   };
@@ -234,10 +249,13 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       // Check if context is lost
       if (ctx.isContextLost()) {
         console.error('WebGL context lost');
-        enqueueSnackbar('WebGL context lost during recording', {
-          variant: 'error',
-          autoHideDuration: 10000
-        });
+
+        if (curState.debug) {
+          enqueueSnackbar('WebGL context lost during recording', {
+            variant: 'error',
+            autoHideDuration: 10000
+          });
+        }
         return null;
       }
 
@@ -472,9 +490,9 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     const video = document.createElement('video');
 
     const formatSupport: Record<VideoFormat, boolean> = {
-      mp4: video.canPlayType('video/mp4') !== '',
-      mov: video.canPlayType('video/quicktime') !== '',
-      webm: video.canPlayType('video/webm') !== '',
+      mp4: true,
+      mov: true,
+      webm: false,
       gif: true,
       zip: true
     };
@@ -485,11 +503,11 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
     if (desiredFormat === 'mp4' || desiredFormat === 'mov') {
       if (formatSupport.webm) {
-        enqueueSnackbar(`${desiredFormat.toUpperCase()} not supported, falling back to WEBM`, {
+        enqueueSnackbar(`${desiredFormat.toUpperCase()} not supported, falling back to MP4`, {
           variant: 'warning',
           autoHideDuration: 10000
         });
-        return 'webm';
+        return 'mp4';
       }
     }
 
