@@ -130,6 +130,8 @@ export class ModelUIState {
             setIsGuiMode: action,
             setIsModernBrowser: action,
             visibleHelpers: observable,
+            debug: observable,
+            setDebug: action,
         })
         console.log("Created ModelUIState instance ", currentModelPathState);
         setTimeout(() => {
@@ -590,5 +592,8 @@ export class ModelUIState {
     }
     setVisibleHelpers(visible: boolean) {
       this.visibleHelpers = visible;
+    }
+    setDebug(value: boolean) {
+      this.debug = value;
     }
 }
