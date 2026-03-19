@@ -147,8 +147,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const leftMenuWidth = 60;
   const drawerContentWidth = 250;
 
-  const [showDebug, setShowDebug] = useState(false);
-
   const [canvasLoaded, setCanvasLoaded] = useState(false);
 
   const [addCameraDialogOpen, setAddCameraDialogOpen] = useState(false);
@@ -268,7 +266,7 @@ useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key.toLowerCase() === "d") {
         e.preventDefault(); // prevent browser bookmark shortcut
-        setShowDebug(prev => !prev);
+        curState.setDebug?.(!curState.debug);
       }
     };
 
@@ -381,7 +379,7 @@ useEffect(() => {
                   <CameraPreview selectedCameraUuid={uiState.selected} marginRight={treeWidth} />
                 )}
 
-                {showDebug && (
+                {curState.debug && (
                   <>
                     <Stats />
                     { curState.isModernBrowser && Perf &&  (<Perf position="top-right" />) }
