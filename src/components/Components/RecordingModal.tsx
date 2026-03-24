@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   Dialog,
@@ -36,6 +36,7 @@ const videoFormats = [
 ];
 
 const fpsValues = [30, 60];
+const fpsValuesGif = [25, 50];
 
 const aspectRatios = [
   { label: "4:3", value: "4:3", description: "standard" },
@@ -59,6 +60,18 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+
+  const getFpsOptions = () => {
+    return selectedFormat === 'gif' ? fpsValuesGif : fpsValues;
+  };
+
+  useEffect(() => {
+    const validFpsOptions = getFpsOptions();
+    if (!validFpsOptions.includes(selectedFPS)) {
+      setSelectedFPS(validFpsOptions[0]);
+      viewerState.setRecorderFPS(validFpsOptions[0]);
+    }
+  }, [selectedFormat]);
 
   const handleRecord = () => {
     setOpen(false);
@@ -174,7 +187,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
               label="FPS"
               onChange={(e) => handleFPSChange(Number(e.target.value))}
             >
-              {fpsValues.map((fps) => (
+              {getFpsOptions().map((fps) => (
                 <MenuItem key={fps} value={fps}>
                   {fps}
                 </MenuItem>
