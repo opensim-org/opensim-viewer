@@ -547,6 +547,16 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         return;
       }
 
+      // Cleanup ffmpeg directory
+      try {
+        const files = await ffmpegRef.current.listDir('/');
+        for (const file of files) {
+          if (file.name.startsWith('input') || file.name.startsWith('gif')) {
+            await ffmpegRef.current.deleteFile(file.name);
+          }
+        }
+      } catch {}
+
       const animation = viewerState.animations[current[0]];
       animationDurationRef.current = animation.duration;
 
