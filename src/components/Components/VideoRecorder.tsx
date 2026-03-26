@@ -448,7 +448,12 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         await ffmpeg.writeFile(`gif${String(i).padStart(3, '0')}.png`, await fetchFile(blob));
       }
 
-      const fps = viewerState.recordedVideoFPS || 30;
+      let fps = viewerState.recordedVideoFPS || 30;
+
+      if (fps == 30)
+        fps = 25
+      if (fps == 60)
+        fps = 50
 
       await ffmpeg.exec(['-framerate', `${fps}`, '-i', 'gif%03d.png', '-vf', 'palettegen', 'palette.png']);
       await ffmpeg.exec([
@@ -604,6 +609,13 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       let effectiveDuration = animationDurationRef.current;
       let effectiveFps = fps;
 
+      if (viewerState.recordedVideoFormat == "gif") {
+        if (effectiveFps == 30)
+          effectiveFps = 25
+        if (effectiveFps == 60)
+          effectiveFps = 50
+      }
+
       if (animationSpeed > 0) {
         // Adjust duration based on speed
         effectiveDuration = animationDurationRef.current / animationSpeed;
@@ -619,7 +631,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       }
 
       // Calculate total frames based on effective duration
-      const totalFrames = Math.ceil(effectiveDuration * fps);
+      const totalFrames = Math.ceil(effectiveDuration * effectiveFps);
 
       // Validate total frames
       if (totalFrames > 5000) {
@@ -650,7 +662,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       const loop = async () => {
         while (isRecordingRef.current && frameCount < totalFrames && captureErrors < MAX_ERRORS) {
           // Calculate animation time based on speed
-          const animationTime = (frameCount / fps) * animationSpeed;
+          const animationTime = (frameCount / effectiveFps) * animationSpeed;
 
           // Clamp to animation duration to avoid going beyond
           const clampedTime = Math.min(animationTime, animationDurationRef.current);
