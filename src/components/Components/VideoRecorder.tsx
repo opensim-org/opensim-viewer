@@ -200,11 +200,23 @@ function VideoRecorder(props: VideoRecorderViewProps) {
   };
 
   const getBaseDimensions = () => {
-    const base = viewerState.videoRecorderBaseDimension || 1080;
+    const baseWidth = viewerState.videoRecorderBaseDimension || 1080;
 
-    // Always render landscape base (safe default)
-    return ensureEvenDimensions(base, Math.round(base * 9 / 16));
-    // e.g. 1080 x 607 (or pick 1920x1080 if you want fixed HD)
+    // Get actual canvas size
+    const canvas = gl.domElement;
+    const canvasWidth = canvas.clientWidth;
+    const canvasHeight = canvas.clientHeight;
+
+    // Fallback safety
+    if (!canvasWidth || !canvasHeight) {
+      return ensureEvenDimensions(baseWidth, baseWidth); // square fallback
+    }
+
+    const aspect = canvasWidth / canvasHeight;
+
+    const height = Math.round(baseWidth / aspect);
+
+    return ensureEvenDimensions(baseWidth, height);
   };
 
   const getTargetAspectRatio = () => {
@@ -377,7 +389,16 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       if (ext === 'webm') {
         args.push('-c:v', 'libvpx', '-b:v', '2M', '-auto-alt-ref', '0');
       } else {
-        args.push('-c:v', 'libx264', '-preset', 'medium', '-crf', '23', '-pix_fmt', 'yuv420p');
+        args.push(
+          '-c:v', 'libx264',
+          '-preset', 'slow',
+          '-crf', '16',
+          '-pix_fmt', 'yuv420p',
+          '-movflags', 'faststart',
+          '-profile:v', 'high',
+          '-level', '4.2',
+          '-vsync', 'cfr'
+        );
       }
 
       args.push('-y', `output.${ext}`);
@@ -538,6 +559,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         return;
       }
 
+
       // Check if FFmpeg is loaded
       if (!ffmpegLoadedRef.current) {
         enqueueSnackbar('Video encoder not ready yet. Please try again in a moment.', {
@@ -546,6 +568,16 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         });
         return;
       }
+
+      // Cleanup ffmpeg directory
+      try {
+        const files = await ffmpegRef.current.listDir('/');
+        for (const file of files) {
+          if (file.name.startsWith('input') || file.name.startsWith('gif')) {
+            await ffmpegRef.current.deleteFile(file.name);
+          }
+        }
+      } catch {}
 
       const animation = viewerState.animations[current[0]];
       animationDurationRef.current = animation.duration;
