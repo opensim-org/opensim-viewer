@@ -162,22 +162,24 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
             </Select>
           </FormControl>
 
-          {/* Aspect Ratio
-          <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
-            <InputLabel>Aspect Ratio</InputLabel>
-            <Select
-              value={selectedAspectRatio}
-              label="Aspect Ratio"
-              onChange={(e) => handleAspectRatioChange(e.target.value)}
-            >
-              {aspectRatios.map((ar) => (
-                <MenuItem key={ar.value} value={ar.value}>
-                  {ar.label} ({ar.description})
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-*/}
+          {/* Aspect Ratio */}
+          {curState.showAspectRatioFunctionality && (
+              <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
+              <InputLabel>Aspect Ratio</InputLabel>
+              <Select
+                value={selectedAspectRatio}
+                label="Aspect Ratio"
+                onChange={(e) => handleAspectRatioChange(e.target.value)}
+              >
+                {aspectRatios.map((ar) => (
+                  <MenuItem key={ar.value} value={ar.value}>
+                    {ar.label} ({ar.description})
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+
 
           {/* FPS */}
           <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>

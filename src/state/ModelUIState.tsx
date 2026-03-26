@@ -83,6 +83,7 @@ export class ModelUIState {
     guiAnimationLoop: boolean = false
     guiAnimationReverse: boolean = false
     showBottomBar: boolean = false;
+    showAspectRatioFunctionality: boolean = false;
     visibleHelpers: boolean = true;
     constructor(
         currentModelPathState: string

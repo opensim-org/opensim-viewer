@@ -45,6 +45,38 @@ import VideoRecorder from "../Components/VideoRecorder"
 import { Color} from 'three';
 import { TransformControls } from "@react-three/drei";
 
+
+// Aspect ratio utility functions
+const parseAspectRatio = (aspectRatio: string): { width: number; height: number } => {
+  const [widthStr, heightStr] = aspectRatio.split(':');
+  return { width: parseInt(widthStr, 10), height: parseInt(heightStr, 10) };
+};
+
+const getRecordingRect = (canvasWidth: number, canvasHeight: number, aspectRatio: string) => {
+  const { width: arW, height: arH } = parseAspectRatio(aspectRatio);
+  const canvasAR = canvasWidth / canvasHeight;
+  const targetAR = arW / arH;
+
+  let recWidth, recHeight, offsetX, offsetY;
+
+  if (canvasAR > targetAR) {
+    // Canvas is wider → height fits, width is smaller than canvas width
+    recHeight = canvasHeight;
+    recWidth = canvasHeight * targetAR;
+    offsetX = (canvasWidth - recWidth) / 2;
+    offsetY = 0;
+  } else {
+    // Canvas is taller → width fits, height is smaller than canvas height
+    recWidth = canvasWidth;
+    recHeight = canvasWidth / targetAR;
+    offsetX = 0;
+    offsetY = (canvasHeight - recHeight) / 2;
+  }
+
+  return { recWidth, recHeight, offsetX, offsetY };
+};
+
+
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
 }>(({ theme, open }) => ({
@@ -264,9 +296,18 @@ useEffect(() => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Toggle debug with Ctrl+D
       if (e.ctrlKey && e.key.toLowerCase() === "d") {
         e.preventDefault(); // prevent browser bookmark shortcut
         curState.setDebug?.(!curState.debug);
+      }
+
+      // Toggle aspect ratio guides with Ctrl+G
+      if (curState.showAspectRatioFunctionality) {
+        if (e.ctrlKey && e.key.toLowerCase() === "g") {
+          e.preventDefault();
+          curState.viewerState.setShowAspectRatioGuides?.(!curState.viewerState.showAspectRatioGuides);
+        }
       }
     };
 
@@ -316,6 +357,41 @@ useEffect(() => {
           </div>
           }
           <div id="canvas-container">
+            {curState.viewerState.recordedVideoAspectRatio && (curState.viewerState.isRecordingVideo || curState.viewerState.showAspectRatioGuides) && (
+              (() => {
+                const canvasEl = document.getElementById('canvas-element');
+                if (!canvasEl) return null;
+
+                const canvasWidth = canvasEl.clientWidth;
+                const canvasHeight = canvasEl.clientHeight;
+
+                const { recWidth, recHeight, offsetX, offsetY } = getRecordingRect(
+                  canvasWidth,
+                  canvasHeight,
+                  curState.viewerState.recordedVideoAspectRatio
+                );
+
+                const overlayStyle = {
+                  position: 'absolute' as const,
+                  backgroundColor: 'rgba(0,0,0,0.4)',
+                  pointerEvents: 'none' as const,
+                  zIndex: 1001,
+                };
+
+                return (
+                  <>
+                    {/* Top overlay */}
+                    <div style={{ ...overlayStyle, top: 0, left: 0, width: '100%', height: offsetY }} />
+                    {/* Bottom overlay */}
+                    <div style={{ ...overlayStyle, top: offsetY + recHeight, left: 0, width: '100%', height: canvasHeight - (offsetY + recHeight) }} />
+                    {/* Left overlay */}
+                    <div style={{ ...overlayStyle, top: offsetY, left: 0, width: offsetX, height: recHeight }} />
+                    {/* Right overlay */}
+                    <div style={{ ...overlayStyle, top: offsetY, left: offsetX + recWidth, width: canvasWidth - (offsetX + recWidth), height: recHeight }} />
+                  </>
+                );
+              })()
+            )}
             {!canvasLoaded && (
               <div
                 style={{
