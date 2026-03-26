@@ -199,26 +199,23 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     }
   };
 
-  const getTargetDimensions = () => {
-    const aspectRatio = viewerState.recordedVideoAspectRatio || '16:9';
-    const { width: aspectWidth, height: aspectHeight } = parseAspectRatio(aspectRatio);
-    const targetAspectRatio = aspectWidth / aspectHeight;
-
+  const getBaseDimensions = () => {
     const base = viewerState.videoRecorderBaseDimension || 1080;
 
-    // Determine orientation based on aspect ratio
-    if (targetAspectRatio >= 1) {
-      // Landscape or square: width >= height
-      return ensureEvenDimensions(base, Math.round(base / targetAspectRatio));
-    } else {
-      // Portrait: height > width
-      return ensureEvenDimensions(Math.round(base * targetAspectRatio), base);
-    }
+    // Always render landscape base (safe default)
+    return ensureEvenDimensions(base, Math.round(base * 9 / 16));
+    // e.g. 1080 x 607 (or pick 1920x1080 if you want fixed HD)
+  };
+
+  const getTargetAspectRatio = () => {
+    const aspectRatio = viewerState.recordedVideoAspectRatio || '16:9';
+    const { width, height } = parseAspectRatio(aspectRatio);
+    return width / height;
   };
 
   // Setup offscreen renderer
   const setupOffscreenRenderer = () => {
-    const { width, height } = getTargetDimensions();
+    const { width, height } = getBaseDimensions();
 
     // Create offscreen renderer if it doesn't exist
     if (!offscreenRenderer.current) {
@@ -230,6 +227,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     }
 
     // Set size for offscreen renderer
+
     offscreenRenderer.current.setSize(width, height);
     offscreenRenderer.current.setPixelRatio(1);
     offscreenRenderer.current.setClearColor(0xffffff, 1);
@@ -237,119 +235,52 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     return { width, height, renderer: offscreenRenderer.current };
   };
 
-  // Setup camera for offscreen rendering
-  const setupCameraForOffscreen = () => {
-    const cam = camera as PerspectiveCamera;
-    const { width, height } = getTargetDimensions();
-    const targetAspectRatio = width / height;
+  const makeEven = (n: number) => n % 2 === 0 ? n : n - 1;
 
-    // Store original camera state
-    if (originalCameraAspectRef.current === null) {
-      originalCameraAspectRef.current = cam.aspect;
+  const computeCrop = (baseWidth: number, baseHeight: number) => {
+    const targetAspect = getTargetAspectRatio();
+    const baseAspect = baseWidth / baseHeight;
+
+    let cropWidth = baseWidth;
+    let cropHeight = baseHeight;
+
+    if (baseAspect > targetAspect) {
+      cropWidth = baseHeight * targetAspect;
+    } else {
+      cropHeight = baseWidth / targetAspect;
     }
 
-    // Update camera aspect ratio to match target dimensions
-    cam.aspect = targetAspectRatio;
-    cam.updateProjectionMatrix();
+    cropWidth = makeEven(Math.floor(cropWidth));
+    cropHeight = makeEven(Math.floor(cropHeight));
 
-    // Save original updateProjectionMatrix
-    originalUpdateProjectionMatrixRef.current = cam.updateProjectionMatrix.bind(cam);
+    const offsetX = makeEven(Math.floor((baseWidth - cropWidth) / 2));
+    const offsetY = makeEven(Math.floor((baseHeight - cropHeight) / 2));
 
-    // Override updateProjectionMatrix to maintain the target aspect ratio
-    cam.updateProjectionMatrix = () => {
-      // During recording, always use the target aspect ratio
-      if (isRecordingRef.current) {
-        // Call the original with the correct aspect
-        if (originalUpdateProjectionMatrixRef.current) {
-          originalUpdateProjectionMatrixRef.current();
-        }
-        return;
-      }
-      // Otherwise call the original
-      if (originalUpdateProjectionMatrixRef.current) {
-        originalUpdateProjectionMatrixRef.current();
-      }
-    };
-
-    return { width, height };
-  };
-
-  // Restore camera to original state
-  const restoreCamera = () => {
-    // Restore original updateProjectionMatrix
-    if (originalUpdateProjectionMatrixRef.current) {
-      const cam = camera as PerspectiveCamera;
-      cam.updateProjectionMatrix = originalUpdateProjectionMatrixRef.current;
-      originalUpdateProjectionMatrixRef.current = null;
-    }
-
-    const cam = camera as PerspectiveCamera;
-    if (originalCameraAspectRef.current !== null) {
-      cam.aspect = originalCameraAspectRef.current;
-      cam.updateProjectionMatrix();
-      originalCameraAspectRef.current = null;
-    }
+    return { cropWidth, cropHeight, offsetX, offsetY };
   };
 
   // Capture frame using offscreen renderer
   const captureFrameOffscreen = (): string | null => {
     try {
-      if (!offscreenRenderer.current) {
-        console.error('Offscreen renderer not initialized');
-        return null;
-      }
+      if (!offscreenRenderer.current) return null;
 
-      const { width, height } = getTargetDimensions();
+      const { width, height } = getBaseDimensions();
 
-      // Ensure dimensions are valid
-      if (width === 0 || height === 0) {
-        console.error('Invalid dimensions for capture');
-        return null;
-      }
-
-      // Render the scene with the offscreen renderer
       offscreenRenderer.current.render(scene, camera);
 
-      // Read pixels from the offscreen renderer
       const ctx = offscreenRenderer.current.getContext();
-
-      // Check if context is lost
-      if (ctx.isContextLost()) {
-        console.error('WebGL context lost');
-        return null;
-      }
-
-      // Check max texture size
-      const maxTextureSize = ctx.getParameter(ctx.MAX_TEXTURE_SIZE);
-      if (width > maxTextureSize || height > maxTextureSize) {
-        console.error(`Dimensions (${width}x${height}) exceed max texture size (${maxTextureSize})`);
-        return null;
-      }
 
       const buffer = new Uint8Array(width * height * 4);
       ctx.readPixels(0, 0, width, height, ctx.RGBA, ctx.UNSIGNED_BYTE, buffer);
 
-      // Validate buffer (check if all zeros)
-      let hasData = false;
-      for (let i = 0; i < buffer.length; i += 4) {
-        if (buffer[i] !== 0 || buffer[i+1] !== 0 || buffer[i+2] !== 0) {
-          hasData = true;
-          break;
-        }
-      }
+      // Create base canvas
+      const baseCanvas = document.createElement('canvas');
+      baseCanvas.width = width;
+      baseCanvas.height = height;
+      const baseCtx = baseCanvas.getContext('2d')!;
+      const img = baseCtx.createImageData(width, height);
 
-      if (!hasData) {
-        console.error('Captured frame is all black/empty');
-        return null;
-      }
-
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const c2d = canvas.getContext('2d')!;
-      const img = c2d.createImageData(width, height);
-
-      // Flip vertically
+      // Flip Y (vertically)
       for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
           const src = ((height - y - 1) * width + x) * 4;
@@ -361,8 +292,26 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         }
       }
 
-      c2d.putImageData(img, 0, 0);
-      return canvas.toDataURL('image/png');
+      baseCtx.putImageData(img, 0, 0);
+
+      // Crop to target aspect ratio
+      const { cropWidth, cropHeight, offsetX, offsetY } =
+        computeCrop(width, height);
+
+      const finalCanvas = document.createElement('canvas');
+      finalCanvas.width = cropWidth;
+      finalCanvas.height = cropHeight;
+
+      const finalCtx = finalCanvas.getContext('2d')!;
+
+      finalCtx.drawImage(
+        baseCanvas,
+        offsetX, offsetY, cropWidth, cropHeight,
+        0, 0, cropWidth, cropHeight
+      );
+
+      return finalCanvas.toDataURL('image/png');
+
     } catch (error) {
       console.error('Frame capture failed:', error);
       return null;
@@ -603,7 +552,6 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
       // Setup offscreen rendering
       setupOffscreenRenderer();
-      setupCameraForOffscreen();
 
       // Reset to beginning
       viewerState.setCurrentAnimationTime(0);
@@ -721,9 +669,6 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       viewerState.setIsRecordingVideo(false);
       viewerState.setIsProcessingVideo(true);
 
-      // Restore camera
-      restoreCamera();
-
       try {
         if (capturedFrames.current.length === 0) {
           throw new Error('No frames were captured');
@@ -750,7 +695,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
           browser: navigator.userAgent,
           memory: navigatorWithMemory.deviceMemory,
           ffmpegLoaded: ffmpegLoadedRef.current,
-          dimensions: getTargetDimensions()
+          dimensions: getBaseDimensions()
         });
 
         const desiredFormat = viewerState.recordedVideoFormat as VideoFormat;
