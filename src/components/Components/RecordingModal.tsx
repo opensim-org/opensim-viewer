@@ -163,7 +163,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
             </Select>
           </FormControl>
 
-          {/* Aspect Ratio */}
+          {/* Aspect Ratio
           <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
             <InputLabel>Aspect Ratio</InputLabel>
             <Select
@@ -178,7 +178,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
               ))}
             </Select>
           </FormControl>
-
+          */}
 
           {/* FPS */}
           <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
