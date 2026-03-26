@@ -26,7 +26,6 @@ const qualityLevels = [
   { label: "1080p HD", baseDimension: 1080 },
   { label: "1440p HD", baseDimension: 1440 },
   { label: "2160p 4K", baseDimension: 2160 },
-//  { label: "4320p 8K", baseDimension: 4320 },
 ];
 
 const videoFormats = [
@@ -36,7 +35,7 @@ const videoFormats = [
   { label: "GIF", value: "gif"}
 ];
 
-const fpsValues = [30, 60/*, 120*/];
+const fpsValues = [30, 60];
 const fpsValuesGif = [25, 50];
 
 const aspectRatios = [
