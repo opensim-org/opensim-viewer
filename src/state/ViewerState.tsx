@@ -103,6 +103,7 @@ export class ViewerState {
     animating: boolean
     animationSpeed: number
     animations: AnimationClip[]
+    animationStartTimes: number[] // parallel array to animations to track start time for each clip, needed for proper synchronization when multiple clips are playing  
     animationRoots: Object3D[] // roots for each animation clip
     currentAnimationIndices: number[]
     animationsNeedUpdate: boolean
@@ -190,6 +191,7 @@ export class ViewerState {
         this.animationSpeed = 1.0
         this.animations = []
         this.animationRoots = []
+        this.animationStartTimes = []
         this.currentAnimationIndices = []; // support multiple selection
         this.animationsNeedUpdate = false
         this.animationChange = null
@@ -392,6 +394,7 @@ export class ViewerState {
     addCameraDolly(newSequence:CameraDolly){
         this.cameraDollies.push(newSequence);
         this.animations.push(this.createAnimationClipFromSequence(newSequence));
+        this.animationStartTimes.push(0); // default to 0, can be updated when play starts or when sequence is updated
         this.animationRoots.push(this.cameras[0]);
         this.addCurrentAnimationIndex(this.animations.length - 1);
         this.setCurrentDollyIndex(this.cameraDollies.length - 1);
@@ -404,6 +407,7 @@ export class ViewerState {
         this.cameraDollies.splice(this.currentDollyIndex, 1, newSequence);
         const theClip = this.createAnimationClipFromSequence(newSequence);
         this.animations.splice(this.currentDollyIndex, 1, theClip);
+        this.animationStartTimes.splice(this.currentDollyIndex, 1, 0); // reset start time for updated clip
         this.animationRoots.splice(this.currentDollyIndex, 1, this.cameras[0]);
         this.animationChange = {index:this.currentDollyIndex, operation:"update"};
         this.setAnimationsNeedUpdate(true);
@@ -443,6 +447,7 @@ export class ViewerState {
         for (let i = indicesToRemove.length - 1; i >= 0; i--) {
             const idx = indicesToRemove[i];
             this.animations.splice(idx, 1);
+            this.animationStartTimes.splice(idx, 1);
             this.animationRoots.splice(idx, 1);
             this.removeCurrentAnimationIndex(idx);
         }

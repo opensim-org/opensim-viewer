@@ -539,11 +539,19 @@ export class ModelUIState {
             this.socket!.send(json);
     }
     
+    getClipStartTime(clip: AnimationClip) {
+        return clip.tracks.reduce((min, track) => {
+            return track.times.length ? Math.min(min, track.times[0]) : min;
+        }, Infinity);
+    }
+
     createAnimationClipFromMessage(clipMessage: any) {
         // Creating AnimationClip from clipMessage
         // We probably should check to avoid duplicates here
         const clip = AnimationClip.parse(clipMessage.Clip); // This creates an AnimationClip instance
+        const startTime = this.getClipStartTime(clip);
         this.viewerState.animations.push(clip);
+        this.viewerState.animationStartTimes.push(startTime);
         const index = this.viewerState.animations.length - 1;
         console.log(`Creating Animation Clip: Name=${clip.name}, Duration=${clip.duration}`);
         const clipRoot = clipMessage.Root;
