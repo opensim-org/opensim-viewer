@@ -507,7 +507,8 @@ export class ModelUIState {
                 break;
             case "SetAnimationLoop":
                 this.guiAnimationLoop = parsedMessage.state;
-                this.viewerState.animationChange = {index:0, operation:"updateLooping"};
+                // use index -1 to indicate all current animations
+                this.viewerState.animationChange = {index:-1, operation:"updateLooping"};
                 this.viewerState.setAnimationsNeedUpdate(true);
                 break;
             case "HeartBeat":

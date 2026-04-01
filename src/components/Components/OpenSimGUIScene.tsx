@@ -193,15 +193,18 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           }
         }
         else if (change.operation === "updateLooping") { // if updateLooping we don't create new mixers, reuse existing
-          const clipIndex = curState.viewerState.animations[change.index]?change.index:-1
-          if (clipIndex !== -1) {
-            const clip = curState.viewerState.animations[clipIndex]
-            const nextMixer =  mixers[clipIndex]
-            if (curState.guiAnimationLoop) {
-              nextMixer.clipAction(clip).setLoop(THREE.LoopRepeat, Infinity);
-            }
-            else {
-              nextMixer.clipAction(clip).setLoop(THREE.LoopOnce, 1);
+          for (let index = 0; index < curState.viewerState.currentAnimationIndices.length; index++) {
+            const clipIndex = curState.viewerState.currentAnimationIndices[index];
+            if (clipIndex !== -1) {
+              const clip = curState.viewerState.animations[clipIndex]
+              console.log("Updating looping for clip ", clip.name, " to ", curState.guiAnimationLoop)
+              const nextMixer =  mixers[clipIndex]
+              if (curState.guiAnimationLoop) {
+                nextMixer.clipAction(clip).setLoop(THREE.LoopRepeat, Infinity);
+              }
+              else {
+                nextMixer.clipAction(clip).setLoop(THREE.LoopOnce, 1);
+              }
             }
           }
         }
