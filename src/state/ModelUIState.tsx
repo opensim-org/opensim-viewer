@@ -530,11 +530,10 @@ export class ModelUIState {
         this.fitToBox = objectbbox;
     }
 
-    startGUIAnimationIfAvailable(requiredTimeStep: number) {
+    startAnimationRecording() {
         const json = JSON.stringify({
         type: "Animation",
-        "OP": "Start",
-        "timestep": requiredTimeStep});
+        "OP": "Start"});
         if (this.socket !== null)
             this.socket!.send(json);
     }

@@ -704,7 +704,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
       closeSnackbar();
       isRecordingRef.current = false;
-
+      curState.finishRecording();
       enqueueSnackbar(t('snackbars.processing_video'), {
         variant: 'info',
         persist: true,
