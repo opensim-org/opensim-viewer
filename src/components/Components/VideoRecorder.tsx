@@ -584,14 +584,17 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         }
       } catch {}
 
-      const animation = viewerState.animations[current[0]];
-      animationDurationRef.current = animation.duration;
+      const animationIndex = current[0];
+      const animation = viewerState.animations[animationIndex];
+      const startTime = viewerState.animationStartTimes[animationIndex] || 0;
+      curState.guiAnimationStartTime = startTime; // Reset animation start time
+      animationDurationRef.current = animation.duration - startTime; //account for non-zero start
 
-      // Setup offscreen rendering
+      // Setup offscreen rendering with correct dimensions and aspect ratio
       setupOffscreenRenderer();
 
       // Reset to beginning
-      viewerState.setCurrentAnimationTime(0);
+      viewerState.setCurrentAnimationTime(startTime);
       curState.setCurrentFrame(0);
 
       // Wait for animation to reset and render
@@ -609,10 +612,10 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       let effectiveDuration = animationDurationRef.current;
       let effectiveFps = fps;
 
-      if (viewerState.recordedVideoFormat == "gif") {
-        if (effectiveFps == 30)
+      if (viewerState.recordedVideoFormat === "gif") {
+        if (effectiveFps === 30)
           effectiveFps = 25
-        if (effectiveFps == 60)
+        if (effectiveFps === 60)
           effectiveFps = 50
       }
 
@@ -642,8 +645,9 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       }
 
       viewerState.setIsRecordingVideo(true);
-
+      curState.guiAnimationLoop = false; // Stop any existing loops
       curState.viewerState.animationChange = { index: 0, operation: "start" };
+      viewerState.animating = false; // avoid useFrame mixer advancing
       curState.viewerState.setAnimationsNeedUpdate(true);
 
       enqueueSnackbar(t('snackbars.recording_video'), {
@@ -658,11 +662,13 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       let frameCount = 0;
       let captureErrors = 0;
       const MAX_ERRORS = 5;
+      const animationIndex = viewerState.currentAnimationIndices[0];
+      let animationStartTime = viewerState.animationStartTimes[animationIndex] || 0;
 
       const loop = async () => {
         while (isRecordingRef.current && frameCount < totalFrames && captureErrors < MAX_ERRORS) {
           // Calculate animation time based on speed
-          const animationTime = (frameCount / effectiveFps) * animationSpeed;
+          const animationTime = (frameCount / effectiveFps) * animationSpeed + animationStartTime;
 
           // Clamp to animation duration to avoid going beyond
           const clampedTime = Math.min(animationTime, animationDurationRef.current);
