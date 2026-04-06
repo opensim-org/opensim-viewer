@@ -670,11 +670,8 @@ function VideoRecorder(props: VideoRecorderViewProps) {
           // Calculate animation time based on speed
           const animationTime = (frameCount / effectiveFps) * animationSpeed + animationStartTime;
 
-          // Clamp to animation duration to avoid going beyond
-          const clampedTime = Math.min(animationTime, animationDurationRef.current);
-
           // Set animation time
-          viewerState.setCurrentAnimationTime(clampedTime);
+          viewerState.setCurrentAnimationTime(animationTime);
 
           // Calculate progress percentage based on actual frames captured vs total frames we expect to capture
           const progressPercent = (frameCount / totalFrames) * 100;
