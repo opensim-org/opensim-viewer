@@ -246,6 +246,16 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             action.play();
           });
         }
+        else if (change.operation === "timeChange"){
+          const indices = curState.viewerState.currentAnimationIndices;
+            if (mixer === undefined) return;
+            if (indices.indexOf(idx) === -1) return; // only update if in current indices
+            const action = mixer.clipAction(curState.viewerState.animations[idx]);
+            action.time = viewerState.currentAnimationTime;
+            //console.log("Set time to ", action.time, " for clip ", curState.viewerState.animations[idx].name)
+            action.reset().play(); // need to play after changing time to apply the change
+          });
+        }
     }
       curState.viewerState.setAnimationsNeedUpdate(false);
   }, [currentCamera, set, curState.viewerState.currentCameraIndex, 
