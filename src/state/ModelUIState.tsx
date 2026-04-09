@@ -428,7 +428,7 @@ export class ModelUIState {
                 break;
             case "PathOperation":
                 // TODO: support path edit message type
-                //editor.processPathEdit(msg);
+                this.processPathEdit(parsedMessage);
                 break;
             case "endAnimation":
                 this.viewerState.animating = false;
@@ -609,5 +609,25 @@ export class ModelUIState {
     }
     setDebug(value: boolean) {
       this.debug = value;
+    }
+    // Process Path operations from GUI
+    processPathEdit(pathEditJson: any) { 
+        const pathOp = pathEditJson.SubOperation;
+        const pathObject = this.objectByUuid(pathEditJson.uuid);
+        switch(pathOp) {
+            case "refresh":
+                const updPoints = pathEditJson.points;
+                for (var i = 0; i < updPoints.length; i++) {
+                    const nextEntry = updPoints[i];
+                    const uuid = nextEntry.uuid;
+                    const xform = nextEntry.matrix;
+                    const matrix = new Matrix4();
+                    matrix.fromArray(xform);
+                    const pathpointObject = this.objectByUuid(uuid);
+                    matrix.decompose(pathpointObject.position, pathpointObject.quaternion, pathpointObject.scale);
+                }
+                break;
+            // TODO add more path edit operations here
+        }
     }
 }
