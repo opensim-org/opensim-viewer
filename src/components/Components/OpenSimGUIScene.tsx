@@ -248,6 +248,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         }
         else if (change.operation === "timeChange"){
           const indices = curState.viewerState.currentAnimationIndices;
+          mixers.forEach((mixer, idx) => {
             if (mixer === undefined) return;
             if (indices.indexOf(idx) === -1) return; // only update if in current indices
             const action = mixer.clipAction(curState.viewerState.animations[idx]);
