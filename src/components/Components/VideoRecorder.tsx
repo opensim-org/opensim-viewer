@@ -330,12 +330,33 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     }
   };
 
-  const waitForNextFrame = (): Promise<void> => {
-    return new Promise(resolve => {
-      requestAnimationFrame(() => {
-        // Double rAF to ensure rendering is complete
-        requestAnimationFrame(() => resolve());
+  const waitForNextFrame = async (ensureOffscreenSync: boolean = true): Promise<void> => {
+    return new Promise(async resolve => {
+      // Wait for main renderer frame
+      await new Promise<void>(r => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => r());
+        });
       });
+
+      if (ensureOffscreenSync && offscreenRenderer.current) {
+        // Force offscreen renderer to render
+        offscreenRenderer.current.render(scene, camera);
+
+        // Wait for offscreen renderer's frame
+        await new Promise<void>(r => {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              // Ensure GPU has processed all commands
+              const gl = offscreenRenderer.current?.getContext();
+              gl?.finish();
+              r();
+            });
+          });
+        });
+      }
+
+      resolve();
     });
   };
 
@@ -584,18 +605,22 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         }
       } catch {}
 
-      const animation = viewerState.animations[current[0]];
-      animationDurationRef.current = animation.duration;
+      const animationIndex = current[0];
+      const animation = viewerState.animations[animationIndex];
+      const startTime = viewerState.animationStartTimes[animationIndex] || 0;
+      curState.guiAnimationStartTime = startTime; // Reset animation start time
+      animationDurationRef.current = animation.duration - startTime; //account for non-zero start
 
-      // Setup offscreen rendering
+      // Setup offscreen rendering with correct dimensions and aspect ratio
       setupOffscreenRenderer();
 
       // Reset to beginning
-      viewerState.setCurrentAnimationTime(0);
+      viewerState.setCurrentAnimationTime(startTime);
+      viewerState.forceAnimationUpdate = true;
       curState.setCurrentFrame(0);
 
       // Wait for animation to reset and render
-      await waitForNextFrame();
+      await waitForNextFrame(true);
 
       startCaptureProcess();
     };
@@ -609,10 +634,10 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       let effectiveDuration = animationDurationRef.current;
       let effectiveFps = fps;
 
-      if (viewerState.recordedVideoFormat == "gif") {
-        if (effectiveFps == 30)
+      if (viewerState.recordedVideoFormat === "gif") {
+        if (effectiveFps === 30)
           effectiveFps = 25
-        if (effectiveFps == 60)
+        if (effectiveFps === 60)
           effectiveFps = 50
       }
 
@@ -642,8 +667,9 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       }
 
       viewerState.setIsRecordingVideo(true);
-
+      curState.guiAnimationLoop = false; // Stop any existing loops
       curState.viewerState.animationChange = { index: 0, operation: "start" };
+      viewerState.animating = false; // avoid useFrame mixer advancing
       curState.viewerState.setAnimationsNeedUpdate(true);
 
       enqueueSnackbar(t('snackbars.recording_video'), {
@@ -658,24 +684,23 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       let frameCount = 0;
       let captureErrors = 0;
       const MAX_ERRORS = 5;
+      const animationIndex = viewerState.currentAnimationIndices[0];
+      let animationStartTime = viewerState.animationStartTimes[animationIndex] || 0;
 
       const loop = async () => {
         while (isRecordingRef.current && frameCount < totalFrames && captureErrors < MAX_ERRORS) {
           // Calculate animation time based on speed
-          const animationTime = (frameCount / effectiveFps) * animationSpeed;
-
-          // Clamp to animation duration to avoid going beyond
-          const clampedTime = Math.min(animationTime, animationDurationRef.current);
+          const animationTime = (frameCount / effectiveFps) * animationSpeed + animationStartTime;
 
           // Set animation time
-          viewerState.setCurrentAnimationTime(clampedTime);
+          viewerState.setCurrentAnimationTime(animationTime);
 
           // Calculate progress percentage based on actual frames captured vs total frames we expect to capture
           const progressPercent = (frameCount / totalFrames) * 100;
           curState.setCurrentFrame(progressPercent);
 
           // Wait for rendering to complete
-          await waitForNextFrame();
+          await waitForNextFrame(true);
 
           // Capture frame using offscreen renderer
           const frame = captureFrameOffscreen();
@@ -704,7 +729,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
       closeSnackbar();
       isRecordingRef.current = false;
-
+      curState.finishRecording();
       enqueueSnackbar(t('snackbars.processing_video'), {
         variant: 'info',
         persist: true,

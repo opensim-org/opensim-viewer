@@ -167,12 +167,18 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           if (clipIndex !== -1) {
             const nextMixer = new AnimationMixer(curState.viewerState.animationRoots[clipIndex])
             const clip = curState.viewerState.animations[clipIndex]
-            nextMixer.clipAction(clip)
+            const action = nextMixer.clipAction(clip)
+            const startTime = curState.viewerState.animationStartTimes[clipIndex]
+            nextMixer.addEventListener('loop', (e) => {
+              if (e.action === action) {
+                action.time = startTime;
+              }
+            });
             if (curState.guiAnimationLoop) {
-              nextMixer.clipAction(clip).setLoop(THREE.LoopRepeat, Infinity);
+              action.setLoop(THREE.LoopRepeat, Infinity);
             }
             else {
-              nextMixer.clipAction(clip).setLoop(THREE.LoopOnce, 1);
+              action.setLoop(THREE.LoopOnce, 1);
             }
             mixers[clipIndex] = nextMixer
           }
@@ -182,26 +188,36 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           if (clipIndex !== -1) {
             const nextMixer = new AnimationMixer(curState.viewerState.animationRoots[clipIndex])
             const clip = curState.viewerState.animations[clipIndex]
-            nextMixer.clipAction(clip)
+            const action = nextMixer.clipAction(clip)
+            const startTime = curState.viewerState.animationStartTimes[clipIndex]
+            nextMixer.addEventListener('loop', (e) => {
+              if (e.action === action) {
+                action.time = startTime;
+              }
+            });
             if (curState.guiAnimationLoop) {
-              nextMixer.clipAction(clip).setLoop(THREE.LoopRepeat, Infinity);
+              action.setLoop(THREE.LoopRepeat, Infinity);
             }
             else {
-              nextMixer.clipAction(clip).setLoop(THREE.LoopOnce, 1);
+              action.setLoop(THREE.LoopOnce, 1);
             }
             mixers[clipIndex] = nextMixer
           }
         }
         else if (change.operation === "updateLooping") { // if updateLooping we don't create new mixers, reuse existing
-          const clipIndex = curState.viewerState.animations[change.index]?change.index:-1
-          if (clipIndex !== -1) {
-            const clip = curState.viewerState.animations[clipIndex]
-            const nextMixer =  mixers[clipIndex]
-            if (curState.guiAnimationLoop) {
-              nextMixer.clipAction(clip).setLoop(THREE.LoopRepeat, Infinity);
-            }
-            else {
-              nextMixer.clipAction(clip).setLoop(THREE.LoopOnce, 1);
+          for (let index = 0; index < curState.viewerState.currentAnimationIndices.length; index++) {
+            const clipIndex = curState.viewerState.currentAnimationIndices[index];
+            if (clipIndex !== -1) {
+              const clip = curState.viewerState.animations[clipIndex]
+              console.log("Updating looping for clip ", clip.name, " to ", curState.guiAnimationLoop)
+              const nextMixer =  mixers[clipIndex]
+              const action = nextMixer.clipAction(clip)
+              if (curState.guiAnimationLoop) {
+                action.setLoop(THREE.LoopRepeat, Infinity);
+              }
+              else {
+                action.setLoop(THREE.LoopOnce, 1);
+              }
             }
           }
         }
@@ -228,6 +244,17 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             action.time = curState.guiAnimationStartTime;
             action.clampWhenFinished = true;
             action.play();
+          });
+        }
+        else if (change.operation === "timeChange"){
+          const indices = curState.viewerState.currentAnimationIndices;
+          mixers.forEach((mixer, idx) => {
+            if (mixer === undefined) return;
+            if (indices.indexOf(idx) === -1) return; // only update if in current indices
+            const action = mixer.clipAction(curState.viewerState.animations[idx]);
+            action.time = viewerState.currentAnimationTime;
+            //console.log("Set time to ", action.time, " for clip ", curState.viewerState.animations[idx].name)
+            action.reset().play(); // need to play after changing time to apply the change
           });
         }
     }

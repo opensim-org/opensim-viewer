@@ -111,7 +111,7 @@ export class ModelUIState {
         this.fitToBox = null
         this.debug = false
         this.simulationTime=0.0
-        this.viewerState = new ViewerState(currentModelPathState, '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false);
+        this.viewerState = new ViewerState(currentModelPathState, '/builtin/featured-models.json', false, false, false, false, "opensim-snapshot", 'png', "opensim-video", 'mp4', false, false);
         makeObservable(this, {
             zooming: observable,
             showGlobalFrame: observable,
@@ -428,7 +428,7 @@ export class ModelUIState {
                 break;
             case "PathOperation":
                 // TODO: support path edit message type
-                //editor.processPathEdit(msg);
+                this.processPathEdit(parsedMessage);
                 break;
             case "endAnimation":
                 this.viewerState.animating = false;
@@ -507,7 +507,8 @@ export class ModelUIState {
                 break;
             case "SetAnimationLoop":
                 this.guiAnimationLoop = parsedMessage.state;
-                this.viewerState.animationChange = {index:0, operation:"updateLooping"};
+                // use index -1 to indicate all current animations
+                this.viewerState.animationChange = {index:-1, operation:"updateLooping"};
                 this.viewerState.setAnimationsNeedUpdate(true);
                 break;
             case "HeartBeat":
@@ -529,20 +530,27 @@ export class ModelUIState {
         this.fitToBox = objectbbox;
     }
 
-    startGUIAnimationIfAvailable(requiredTimeStep: number) {
+    startAnimationRecording() {
         const json = JSON.stringify({
         type: "Animation",
-        "OP": "Start",
-        "timestep": requiredTimeStep});
+        "OP": "Start"});
         if (this.socket !== null)
             this.socket!.send(json);
     }
     
+    getClipStartTime(clip: AnimationClip) {
+        return clip.tracks.reduce((min, track) => {
+            return track.times.length ? Math.min(min, track.times[0]) : min;
+        }, Infinity);
+    }
+
     createAnimationClipFromMessage(clipMessage: any) {
         // Creating AnimationClip from clipMessage
         // We probably should check to avoid duplicates here
         const clip = AnimationClip.parse(clipMessage.Clip); // This creates an AnimationClip instance
+        const startTime = this.getClipStartTime(clip);
         this.viewerState.animations.push(clip);
+        this.viewerState.animationStartTimes.push(startTime);
         const index = this.viewerState.animations.length - 1;
         console.log(`Creating Animation Clip: Name=${clip.name}, Duration=${clip.duration}`);
         const clipRoot = clipMessage.Root;
@@ -601,5 +609,25 @@ export class ModelUIState {
     }
     setDebug(value: boolean) {
       this.debug = value;
+    }
+    // Process Path operations from GUI
+    processPathEdit(pathEditJson: any) { 
+        const pathOp = pathEditJson.SubOperation;
+        const pathObject = this.objectByUuid(pathEditJson.uuid);
+        switch(pathOp) {
+            case "refresh":
+                const updPoints = pathEditJson.points;
+                for (var i = 0; i < updPoints.length; i++) {
+                    const nextEntry = updPoints[i];
+                    const uuid = nextEntry.uuid;
+                    const xform = nextEntry.matrix;
+                    const matrix = new Matrix4();
+                    matrix.fromArray(xform);
+                    const pathpointObject = this.objectByUuid(uuid);
+                    matrix.decompose(pathpointObject.position, pathpointObject.quaternion, pathpointObject.scale);
+                }
+                break;
+            // TODO add more path edit operations here
+        }
     }
 }

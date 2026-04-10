@@ -75,7 +75,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
 
   const handleRecord = () => {
     setOpen(false);
-
+    curState.startAnimationRecording();
     if (videoRecorderRef?.current && !viewerState.isRecordingVideo) {
       videoRecorderRef.current.startRecording();
     }
@@ -119,7 +119,10 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
           disabled={viewerState.isProcessingVideo}
           onClick={() => {
             if (!viewerState.isRecordingVideo) handleOpen();
-            else videoRecorderRef.current.stopRecording();
+            else {
+              videoRecorderRef.current.stopRecording();
+              curState.finishRecording();
+            }
           }}
         >
           <VideoCameraFrontTwoToneIcon />
