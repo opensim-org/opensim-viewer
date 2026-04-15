@@ -21,11 +21,11 @@ interface RecordingModalProps {
   videoRecorderRef: React.MutableRefObject<any>;
 }
 
-// Define quality levels that will be used as base dimensions
+// Define quality levels that will be used as base dimensions. Base dimension is width.
 const qualityLevels = [
-  { label: "1080p HD", baseDimension: 1080 },
-  { label: "1440p HD", baseDimension: 1440 },
-  { label: "2160p 4K", baseDimension: 2160 },
+  { label: "1080p HD", baseDimension: 1920 },
+  { label: "1440p HD", baseDimension: 2560 },
+  { label: "2160p 4K", baseDimension: 3840 },
 ];
 
 const videoFormats = [

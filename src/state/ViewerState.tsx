@@ -147,7 +147,7 @@ export class ViewerState {
         this.recordedVideoFPS = 30
         this.recordedVideoAspectRatio = "16:9"
         this.showAspectRatioGuides = false
-        this.videoRecorderBaseDimension = 1080
+        this.videoRecorderBaseDimension = 1920
 
         this.videoRecorderPreserveAspectRatio = true
         this.user_uuid = ''
