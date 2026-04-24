@@ -200,7 +200,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
   };
 
   const getBaseDimensions = () => {
-    const baseWidth = viewerState.videoRecorderBaseDimension || 1080;
+    const baseWidth = viewerState.videoRecorderBaseDimension || 1920;
 
     // Get actual canvas size
     const canvas = gl.domElement;
