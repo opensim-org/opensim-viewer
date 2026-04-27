@@ -607,6 +607,15 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
       const animationIndex = current[0];
       const animation = viewerState.animations[animationIndex];
+
+      if(!animation) {
+        enqueueSnackbar(t('snackbars.no_animation_selected'), {
+          variant: 'error',
+          autoHideDuration: 10000
+        });
+        return;
+      }
+
       const startTime = viewerState.animationStartTimes[animationIndex] || 0;
       curState.guiAnimationStartTime = startTime; // Reset animation start time
       animationDurationRef.current = animation.duration - startTime; //account for non-zero start
