@@ -162,6 +162,8 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
             curState.viewerState.saveCameraAndTarget = false
         }
         else if (curState.takeSnapshot){
+            const timestamp = getTimestamp();
+            const snapshot_filename = viewerState.snapshotName + "_" + timestamp + "." + viewerState.snapshotFormat;
             if (curState.snapshotProps.size_choice==="screen"){
                 const link = document.createElement('a')
                 if (curState.snapshotProps.transparent_background) {
@@ -187,9 +189,9 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
 
                   // Capture snapshot
                   const link = document.createElement("a");
-                  link.setAttribute(
+                   link.setAttribute(
                       "download",
-                      viewerState.snapshotName + "." + viewerState.snapshotFormat
+                      snapshot_filename
                   );
                   link.setAttribute(
                       "href",
@@ -212,7 +214,7 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
                   gl.render(scene, camera);
               }
                 else{
-                    link.setAttribute('download', viewerState.snapshotName + "." + viewerState.snapshotFormat)
+                    link.setAttribute('download', snapshot_filename);
                     link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
                     link.click()
                     curState.takeSnapshot = false;
@@ -232,18 +234,30 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
                     renderWidth /= window.devicePixelRatio;
                     renderHeight /= window.devicePixelRatio;
                 }
-                resizeRenderer (renderWidth, renderHeight);
-                const link = document.createElement('a')
                 if (curState.snapshotProps.transparent_background){
                     let clearAlpha = gl.getClearAlpha ();
                     gl.setClearAlpha (0.0);
-                    link.setAttribute('download', viewerState.snapshotName + "." + viewerState.snapshotFormat)
+                    // Find the skysphere object
+                    const skySphere = scene.getObjectByName("SkySphere");
+                    let prevSkyVisibility = true;
+                    if (skySphere) {
+                        prevSkyVisibility = skySphere.visible;
+                        skySphere.visible = false; // hide sky
+                    }
+                    resizeRenderer (renderWidth, renderHeight);
+                    const link = document.createElement('a')
+                    link.setAttribute('download', snapshot_filename);
                     link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
                     link.click()
                     gl.setClearAlpha (clearAlpha);
+                    if (skySphere) {
+                        skySphere.visible = prevSkyVisibility;
+                    }
                 }
                 else {
-                    link.setAttribute('download', viewerState.snapshotName + "." + viewerState.snapshotFormat)
+                    resizeRenderer (renderWidth, renderHeight);
+                    const link = document.createElement('a')
+                    link.setAttribute('download', snapshot_filename)
                     link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
                     link.click()
                 }

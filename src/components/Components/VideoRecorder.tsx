@@ -8,8 +8,13 @@ import { useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { getTimestamp } from "../../helpers/timeHelpers";
-import { PerspectiveCamera } from 'three';
-import JSZip from "jszip";
+import { PerspectiveCamera, WebGLRenderer } from 'three';
+import JSZip from 'jszip';
+
+// Extend Navigator interface to include deviceMemory
+interface NavigatorWithMemory extends Navigator {
+  deviceMemory?: number;
+}
 
 type VideoRecorderRef = {
   startRecording: () => void;
@@ -23,44 +28,20 @@ type VideoRecorderViewProps = {
 // Aspect ratio utility functions
 const parseAspectRatio = (aspectRatio: string): { width: number; height: number } => {
   const [widthStr, heightStr] = aspectRatio.split(':');
-  return {
-    width: parseInt(widthStr, 10),
-    height: parseInt(heightStr, 10)
-  };
+  return { width: parseInt(widthStr, 10), height: parseInt(heightStr, 10) };
 };
 
-const calculateDimensionsFromAspectRatio = (
-  baseDimension: number,
-  aspectRatio: string,
-  useWidthAsBase: boolean = true
-): { width: number; height: number } => {
-  const { width: ratioW, height: ratioH } = parseAspectRatio(aspectRatio);
-  const aspect = ratioW / ratioH;
+const ensureEvenDimensions = (width: number, height: number) => ({
+  width: width % 2 === 0 ? width : width - 1,
+  height: height % 2 === 0 ? height : height - 1
+});
 
-  if (useWidthAsBase) {
-    return {
-      width: baseDimension,
-      height: Math.round(baseDimension / aspect)
-    };
-  } else {
-    return {
-      width: Math.round(baseDimension * aspect),
-      height: baseDimension
-    };
-  }
-};
-
-const ensureEvenDimensions = (width: number, height: number): { width: number; height: number } => {
-  return {
-    width: width % 2 === 0 ? width : width - 1,
-    height: height % 2 === 0 ? height : height - 1
-  };
-};
+type VideoFormat = 'mp4' | 'mov' | 'webm' | 'gif' | 'zip';
 
 function VideoRecorder(props: VideoRecorderViewProps) {
   const { t } = useTranslation();
   const viewerState = useModelContext().viewerState;
-  const { gl, size, camera } = useThree();
+  const { gl, camera, scene } = useThree();
   const curState = useModelContext();
 
   const ffmpegRef = useRef(new FFmpeg());
@@ -69,403 +50,788 @@ function VideoRecorder(props: VideoRecorderViewProps) {
   const capturedFrames = useRef<string[]>([]);
   const isRecordingRef = useRef(false);
   const animationDurationRef = useRef(0);
-  const startAnimationTimeRef = useRef(0);
+  const ffmpegLoadedRef = useRef(false);
+  const originalUpdateProjectionMatrixRef = useRef<(() => void) | null>(null);
 
-  // Store original helper visibility state
-  const originalVisibleHelpersRef = useRef<boolean>(true);
-
+  // Store original camera state
   const originalCameraAspectRef = useRef<number | null>(null);
-  const originalCameraFovRef = useRef<number | null>(null);
-  const originalRendererSizeRef = useRef<{ width: number; height: number } | null>(null);
+  const originalCameraMatrixRef = useRef<any>(null);
 
-  const load = async () => {
+  // Offscreen renderer
+  const offscreenRenderer = useRef<WebGLRenderer | null>(null);
+
+  // Check if local file exists
+  const checkLocalFileExists = async (url: string): Promise<boolean> => {
+    try {
+      const response = await fetch(url);
+      return response.ok;
+    } catch (error) {
+      console.warn(`Failed to check local file ${url}:`, error);
+      return false;
+    }
+  };
+
+  // Load FFmpeg once and track loading state
+  const loadFFmpeg = async (): Promise<boolean> => {
+    if (ffmpegLoadedRef.current) return true;
+
     const ffmpeg = ffmpegRef.current;
-    ffmpeg.on('log', ({ message }) => console.log(message));
-    if (!ffmpeg.loaded) {
-      await ffmpeg.load({
-        coreURL: '/ffmpeg/ffmpeg-core.js',
-        wasmURL: '/ffmpeg/ffmpeg-core.wasm',
+    ffmpeg.on('log', ({ message }: { message: string }) => console.log('[FFmpeg]', message));
+
+    try {
+      if (!ffmpeg.loaded) {
+        // Check local files first
+        console.log('Checking for local FFmpeg files...');
+        const localCoreExists = await checkLocalFileExists('/ffmpeg/ffmpeg-core.js');
+        const localWasmExists = await checkLocalFileExists('/ffmpeg/ffmpeg-core.wasm');
+
+        console.log('Local files status:', {
+          core: localCoreExists ? 'Yes' : 'No',
+          wasm: localWasmExists ? 'Yes' : 'No'
+        });
+
+        const baseUrl = window.location.origin;
+        const localCoreUrl = `${baseUrl}/ffmpeg/ffmpeg-core.js`;
+        const localWasmUrl = `${baseUrl}/ffmpeg/ffmpeg-core.wasm`;
+
+        // Try local files if they exist
+        if (localCoreExists && localWasmExists) {
+          try {
+            if (curState.debug) {
+              enqueueSnackbar('Loading video encoder from local files...', {
+                variant: 'info',
+                autoHideDuration: 2000
+              });
+            }
+
+            await ffmpeg.load({
+              coreURL: localCoreUrl,
+              wasmURL: localWasmUrl,
+            });
+
+            ffmpegLoadedRef.current = true;
+            console.log('FFmpeg loaded successfully from local files');
+
+            if (curState.debug) {
+              enqueueSnackbar('Video encoder loaded successfully (local)', {
+                variant: 'success',
+                autoHideDuration: 3000
+              });
+            }
+            return true;
+          } catch (localError) {
+            console.error('Local files found but failed to load:', localError);
+
+            if (curState.debug) {
+              enqueueSnackbar('Local video encoder files found but failed to load. Trying CDN fallback...', {
+                variant: 'warning',
+                autoHideDuration: 10000
+              });
+            }
+          }
+        } else {
+          if (curState.debug) {
+            enqueueSnackbar('Local video encoder files not found at ' + localCoreUrl + ' Downloading from CDN...', {
+              variant: 'info',
+              autoHideDuration: 5000
+            });
+          }
+        }
+
+        // Fallback to CDN
+        console.log('Loading FFmpeg from CDN fallback...');
+
+        // Try multiple CDN sources
+        const cdnSources = [
+          {
+            name: 'unpkg',
+            coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.2/dist/umd/ffmpeg-core.js',
+            wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.2/dist/umd/ffmpeg-core.wasm',
+          },
+          {
+            name: 'jsdelivr',
+            coreURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.2/dist/umd/ffmpeg-core.js',
+            wasmURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.2/dist/umd/ffmpeg-core.wasm',
+          }
+        ];
+
+        let cdnLoaded = false;
+        for (const source of cdnSources) {
+          try {
+            console.log(`Attempting to load from ${source.name}...`);
+            await ffmpeg.load({
+              coreURL: source.coreURL,
+              wasmURL: source.wasmURL,
+            });
+            cdnLoaded = true;
+            ffmpegLoadedRef.current = true;
+            console.log(`FFmpeg loaded successfully from ${source.name}`);
+
+            if (curState.debug) {
+              enqueueSnackbar(`Video encoder loaded from ${source.name}`, {
+                variant: 'success',
+                autoHideDuration: 3000
+              });
+            }
+            break;
+          } catch (cdnError) {
+            console.warn(`Failed to load from ${source.name}:`, cdnError);
+          }
+        }
+
+        if (!cdnLoaded) {
+          throw new Error('All CDN sources failed to load');
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Failed to load FFmpeg from all sources:', error);
+
+      if (curState.debug) {
+        enqueueSnackbar('Failed to load video encoder. Please check your internet connection and try again.', {
+          variant: 'error',
+          autoHideDuration: 10000,
+          persist: false
+        });
+      }
+      return false;
+    }
+  };
+
+  const getBaseDimensions = () => {
+    const baseWidth = viewerState.videoRecorderBaseDimension || 1920;
+
+    // Get actual canvas size
+    const canvas = gl.domElement;
+    const canvasWidth = canvas.clientWidth;
+    const canvasHeight = canvas.clientHeight;
+
+    // Fallback safety
+    if (!canvasWidth || !canvasHeight) {
+      return ensureEvenDimensions(baseWidth, baseWidth); // square fallback
+    }
+
+    const aspect = canvasWidth / canvasHeight;
+
+    const height = Math.round(baseWidth / aspect);
+
+    return ensureEvenDimensions(baseWidth, height);
+  };
+
+  const getTargetAspectRatio = () => {
+    const aspectRatio = viewerState.recordedVideoAspectRatio || '16:9';
+    const { width, height } = parseAspectRatio(aspectRatio);
+    return width / height;
+  };
+
+  // Setup offscreen renderer
+  const setupOffscreenRenderer = () => {
+    const { width, height } = getBaseDimensions();
+
+    // Create offscreen renderer if it doesn't exist
+    if (!offscreenRenderer.current) {
+      offscreenRenderer.current = new WebGLRenderer({
+        preserveDrawingBuffer: true,
+        alpha: false,
+        antialias: true
       });
     }
+
+    // Set size for offscreen renderer
+
+    offscreenRenderer.current.setSize(width, height);
+    offscreenRenderer.current.setPixelRatio(1);
+    offscreenRenderer.current.setClearColor(0xffffff, 1);
+
+    return { width, height, renderer: offscreenRenderer.current };
   };
 
+  const makeEven = (n: number) => n % 2 === 0 ? n : n - 1;
 
-  const downloadFramesAsZip = async () => {
-    const zip = new JSZip();
+  const computeCrop = (baseWidth: number, baseHeight: number) => {
+    const targetAspect = getTargetAspectRatio();
+    const baseAspect = baseWidth / baseHeight;
 
-    // Put each frame into /frames/frame_0001.jpeg
-    capturedFrames.current.forEach((dataURL, i) => {
-      const base64 = dataURL.split(",")[1];
-      zip.file(`frame_${String(i).padStart(4, "0")}.jpeg`, base64, { base64: true });
-    });
+    let cropWidth = baseWidth;
+    let cropHeight = baseHeight;
 
-    const content = await zip.generateAsync({ type: "blob" });
-    const url = URL.createObjectURL(content);
+    if (baseAspect > targetAspect) {
+      cropWidth = baseHeight * targetAspect;
+    } else {
+      cropHeight = baseWidth / targetAspect;
+    }
 
-    const timestamp = getTimestamp();
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${viewerState.recordedVideoName}_${timestamp}.zip`;
-    document.body.appendChild(a);
-    a.click();
-    URL.revokeObjectURL(url);
+    cropWidth = makeEven(Math.floor(cropWidth));
+    cropHeight = makeEven(Math.floor(cropHeight));
+
+    const offsetX = makeEven(Math.floor((baseWidth - cropWidth) / 2));
+    const offsetY = makeEven(Math.floor((baseHeight - cropHeight) / 2));
+
+    return { cropWidth, cropHeight, offsetX, offsetY };
   };
 
+  // Capture frame using offscreen renderer
+  const captureFrameOffscreen = (): string | null => {
+    try {
+      if (!offscreenRenderer.current) return null;
 
-  const getTargetDimensions = (): { width: number; height: number } => {
-    const glCanvas = gl.domElement;
+      const { width, height } = getBaseDimensions();
 
-    // Always use aspect ratio to determine dimensions
-    if (viewerState.recordedVideoAspectRatio) {
-      const { width: ratioW, height: ratioH } = parseAspectRatio(viewerState.recordedVideoAspectRatio);
-      const aspect = ratioW / ratioH;
+      offscreenRenderer.current.render(scene, camera);
 
-      // Use base dimension as the primary dimension
-      const baseDimension = viewerState.videoRecorderBaseDimension || 720;
+      const ctx = offscreenRenderer.current.getContext();
 
-      // For landscape (width >= height), prioritize width
-      // For portrait (height > width), prioritize height
-      if (ratioW >= ratioH) {
-        // Landscape or square - prioritize width
-        const width = baseDimension;
-        const height = Math.round(width / aspect);
-        return ensureEvenDimensions(width, height);
-      } else {
-        // Portrait - prioritize height
-        const height = baseDimension;
-        const width = Math.round(height * aspect);
-        return ensureEvenDimensions(width, height);
+      const buffer = new Uint8Array(width * height * 4);
+      ctx.readPixels(0, 0, width, height, ctx.RGBA, ctx.UNSIGNED_BYTE, buffer);
+
+      // Create base canvas
+      const baseCanvas = document.createElement('canvas');
+      baseCanvas.width = width;
+      baseCanvas.height = height;
+      const baseCtx = baseCanvas.getContext('2d')!;
+      const img = baseCtx.createImageData(width, height);
+
+      // Flip Y (vertically)
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const src = ((height - y - 1) * width + x) * 4;
+          const dst = (y * width + x) * 4;
+          img.data[dst] = buffer[src];
+          img.data[dst + 1] = buffer[src + 1];
+          img.data[dst + 2] = buffer[src + 2];
+          img.data[dst + 3] = 255;
+        }
       }
-    }
 
-    // Fallback: use canvas dimensions
-    return {
-      width: glCanvas.width,
-      height: glCanvas.height
-    };
-  };
+      baseCtx.putImageData(img, 0, 0);
 
-  const setupCameraAndRendererForRecording = () => {
-    const perspectiveCamera = camera as PerspectiveCamera;
+      // Crop to target aspect ratio
+      const { cropWidth, cropHeight, offsetX, offsetY } =
+        computeCrop(width, height);
 
-    // Save original state
-    originalCameraAspectRef.current = perspectiveCamera.aspect;
-    originalCameraFovRef.current = perspectiveCamera.fov;
-    originalRendererSizeRef.current = { width: size.width, height: size.height };
+      const finalCanvas = document.createElement('canvas');
+      finalCanvas.width = cropWidth;
+      finalCanvas.height = cropHeight;
 
-    // Get target dimensions for recording
-    const { width: targetW, height: targetH } = getTargetDimensions();
-    const { width: evenW, height: evenH } = ensureEvenDimensions(targetW, targetH);
+      const finalCtx = finalCanvas.getContext('2d')!;
 
-    console.log(`Setting up recording: ${evenW}x${evenH}, aspect ratio: ${viewerState.recordedVideoAspectRatio}`);
+      finalCtx.drawImage(
+        baseCanvas,
+        offsetX, offsetY, cropWidth, cropHeight,
+        0, 0, cropWidth, cropHeight
+      );
 
-    // Update camera aspect ratio and projection matrix
-    perspectiveCamera.aspect = evenW / evenH;
-    perspectiveCamera.updateProjectionMatrix();
+      return finalCanvas.toDataURL('image/png');
 
-    // Update renderer size
-    gl.setSize(evenW, evenH, false);
-    gl.setPixelRatio(2); // Ensure crisp rendering at exact dimensions
-
-    return { width: evenW, height: evenH };
-  };
-
-  const restoreCameraAndRenderer = () => {
-    if (originalCameraAspectRef.current !== null) {
-      const perspectiveCamera = camera as PerspectiveCamera;
-
-      perspectiveCamera.aspect = originalCameraAspectRef.current;
-      perspectiveCamera.updateProjectionMatrix();
-
-      originalCameraAspectRef.current = null;
-    }
-
-    if (originalRendererSizeRef.current) {
-      gl.setSize(originalRendererSizeRef.current.width, originalRendererSizeRef.current.height, false);
-      originalRendererSizeRef.current = null;
+    } catch (error) {
+      console.error('Frame capture failed:', error);
+      return null;
     }
   };
 
-  const captureFrameReadPixels = (): string => {
-    const glCanvas = gl.domElement;
-    const { width: targetW, height: targetH } = getTargetDimensions();
-    const { width: evenW, height: evenH } = ensureEvenDimensions(targetW, targetH);
+  const waitForNextFrame = async (ensureOffscreenSync: boolean = true): Promise<void> => {
+    return new Promise(async resolve => {
+      // Wait for main renderer frame
+      await new Promise<void>(r => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => r());
+        });
+      });
 
-    // Create offscreen canvas for rendering
-    const compositeCanvas = document.createElement('canvas');
-    compositeCanvas.width = evenW;
-    compositeCanvas.height = evenH;
-    const ctx = compositeCanvas.getContext('2d')!;
+      if (ensureOffscreenSync && offscreenRenderer.current) {
+        // Force offscreen renderer to render
+        offscreenRenderer.current.render(scene, camera);
 
-    // Set white background
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, evenW, evenH);
+        // Wait for offscreen renderer's frame
+        await new Promise<void>(r => {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              // Ensure GPU has processed all commands
+              const gl = offscreenRenderer.current?.getContext();
+              gl?.finish();
+              r();
+            });
+          });
+        });
+      }
 
-    // Draw the WebGL canvas content
-    ctx.drawImage(glCanvas, 0, 0);
-
-    // Encode as JPEG (no alpha)
-    return compositeCanvas.toDataURL('image/jpeg');
+      resolve();
+    });
   };
 
   const encodeFramesToVideo = async (ext: 'mp4' | 'mov' | 'webm') => {
+    if (capturedFrames.current.length === 0) {
+      throw new Error('No frames captured');
+    }
+
+    // Add validation for reasonable frame count
+    const MAX_FRAMES = 3000; // ~100 seconds at 30fps
+    if (capturedFrames.current.length > MAX_FRAMES) {
+      throw new Error(`Too many frames (${capturedFrames.current.length}). Maximum supported: ${MAX_FRAMES}`);
+    }
+
+    // Check device memory with type-safe approach
+    const navigatorWithMemory = navigator as NavigatorWithMemory;
+    if (navigatorWithMemory.deviceMemory && navigatorWithMemory.deviceMemory < 4) {
+      enqueueSnackbar('Low device memory detected. Encoding may be slow or fail.', {
+        variant: 'warning',
+        autoHideDuration: 10000
+      });
+    }
+
     const ffmpeg = ffmpegRef.current;
-    await load();
-
-    const { width: targetW, height: targetH } = getTargetDimensions();
-    const { width: evenW, height: evenH } = ensureEvenDimensions(targetW, targetH);
-
-    console.log(`Encoding video at ${evenW}x${evenH} (aspect ratio: ${viewerState.recordedVideoAspectRatio})`);
+    const loaded = await loadFFmpeg();
+    if (!loaded) throw new Error('FFmpeg not loaded');
 
     try {
-      const files = await ffmpeg.listDir('/');
-      for (const file of files) {
-        if (file.name.startsWith('input') || file.name.startsWith('output')) {
-          await ffmpeg.deleteFile(file.name);
+      // Write frames to FFmpeg
+      for (let i = 0; i < capturedFrames.current.length; i++) {
+        const response = await fetch(capturedFrames.current[i]);
+        const blob = await response.blob();
+
+        // Check blob size
+        if (blob.size === 0) {
+          throw new Error(`Frame ${i} is empty`);
+        }
+
+        await ffmpeg.writeFile(`input${String(i).padStart(3, '0')}.png`, await fetchFile(blob));
+
+        // Progress notification for long recordings
+        if (i % 30 === 0) {
+          console.log(`Processed ${i}/${capturedFrames.current.length} frames`);
         }
       }
-    } catch (e) {
-      console.warn("Cleanup skipped:", e);
+
+      const fps = viewerState.recordedVideoFPS || 30;
+
+      const args = ['-framerate', `${fps}`, '-i', 'input%03d.png', '-r', `${fps}`];
+
+      if (ext === 'webm') {
+        args.push('-c:v', 'libvpx', '-b:v', '2M', '-auto-alt-ref', '0');
+      } else {
+        args.push(
+          '-c:v', 'libx264',
+          '-preset', 'slow',
+          '-crf', '16',
+          '-pix_fmt', 'yuv420p',
+          '-movflags', 'faststart',
+          '-profile:v', 'high',
+          '-level', '4.2',
+          '-vsync', 'cfr'
+        );
+      }
+
+      args.push('-y', `output.${ext}`);
+
+      console.log('Running FFmpeg with args:', args);
+      await ffmpeg.exec(args);
+
+      // Check if output file exists
+      try {
+        const data = await ffmpeg.readFile(`output.${ext}`);
+        if (data.length === 0) {
+          throw new Error('Output file is empty');
+        }
+        return URL.createObjectURL(new Blob([data], { type: `video/${ext}` }));
+      } catch (readError) {
+        console.error('Failed to read output file:', readError);
+        throw new Error('Video encoding failed - no output produced');
+      }
+    } catch (error) {
+      console.error('FFmpeg encoding error:', error);
+      enqueueSnackbar(`Encoding error: ${error instanceof Error ? error.message : 'Unknown error'}`, {
+        variant: 'error',
+        autoHideDuration: 10000
+      });
+      throw error;
     }
-
-    // Write all frames to FFmpeg
-    for (let i = 0; i < capturedFrames.current.length; i++) {
-      const dataURL = capturedFrames.current[i];
-      const res = await fetch(dataURL);
-      const blob = await res.blob();
-      await ffmpeg.writeFile(`input${String(i).padStart(3, '0')}.jpg`, await fetchFile(blob));
-    }
-
-    const fps = viewerState.recordedVideoFPS || 30;
-
-    // FFmpeg arguments - ensure correct aspect ratio and no distortion
-    const args = [
-      '-framerate', `${fps}`,
-      '-i', 'input%03d.jpg',
-      '-r', `${fps}`,
-    ];
-
-    if (ext === 'webm') {
-      args.push('-c:v', 'libvpx', '-b:v', '4M', '-pix_fmt', 'yuv420p');
-    } else {
-      args.push('-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-preset', 'fast', '-crf', '17');
-      if (ext === 'mov') args.push('-profile:v', 'high');
-    }
-
-    args.push('-y', `output.${ext}`);
-    await ffmpeg.exec(args);
-
-    const data = await ffmpeg.readFile(`output.${ext}`);
-    return URL.createObjectURL(new Blob([data], { type: `video/${ext}` }));
   };
 
-  const downloadVideo = (url: string, filename: string) => {
+  const encodeFramesToGif = async () => {
+    if (capturedFrames.current.length === 0) {
+      throw new Error('No frames captured');
+    }
+
+    const MAX_FRAMES = 500; // GIFs have lower limit
+    if (capturedFrames.current.length > MAX_FRAMES) {
+      throw new Error(`Too many frames for GIF (${capturedFrames.current.length}). Maximum supported: ${MAX_FRAMES}`);
+    }
+
+    const ffmpeg = ffmpegRef.current;
+    const loaded = await loadFFmpeg();
+    if (!loaded) throw new Error('FFmpeg not loaded');
+
+    try {
+      for (let i = 0; i < capturedFrames.current.length; i++) {
+        const response = await fetch(capturedFrames.current[i]);
+        const blob = await response.blob();
+        await ffmpeg.writeFile(`gif${String(i).padStart(3, '0')}.png`, await fetchFile(blob));
+      }
+
+      let fps = viewerState.recordedVideoFPS || 30;
+
+      if (fps == 30)
+        fps = 25
+      if (fps == 60)
+        fps = 50
+
+      await ffmpeg.exec(['-framerate', `${fps}`, '-i', 'gif%03d.png', '-vf', 'palettegen', 'palette.png']);
+      await ffmpeg.exec([
+        '-framerate', `${fps}`,
+        '-i', 'gif%03d.png',
+        '-i', 'palette.png',
+        '-lavfi', 'paletteuse',
+        '-y', 'output.gif'
+      ]);
+
+      const data = await ffmpeg.readFile('output.gif');
+      if (data.length === 0) {
+        throw new Error('GIF output is empty');
+      }
+      return URL.createObjectURL(new Blob([data], { type: 'image/gif' }));
+    } catch (error) {
+      console.error('GIF encoding error:', error);
+      enqueueSnackbar(`GIF encoding error: ${error instanceof Error ? error.message : 'Unknown error'}`, {
+        variant: 'error',
+        autoHideDuration: 10000
+      });
+      throw error;
+    }
+  };
+
+  const encodeFramesToZip = async () => {
+    if (capturedFrames.current.length === 0) {
+      throw new Error('No frames captured');
+    }
+
+    const zip = new JSZip();
+
+    for (let i = 0; i < capturedFrames.current.length; i++) {
+      const response = await fetch(capturedFrames.current[i]);
+      const blob = await response.blob();
+      zip.file(`frame_${String(i).padStart(4, '0')}.png`, blob);
+    }
+
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    if (zipBlob.size === 0) {
+      throw new Error('ZIP file is empty');
+    }
+    return URL.createObjectURL(zipBlob);
+  };
+
+  const downloadFile = (url: string, filename: string) => {
     const a = document.createElement('a');
     a.href = url;
     a.download = filename;
     document.body.appendChild(a);
     a.click();
-    window.URL.revokeObjectURL(url);
+
+    // Clean up
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+  };
+
+  const getSupportedFormat = (desiredFormat: VideoFormat): VideoFormat => {
+    const formatSupport: Record<VideoFormat, boolean> = {
+      mp4: true,
+      mov: true,
+      webm: false,
+      gif: true,
+      zip: true
+    };
+
+    if (formatSupport[desiredFormat]) {
+      return desiredFormat;
+    }
+
+    if (desiredFormat === 'mp4' || desiredFormat === 'mov') {
+      if (formatSupport.webm) {
+        enqueueSnackbar(`${desiredFormat.toUpperCase()} not supported, falling back to MP4`, {
+          variant: 'warning',
+          autoHideDuration: 10000
+        });
+        return 'mp4';
+      }
+    }
+
+    enqueueSnackbar(`No video format supported, falling back to ZIP of frames`, {
+      variant: 'warning',
+      autoHideDuration: 10000
+    });
+    return 'zip';
   };
 
   useEffect(() => {
-    // Ensure the renderer clears to white for MediaRecorder path
-    gl.setClearColor(0xffffff, 1);
+    // Pre-load FFmpeg and setup offscreen renderer
+    loadFFmpeg().then(loaded => {
+      if (loaded) {
+        console.log('FFmpeg pre-loaded successfully');
+      }
+    });
 
-    const startRecording = () => {
-      const fps = viewerState.recordedVideoFPS || 30;
-      const frameDuration = 1000 / fps;
+    // Initialize offscreen renderer
+    setupOffscreenRenderer();
 
-      const currentAnimationIndex = viewerState.currentAnimationIndex;
-      if (currentAnimationIndex === -1 && !curState.isGuiMode) {
+    const startRecording = async () => {
+      const current = viewerState.currentAnimationIndices;
+      if (current[0] === -1) {
         enqueueSnackbar(t('snackbars.no_animation_selected'), {
           variant: 'error',
-          anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
-          autoHideDuration: 5000, // 5 seconds
+          autoHideDuration: 10000
         });
         return;
       }
 
-      else if (curState.isGuiMode && curState.guiHasAnimation) {
-        animationDurationRef.current = curState.guiAnimationEndTime - curState.guiAnimationStartTime;
-        if (curState.guiAnimationSpeed !== 1.0) {
-          animationDurationRef.current /= curState.guiAnimationSpeed;
-        }
-        console.log("Duration in clock time ="+animationDurationRef.current+" seconds.");
+
+      // Check if FFmpeg is loaded
+      if (!ffmpegLoadedRef.current) {
+        enqueueSnackbar('Video encoder not ready yet. Please try again in a moment.', {
+          variant: 'warning',
+          autoHideDuration: 10000
+        });
+        return;
       }
-      else
-        console.log("isGuiMode, has no animation");
 
-      // Store original helper visibility and hide helpers
-      originalVisibleHelpersRef.current = curState.visibleHelpers;
-      curState.setVisibleHelpers(false);
+      // Cleanup ffmpeg directory
+      try {
+        const files = await ffmpegRef.current.listDir('/');
+        for (const file of files) {
+          if (file.name.startsWith('input') || file.name.startsWith('gif')) {
+            await ffmpegRef.current.deleteFile(file.name);
+          }
+        }
+      } catch {}
 
-      // Set up camera and renderer FIRST, before saving original state
-      const { width: targetW, height: targetH } = setupCameraAndRendererForRecording();
+      const animationIndex = current[0];
+      const animation = viewerState.animations[animationIndex];
 
-      console.log(`First recording setup: ${targetW}x${targetH}, aspect: ${viewerState.recordedVideoAspectRatio}`);
+      if(!animation) {
+        enqueueSnackbar(t('snackbars.no_animation_selected'), {
+          variant: 'error',
+          autoHideDuration: 10000
+        });
+        return;
+      }
 
-      // Give the renderer a moment to complete the resize
-      setTimeout(() => {
-        startCaptureProcess();
-      }, 100);
+      const startTime = viewerState.animationStartTimes[animationIndex] || 0;
+      curState.guiAnimationStartTime = startTime; // Reset animation start time
+      animationDurationRef.current = animation.duration - startTime; //account for non-zero start
+
+      // Setup offscreen rendering with correct dimensions and aspect ratio
+      setupOffscreenRenderer();
+
+      // Reset to beginning
+      viewerState.setCurrentAnimationTime(startTime);
+      viewerState.forceAnimationUpdate = true;
+      curState.setCurrentFrame(0);
+
+      // Wait for animation to reset and render
+      await waitForNextFrame(true);
+
+      startCaptureProcess();
     };
 
     const startCaptureProcess = () => {
       const fps = viewerState.recordedVideoFPS || 30;
-      const frameDuration = 1000 / fps;
-      console.log("animationDurationRef.current, fps", animationDurationRef.current, fps);
-      const totalFrames = Math.ceil(animationDurationRef.current * fps );
+
+      // Speed from currentState
+      const animationSpeed = curState.guiAnimationSpeed;
+
+      let effectiveDuration = animationDurationRef.current;
+      let effectiveFps = fps;
+
+      if (viewerState.recordedVideoFormat === "gif") {
+        if (effectiveFps === 30)
+          effectiveFps = 25
+        if (effectiveFps === 60)
+          effectiveFps = 50
+      }
+
+      if (animationSpeed > 0) {
+        // Adjust duration based on speed
+        effectiveDuration = animationDurationRef.current / animationSpeed;
+      } else {
+        // Speed is 0. Cancel recording.
+        console.warn('Animation speed is 0, recording may not work as expected');
+        enqueueSnackbar('Animation speed is 0. Recording canceled.', {
+          variant: 'warning',
+          autoHideDuration: 10000
+        });
+        stopRecording();
+        return;
+      }
+
+      // Calculate total frames based on effective duration
+      const totalFrames = Math.ceil(effectiveDuration * effectiveFps);
+
+      // Validate total frames
+      if (totalFrames > 5000) {
+        enqueueSnackbar(`Recording ${totalFrames} frames may take a while and use significant memory`, {
+          variant: 'warning',
+          autoHideDuration: 10000
+        });
+      }
 
       viewerState.setIsRecordingVideo(true);
-      viewerState.setAnimating(false);
-      if (curState.isGuiMode) {
-        curState.startGUIAnimationIfAvailable(frameDuration);
-      }
+      curState.guiAnimationLoop = false; // Stop any existing loops
+      curState.viewerState.animationChange = { index: 0, operation: "start" };
+      viewerState.animating = false; // avoid useFrame mixer advancing
+      curState.viewerState.setAnimationsNeedUpdate(true);
+
       enqueueSnackbar(t('snackbars.recording_video'), {
         variant: 'info',
-        anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
-        persist: true
+        persist: true,
+        autoHideDuration: 10000
       });
 
       capturedFrames.current = [];
       isRecordingRef.current = true;
-      startAnimationTimeRef.current = viewerState.currentAnimationTime;
 
       let frameCount = 0;
-      let lastCaptureTime = 0;
-      let isCapturing = false;
+      let captureErrors = 0;
+      const MAX_ERRORS = 5;
+      const animationIndex = viewerState.currentAnimationIndices[0];
+      let animationStartTime = viewerState.animationStartTimes[animationIndex] || 0;
 
-      const captureAndPush = () => {
-        try {
-          const frameDataURL = captureFrameReadPixels();
-          capturedFrames.current.push(frameDataURL);
-          if (curState.isGuiMode){
-            curState.sendFrameAcknowledge(frameCount);
-            console.log("Captured gui frame # count",curState.guiFrameNumber, frameCount);
-          }
-          //console.log(`Captured frame ${frameCount}/${totalFrames}`);
-          frameCount++;
-        } catch (e) {
-          console.error('Capture failed', e);
-        }
-      };
+      const loop = async () => {
+        while (isRecordingRef.current && frameCount < totalFrames && captureErrors < MAX_ERRORS) {
+          // Calculate animation time based on speed
+          const animationTime = (frameCount / effectiveFps) * animationSpeed + animationStartTime;
 
-      const recordLoop = async () => {
-        const startTime = performance.now();
-        lastCaptureTime = startTime;
+          // Set animation time
+          viewerState.setCurrentAnimationTime(animationTime);
 
-        async function waitForData() {
-          while (!curState.isGUIAnimating) {
-            await new Promise((resolve) => setTimeout(resolve, 100));
-          }
-        }
+          // Calculate progress percentage based on actual frames captured vs total frames we expect to capture
+          const progressPercent = (frameCount / totalFrames) * 100;
+          curState.setCurrentFrame(progressPercent);
 
-        // Call the function to wait for the data
-        await waitForData();
-        console.log("Fininshed waiting for data. Expecting "+totalFrames+ "Frames");
-        // CAPTURE THE FIRST FRAME IMMEDIATELY with proper setup
-        if (frameCount === 0) {
-          //viewerState.setCurrentAnimationTime(0);
-          curState.setCurrentFrame(0);
-          captureAndPush();
-          frameCount++;
-          lastCaptureTime = performance.now();
-        }
+          // Wait for rendering to complete
+          await waitForNextFrame(true);
 
-        while (isRecordingRef.current && frameCount < totalFrames) {
-          const now = performance.now();
-          const elapsedTime = now - lastCaptureTime;
+          // Capture frame using offscreen renderer
+          const frame = captureFrameOffscreen();
+          if (frame) {
+            capturedFrames.current.push(frame);
+            frameCount++;
 
-          // Wait until next frame is due
-
-          if (elapsedTime < frameDuration) {
-            await new Promise<void>(r => requestAnimationFrame(() => r()));
-            continue;
-          }
-
-          lastCaptureTime = now;
-          const currentFrameTime = frameCount / fps;
-          //viewerState.setCurrentAnimationTime(currentFrameTime);
-
-          // Update frame percentage for UI
-          const framePercentage = (currentFrameTime / animationDurationRef.current) * 100;
-          curState.setCurrentFrame(Math.min(framePercentage, 100));
-
-          if (!isCapturing) {
-            isCapturing = true;
-            try {
-              captureAndPush();
-            } finally {
-              isCapturing = false;
+            // Log progress
+            if (frameCount % 10 === 0) {
+              console.log(`Captured ${frameCount}/${totalFrames} frames (speed: ${animationSpeed}x)`);
             }
+          } else {
+            captureErrors++;
+            console.error(`Frame capture failed (${captureErrors}/${MAX_ERRORS})`);
           }
-
-          // Check if we've reached the end of the animation
-          if (frameCount >= totalFrames) {
-            console.log("Animation complete — stopping recording");
-            stopRecording();
-            curState.finishRecording();
-            break;
-          }
-
-          await new Promise<void>(r => requestAnimationFrame(() => r()));
         }
 
-        if (isRecordingRef.current) stopRecording();
+        stopRecording();
       };
 
-      recordLoop();
+      loop();
     };
 
     const stopRecording = async () => {
       if (!isRecordingRef.current) return;
 
       closeSnackbar();
-      viewerState.setIsRecordingVideo(false);
-      viewerState.setAnimating(false);
       isRecordingRef.current = false;
-
-      // Restore original camera and renderer settings
-      restoreCameraAndRenderer();
-
-      // Restore original helper visibility
-      curState.setVisibleHelpers(originalVisibleHelpersRef.current);
-
+      curState.finishRecording();
       enqueueSnackbar(t('snackbars.processing_video'), {
         variant: 'info',
-        anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
-        persist: true
+        persist: true,
+        autoHideDuration: 10000
       });
+      viewerState.setIsRecordingVideo(false);
       viewerState.setIsProcessingVideo(true);
 
       try {
-        const format = viewerState.recordedVideoFormat;
-
-        if (format === "jpeg-zip") {
-          await downloadFramesAsZip();
-        } else {
-          const ext = format as 'mp4' | 'mov' | 'webm';
-          const url = await encodeFramesToVideo(ext);
-          const timestamp = getTimestamp();
-          downloadVideo(url, `${viewerState.recordedVideoName}_${timestamp}.${ext}`);
+        if (capturedFrames.current.length === 0) {
+          throw new Error('No frames were captured');
         }
 
+        // Get WebGL vendor info safely
+        let webglVendor = 'unknown';
+        try {
+          webglVendor = offscreenRenderer.current?.getContext().getParameter(offscreenRenderer.current.getContext().VENDOR) || 'unknown';
+        } catch (e) {
+          console.warn('Could not get WebGL vendor');
+        }
+
+        // Get device memory safely
+        const navigatorWithMemory = navigator as NavigatorWithMemory;
+
+        // Log debug info
+        console.debug('Recording stats:', {
+          frameCount: capturedFrames.current.length,
+          firstFrameSize: capturedFrames.current[0]?.length,
+          format: viewerState.recordedVideoFormat,
+          fps: viewerState.recordedVideoFPS,
+          webglContext: webglVendor,
+          browser: navigator.userAgent,
+          memory: navigatorWithMemory.deviceMemory,
+          ffmpegLoaded: ffmpegLoadedRef.current,
+          dimensions: getBaseDimensions()
+        });
+
+        const desiredFormat = viewerState.recordedVideoFormat as VideoFormat;
+        const format = getSupportedFormat(desiredFormat);
+        const timestamp = getTimestamp();
+
+        let url = '';
+
+        if (format === 'gif') {
+          url = await encodeFramesToGif();
+        }
+        else if (format === 'zip') {
+          url = await encodeFramesToZip();
+        }
+        else if (format === 'mp4' || format === 'mov' || format === 'webm') {
+          url = await encodeFramesToVideo(format);
+        }
+        else {
+          throw new Error(`Unsupported format: ${format}`);
+        }
+
+        if (url) {
+          downloadFile(url, `${viewerState.recordedVideoName}_${timestamp}.${format}`);
+          enqueueSnackbar(`Export successful: ${capturedFrames.current.length} frames`, {
+            variant: 'success',
+            autoHideDuration: 10000
+          });
+        }
       } catch (e) {
-        console.error(e);
-        enqueueSnackbar("Error processing video", { variant: 'error' });
+        console.error('Export error:', e);
+        const errorMessage = e instanceof Error ? e.message : 'Unknown error occurred';
+        enqueueSnackbar(`Error processing export: ${errorMessage}`, {
+          variant: 'error',
+          autoHideDuration: 10000
+        });
       }
 
+      // Cleanup
       capturedFrames.current = [];
       viewerState.setIsProcessingVideo(false);
       closeSnackbar();
 
-      //viewerState.setCurrentAnimationTime(0);
+      // Reset animation
+      viewerState.setCurrentAnimationTime(0);
       curState.setCurrentFrame(0);
     };
 
     props.videoRecorderRef.current = { startRecording, stopRecording };
-  }, [props.videoRecorderRef, gl, camera, size, enqueueSnackbar, closeSnackbar, t, viewerState, curState]);
+
+    // Cleanup function
+    return () => {
+      // Dispose offscreen renderer
+      if (offscreenRenderer.current) {
+        offscreenRenderer.current.dispose();
+        offscreenRenderer.current = null;
+      }
+    };
+  }, [props.videoRecorderRef, gl, camera, scene, enqueueSnackbar, closeSnackbar, t, viewerState, curState]);
 
   return null;
 }

@@ -203,7 +203,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
         // Clear all selections and helpers
         setSelectedPath(null);
         setSettingsNode(null);
-        uiState.setSelected("");
+        //uiState.setSelected("");
         setTransformTargetFunction?.(null);
         removeTempHelper(scene);
       }
@@ -239,7 +239,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
         ref={outerDivRef}
         style={{
           position: 'absolute',
-          top: uiState.isGuiMode ? '-66px' : '0px',
+          top: uiState.isGuiMode ? '0px' : '0px',
           right: 0,
           height,
           display: 'flex',
@@ -456,9 +456,12 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
               : undefined
           }
         >
-          <MenuItem onClick={() => { onAddCameraClick?.(contextMenu?.node); setContextMenu(null); }}>
-            Add Camera
-          </MenuItem>
+
+          {uiState.showBottomBar && (
+            <MenuItem onClick={() => { onAddCameraClick?.(contextMenu?.node); setContextMenu(null); }}>
+              Add Camera
+            </MenuItem>
+          )}
           <MenuItem onClick={() => { onAddLightClick?.(contextMenu?.node); setContextMenu(null); }}>
             Add Light
           </MenuItem>

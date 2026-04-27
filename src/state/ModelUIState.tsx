@@ -1,7 +1,7 @@
 import { makeObservable, observable, action } from 'mobx'
-import { Group, PerspectiveCamera } from 'three'
+import { AnimationClip, Group, PerspectiveCamera } from 'three'
 import { Light } from 'three'
-import { Box3, Object3D, Scene, Vector3 } from 'three'
+import { Box3, Object3D, Scene, Vector3, Matrix4 } from 'three'
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
 import { CommandFactory } from './commands/CommandFactory'
 import { saveAs } from 'file-saver';
@@ -74,14 +74,16 @@ export class ModelUIState {
     fitToBox: Box3 | null
     debug: boolean
     simulationTime: number
-    isGUIAnimating: boolean = false
     processingSocketMessage: boolean = false
     fps: number = 60
     guiHasAnimation: boolean = false
     guiAnimationStartTime: number = 0.0
     guiAnimationEndTime: number = 0.0
     guiAnimationSpeed: number = 1.0
-    guiFrameNumber: number = 0;
+    guiAnimationLoop: boolean = false
+    guiAnimationReverse: boolean = false
+    showBottomBar: boolean = false;
+    showAspectRatioFunctionality: boolean = false;
     visibleHelpers: boolean = true;
     constructor(
         currentModelPathState: string
@@ -109,7 +111,7 @@ export class ModelUIState {
         this.fitToBox = null
         this.debug = false
         this.simulationTime=0.0
-        this.viewerState = new ViewerState(currentModelPathState, '/builtin/featured-models.json', false, false, false, false, "opensim-viewer-snapshot", 'png', "opensim-viewer-video", 'mp4', false, false);
+        this.viewerState = new ViewerState(currentModelPathState, '/builtin/featured-models.json', false, false, false, false, "opensim-snapshot", 'png', "opensim-video", 'mp4', false, false);
         makeObservable(this, {
             zooming: observable,
             showGlobalFrame: observable,
@@ -129,8 +131,18 @@ export class ModelUIState {
             setIsGuiMode: action,
             setIsModernBrowser: action,
             visibleHelpers: observable,
+            debug: observable,
+            setDebug: action,
         })
-        console.log("Created ModelUIState instance ", currentModelPathState)
+        console.log("Created ModelUIState instance ", currentModelPathState);
+        setTimeout(() => {
+            if (this.socket !== null){
+                var json = JSON.stringify({
+                   type: "INFO",
+                   "Op": "keepAlive"});
+                this.socket!.send(json);
+                }
+        }, 60000);
     }
 
     addModelFromPath(newJsonFile: string) {
@@ -346,6 +358,8 @@ export class ModelUIState {
                     delete this.modelDictionary[modeltoClose]
                     // update sceneVersion to force tree rendering
                     this.viewerState.setSceneVersion(this.viewerState.sceneVersion+1);
+                    // delete all animations related to this model
+                    this.viewerState.removeAnimationsForModelUUID(modeltoClose);
                 }
                 break;
             case "Select" :
@@ -371,17 +385,21 @@ export class ModelUIState {
             case "Frame":
                 if (this.processingSocketMessage)
                     return;
+                if (this.viewerState.animating){
+                    // If we are animating, ignore frame updates from server
+                    return;
+                }
                 this.processingSocketMessage = true;
                 this.setSelected("", false)
                 var transforms = parsedMessage.Transforms;
+                const tempMatrix = new Matrix4();
                 for (var i = 0; i < transforms.length; i ++ ) {
                     var oneBodyTransform = transforms[i];
                     var o = this.objectByUuid( oneBodyTransform.uuid);
-                    //alert("mat before: " + o.matrix);
-                    if (o !== undefined) {
-                        o.matrixAutoUpdate = false;
-                        o.matrix.fromArray(oneBodyTransform.matrix);
-                    }
+                    // set position, quaternion and scale and leave matrixAutoUpdate on
+                    // as Animation clips work by interpolating each separately with the flag on
+                    tempMatrix.fromArray(oneBodyTransform.matrix);
+                    tempMatrix.decompose(o.position, o.quaternion, o.scale);
                 }
                 var paths = parsedMessage.paths;
                 if (paths !== undefined){
@@ -392,7 +410,6 @@ export class ModelUIState {
                 //this.scene?.updateMatrixWorld(true);
                 this.simulationTime = parsedMessage.time;
                 this.viewerState.currentAnimationTime = this.simulationTime;
-                this.guiFrameNumber = parsedMessage.frameNumber;
                 this.processingSocketMessage = false;
                 console.log("Receive frame simulation time="+this.simulationTime);
                 break;
@@ -411,27 +428,92 @@ export class ModelUIState {
                 break;
             case "PathOperation":
                 // TODO: support path edit message type
-                //editor.processPathEdit(msg);
-                break;
-            case "startAnimation":
-                this.guiHasAnimation = true;
-                this.SetAnimatingGUI(true);
-                this.guiAnimationSpeed = parsedMessage.Speed;
-                console.log("Receive startAnimation, speed="+this.guiAnimationSpeed);
+                this.processPathEdit(parsedMessage);
                 break;
             case "endAnimation":
-                this.SetAnimatingGUI(false);
+                this.viewerState.animating = false;
+                this.viewerState.setAnimationsNeedUpdate(true);
                 console.log("Receive endAnimation");
                 break;
-            case "SetCurrentAnimation":
-                this.guiHasAnimation = true;
-                this.guiAnimationStartTime = parsedMessage.Start;
-                this.guiAnimationEndTime = parsedMessage.End;
-                break;
             case "ClearCurrentAnimation":
-                this.guiHasAnimation = false;
-                this.guiAnimationStartTime = 0.0;
-                this.guiAnimationEndTime = 0.0;
+                // TODO Major cleanup needed here
+                this.viewerState.currentAnimationIndices = [];
+                this.viewerState.setAnimationsNeedUpdate(true);
+                console.log("Receive ClearCurrentAnimation");
+                break;
+            case "AddAnimationClip":
+                this.guiHasAnimation = true;
+                // check for existing clip with same uuid?
+                for (let existingClip of this.viewerState.animations) {
+                    if (existingClip.uuid === parsedMessage.Clip.uuid) {
+                        console.log(`Animation clip with name ${existingClip.name} already exists. Skipping addition.`);
+                        return;
+                    }
+                }
+                // Create AnimationClips for the clip in the message,
+                this.createAnimationClipFromMessage(parsedMessage);
+                break;
+            case "SetCurrentAnimations":
+                this.viewerState.animating = false; 
+                const animationIDs = parsedMessage.clip_list;
+                this.viewerState.clearCurrentAnimationIndices();
+                for (let uuid of animationIDs) {
+                    for (let i = 0; i < this.viewerState.animations.length; i++) {
+                        if (this.viewerState.animations[i].uuid === uuid) {
+                            this.viewerState.addCurrentAnimationIndex(i);
+                            //console.log("  set as current animation at index "+i+" uuid "+uuid);
+                            break;
+                        }
+                    }
+                }
+                break;
+            case "PlayAnimation":
+                //console.log("Receive PlayAnimation from time "+parsedMessage.start_time);
+                if (this.viewerState.animating){
+                    // If we are animating, ignore play command, likely a redundant message
+                    console.log(" Already animating, ignoring PlayAnimation command");
+                    return;
+                }                
+                //this.viewerState.animating = false; 
+                //const animationUUIDs = parsedMessage.UUIDs;
+                // this.viewerState.clearCurrentAnimationIndices();
+                // for (let uuid of animationUUIDs) {
+                //     for (let i = 0; i < this.viewerState.animations.length; i++) {
+                //         if (this.viewerState.animations[i].uuid === uuid) {
+                //             this.viewerState.addCurrentAnimationIndex(i);
+                //             console.log("  Playing animation at index "+i+" uuid "+uuid);
+                //             break;
+                //         }
+                //     }
+                // }
+                this.guiAnimationLoop = parsedMessage.loop;
+                this.guiAnimationSpeed = parsedMessage.speed;
+                this.guiAnimationStartTime = parsedMessage.start_time;
+                this.guiAnimationEndTime = parsedMessage.end_time;
+                this.guiAnimationLoop = parsedMessage.loop;
+                this.guiAnimationReverse = parsedMessage.reverse;
+                this.viewerState.animating = true; 
+                this.viewerState.animationChange = {index:0, operation:"start"};
+                this.viewerState.setAnimationsNeedUpdate(true)
+                break;
+            case "AnimationTime":
+                //console.log("Receive AnimationTimeUpdate time="+parsedMessage.time);
+                this.viewerState.animationChange = {index:0, operation:"timeChange"};
+                this.viewerState.currentAnimationTime = parsedMessage.time;
+                this.viewerState.setAnimationsNeedUpdate(true)
+                break;
+            case "SetAnimationSpeed":
+                this.guiAnimationSpeed = parsedMessage.speed;
+                break;
+            case "SetAnimationLoop":
+                this.guiAnimationLoop = parsedMessage.state;
+                // use index -1 to indicate all current animations
+                this.viewerState.animationChange = {index:-1, operation:"updateLooping"};
+                this.viewerState.setAnimationsNeedUpdate(true);
+                break;
+            case "HeartBeat":
+                console.log("Hearbeat received")
+                this.sendModelOffsets();
                 break;
         }
     }
@@ -448,24 +530,35 @@ export class ModelUIState {
         this.fitToBox = objectbbox;
     }
 
-    SetAnimatingGUI(isAnimating: boolean) {
-        // Implement animation state handling here if needed
-        this.isGUIAnimating = isAnimating;
-        console.log("SetAnimatingGUI="+isAnimating);
-        if (isAnimating) {
-            this.viewerState.setAnimating(false);
-        }
-    }
-
-    startGUIAnimationIfAvailable(requiredTimeStep: number) {
+    startAnimationRecording() {
         const json = JSON.stringify({
         type: "Animation",
-        "OP": "Start",
-        "timestep": requiredTimeStep});
+        "OP": "Start"});
         if (this.socket !== null)
             this.socket!.send(json);
     }
     
+    getClipStartTime(clip: AnimationClip) {
+        return clip.tracks.reduce((min, track) => {
+            return track.times.length ? Math.min(min, track.times[0]) : min;
+        }, Infinity);
+    }
+
+    createAnimationClipFromMessage(clipMessage: any) {
+        // Creating AnimationClip from clipMessage
+        // We probably should check to avoid duplicates here
+        const clip = AnimationClip.parse(clipMessage.Clip); // This creates an AnimationClip instance
+        const startTime = this.getClipStartTime(clip);
+        this.viewerState.animations.push(clip);
+        this.viewerState.animationStartTimes.push(startTime);
+        const index = this.viewerState.animations.length - 1;
+        console.log(`Creating Animation Clip: Name=${clip.name}, Duration=${clip.duration}`);
+        const clipRoot = clipMessage.Root;
+        console.log(`  Root Object UUID: ${clipRoot}`);
+        this.viewerState.animationRoots.push(this.nodeDictionary[clipRoot]);
+        this.viewerState.animationChange = {index:index, operation:"add"};
+        this.viewerState.setAnimationsNeedUpdate(true)
+    }
     stopGUIAnimation() {
         const json = JSON.stringify({
         type: "Animation",
@@ -496,9 +589,9 @@ export class ModelUIState {
         if (this.socket !== null)
             this.socket!.send(json);
     }
-    setFPS(fps: number) {
-        if (this.isGUIAnimating)
-            return; // Don't interfer with animation while playing
+    sendMeasuredFPS(fps: number) {
+        if (this.viewerState.animating)
+            return; // Don't interfere with animation while playing
         this.fps = fps;
         var json = JSON.stringify({
                type: "INFO",
@@ -513,5 +606,28 @@ export class ModelUIState {
     }
     setVisibleHelpers(visible: boolean) {
       this.visibleHelpers = visible;
+    }
+    setDebug(value: boolean) {
+      this.debug = value;
+    }
+    // Process Path operations from GUI
+    processPathEdit(pathEditJson: any) { 
+        const pathOp = pathEditJson.SubOperation;
+        const pathObject = this.objectByUuid(pathEditJson.uuid);
+        switch(pathOp) {
+            case "refresh":
+                const updPoints = pathEditJson.points;
+                for (var i = 0; i < updPoints.length; i++) {
+                    const nextEntry = updPoints[i];
+                    const uuid = nextEntry.uuid;
+                    const xform = nextEntry.matrix;
+                    const matrix = new Matrix4();
+                    matrix.fromArray(xform);
+                    const pathpointObject = this.objectByUuid(uuid);
+                    matrix.decompose(pathpointObject.position, pathpointObject.quaternion, pathpointObject.scale);
+                }
+                break;
+            // TODO add more path edit operations here
+        }
     }
 }

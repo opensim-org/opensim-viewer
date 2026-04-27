@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   Dialog,
@@ -21,20 +21,22 @@ interface RecordingModalProps {
   videoRecorderRef: React.MutableRefObject<any>;
 }
 
-// Define quality levels that will be used as base dimensions
+// Define quality levels that will be used as base dimensions. Base dimension is width.
 const qualityLevels = [
-  { label: "1080p HD", baseDimension: 1080 },
-  { label: "1440p HD", baseDimension: 1440 },
-  { label: "2160p 4K", baseDimension: 2160 },
+  { label: "1080p HD", baseDimension: 1920 },
+  { label: "1440p HD", baseDimension: 2560 },
+  { label: "2160p 4K", baseDimension: 3840 },
 ];
 
 const videoFormats = [
   { label: "MP4", value: "mp4" },
   { label: "MOV", value: "mov" },
-  { label: "JPEG (Zip)", value: "jpeg-zip"}
+  { label: "JPEG (Zip)", value: "jpeg-zip"},
+  { label: "GIF", value: "gif"}
 ];
 
 const fpsValues = [30, 60];
+const fpsValuesGif = [25, 50];
 
 const aspectRatios = [
   { label: "4:3", value: "4:3", description: "standard" },
@@ -59,9 +61,21 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
+  const getFpsOptions = () => {
+    return selectedFormat === 'gif' ? fpsValuesGif : fpsValues;
+  };
+
+  useEffect(() => {
+    const validFpsOptions = getFpsOptions();
+    if (!validFpsOptions.includes(selectedFPS)) {
+      setSelectedFPS(validFpsOptions[0]);
+      viewerState.setRecorderFPS(validFpsOptions[0]);
+    }
+  }, [selectedFormat]);
+
   const handleRecord = () => {
     setOpen(false);
-
+    curState.startAnimationRecording();
     if (videoRecorderRef?.current && !viewerState.isRecordingVideo) {
       videoRecorderRef.current.startRecording();
     }
@@ -105,7 +119,10 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
           disabled={viewerState.isProcessingVideo}
           onClick={() => {
             if (!viewerState.isRecordingVideo) handleOpen();
-            else videoRecorderRef.current.stopRecording();
+            else {
+              videoRecorderRef.current.stopRecording();
+              curState.finishRecording();
+            }
           }}
         >
           <VideoCameraFrontTwoToneIcon />
@@ -149,20 +166,22 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
           </FormControl>
 
           {/* Aspect Ratio */}
-          <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
-            <InputLabel>Aspect Ratio</InputLabel>
-            <Select
-              value={selectedAspectRatio}
-              label="Aspect Ratio"
-              onChange={(e) => handleAspectRatioChange(e.target.value)}
-            >
-              {aspectRatios.map((ar) => (
-                <MenuItem key={ar.value} value={ar.value}>
-                  {ar.label} ({ar.description})
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          {curState.showAspectRatioFunctionality && (
+              <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
+              <InputLabel>Aspect Ratio</InputLabel>
+              <Select
+                value={selectedAspectRatio}
+                label="Aspect Ratio"
+                onChange={(e) => handleAspectRatioChange(e.target.value)}
+              >
+                {aspectRatios.map((ar) => (
+                  <MenuItem key={ar.value} value={ar.value}>
+                    {ar.label} ({ar.description})
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
 
 
           {/* FPS */}
@@ -173,7 +192,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
               label="FPS"
               onChange={(e) => handleFPSChange(Number(e.target.value))}
             >
-              {fpsValues.map((fps) => (
+              {getFpsOptions().map((fps) => (
                 <MenuItem key={fps} value={fps}>
                   {fps}
                 </MenuItem>
