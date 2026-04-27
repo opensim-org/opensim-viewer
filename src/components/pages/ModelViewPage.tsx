@@ -17,7 +17,7 @@ import AddLightDialog from "../Components/Dialogs/AddLightDialog"
 import SceneTreeBridge from "../Components/SceneTree/SceneTreeBridge"
 import SceneTreeSortable, { SceneTreeSortableHandle } from "../Components/SceneTree/SceneTreeSortable"
 import DrawerMenu from "../Components/DrawerMenu";
-import OpenSimScene from "../Components/OpenSimScene";
+import OpenSimScene from "../Components/SimpleModelScene";
 import OpenSimGUIScene from "../Components/OpenSimGUIScene";
 import { ModelInfo, ModelUIState } from "../../state/ModelUIState";
 import { observer } from "mobx-react";

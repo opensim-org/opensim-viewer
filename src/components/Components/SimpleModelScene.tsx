@@ -22,7 +22,7 @@ interface OpenSimSceneProps {
     supportControls:boolean
 }
 
-const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportControls }) => {
+const SimpleModelScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportControls }) => {
     //const modelGroup = useLoader(GLTFLoader, currentModelPath)
     const { scene, animations } = useGLTF(currentModelPath ? currentModelPath : "/builtin/double_pendulum.gltf");
 
@@ -279,7 +279,7 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
 
 
     useEffect(() => {
-        //console.log("OpenSimScene.useEffect called ", curState.currentModelPath)
+        //console.log("SimpleModelScene.useEffect called ", curState.currentModelPath)
         setUseEffectRunning(false)
         if (supportControls) {
             ///curState.setCurrentModelPath(currentModelPath)
@@ -345,4 +345,4 @@ const OpenSimScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportCo
     </>
 }
 
-export default observer(OpenSimScene)
+export default observer(SimpleModelScene)
