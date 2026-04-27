@@ -60,6 +60,10 @@ function VideoRecorder(props: VideoRecorderViewProps) {
   // Offscreen renderer
   const offscreenRenderer = useRef<WebGLRenderer | null>(null);
 
+  // Watermark references
+  const watermarkImageRef = useRef<HTMLImageElement | null>(null);
+  const watermarkLoadedRef = useRef(false);
+
   // Check if local file exists
   const checkLocalFileExists = async (url: string): Promise<boolean> => {
     try {
@@ -69,6 +73,69 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       console.warn(`Failed to check local file ${url}:`, error);
       return false;
     }
+  };
+
+  // Helper function to load image
+  const loadImage = (url: string): Promise<HTMLImageElement> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error(`Failed to load image: ${url}`));
+      img.src = url;
+    });
+  };
+
+  // Load watermark image
+  const loadWatermark = async () => {
+    try {
+      const img = await loadImage('/assets/opensimLogo23.png');
+      watermarkImageRef.current = img;
+      watermarkLoadedRef.current = true;
+      console.log('Watermark loaded successfully');
+    } catch (error) {
+      console.error('Failed to load watermark:', error);
+      if (curState.debug) {
+        enqueueSnackbar('Failed to load watermark image', {
+          variant: 'warning',
+          autoHideDuration: 5000
+        });
+      }
+    }
+  };
+
+  // Draw watermark on canvas
+  const drawWatermark = (
+    ctx: CanvasRenderingContext2D,
+    canvasWidth: number,
+    canvasHeight: number
+  ): void => {
+    if (!watermarkImageRef.current) return;
+
+    const watermarkImg = watermarkImageRef.current;
+
+    // Calculate watermark size - consistent relative to video dimensions
+    // Adjust these values to get the desired watermark size
+    const relativeSize = Math.min(
+      canvasWidth * 0.1,  // 10% of video width
+      150,  // Maximum size in pixels
+      Math.max(50, canvasHeight * 0.08) // At least 8% of height or 50px
+    );
+
+    // Maintain aspect ratio
+    const aspectRatio = watermarkImg.width / watermarkImg.height;
+    const watermarkWidth = relativeSize;
+    const watermarkHeight = relativeSize / aspectRatio;
+
+    // Position at bottom left with padding
+    const padding = Math.max(10, Math.min(canvasWidth * 0.02, 20)); // 2% padding, min 10px, max 20px
+    const x = padding;
+    const y = canvasHeight - watermarkHeight - padding;
+
+    // Draw with slight transparency
+    ctx.save();
+    ctx.globalAlpha = 0.85;
+    ctx.drawImage(watermarkImg, x, y, watermarkWidth, watermarkHeight);
+    ctx.restore();
   };
 
   // Load FFmpeg once and track loading state
@@ -271,7 +338,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     return { cropWidth, cropHeight, offsetX, offsetY };
   };
 
-  // Capture frame using offscreen renderer
+  // Capture frame using offscreen renderer with watermark
   const captureFrameOffscreen = (): string | null => {
     try {
       if (!offscreenRenderer.current) return null;
@@ -316,11 +383,17 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
       const finalCtx = finalCanvas.getContext('2d')!;
 
+      // Draw the cropped portion first
       finalCtx.drawImage(
         baseCanvas,
         offsetX, offsetY, cropWidth, cropHeight,
         0, 0, cropWidth, cropHeight
       );
+
+      // Draw watermark on the final cropped canvas
+      if (watermarkLoadedRef.current) {
+        drawWatermark(finalCtx, cropWidth, cropHeight);
+      }
 
       return finalCanvas.toDataURL('image/png');
 
@@ -565,6 +638,9 @@ function VideoRecorder(props: VideoRecorderViewProps) {
   };
 
   useEffect(() => {
+    // Load watermark image
+    loadWatermark();
+
     // Pre-load FFmpeg and setup offscreen renderer
     loadFFmpeg().then(loaded => {
       if (loaded) {
@@ -580,7 +656,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       if (current[0] === -1) {
         enqueueSnackbar(t('snackbars.no_animation_selected'), {
           variant: 'error',
-          autoHideDuration: 10000
+          autoHideDuration: 3000
         });
         return;
       }
@@ -611,7 +687,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       if(!animation) {
         enqueueSnackbar(t('snackbars.no_animation_selected'), {
           variant: 'error',
-          autoHideDuration: 10000
+          autoHideDuration: 3000
         });
         return;
       }
