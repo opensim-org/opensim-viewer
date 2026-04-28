@@ -22,8 +22,8 @@ const FileDropArea: React.FC<FileDropAreaProps> =observer(({ paddingY = 16}) => 
   const { t } = useTranslation();
   const viewerState = useModelContext().viewerState;
   
-  // const navigate = useNavigate();
-  // const location = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const appState = viewerState;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { enqueueSnackbar, closeSnackbar  } = useSnackbar();
@@ -97,9 +97,9 @@ const FileDropArea: React.FC<FileDropAreaProps> =observer(({ paddingY = 16}) => 
             appState.setCurrentModelPath(url_gltf);
             closeSnackbar()
 
-             // if (location.pathname !== '/viewer') {
-             //     navigate('/viewer');
-             // }
+             if (location.pathname !== '/viewer') {
+                 navigate('/viewer');
+             }
 
             store.uploadProgress = 1;
             store.uploadPercentage = 1;
