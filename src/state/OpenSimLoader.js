@@ -39,8 +39,8 @@ class OpenSimLoader extends ObjectLoader {
 
         const scope = this;
 
-        // Check if it's a GLTF file by extension
-        if (this.isGLTFUrl(url)) {
+        // Check if it's a GLTF file by extension or a blob uploaded to DropFile
+        if (this.isGLTFUrl(url) || this.isBlobUrl(url)) {
             this.loadGLTF(url, onLoad, onProgress, onError);
             return;
         }
@@ -81,8 +81,8 @@ class OpenSimLoader extends ObjectLoader {
 
         const scope = this;
 
-        // Check if it's a GLTF file by extension
-        if (this.isGLTFUrl(url)) {
+        // Check if it's a GLTF file by extension or a blob uploaded to DropFile
+        if (this.isGLTFUrl(url) || this.isBlobUrl(url)) {
             return await this.loadGLTFAsync(url, onProgress);
         }
 
@@ -109,6 +109,10 @@ class OpenSimLoader extends ObjectLoader {
     isGLTFUrl(url) {
         return url.toLowerCase().endsWith('.gltf') ||
                url.toLowerCase().endsWith('.glb');
+    }
+
+    isBlobUrl(url) {
+        return url.toLowerCase().startsWith('blob:');
     }
 
     loadGLTF(url, onLoad, onProgress, onError) {
