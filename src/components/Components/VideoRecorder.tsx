@@ -127,7 +127,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     const watermarkHeight = relativeSize / aspectRatio;
 
     // Position at bottom left with padding
-    const padding = Math.max(10, Math.min(canvasWidth * 0.02, 20)); // 2% padding, min 10px, max 20px
+    const padding = Math.max(10, Math.min(canvasWidth * 0.05, 20)); // 2% padding, min 10px, max 20px
     const x = padding;
     const y = canvasHeight - watermarkHeight - padding;
 
