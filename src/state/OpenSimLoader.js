@@ -562,7 +562,7 @@ class OpenSimLoader extends ObjectLoader {
             // NOW OpenSim types
             case 'Frame':
                 object = new AxesHelper(data.size);
-                object.layers.set(3)
+                object.layers.set(2)
                 break;
             case 'Arrow':
                 object = new ArrowHelper(data.dir, data.origin, 1.0, data.color);
