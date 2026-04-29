@@ -301,9 +301,7 @@ export class ModelUIState {
     }
     removeObject( object: Object3D ): void {
         // actually remove object from its parent
-        if (object.parent !== null)
-            object.parent.remove( object );
-        
+        object.removeFromParent();
     }
     updatePath( pathUpdateJson: string ): void {
         //console.log(pathUpdateJson);
