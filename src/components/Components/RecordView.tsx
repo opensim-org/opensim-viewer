@@ -9,10 +9,11 @@ import {
   TextField,
 } from '@mui/material';
 
-import viewerState from "../../state/ViewerState";
+import { useModelContext } from '../../state/ModelUIStateContext';
 
 function RecordView() {
   const { t } = useTranslation();
+  const viewerState = useModelContext().viewerState;
 
   const handleVideoFormatChange = (event:any) => {
     viewerState.setRecordedVideoFormat(event.target.value)
@@ -43,6 +44,7 @@ function RecordView() {
           <MenuItem value="mp4">MP4</MenuItem>
           <MenuItem value="mov">MOV</MenuItem>
           <MenuItem value="webm">WEBM</MenuItem>
+          <MenuItem value="jpg-zip">JPEG (ZIP)</MenuItem>
         </Select>
       </FormControl>
 

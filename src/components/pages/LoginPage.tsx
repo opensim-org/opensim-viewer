@@ -3,8 +3,8 @@ import { NavLink } from 'react-router-dom'
 import { Container, Typography, TextField, Button } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import viewerState from '../../state/ViewerState';
 import { Auth  } from 'aws-amplify';
+import { useModelContext } from '../../state/ModelUIStateContext';
 
 interface LoginPageProps {
     isLoggedIn: boolean;
@@ -12,8 +12,11 @@ interface LoginPageProps {
 
 const LoginPage: React.FC<LoginPageProps> = ({ isLoggedIn }) => {
     const { t } = useTranslation();
+    const viewerState = useModelContext().viewerState;
+    
     const navigate = useNavigate();
-
+    const curState = useModelContext();
+    
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState<string | null>('');
@@ -22,7 +25,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ isLoggedIn }) => {
         try {
             // If not logged in, log in using Amplify Auth.
             await Auth.signIn(username, password);
-            viewerState.setIsLoggedIn(true);
+            curState.viewerState.setIsLoggedIn(true);
 
             // Go to home.
             navigate('/');

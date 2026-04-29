@@ -1,0 +1,424 @@
+import { TransformControls, OrbitControls} from '@react-three/drei'
+import { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
+
+import { observer } from 'mobx-react'
+import { useModelContext } from '../../state/ModelUIStateContext';
+
+import { useFrame, useThree } from '@react-three/fiber'
+
+import { getTimestamp } from "../../helpers/timeHelpers"
+
+import THREE, { Color, Box3, Object3D, PerspectiveCamera, Sphere, Vector2, Vector3 } from 'three';
+
+// OpenSimControl.tsx
+import { forwardRef, useImperativeHandle, useRef } from 'react';
+import { GroupProps } from '@react-three/fiber';
+
+export type OpenSimControlHandle = {
+  addCamera: (cameraName: any, parent: Object3D | null) => PerspectiveCamera;
+};
+
+
+const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref) => {
+    const {
+        gl, // WebGL renderer
+        camera,
+        controls,
+        scene
+    } = useThree()
+
+   const curState = useModelContext();
+   const viewerState = useModelContext().viewerState;
+   const controlsRef = useRef<OrbitControlsImpl | null>(null)
+   const lastPosition = useRef(new Vector3())
+   camera.layers.enable(2); // Enable layer 2 for OpenSim helpers like Frames (these mess up bounding boxes and selection if on layer 1)
+
+  useImperativeHandle(ref, () => ({
+    addCamera: (cameraName: any, parent: Object3D | null) => {
+        return curState.viewerState.addCamera(camera as PerspectiveCamera, controlsRef.current!.target, cameraName)
+    }
+  }));
+
+   function implementDolly(amount: number) {
+        if (controlsRef.current) {
+            const target = controlsRef.current.target
+            const direction = new Vector3()
+            direction.subVectors(target, camera.position).normalize()
+            camera.position.addScaledVector(direction, amount)
+            controlsRef.current.update();
+       }
+   }
+   function implementTruck(amount: number) {
+        if (controlsRef.current) {
+        const controls = controlsRef.current
+
+        // Define truck direction (e.g., rightward along camera's local X axis)
+        const truckDirection = new Vector3()
+        camera.getWorldDirection(truckDirection)
+        truckDirection.cross(camera.up).normalize() // right vector
+
+        const speed = amount
+        const offset = truckDirection.multiplyScalar(speed)
+
+        camera.position.add(offset)
+        controls.target.add(offset)
+        controls.update()
+        }
+   }
+   function implementTruckUpDn(amount: number) {
+        if (controlsRef.current) {
+        const controls = controlsRef.current
+
+        // Define truck direction (e.g., rightward along camera's local X axis)
+        const truckDirection = new Vector3()
+        camera.getWorldDirection(truckDirection)
+        truckDirection.cross(new Vector3(1, 0, 0)).normalize() // fwd vector
+
+        const speed = amount
+        const offset = truckDirection.multiplyScalar(speed)
+
+        camera.position.add(offset)
+        controls.target.add(offset)
+        controls.update()
+        }
+   }
+   function implementFitToSphere(object:Object3D) {
+        if (controlsRef.current) {
+            const box = new Box3().setFromObject(object)
+            const sphere = box.getBoundingSphere(new Sphere())
+
+            // Position camera
+            const fov = (camera as PerspectiveCamera).fov * Math.PI / 180
+            const distance = (sphere.radius * 1.1) / Math.sin(fov / 2)
+
+            const direction = new Vector3()
+            .subVectors(camera.position, controlsRef.current.target)
+            .normalize()
+
+            camera.position.copy(sphere.center).add(direction.multiplyScalar(distance))
+            controlsRef.current.target.copy(sphere.center)
+            controlsRef.current.update()
+        }
+   }
+   useFrame((_, delta) => {
+        // If camera moves and was a fixed camera, then make it none/default
+        if (!lastPosition.current.equals(camera.position)) {
+            let diff = lastPosition.current.clone();
+            diff.sub(camera.position);
+            lastPosition.current.copy(camera.position)
+            if ((curState.viewerState.currentCameraIndex!==-1) && diff.length() > 1e-3) {
+                curState.viewerState.setCurrentCameraIndex(-1)
+            }
+        }
+        if (viewerState.pending_key !== "") {
+            switch (viewerState.pending_key) {
+                case 'i':
+                case 'I':
+                    implementDolly(0.1)
+                    break;
+                case 'o':
+                case 'O':
+                    implementDolly(-0.1)
+                    break;
+                case 'ArrowLeft':
+                    implementTruck(-0.1)
+                    break;
+                case 'ArrowRight':
+                    implementTruck(0.1)
+                    break;
+                case 'ArrowUp':
+                    implementTruckUpDn(-0.1)
+                    break;
+                case 'ArrowDown':
+                    implementTruckUpDn(0.1)
+                    break;
+                case 'f':
+                case 'F':
+                    if (curState.selectedObject !== null && curState.selectedObject !== undefined)
+                        implementFitToSphere(curState.selectedObject!)
+                    else {
+                        fitToModels(true);
+                    }
+                    break;
+            }
+            viewerState.pending_key = "";
+        }
+        else if (curState.viewerState.lookAtTarget!=="") {
+            // get world position for object by uuid
+            const obj3d = curState.objectByUuid(curState.viewerState.lookAtTarget);
+            const worldPos = new Vector3();
+            obj3d.getWorldPosition(worldPos);
+            if (controls) {
+                camera.lookAt(worldPos);
+                controlsRef.current!.target.copy(worldPos)
+            }
+            curState.viewerState.lookAtTarget = ""
+        }
+        else if (curState.viewerState.saveCameraAndTarget){
+            if (controlsRef.current){
+                const controlTarget = controlsRef.current.target
+                curState.viewerState.addCamera(camera as PerspectiveCamera, controlTarget, undefined)
+            }
+            curState.viewerState.saveCameraAndTarget = false
+        }
+        else if (curState.takeSnapshot){
+            const timestamp = getTimestamp();
+            const snapshot_filename = viewerState.snapshotName + "_" + timestamp + "." + viewerState.snapshotFormat;
+            if (curState.snapshotProps.size_choice==="screen"){
+                const link = document.createElement('a')
+                if (curState.snapshotProps.transparent_background) {
+                  // Save clear state
+                  const prevColor = new Color();
+                  gl.getClearColor(prevColor);
+                  const prevAlpha = gl.getClearAlpha();
+
+                  // Find the skysphere object
+                  const skySphere = scene.getObjectByName("SkySphere");
+                  let prevSkyVisibility = true;
+                  if (skySphere) {
+                      prevSkyVisibility = skySphere.visible;
+                      skySphere.visible = false; // hide sky
+                  }
+
+                  // Set transparent clear
+                  gl.setClearColor(prevColor, 0);
+                  gl.clear(true, true, true);
+
+                  // Render ONE frame with transparency
+                  gl.render(scene, camera);
+
+                  // Capture snapshot
+                  const link = document.createElement("a");
+                   link.setAttribute(
+                      "download",
+                      snapshot_filename
+                  );
+                  link.setAttribute(
+                      "href",
+                      gl.domElement
+                          .toDataURL("image/png")
+                          .replace("image/png", "image/octet-stream")
+                  );
+                  link.click();
+                  curState.takeSnapshot = false;
+
+                  // Restore skysphere visibility
+                  if (skySphere) {
+                      skySphere.visible = prevSkyVisibility;
+                  }
+
+                  // Restore clear state
+                  gl.setClearColor(prevColor, prevAlpha);
+
+                  // Re-render normal frame
+                  gl.render(scene, camera);
+              }
+                else{
+                    link.setAttribute('download', snapshot_filename);
+                    link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
+                    link.click()
+                    curState.takeSnapshot = false;
+                }
+            }
+            else {  // Custom
+                const originalSize = new Vector2 ();
+                gl.getSize (originalSize);
+                let renderWidth = curState.snapshotProps.width;
+                let renderHeight = curState.snapshotProps.height;
+                if (curState.snapshotProps.preserve_aspect_ratio){
+                      const canvasHeight = window.document.getElementById("canvas-element")?.clientHeight
+                      const canvasWidth = window.document.getElementById("canvas-element")?.clientWidth
+                    renderHeight = renderWidth *canvasHeight!/canvasWidth!
+                }
+                if (window.devicePixelRatio) {
+                    renderWidth /= window.devicePixelRatio;
+                    renderHeight /= window.devicePixelRatio;
+                }
+                if (curState.snapshotProps.transparent_background){
+                    let clearAlpha = gl.getClearAlpha ();
+                    gl.setClearAlpha (0.0);
+                    // Find the skysphere object
+                    const skySphere = scene.getObjectByName("SkySphere");
+                    let prevSkyVisibility = true;
+                    if (skySphere) {
+                        prevSkyVisibility = skySphere.visible;
+                        skySphere.visible = false; // hide sky
+                    }
+                    resizeRenderer (renderWidth, renderHeight);
+                    const link = document.createElement('a')
+                    link.setAttribute('download', snapshot_filename);
+                    link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
+                    link.click()
+                    gl.setClearAlpha (clearAlpha);
+                    if (skySphere) {
+                        skySphere.visible = prevSkyVisibility;
+                    }
+                }
+                else {
+                    resizeRenderer (renderWidth, renderHeight);
+                    const link = document.createElement('a')
+                    link.setAttribute('download', snapshot_filename)
+                    link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
+                    link.click()
+                }
+                curState.takeSnapshot = false;
+                resizeRenderer (originalSize.width, originalSize.height);
+            }
+        }
+        if (curState.fitToBox !== null) {
+            fitToBox(curState.fitToBox)
+            curState.fitToBox = null
+        }
+        if (curState.viewerState.currentCameraIndex!==-1) {
+            const nextCam = curState.viewerState.cameras[curState.viewerState.currentCameraIndex]
+            let target = curState.viewerState.targets[curState.viewerState.currentCameraIndex]
+            if (target === undefined) {
+                target = new Vector3(0, 0, 0)
+            }
+            if (controlsRef.current) {
+                camera.position.copy(nextCam.position)
+                // Update lastPosition so we don't inadvertently immediately revert to default/none
+                lastPosition.current.copy(camera.position)
+                controlsRef.current.target.copy(target)
+                // controlsRef.current.setLookAt(
+                //     nextCam.position.x, nextCam.position.y, nextCam.position.z,
+                //     target.x, target.y, target.z, false)
+                controlsRef.current.update()
+            }
+
+        }
+
+       function fitToModels(transition: boolean) {
+           const useScene = curState.scene;
+           useScene?.traverse((object: Object3D) => {
+               if ((object.type === "Group" && object.name === "OpenSimModels") ||
+                (object.type === "Group" && object.name === "Models") ||
+                (object.type === "Object3D" && object.userData !== undefined && object.userData.name.startsWith("Model"))
+               ) {
+                   implementFitToSphere(object);
+               }
+           });
+       }
+       })
+
+    function resizeRenderer (width:number, height:number)
+    {
+        if (window.devicePixelRatio) {
+            gl.setPixelRatio (window.devicePixelRatio);
+        }
+        gl.setSize (width, height);
+        gl.render (scene, camera);
+    }
+
+    function completeTransform(e?: THREE.Event | undefined): void {
+        if (curState.debug)
+            console.log(e!.target!.object)
+        var json = JSON.stringify({
+                                    "event": "translate",
+                                    "uuid": e!.target!.object.uuid,
+                                    "location": e!.target!.object.position
+                                });
+        curState.sendText(json);
+    }
+
+    function fitToBox(boundingBox: Box3) {
+        const center = boundingBox.getCenter(new Vector3());
+        const size = boundingBox.getSize(new Vector3());
+
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const fov = (camera as PerspectiveCamera).fov * (Math.PI / 180);
+        const offset = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+
+        var dir = new Vector3(0.0, 0.0, 1.0);
+        dir.x = camera.matrix.elements[8];
+        dir.y = camera.matrix.elements[9];
+        dir.z = camera.matrix.elements[10];
+        dir.multiplyScalar(offset);
+        var newPos = new Vector3();
+        newPos.addVectors(center, dir);
+
+        if (controls) {
+            camera.position.copy(newPos);
+            controlsRef.current!.target.copy(center)
+        }
+
+    }
+
+    return <>
+        {curState.draggable && <TransformControls object={curState.selectedObject!} onMouseUp={completeTransform}/>}
+        <OrbitControls ref={controlsRef} camera={camera} enableDamping={false} makeDefault />
+    </>
+});
+/*
+const OpenSimControl = () => {
+    const {
+        gl, // WebGL renderer
+        camera,
+        controls,
+        scene
+    } = useThree()
+
+   const curState = useModelContext();
+   const viewerState = useModelContext().viewerState;
+   const [cameraIndex, setCameraIndex] = useState<number>(-1)
+   const controlsRef = useRef<OrbitControlsImpl | null>(null)
+
+   function fitToModels() {
+        const useScene = curState.scene;
+        useScene?.traverse((object: Object3D) => {
+            if (object.type === "Group" && (object.name === "OpenSimModels" || object.name === "Scene")) {
+                implementFitToSphere(object);
+            }
+        });
+    }
+   useEffect(() => {
+        fitToModels();
+        setCameraIndex(curState.currentCameraIndex)
+   }, [curState.currentCameraIndex])
+
+    useFrame((_, delta) => {
+        if (curState.zooming){
+            let zoomFactor = curState.zoom_inOut;
+            camera.zoom *= zoomFactor;
+            camera.updateProjectionMatrix();
+            curState.zooming = false;
+        }
+        else if (curState.takeSnapshot){
+            const link = document.createElement('a')
+            const timestamp = getTimestamp();
+            link.setAttribute('download', curState.viewerState.snapshotName +"_" + timestamp + "." + curState.viewerState.snapshotFormat)
+            link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
+            link.click()
+            curState.takeSnapshot = false;
+        }
+        else if (curState.cameraLayersMask !== camera.layers.mask) {
+            for (let layernumber =0; layernumber < 31; layernumber++){
+                let newState = curState.getLayerVisibility(layernumber)
+                if (newState)
+                    camera.layers.enable(layernumber)
+                else
+                    camera.layers.disable(layernumber)
+            }
+        }
+        if (cameraIndex !== curState.currentCameraIndex){
+            setCameraIndex(curState.currentCameraIndex);
+            // Copy properties into default camera
+            const newCamera = curState.viewerState.cameras[curState.currentCameraIndex]
+            camera.position.copy(newCamera.position)
+            camera.quaternion.copy(newCamera.quaternion)
+            camera.zoom = (newCamera as PerspectiveCamera).zoom;
+            (camera as PerspectiveCamera).fov = (newCamera as PerspectiveCamera).fov;
+            (camera as PerspectiveCamera).near = (newCamera as PerspectiveCamera).near;
+            (camera as PerspectiveCamera).far = (newCamera as PerspectiveCamera).far;
+
+            camera.updateProjectionMatrix();
+            controlsRef.current!.update()
+        }
+      })
+    //console.log(viewerState.rotating);
+    return <>
+        <OrbitControls ref={controlsRef} camera={camera} autoRotate autoRotateSpeed={curState.rotating ? 2 : 0.0} makeDefault  />
+    </>
+}
+*/
+export default observer(OpenSimControl)

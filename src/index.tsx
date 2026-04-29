@@ -4,9 +4,22 @@ import App from './App'
 import reportWebVitals from './reportWebVitals'
 import { ThemeProvider, createTheme } from '@mui/material'
 import './internationalization/i18n'
-import { Amplify } from 'aws-amplify';
-import awsconfig from './aws-exports';
-Amplify.configure(awsconfig);
+//import { Amplify } from 'aws-amplify';
+// import awsconfig from './aws-exports';
+// Amplify.configure(awsconfig);
+
+if (!Object.hasOwn) {
+  Object.hasOwn = function (obj: any, key: PropertyKey): boolean {
+    return Object.prototype.hasOwnProperty.call(obj, key);
+  };
+}
+
+// This definition of Object.hasOwn is included here to support old chromium browsers, like the one embedded in the GUI.
+if (!Object.hasOwn) {
+  Object.hasOwn = function (obj: any, key: PropertyKey): boolean {
+    return Object.prototype.hasOwnProperty.call(obj, key);
+  };
+}
 
 const theme = createTheme({
     palette: {

@@ -3,18 +3,12 @@ import { observer } from 'mobx-react';
 import { useLocalObservable } from 'mobx-react-lite';
 import { Paper, Typography, LinearProgress } from '@mui/material';
 import { useTranslation } from 'react-i18next'
-import viewerState from '../../state/ViewerState';
 import { useNavigate, useLocation  } from 'react-router-dom';
 import { Storage } from "@aws-amplify/storage"
 import * as AWS from 'aws-sdk';
 import { useSnackbar } from 'notistack'
+import { useModelContext } from '../../state/ModelUIStateContext';
 
-
-AWS.config.update({
-  accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID, // replace with own credentials to test
-  secretAccessKey: process.env.REACT_APP_AWS_SECRET_KEY_ID,
-  region: 'us-west-2' // replace with your region
-});
 
 const lambda = new AWS.Lambda({
   region: 'us-west-2', // replace with your region
@@ -26,6 +20,8 @@ interface FileDropAreaProps {
 
 const FileDropArea: React.FC<FileDropAreaProps> =observer(({ paddingY = 16}) => {
   const { t } = useTranslation();
+  const viewerState = useModelContext().viewerState;
+  
   const navigate = useNavigate();
   const location = useLocation();
   const appState = viewerState;
@@ -101,9 +97,9 @@ const FileDropArea: React.FC<FileDropAreaProps> =observer(({ paddingY = 16}) => 
             appState.setCurrentModelPath(url_gltf);
             closeSnackbar()
 
-            if (location.pathname !== '/viewer') {
-                navigate('/viewer');
-            }
+             if (location.pathname !== '/viewer') {
+                 navigate('/viewer');
+             }
 
             store.uploadProgress = 1;
             store.uploadPercentage = 1;
@@ -130,13 +126,13 @@ const FileDropArea: React.FC<FileDropAreaProps> =observer(({ paddingY = 16}) => 
                       const key = file.name.replace(/\.\w+$/, '.gltf')
                       const gltf_url = "https://s3.us-west-2.amazonaws.com/opensim-viewer-public-download/" + user_uuid + "/"+key
                       /* appState.setCurrentModelPath(gltf_url); */
-                      navigate("/viewer/"+encodeURIComponent(gltf_url))
+                      // navigate("/viewer/"+encodeURIComponent(gltf_url))
                       console.log('Lambda function invoked successfully:', data);
                       closeSnackbar()
                     }
                 });
-                if (location.pathname !== '/viewer')
-                    navigate('/viewer');
+                // if (location.pathname !== '/viewer')
+                //     navigate('/viewer');
 
                 // File uploaded to S3, so it is not a local upload.
                 viewerState.isLocalUpload = true

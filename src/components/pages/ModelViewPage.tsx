@@ -1,31 +1,81 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { styled, useTheme } from "@mui/material/styles";
+import React, { useRef, useEffect, useState, useLayoutEffect } from 'react';
+import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import { Canvas } from "@react-three/fiber";
 import {
-  Bounds,
   Environment,
   GizmoHelper,
   GizmoViewport,
 } from "@react-three/drei";
-import viewerState from "../../state/ViewerState";
-import OpenSimControl from "../pages/OpenSimControl";
-import { Suspense } from "react";
+import OpenSimControl, { OpenSimControlHandle } from '../Components/OpenSimControl';
 import BottomBar from "../pages/BottomBar";
 import FloatingControlsPanel from '../Components/FloatingControlsPanel';
-
+import CameraPreview from "../Components/CameraPreview"
+import AddCameraDialog from "../Components/Dialogs/AddCameraDialog"
+import AddLightDialog from "../Components/Dialogs/AddLightDialog"
+import SceneTreeBridge from "../Components/SceneTree/SceneTreeBridge"
+import SceneTreeSortable, { SceneTreeSortableHandle } from "../Components/SceneTree/SceneTreeSortable"
 import DrawerMenu from "../Components/DrawerMenu";
-import OpenSimScene from "../pages/OpenSimScene";
-import { ModelUIState } from "../../state/ModelUIState";
+import OpenSimScene from "../Components/OpenSimScene";
+import OpenSimGUIScene from "../Components/OpenSimGUIScene";
+import { ModelInfo, ModelUIState } from "../../state/ModelUIState";
 import { observer } from "mobx-react";
 import { MyModelContext } from "../../state/ModelUIStateContext";
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { useParams } from 'react-router-dom';
+import { CircularProgress } from "@mui/material";
+import OpenSimHtmlLogo from '../Components/OpenSimLogo';
 
-import OpenSimFloor from "./OpenSimFloor";
+import { Stats } from '@react-three/drei'
+import { Perf } from 'r3f-perf'
+
+import { createTempHelper, removeTempHelper, updateTempHelperVisibility } from '../Components/SceneTree/SceneTreeSortable'
+
+import * as THREE from 'three';
+
+import {
+  DirectionalLight,
+  SpotLight,
+  PointLight} from 'three';
+
 import VideoRecorder from "../Components/VideoRecorder"
-import { ModelInfo } from '../../state/ModelUIState';
+
+// import GUI from 'lil-gui';
+import { Color} from 'three';
+import { TransformControls } from "@react-three/drei";
+
+
+// Aspect ratio utility functions
+const parseAspectRatio = (aspectRatio: string): { width: number; height: number } => {
+  const [widthStr, heightStr] = aspectRatio.split(':');
+  return { width: parseInt(widthStr, 10), height: parseInt(heightStr, 10) };
+};
+
+const getRecordingRect = (canvasWidth: number, canvasHeight: number, aspectRatio: string) => {
+  const { width: arW, height: arH } = parseAspectRatio(aspectRatio);
+  const canvasAR = canvasWidth / canvasHeight;
+  const targetAR = arW / arH;
+
+  let recWidth, recHeight, offsetX, offsetY;
+
+  if (canvasAR > targetAR) {
+    // Canvas is wider → height fits, width is smaller than canvas width
+    recHeight = canvasHeight;
+    recWidth = canvasHeight * targetAR;
+    offsetX = (canvasWidth - recWidth) / 2;
+    offsetY = 0;
+  } else {
+    // Canvas is taller → width fits, height is smaller than canvas height
+    recWidth = canvasWidth;
+    recHeight = canvasWidth / targetAR;
+    offsetX = 0;
+    offsetY = (canvasHeight - recHeight) / 2;
+  }
+
+  return { recWidth, recHeight, offsetX, offsetY };
+};
+
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
@@ -45,6 +95,77 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   }),
 }));
 
+export const addNewCamera = (
+  name: string = 'NewCamera',
+  type: 'PerspectiveCamera' | 'OrthographicCamera' = 'PerspectiveCamera',
+  uiState: ModelUIState,
+  control: OpenSimControlHandle,
+  parent: any,
+  scene: THREE.Scene | null,
+  onSceneUpdated: () => void
+): THREE.Camera => {
+  const camera = control.addCamera(name, parent);
+  uiState.setSelected(camera.uuid);
+  parent?.object3D?.add(camera);
+
+  // Remove previous helper and create current.
+  removeTempHelper(scene)
+  createTempHelper(camera, scene, uiState)
+
+  onSceneUpdated();
+
+  return camera;
+};
+
+export const addNewLight = (
+  name: string = 'NewLight',
+  type: 'DirectionalLight' | 'PointLight' | 'SpotLight' = 'SpotLight',
+  uiState: ModelUIState,
+  parent: any,
+  scene: THREE.Scene | null,
+  onSceneUpdated: () => void
+): THREE.Light => {
+  let light: THREE.Light;
+
+  switch (type) {
+    case 'DirectionalLight': {
+      const dir = new DirectionalLight(0xffffff, 1);
+      dir.target.position.set(0, 0, -1);
+      light = dir;
+      parent?.object3D?.add(dir.target);
+      break;
+    }
+    case 'PointLight': {
+      const point = new PointLight(0xffffff, 1, 0, 2);
+      light = point;
+      break;
+    }
+    case 'SpotLight':
+    default: {
+      const spot = new SpotLight(0xffffff, 1, 0, Math.PI / 6, 0.2, 1);
+      light = spot;
+      parent?.object3D?.add(spot.target);
+      break;
+    }
+  }
+
+  light.name = name;
+  light.position.set(2, 2, 2);
+
+  parent?.object3D?.add(light);
+
+  uiState.setLightsList?.([...uiState.lights, light]);
+  uiState.setSelected(light.uuid);
+
+  // Remove previous helper and create current.
+  removeTempHelper(scene)
+  createTempHelper(light, scene, uiState)
+
+  onSceneUpdated();
+
+  return light;
+};
+
 interface ViewerProps {
   url?: string;
   embedded?: boolean;
@@ -54,15 +175,33 @@ interface ViewerProps {
 export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const bottomBarRef = useRef<HTMLDivElement>(null);
   const videoRecorderRef = useRef(null);
-
-
   // TODO: Move to a general styles file?
   const leftMenuWidth = 60;
   const drawerContentWidth = 250;
 
+  const [canvasLoaded, setCanvasLoaded] = useState(false);
+
+  const [addCameraDialogOpen, setAddCameraDialogOpen] = useState(false);
+
+  const [addLightDialogOpen, setAddLightDialogOpen] = useState(false);
+
+  const treeRef = useRef<SceneTreeSortableHandle>(null);
+  const [treeWidth, setTreeWidth] = useState(0);
+  const openSimControlsRef = useRef<OpenSimControlHandle>(null);
+
+  useLayoutEffect(() => {
+    const el = treeRef.current?.getWidth ? treeRef.current : null;
+    if (!el) return;
+
+    const ro = new ResizeObserver(() =>
+      setTreeWidth(treeRef.current?.getWidth() ?? 0)
+    );
+    ro.observe(el as unknown as Element);   // observe the wrapper div
+    return () => ro.disconnect();
+  }, []);
+
   const [heightBottomBar, setHeightBottomBar] = useState(0);
 
-  const theme = useTheme();
   const curState = useModelContext();
   let { urlParam } = useParams();
 
@@ -70,45 +209,127 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [selectedTabName, setSelectedTabName] = React.useState<string>("File");
 
-  const [ displaySideBar, setDisplaySideBar ] = useState('inherit');
+  const [displaySideBar, setDisplaySideBar ] = useState('inherit');
   const [canvasWidth, setCanvasWidth] = useState("calc(100vw - " + (leftMenuWidth + (menuOpen ? drawerContentWidth : 0)) + "px)");
   const [canvasHeight, setCanvasHeight] = useState("calc(100vh - 68px - " + heightBottomBar + "px)");
   const [canvasLeft, setCanvasLeft] = useState(leftMenuWidth + (menuOpen ? drawerContentWidth : 0));
   const [floatingButtonsContainerTop, setFloatingButtonsContainerTop] = useState("80px");
+  const [floatingButtonsContainerLeft, setFloatingButtonsContainerLeft] = useState("80px");
+  const [, setBgndColor] = useState<Color>(new Color(0.7, 0.7, 0.7));
 
+  const [scene, setScene] = useState<THREE.Scene | null>(null);
+  const [camera, setCamera] = useState<THREE.Camera | null>(null);
+  const [transformTarget, setTransformTargetInternal] = useState<THREE.Object3D | null>(null);
+  const [transformMode, ] = useState<'translate' | 'rotate'>('translate');
+
+  function isImmovableObject(name: string){
+    return name==="Ground" || name.startsWith("Body");
+  }
+  function setTransformTarget(customTarget: THREE.Object3D | null) {
+    if (customTarget !== null &&
+      customTarget.userData !== undefined &&
+      ((customTarget.userData.name !== undefined && isImmovableObject(customTarget.userData.name)) ||
+        customTarget.userData.opensimType === "Ground" || customTarget.userData.opensimType === "Frame")
+    ) {
+      setTransformTargetInternal(null)
+      return;
+    }
+    setTransformTargetInternal(customTarget)
+  }
   useEffect(() => {
     if (bottomBarRef.current) {
       const heightBottomBar = bottomBarRef.current.offsetHeight;
-      setHeightBottomBar(bottomBarRef.current.offsetHeight);
+      if(!curState.showBottomBar)
+        setHeightBottomBar(0);
+      else
+        setHeightBottomBar(bottomBarRef.current.offsetHeight);
 
-      setCanvasHeight("calc(100vh - 68px - " + heightBottomBar + "px)");
-
-      // Do something with heightBottomBar if needed
-      console.log('Height of BottomBar:', heightBottomBar);
+      setCanvasHeight("calc(100vh - " + heightBottomBar + "px)");
     }
-  }, []);
+  }, [curState.showBottomBar]);
 
   React.useEffect(() => {
     // Change interface if we are in GUI mode.
-    if (viewerState.isGuiMode) {
+    if (uiState.isGuiMode) {
       setDisplaySideBar('none');
       setCanvasWidth('100%');
-      setCanvasHeight('calc(100vh - 68px)');
+      setCanvasHeight('calc(100vh)');
       setCanvasLeft(0);
       setFloatingButtonsContainerTop("12px")
+      setFloatingButtonsContainerLeft("12px")
     }
+    setBgndColor(uiState.viewerState.backgroundColor);
+  }, [uiState.viewerState.backgroundColor, uiState.isGuiMode]);
+
+  useEffect(() => {
+    if (scene) {
+      updateTempHelperVisibility(scene, uiState.visibleHelpers);
+    }
+  }, [uiState.visibleHelpers, scene]);
+
+useEffect(() => {
+    // Create fresh WebSocket
+    if (uiState.isGuiMode && uiState.socket === null) {
+      const socket = new WebSocket('ws://127.0.0.1:8002/visEndpoint');
+      socket.onopen = () => { uiState.setSocketHandle(socket); console.log("socket opened");}
+      socket.onmessage = function(evt) {
+      //   //console.log(evt.data)
+        uiState.handleSocketMessage(evt.data);
+      };
+      socket.onerror = function(evt) {
+        uiState.isGuiMode = false;
+      }
+      // Implement your WebSocket logic here
+      return () => {
+        //socket.disconnect();
+      };
+    }
+  }, [uiState]);
+
+  React.useEffect(() => {
+    // Load user preferences
+    const viewerState = uiState.viewerState;
+    viewerState.setUserPreferencesJsonPath('/user-preferences.json')
+    viewerState.loadUserPreferences()
+
+  }, [uiState.viewerState]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Toggle debug with Ctrl+D
+      if (e.ctrlKey && e.key.toLowerCase() === "d") {
+        e.preventDefault(); // prevent browser bookmark shortcut
+        curState.setDebug?.(!curState.debug);
+      }
+
+      // Toggle aspect ratio guides with Ctrl+G
+      if (curState.showAspectRatioFunctionality) {
+        if (e.ctrlKey && e.key.toLowerCase() === "g") {
+          e.preventDefault();
+          curState.viewerState.setShowAspectRatioGuides?.(!curState.viewerState.showAspectRatioGuides);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  //console.log(urlParam);
   if (urlParam!== undefined) {
     var decodedUrl = decodeURIComponent(urlParam);
-    viewerState.setCurrentModelPath(decodedUrl);
-    curState.setCurrentModelPath(viewerState.currentModelPath);
+    uiState.viewerState.setCurrentModelPath(decodedUrl);
     // If urlParam is not undefined, this means it is getting the model from S3 and not from local.
-    viewerState.setIsLocalUpload(false);
+    uiState.viewerState.setIsLocalUpload(false);
   }
-  else
-    curState.setCurrentModelPath(viewerState.currentModelPath);
+
+  const [Perf, setPerf] = useState<any>(null);
+
+  useEffect(() => {
+    if (curState.isModernBrowser) {
+      import('r3f-perf').then(mod => setPerf(() => mod.Perf));
+    }
+  }, [curState.isModernBrowser]);
+
   function toggleOpenMenu(name: string = "") {
     // If same name, or empty just toggle.
     if (name === selectedTabName || name === "") setMenuOpen(!menuOpen);
@@ -117,11 +338,13 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     // Always store same name.
     setSelectedTabName(name);
   }
+
   return (
     <MyModelContext.Provider value={uiState}>
-      <Box component="div" sx={{ display: "flex" }}>
+      <Box component="div">
         <CssBaseline />
         <Main>
+          {!uiState.isGuiMode &&
           <div id="opensim-modelview-sidebar" style={{display: displaySideBar}}>
             <DrawerMenu
               menuOpen={menuOpen}
@@ -132,15 +355,68 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
               drawerContentWidth={drawerContentWidth}
             />
           </div>
+          }
           <div id="canvas-container">
-            <Suspense fallback={null}>
+            {curState.viewerState.recordedVideoAspectRatio && (curState.viewerState.isRecordingVideo || curState.viewerState.showAspectRatioGuides) && (
+              (() => {
+                const canvasEl = document.getElementById('canvas-element');
+                if (!canvasEl) return null;
+
+                const canvasWidth = canvasEl.clientWidth;
+                const canvasHeight = canvasEl.clientHeight;
+
+                const { recWidth, recHeight, offsetX, offsetY } = getRecordingRect(
+                  canvasWidth,
+                  canvasHeight,
+                  curState.viewerState.recordedVideoAspectRatio
+                );
+
+                const overlayStyle = {
+                  position: 'absolute' as const,
+                  backgroundColor: 'rgba(0,0,0,0.4)',
+                  pointerEvents: 'none' as const,
+                  zIndex: 1001,
+                };
+
+                return (
+                  <>
+                    {/* Top overlay */}
+                    <div style={{ ...overlayStyle, top: 0, left: 0, width: '100%', height: offsetY }} />
+                    {/* Bottom overlay */}
+                    <div style={{ ...overlayStyle, top: offsetY + recHeight, left: 0, width: '100%', height: canvasHeight - (offsetY + recHeight) }} />
+                    {/* Left overlay */}
+                    <div style={{ ...overlayStyle, top: offsetY, left: 0, width: offsetX, height: recHeight }} />
+                    {/* Right overlay */}
+                    <div style={{ ...overlayStyle, top: offsetY, left: offsetX + recWidth, width: canvasWidth - (offsetX + recWidth), height: recHeight }} />
+                  </>
+                );
+              })()
+            )}
+            {!canvasLoaded && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'rgba(255, 255, 255, 0.8)', // Optional: semi-transparent background
+                  zIndex: 1000, // Ensure it's above the canvas
+                }}
+              >
+                <CircularProgress size={200} color={'primary'} disableShrink />
+              </div>
+            )}
               <FloatingControlsPanel
                 videoRecorderRef={videoRecorderRef}
                 info={new ModelInfo(uiState.modelInfo.model_name, uiState.modelInfo.desc, uiState.modelInfo.authors)}
-                top={floatingButtonsContainerTop}/>
+                top={floatingButtonsContainerTop}
+                left={floatingButtonsContainerLeft}/>
               <Canvas
                 id="canvas-element"
-                gl={{ preserveDrawingBuffer: true }}
+                gl={{ alpha: true, autoClearColor: true, preserveDrawingBuffer: true }}
                 shadows="soft"
                 style={{
                   width: canvasWidth,
@@ -148,37 +424,109 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
                   left: canvasLeft,
                   transition: "left 0.1s ease",
                 }}
-                camera={{ position: [1500, 2000, 1000], fov: 75, far: 10000 }}
+                camera={{ position: [.2, .1, .2], fov: 50 }}
+                onCreated={() => setCanvasLoaded(true)}
               >
-                <fog attach="fog" color="lightgray" near={1} far={10000} />
-                <color
-                  attach="background"
-                  args={
-                    theme.palette.mode === "dark" ? ["#151518"] : ["#cccccc"]
-                  }
-                />
-                <Bounds fit clip observe>
-                  <OpenSimScene
-                    currentModelPath={viewerState.currentModelPath}
+              <Environment files="/assets/potsdamer_platz_1k.hdr"/>
+              <SceneTreeBridge onSceneReady={setScene} onCameraReady={setCamera} />
+              <fog attach="fog" color="lightgray" near={1} far={10000} />
+                {curState.isGuiMode ?
+                  <OpenSimGUIScene
+                    currentModelPath={uiState.viewerState.currentModelPath}
                     supportControls={true}
                   />
-                </Bounds>
-                <Environment files="/builtin/potsdamer_platz_1k.hdr" />
+                : <OpenSimScene
+                  currentModelPath={uiState.viewerState.currentModelPath}
+                  supportControls={true}
+                />}
                 <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
-                  <GizmoViewport labelColor="white" axisHeadScale={1} />
+                  <GizmoViewport labelColor="white" />
                 </GizmoHelper>
-                <OpenSimControl/>
+                <OpenSimControl ref={openSimControlsRef}/>
                 <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
-                {!noFloor && <OpenSimFloor />}
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
+                {transformTarget && uiState.visibleHelpers && (
+                  <>
+                      <TransformControls object={transformTarget} mode={transformMode} />
+                  </>
+                )}
+
+                {uiState.selected && (
+                  <CameraPreview selectedCameraUuid={uiState.selected} marginRight={treeWidth} />
+                )}
+
+                {curState.debug && (
+                  <>
+                    <Stats />
+                    { curState.isModernBrowser && Perf &&  (<Perf position="top-right" />) }
+                  </>
+                )}
               </Canvas>
+
+              <AddCameraDialog
+                open={addCameraDialogOpen}
+                onClose={() => setAddCameraDialogOpen(false)}
+                onAddCamera={(name:any, type:any) => {
+                  const newCam = addNewCamera(name, type, uiState, openSimControlsRef.current!, treeRef.current?.selectedNode() ?? null, scene, () => {uiState.viewerState.sceneVersion++});
+                  setTransformTarget(newCam);
+                }}
+                scene={scene}
+                uiState={uiState}
+                parent={treeRef.current?.selectedNode() ?? null}
+              />
+
+              <AddLightDialog
+                open={addLightDialogOpen}
+                onClose={() => setAddLightDialogOpen(false)}
+                onAddLight={(name:any, type:any) => {
+                    const newLight = addNewLight(name, type, uiState, treeRef.current?.selectedNode() ?? null, scene, () => {uiState.viewerState.sceneVersion++});
+                    setTransformTarget(newLight);
+                }}
+                scene={scene}
+                uiState={uiState}
+                parent={treeRef.current?.selectedNode() ?? null}
+              />
+
+              {curState.showBottomBar && (
               <BottomBar
                 ref={bottomBarRef}
                 animationPlaySpeed={1.0}
-                animating={uiState.animating}
-                animationList={uiState.animations}/>
-            </Suspense>
+                animating={uiState.viewerState.animating}
+                animationList={uiState.viewerState.animations}/>
+              )}
+
+              {scene && camera && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    right: 0,
+                    zIndex: 1002,
+                    height: canvasHeight,          // full canvas height
+                    width: `${treeWidth}`,       // whatever width the tree reports (fallback 250 px)
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  <div style={{ flex: "1 1 50%", overflowY: "auto" }}>
+                    <SceneTreeSortable
+                      ref={treeRef}
+                      scene={scene}
+                      camera={camera}
+                      /* let it stretch to parent height */
+                      height="100%"
+                      onAddCameraClick={setAddCameraDialogOpen}
+                      onAddLightClick={setAddLightDialogOpen}
+                      setTransformTargetFunction={setTransformTarget}
+                      onWidthChange={setTreeWidth}
+                    />
+                  </div>
+                </div>
+              )}
+
+
           </div>
+          <OpenSimHtmlLogo/>
         </Main>
       </Box>
     </MyModelContext.Provider>

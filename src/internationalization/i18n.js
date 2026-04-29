@@ -57,7 +57,8 @@ i18next
                         zoomOut: "Zoom Out",
                         measure: "Measure",
                         annotate: "Annotate",
-                        snapshoot: "Snapshot",
+                        snapshot: "Snapshot",
+                        fit: "Fit Model",
                         record: "Record",
                     },
                     login: {
@@ -98,7 +99,8 @@ i18next
                         wrapObjects: "WrapObjects",
                         contactObjects: "Contacts",
                         markers: "Markers",
-                        speed: "Speed"
+                        speed: "Speed",
+                        helpers: "Helpers"
                     },
                     shareView: {
                         share: "Share",
@@ -117,10 +119,11 @@ i18next
                     },
                     snackbars: {
                         recording_video: "Recording Video...",
-                        processing_video: "Processing video..."
+                        processing_video: "Processing video...",
+                        no_animation_selected: "Select an animation to record."
                     },
                     floatingButton: {
-                        model_info: "Model info.",
+                        model_info: "Model info",
                     }
                 }
             },
@@ -212,7 +215,8 @@ i18next
                         wrapObjects: "Envolturas",
                         contactObjects: "Contactos",
                         markers: "Marcadores",
-                        speed: "Velocidad"
+                        speed: "Velocidad",
+                        helpers: "Helpers"
                     },
                     shareView: {
                         share: "Compartir",

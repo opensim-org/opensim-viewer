@@ -7,21 +7,28 @@ import './FloatingControlsPanel.css';
 import InfoIcon from '@mui/icons-material/Info';
 import ZoomOutTwoToneIcon from '@mui/icons-material/ZoomOutTwoTone';
 import ZoomInTwoToneIcon from '@mui/icons-material/ZoomInTwoTone';
-import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone';
+import FitScreenTwoToneIcon from '@mui/icons-material/FitScreenTwoTone';
+import AddAPhotoTwoToneIcon from '@mui/icons-material/AddAPhotoTwoTone';
 import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
 import { useModelContext } from '../../state/ModelUIStateContext';
-import viewerState from '../../state/ViewerState';
+import SnapShotModal from './SnapShotModal';
+import RecordingModal from './RecordingModal';
+import { ToggleButton } from '@mui/material';
 import { ModelInfo } from '../../state/ModelUIState';
+import { observer } from "mobx-react";
 
 interface FloatingControlsPanelProps {
   videoRecorderRef: any;
   info: ModelInfo;
   top: string;
+  left: string;
 }
 
 function FloatingControlsPanel(props :FloatingControlsPanelProps) {
   const { t } = useTranslation();
   const curState = useModelContext();
+  const viewerState = curState.viewerState;
+  
   const [isWindowOpen, setIsWindowOpen] = useState(false);
 
 
@@ -30,73 +37,57 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
   };
 
   return (
-    <div className="floating-buttons-container" style={{top: props.top}}>
+    <div className="floating-buttons-container" style={{top: props.top, left: props.left,}}>
 
-    <Grid container spacing={0} direction="row">
-      <Grid item xs={3}>
-        <Tooltip title={t('bottomBar.zoomIn')}>
-          <IconButton color="primary" onClick={() => {
-            curState.setZoomFactor(1.1);
-            curState.setZooming(true)}}>
-              <ZoomInTwoToneIcon />
-          </IconButton>
-        </Tooltip>
-      </Grid>
-
-      <Grid item xs={3}>
-        <Tooltip title={t('bottomBar.zoomOut')}>
-          <IconButton color="primary" onClick={() => {
-            curState.setZoomFactor(0.9);
-            curState.setZooming(true)}}>
-              <ZoomOutTwoToneIcon />
-          </IconButton>
-        </Tooltip>
-      </Grid>
-
-      <Grid item xs={3}>
-        <Tooltip title={t('bottomBar.snapshoot')}>
-          <IconButton color="primary" onClick={() => {
-            curState.setTakeSnapshot();}}>
-              <PhotoCameraTwoToneIcon />
-          </IconButton>
-        </Tooltip>
-      </Grid>
-
-      <Grid item xs={3}>
-        <Tooltip title={t('bottomBar.record')}>
-          <IconButton
-            color={!viewerState.isRecordingVideo && !viewerState.isProcessingVideo ? "primary" : (viewerState.isProcessingVideo ? "warning" : "error")}
-            disabled={viewerState.isProcessingVideo}
-            onClick={() => {
-              if (!viewerState.isRecordingVideo) {
-                props.videoRecorderRef.current.startRecording();
-              } else {
-                props.videoRecorderRef.current.stopRecording();}}
-            }>
-              <VideoCameraFrontTwoToneIcon />
-          </IconButton>
-        </Tooltip>
-      </Grid>
-
-      <Grid item xs={3}>
-      </Grid>
-
-      <Grid item xs={3}>
-      </Grid>
-
-      <Grid item xs={3}>
-      </Grid>
-
-      <Grid item xs={3}>
-        <Tooltip title={t('floatingButton.model_info')}>
-            <IconButton
-              color="primary"
-              onClick={handleButtonClick}>
-                <InfoIcon />
+      <Grid container spacing={-4} direction="column">
+        <Grid item xs={6}>
+          <Tooltip title={t('bottomBar.zoomIn')} placement="right">
+            <IconButton color="primary" onClick={() => {
+              curState.setZoomFactor(1.1);
+              curState.setZooming(true)}}>
+                <ZoomInTwoToneIcon />
             </IconButton>
-        </Tooltip>
+          </Tooltip>
+        </Grid>
+
+        <Grid item xs={6}>
+          <Tooltip title={t('bottomBar.zoomOut')} placement="right">
+            <IconButton color="primary" onClick={() => {
+              curState.setZoomFactor(0.9);
+              curState.setZooming(true)}}>
+                <ZoomOutTwoToneIcon />
+            </IconButton>
+          </Tooltip>
+        </Grid>
+
+        <Grid item xs={6}>
+          <Tooltip title={t('bottomBar.fit')} placement="right">
+            <IconButton color="primary" onClick={() => {
+              viewerState.handleKey('F')}}>
+                <FitScreenTwoToneIcon />
+            </IconButton>
+          </Tooltip>
+        </Grid>
+
+        <Grid item xs={6}>
+            <SnapShotModal open={false}/>
+        </Grid>
+
+        <Grid item xs={6}>
+          <RecordingModal videoRecorderRef={props.videoRecorderRef} />
+        </Grid>
+
+        <Grid item xs={6}>
+          <Tooltip title={t('floatingButton.model_info')} placement="right">
+              <IconButton
+                color="primary"
+                onClick={handleButtonClick}>
+                  <InfoIcon />
+              </IconButton>
+          </Tooltip>
+        </Grid>
+
       </Grid>
-    </Grid>
 
       {isWindowOpen &&
         <div className="floating-window">
@@ -111,4 +102,4 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
   );
 };
 
-export default FloatingControlsPanel;
+export default observer(FloatingControlsPanel);

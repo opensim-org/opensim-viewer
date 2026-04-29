@@ -1,0 +1,10 @@
+.rst__rowSelected .rst__rowContents {
+  background-color: #e8f3ff;
+  border: 1px solid #4285f4;
+}
+
+.rst__moveHandle {
+  display: flex;
+  align-items: center;
+  cursor: grab;
+}
