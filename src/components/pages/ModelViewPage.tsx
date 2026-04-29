@@ -17,7 +17,7 @@ import AddLightDialog from "../Components/Dialogs/AddLightDialog"
 import SceneTreeBridge from "../Components/SceneTree/SceneTreeBridge"
 import SceneTreeSortable, { SceneTreeSortableHandle } from "../Components/SceneTree/SceneTreeSortable"
 import DrawerMenu from "../Components/DrawerMenu";
-import OpenSimScene from "../Components/OpenSimScene";
+
 import OpenSimGUIScene from "../Components/OpenSimGUIScene";
 import { ModelInfo, ModelUIState } from "../../state/ModelUIState";
 import { observer } from "mobx-react";
@@ -189,6 +189,8 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const [treeWidth, setTreeWidth] = useState(0);
   const openSimControlsRef = useRef<OpenSimControlHandle>(null);
 
+  const [guiModeMarginTop, setGuiModeMarginTop] = useState("68px");
+
   useLayoutEffect(() => {
     const el = treeRef.current?.getWidth ? treeRef.current : null;
     if (!el) return;
@@ -221,6 +223,38 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const [camera, setCamera] = useState<THREE.Camera | null>(null);
   const [transformTarget, setTransformTargetInternal] = useState<THREE.Object3D | null>(null);
   const [transformMode, ] = useState<'translate' | 'rotate'>('translate');
+
+  useEffect(() => {
+    const path = uiState.viewerState.currentModelPath;
+    if (path && path != "mt.json") {
+      localStorage.setItem("lastModelPath", path);
+    }
+  }, [uiState.viewerState.currentModelPath]);
+
+  useEffect(() => {
+    let pathToLoad: string | null = null;
+
+    if (urlParam !== undefined) {
+      pathToLoad = decodeURIComponent(urlParam);
+      uiState.viewerState.setIsLocalUpload(false);
+    } else {
+      const savedPath = localStorage.getItem("lastModelPath");
+      if (savedPath) {
+        pathToLoad = savedPath;
+
+        // Preserve existing query parameters
+        const params = new URLSearchParams(window.location.search);
+        params.set("model", encodeURIComponent(savedPath));
+
+        const newUrl = `${window.location.pathname}?${params.toString()}`;
+        window.history.replaceState(null, '', newUrl);
+      }
+    }
+
+    if (pathToLoad) {
+      uiState.viewerState.setCurrentModelPath(pathToLoad);
+    }
+  }, [urlParam, uiState.viewerState]);
 
   function isImmovableObject(name: string){
     return name==="Ground" || name.startsWith("Body");
@@ -257,6 +291,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
       setCanvasLeft(0);
       setFloatingButtonsContainerTop("12px")
       setFloatingButtonsContainerLeft("12px")
+      setGuiModeMarginTop('0px')
     }
     setBgndColor(uiState.viewerState.backgroundColor);
   }, [uiState.viewerState.backgroundColor, uiState.isGuiMode]);
@@ -400,9 +435,10 @@ useEffect(() => {
                   left: 0,
                   width: '100%',
                   height: '100%',
+                  display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: 'rgba(255, 255, 255, 0.8)', // Optional: semi-transparent background
+                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
                   zIndex: 1000, // Ensure it's above the canvas
                 }}
               >
@@ -435,7 +471,7 @@ useEffect(() => {
                     currentModelPath={uiState.viewerState.currentModelPath}
                     supportControls={true}
                   />
-                : <OpenSimScene
+                : <OpenSimGUIScene
                   currentModelPath={uiState.viewerState.currentModelPath}
                   supportControls={true}
                 />}
@@ -499,7 +535,7 @@ useEffect(() => {
                 <div
                   style={{
                     position: "absolute",
-                    top: 0,
+                    top: guiModeMarginTop,
                     right: 0,
                     zIndex: 1002,
                     height: canvasHeight,          // full canvas height
