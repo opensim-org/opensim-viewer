@@ -300,7 +300,8 @@ export class ModelUIState {
             this.scene?.add(object)
     }
     removeObject( object: Object3D ): void {
-        console.log(object);
+        // actually remove object from its parent
+        object.removeFromParent();
     }
     updatePath( pathUpdateJson: string ): void {
         //console.log(pathUpdateJson);
