@@ -39,7 +39,6 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
 
     let curState = useModelContext();
-    curState.isGuiMode = true;
     const modelGroup = useLoader(OpenSimLoader, currentModelPath)
 
     //computeNormals(modelGroup as Group);
@@ -116,7 +115,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             const cameraPers = camera as PerspectiveCamera
             cameraPers.aspect = aspectRatio;
             cameraPers.updateProjectionMatrix();
-            
+
             if (envRef.current) {
               envRef.current.add(camera);
             }
@@ -387,7 +386,6 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           setUseEffectRunning(true)
         };
       }, [scene, supportControls, currentModelPath, curState, sceneObjectMap])
-
     
   function handleClick(event: ThreeEvent<MouseEvent>): void {
     //event.stopPropagation();
@@ -421,6 +419,13 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         <ambientLight name="Ambient Light" intensity={0.7} color="white"/>
         <directionalLight name="Dir Light2" position={[0.02, .01, .02]} intensity={1.0} color="white" castShadow={false}/>
         <OpenSimFloor />
+        <OpenSimSkySphere
+            texturePath={
+              curState.viewerState.userPreferences?.skyTexturePath?.trim()
+                ? curState.viewerState.userPreferences.skyTexturePath
+                : undefined
+            }
+        />
         <group name='WCS' ref={csRef} visible={curState.showGlobalFrame}>
           <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.2]}>
               <cylinderGeometry args={[.005, .005, 0.4, 32]}/>
@@ -436,13 +441,6 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           </mesh>
         </group>
       </group>
-      <OpenSimSkySphere
-          texturePath={
-            curState.viewerState.userPreferences?.skyTexturePath?.trim()
-              ? curState.viewerState.userPreferences.skyTexturePath
-              : undefined
-          }
-      />
       <group name='Models' ref={modelsRef}  
             onClick={(e)=>{ handleClick(e);}}
             onPointerMissed={(e)=>{clearSelection();}} 

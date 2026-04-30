@@ -83,11 +83,11 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn, isFullS
         }}>
         <div>
           <Tooltip title={t('topBar.viewer')}>
-            <Link component={NavLink} to="/viewer" sx={{ marginLeft: 'auto' }}>
+            <a href="/viewer" style={{ marginLeft: 'auto', color: 'inherit' }}>
               <IconButton color="inherit">
                 <ThreeDRotationIcon />
               </IconButton>
-            </Link>
+            </a>
           </Tooltip>
 
           <Tooltip title={t('topBar.models')}>
@@ -157,11 +157,11 @@ const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn, isFullS
 
           <Hidden smDown>
             <Tooltip title={t('topBar.viewer')}>
-              <Link component={NavLink} to="/viewer" sx={{ marginLeft: 'auto' }}>
-                <IconButton color="secondary">
-                  <ThreeDRotationIcon />
-                </IconButton>
-              </Link>
+            <a href="/viewer" style={{ marginLeft: 'auto', color: 'inherit' }}>
+              <IconButton color="inherit">
+                <ThreeDRotationIcon />
+              </IconButton>
+            </a>
             </Tooltip>
           </Hidden>
 
