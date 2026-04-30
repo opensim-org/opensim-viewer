@@ -394,6 +394,14 @@ useEffect(() => {
           }
           <div id="canvas-container">
             <>
+            {uiState.isInRecordMode && (
+              <RecordModeOverlay
+                videoRecorderRef={videoRecorderRef}
+                onRecordComplete={() => {
+                  console.log("Recording process finished");
+                }}
+              />
+            )}
             {curState.viewerState.recordedVideoAspectRatio && (curState.viewerState.isRecordingVideo || curState.viewerState.showAspectRatioGuides) && (
               (() => {
                 const canvasEl = document.getElementById('canvas-element');
@@ -429,16 +437,6 @@ useEffect(() => {
                 );
               })()
             )}
-            {curState.isInRecordMode && (
-              (() => {
-                <RecordModeOverlay
-                  videoRecorderRef={videoRecorderRef}
-                  onRecordComplete={() => {
-                    console.log("Recording process finished");
-                  }}
-                />}
-              )())
-            }
             {!canvasLoaded && (
               <div
                 style={{

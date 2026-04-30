@@ -9,16 +9,15 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  IconButton,
-  Tooltip,
 } from "@mui/material";
-import VideoCameraFrontTwoToneIcon from "@mui/icons-material/VideoCameraFrontTwoTone";
 import { useTranslation } from "react-i18next";
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { observer } from "mobx-react";
 
 interface RecordingModalProps {
   videoRecorderRef: React.MutableRefObject<any>;
+  open: boolean;
+  onClose: () => void;
 }
 
 // Define quality levels that will be used as base dimensions. Base dimension is width.
@@ -31,8 +30,8 @@ const qualityLevels = [
 const videoFormats = [
   { label: "MP4", value: "mp4" },
   { label: "MOV", value: "mov" },
-  { label: "JPEG (Zip)", value: "jpeg-zip"},
-  { label: "GIF", value: "gif"}
+  { label: "JPEG (Zip)", value: "jpeg-zip" },
+  { label: "GIF", value: "gif" },
 ];
 
 const fpsValues = [30, 60];
@@ -47,22 +46,22 @@ const aspectRatios = [
   { label: "3:2", value: "3:2", description: "photo size" },
 ];
 
-const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => {
+const RecordingModal: React.FC<RecordingModalProps> = ({
+  videoRecorderRef,
+  open,
+  onClose,
+}) => {
   const { t } = useTranslation();
   const curState = useModelContext();
   const viewerState = curState.viewerState;
 
-  const [open, setOpen] = useState(false);
   const [selectedQuality, setSelectedQuality] = useState("1080p HD");
   const [selectedFormat, setSelectedFormat] = useState("mp4");
   const [selectedFPS, setSelectedFPS] = useState(30);
   const [selectedAspectRatio, setSelectedAspectRatio] = useState("16:9");
 
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
-
   const getFpsOptions = () => {
-    return selectedFormat === 'gif' ? fpsValuesGif : fpsValues;
+    return selectedFormat === "gif" ? fpsValuesGif : fpsValues;
   };
 
   useEffect(() => {
@@ -72,11 +71,6 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
       viewerState.setRecorderFPS(validFpsOptions[0]);
     }
   }, [selectedFormat]);
-
-  const handleRecordingMode = () => {
-    setOpen(false);
-    curState.setIsInRecordMode(true)
-  };
 
   const handleFormatChange = (value: string) => {
     setSelectedFormat(value);
@@ -103,108 +97,81 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
   };
 
   return (
-    <>
-      <Tooltip title={t("bottomBar.record")} placement="right">
-        <IconButton
-          color={
-            viewerState.isProcessingVideo
-              ? "warning"
-              : viewerState.isRecordingVideo
-              ? "error"
-              : "primary"
-          }
-          disabled={viewerState.isProcessingVideo}
-          onClick={() => {
-            if (!viewerState.isRecordingVideo) handleOpen();
-            else {
-              videoRecorderRef.current.stopRecording();
-              curState.finishRecording();
-            }
-          }}
-        >
-          <VideoCameraFrontTwoToneIcon />
-        </IconButton>
-      </Tooltip>
+    <Dialog open={open} onClose={onClose} aria-labelledby="recording-dialog">
+      <DialogTitle>{t("bottomBar.record")}</DialogTitle>
 
-      <Dialog open={open} onClose={handleClose} aria-labelledby="recording-dialog">
-        <DialogTitle>{t("bottomBar.record")}</DialogTitle>
+      <DialogContent sx={{ minWidth: 300 }}>
+        {/* Video Format */}
+        <FormControl fullWidth margin="dense">
+          <InputLabel>Video Format</InputLabel>
+          <Select
+            value={selectedFormat}
+            label="Video Format"
+            onChange={(e) => handleFormatChange(e.target.value)}
+          >
+            {videoFormats.map((fmt) => (
+              <MenuItem key={fmt.value} value={fmt.value}>
+                {fmt.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
-        <DialogContent sx={{ minWidth: 300 }}>
-          {/* Video Format */}
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Video Format</InputLabel>
-            <Select
-              value={selectedFormat}
-              label="Video Format"
-              onChange={(e) => handleFormatChange(e.target.value)}
-            >
-              {videoFormats.map((fmt) => (
-                <MenuItem key={fmt.value} value={fmt.value}>
-                  {fmt.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+        {/* Quality Level */}
+        <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
+          <InputLabel>Quality Level</InputLabel>
+          <Select
+            value={selectedQuality}
+            label="Quality Level"
+            onChange={(e) => handleQualityChange(e.target.value)}
+          >
+            {qualityLevels.map((quality) => (
+              <MenuItem key={quality.label} value={quality.label}>
+                {quality.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
-          {/* Quality Level */}
+        {/* Aspect Ratio */}
+        {curState.showAspectRatioFunctionality && (
           <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
-            <InputLabel>Quality Level</InputLabel>
+            <InputLabel>Aspect Ratio</InputLabel>
             <Select
-              value={selectedQuality}
-              label="Quality Level"
-              onChange={(e) => handleQualityChange(e.target.value)}
+              value={selectedAspectRatio}
+              label="Aspect Ratio"
+              onChange={(e) => handleAspectRatioChange(e.target.value)}
             >
-              {qualityLevels.map((quality) => (
-                <MenuItem key={quality.label} value={quality.label}>
-                  {quality.label}
+              {aspectRatios.map((ar) => (
+                <MenuItem key={ar.value} value={ar.value}>
+                  {ar.label} ({ar.description})
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
+        )}
 
-          {/* Aspect Ratio */}
-          {curState.showAspectRatioFunctionality && (
-              <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
-              <InputLabel>Aspect Ratio</InputLabel>
-              <Select
-                value={selectedAspectRatio}
-                label="Aspect Ratio"
-                onChange={(e) => handleAspectRatioChange(e.target.value)}
-              >
-                {aspectRatios.map((ar) => (
-                  <MenuItem key={ar.value} value={ar.value}>
-                    {ar.label} ({ar.description})
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          )}
+        {/* FPS */}
+        <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
+          <InputLabel>FPS</InputLabel>
+          <Select
+            value={selectedFPS}
+            label="FPS"
+            onChange={(e) => handleFPSChange(Number(e.target.value))}
+          >
+            {getFpsOptions().map((fps) => (
+              <MenuItem key={fps} value={fps}>
+                {fps}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </DialogContent>
 
-
-          {/* FPS */}
-          <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
-            <InputLabel>FPS</InputLabel>
-            <Select
-              value={selectedFPS}
-              label="FPS"
-              onChange={(e) => handleFPSChange(Number(e.target.value))}
-            >
-              {getFpsOptions().map((fps) => (
-                <MenuItem key={fps} value={fps}>
-                  {fps}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </DialogContent>
-
-
-        <DialogActions>
-          <Button onClick={handleRecordingMode}>Record</Button>
-          <Button onClick={handleClose}>Cancel</Button>
-        </DialogActions>
-      </Dialog>
-    </>
+      <DialogActions>
+        <Button onClick={onClose}>Confirm</Button>
+      </DialogActions>
+    </Dialog>
   );
 };
 
