@@ -26,6 +26,7 @@ import { useModelContext } from "../../state/ModelUIStateContext";
 import { useParams } from 'react-router-dom';
 import { CircularProgress } from "@mui/material";
 import OpenSimHtmlLogo from '../Components/OpenSimLogo';
+import RecordModeOverlay from '../Components/RecordModeOverlay'
 
 import { Stats } from '@react-three/drei'
 import { Perf } from 'r3f-perf'
@@ -357,6 +358,7 @@ useEffect(() => {
           </div>
           }
           <div id="canvas-container">
+            <>
             {curState.viewerState.recordedVideoAspectRatio && (curState.viewerState.isRecordingVideo || curState.viewerState.showAspectRatioGuides) && (
               (() => {
                 const canvasEl = document.getElementById('canvas-element');
@@ -392,6 +394,16 @@ useEffect(() => {
                 );
               })()
             )}
+            {curState.isInRecordMode && (
+              (() => {
+                <RecordModeOverlay
+                  videoRecorderRef={videoRecorderRef}
+                  onRecordComplete={() => {
+                    console.log("Recording process finished");
+                  }}
+                />}
+              )())
+            }
             {!canvasLoaded && (
               <div
                 style={{
@@ -524,7 +536,7 @@ useEffect(() => {
                 </div>
               )}
 
-
+            </>
           </div>
           <OpenSimHtmlLogo/>
         </Main>

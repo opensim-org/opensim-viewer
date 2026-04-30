@@ -73,12 +73,9 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
     }
   }, [selectedFormat]);
 
-  const handleRecord = () => {
+  const handleRecordingMode = () => {
     setOpen(false);
-    curState.startAnimationRecording();
-    if (videoRecorderRef?.current && !viewerState.isRecordingVideo) {
-      videoRecorderRef.current.startRecording();
-    }
+    curState.setIsInRecordMode(true)
   };
 
   const handleFormatChange = (value: string) => {
@@ -203,7 +200,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({ videoRecorderRef }) => 
 
 
         <DialogActions>
-          <Button onClick={handleRecord}>Record</Button>
+          <Button onClick={handleRecordingMode}>Record</Button>
           <Button onClick={handleClose}>Cancel</Button>
         </DialogActions>
       </Dialog>

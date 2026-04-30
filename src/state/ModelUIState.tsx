@@ -84,6 +84,7 @@ export class ModelUIState {
     guiAnimationReverse: boolean = false
     showBottomBar: boolean = false;
     showAspectRatioFunctionality: boolean = false;
+    isInRecordMode: boolean = false;
     visibleHelpers: boolean = true;
     constructor(
         currentModelPathState: string
@@ -202,6 +203,9 @@ export class ModelUIState {
     }
     setIsGuiMode(newGuiMode: boolean = false) {
         this.isGuiMode = newGuiMode;
+    }
+    setIsInRecordMode(newValue: boolean = false) {
+        this.isInRecordMode = newValue;
     }
     getModernBrowserMode() {
         return this.isModernBrowser;
