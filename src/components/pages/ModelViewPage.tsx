@@ -190,7 +190,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const [treeWidth, setTreeWidth] = useState(0);
   const openSimControlsRef = useRef<OpenSimControlHandle>(null);
 
-  const [guiModeMarginTop, setGuiModeMarginTop] = useState("68px");
+  const [guiModeMarginTop, setGuiModeMarginTop] = useState(68);
 
   useLayoutEffect(() => {
     const el = treeRef.current?.getWidth ? treeRef.current : null;
@@ -292,7 +292,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
       setCanvasLeft(0);
       setFloatingButtonsContainerTop("12px")
       setFloatingButtonsContainerLeft("12px")
-      setGuiModeMarginTop('0px')
+      setGuiModeMarginTop(0)
     }
     setBgndColor(uiState.viewerState.backgroundColor);
   }, [uiState.viewerState.backgroundColor, uiState.isGuiMode]);
@@ -427,9 +427,9 @@ useEffect(() => {
                 return (
                   <>
                     {/* Top overlay */}
-                    <div style={{ ...overlayStyle, top: guiModeMarginTop, left: canvasLeft, width: '100%', height: offsetY }} />
+                    <div style={{ ...overlayStyle, top: guiModeMarginTop, left: canvasLeft, width: 'calc(100% - ' + canvasLeft + 'px)', height: offsetY }} />
                     {/* Bottom overlay */}
-                    <div style={{ ...overlayStyle, top: guiModeMarginTop + offsetY + recHeight, left: canvasLeft, width: '100%', height: canvasHeight - (offsetY + recHeight) }} />
+                    <div style={{ ...overlayStyle, top: guiModeMarginTop + offsetY + recHeight, left: canvasLeft, width: 'calc(100% - ' + canvasLeft + 'px)', height: canvasHeight - (offsetY + recHeight) }} />
                     {/* Left overlay */}
                     <div style={{ ...overlayStyle, top: guiModeMarginTop + offsetY, left: canvasLeft, width: offsetX, height: recHeight }} />
                     {/* Right overlay */}

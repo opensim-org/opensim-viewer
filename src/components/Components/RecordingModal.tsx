@@ -64,6 +64,38 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
     return selectedFormat === "gif" ? fpsValuesGif : fpsValues;
   };
 
+  // Initialize state from viewerState when modal opens
+  useEffect(() => {
+    if (open) {
+      // Set quality from base dimension
+      const baseDimension = viewerState.videoRecorderBaseDimension;
+      const matchingQuality = qualityLevels.find(
+        (q) => q.baseDimension === baseDimension
+      );
+      if (matchingQuality) {
+        setSelectedQuality(matchingQuality.label);
+      } else if (baseDimension) {
+        // If no match found, you might want to add a custom quality or handle it differently
+        console.warn(`No matching quality found for base dimension: ${baseDimension}`);
+      }
+
+      // Set format
+      if (viewerState.recordedVideoFormat) {
+        setSelectedFormat(viewerState.recordedVideoFormat);
+      }
+
+      // Set FPS
+      if (viewerState.recordedVideoFPS) {
+        setSelectedFPS(viewerState.recordedVideoFPS);
+      }
+
+      // Set aspect ratio
+      if (viewerState.recordedVideoAspectRatio) {
+        setSelectedAspectRatio(viewerState.recordedVideoAspectRatio);
+      }
+    }
+  }, [open, viewerState]);
+
   useEffect(() => {
     const validFpsOptions = getFpsOptions();
     if (!validFpsOptions.includes(selectedFPS)) {
