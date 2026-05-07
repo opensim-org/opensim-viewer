@@ -226,7 +226,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 
   useEffect(() => {
     const path = uiState.viewerState.currentModelPath;
-    if (path && path != "mt.json") {
+    if (path && path !== "mt.json") {
       localStorage.setItem("lastModelPath", path);
     }
   }, [uiState.viewerState.currentModelPath]);

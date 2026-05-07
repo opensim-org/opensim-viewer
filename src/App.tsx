@@ -38,7 +38,6 @@ function App({ signOut, user }: WithAuthenticatorProps) {
   const isPortrait = useDeviceOrientation();
   const isSmallScreen = useMediaQuery('(max-width:600px)');
   const elementRef = useRef(null);
-  const [ displayAppBar, setDisplayAppBar ] = useState('inherit');
   const curState = useModelContext();
   const viewerState = curState.viewerState;
   const toggleFullscreen = () => {
