@@ -147,8 +147,14 @@ export class ModelUIState {
 
     addModelFromPath(newJsonFile: string) {
         let oldPath = this.viewerState.currentModelPath
-        if (oldPath !== newJsonFile)
+        if (oldPath !== newJsonFile){
             this.viewerState.setCurrentModelPath(newJsonFile)
+            // wait for the model path to update and trigger useEffect in ViewerState to load the new model, then add to map in the callback there
+            this.sendText(JSON.stringify({
+                        type: "INFO",
+                        message: "Trying to add model from "+newJsonFile
+                    }))
+        }
     }
 
     addModelToMap(model_uuid:string, modelGroup: Object3D) {
@@ -158,6 +164,10 @@ export class ModelUIState {
         modelGroup.traverse((o) => {
             this.nodeDictionary[o.uuid] =  o;
         });
+        this.sendText(JSON.stringify({
+            type: "INFO",
+            message: "Adding model with uuid "+model_uuid+" to model dictionary with name "+modelGroup.name
+        }))
         //this.sceneTree!.addModel(modelGroup);
     }
     addObjectToMap(object:Object3D) {
@@ -315,8 +325,9 @@ export class ModelUIState {
     }
     moveObject( object: Object3D, parent: Object3D): void {
         if (parent === undefined) {
-            console.log('parent not found, using scene')
+            console.log('parent not found, not using scene, skipping')
             //parent = this.scene;
+            return;
         }
         parent.add(object)
     }
@@ -380,8 +391,19 @@ export class ModelUIState {
                 let parentUuid = parsedMessage.command.object.object.parent;
                 let cmd = parsedMessage.command;
                 let newUuid = cmd.objectUuid;
-                this.moveObject(this.objectByUuid(newUuid), this.objectByUuid(parentUuid));
-                this.scene?.updateMatrixWorld(true);
+                console.log("moveObject with uuid "+newUuid+" to parent "+parentUuid);
+                console.log("object to move ", this.objectByUuid(newUuid));
+                if (this.objectByUuid(parentUuid) === undefined) {
+                    console.log("parent object not found ", this.objectByUuid(parentUuid));
+                    this.sendText(JSON.stringify({
+                        type: "INFO",
+                        message: "Parent object with uuid "+parentUuid+" not found for addModelObject command with new object uuid "+newUuid
+                    }))
+                }
+                else {
+                    this.moveObject(this.objectByUuid(newUuid), this.objectByUuid(parentUuid));
+                    this.scene?.updateMatrixWorld(true);
+                }
                 break;
             case "Frame":
                 if (this.processingSocketMessage)
