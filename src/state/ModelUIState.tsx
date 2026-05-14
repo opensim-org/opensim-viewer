@@ -399,8 +399,23 @@ export class ModelUIState {
                         type: "INFO",
                         message: "Parent object with uuid "+parentUuid+" not found for addModelObject command with new object uuid "+newUuid
                     }))
+                    // wait for 1 second then retry
+                    setTimeout(() => {
+                        const found = (this.objectByUuid(parentUuid)!==undefined);
+                        console.log("retry parent object found ", found);
+                        this.sendText(JSON.stringify({
+                                type: "INFO",
+                            message: "Parent object with uuid "+parentUuid+" is found? "+found
+                        }))
+                        this.moveObject(this.objectByUuid(newUuid), this.objectByUuid(parentUuid));
+                        this.scene?.updateMatrixWorld(true);
+                    }, 1000);
                 }
                 else {
+                    this.sendText(JSON.stringify({
+                        type: "INFO",
+                        message: "Parent object with uuid "+parentUuid+" was found for addModelObject command"+newUuid
+                    }))
                     this.moveObject(this.objectByUuid(newUuid), this.objectByUuid(parentUuid));
                     this.scene?.updateMatrixWorld(true);
                 }
@@ -474,7 +489,42 @@ export class ModelUIState {
                     }
                 }
                 // Create AnimationClips for the clip in the message,
-                this.createAnimationClipFromMessage(parsedMessage);
+                const modelFound = (this.objectByUuid(parsedMessage.Root)!==undefined);
+                this.sendText(JSON.stringify({
+                        type: "INFO",
+                        message: "AddAnimationClip modelFound "+modelFound+" for clip "+parsedMessage.Clip.name+" with root uuid "+parsedMessage.Root
+                }))
+                if (modelFound)
+                    this.createAnimationClipFromMessage(parsedMessage);
+                else {
+                    // if root model not found, likely the animation message arrived before the model was loaded, retry after 1 second
+                    console.log(`Root model with uuid ${parsedMessage.Root} not found for animation clip ${parsedMessage.Clip.name}. Retrying after 1 second.`);
+                    setTimeout(() => {
+                        this.createAnimationClipFromMessage(parsedMessage);
+                        this.sendText(JSON.stringify({
+                            type: "INFO",
+                            message: "Retrying AddAnimationClip for clip "+parsedMessage.Clip.name+
+                            " with root uuid "+parsedMessage.Root+" num Animations now "+this.viewerState.animations.length
+                            
+                        })
+                    ); // send text to GUI to update on retry result
+                    this.viewerState.clearCurrentAnimationIndices();
+                    const animationID = parsedMessage.Clip.uuid;
+                    for (let i = 0; i < this.viewerState.animations.length; i++) {
+                        if (this.viewerState.animations[i].uuid === animationID) {
+                            this.viewerState.addCurrentAnimationIndex(i);
+                            //console.log("  set as current animation at index "+i+" uuid "+animationID);
+                            break;
+                        }
+                    }
+                    this.sendText(JSON.stringify({
+                            type: "INFO",
+                            message: "Current animation set to "+this.viewerState.animations[0]+
+                            " with root uuid "+this.viewerState.animationRoots[0].uuid
+                        })
+                    ); 
+                    }, 3000);
+                }
                 break;
             case "SetCurrentAnimations":
                 this.viewerState.animating = false; 
