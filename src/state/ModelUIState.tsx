@@ -147,8 +147,14 @@ export class ModelUIState {
 
     addModelFromPath(newJsonFile: string) {
         let oldPath = this.viewerState.currentModelPath
-        if (oldPath !== newJsonFile)
+        if (oldPath !== newJsonFile){
             this.viewerState.setCurrentModelPath(newJsonFile)
+            // wait for the model path to update and trigger useEffect in ViewerState to load the new model, then add to map in the callback there
+            this.sendText(JSON.stringify({
+                        type: "INFO",
+                        message: "Trying to add model from "+newJsonFile
+                    }))
+        }
     }
 
     addModelToMap(model_uuid:string, modelGroup: Object3D) {
@@ -158,6 +164,10 @@ export class ModelUIState {
         modelGroup.traverse((o) => {
             this.nodeDictionary[o.uuid] =  o;
         });
+        this.sendText(JSON.stringify({
+            type: "INFO",
+            message: "Adding model with uuid "+model_uuid+" to model dictionary with name "+modelGroup.name
+        }))
         //this.sceneTree!.addModel(modelGroup);
     }
     addObjectToMap(object:Object3D) {
@@ -315,8 +325,9 @@ export class ModelUIState {
     }
     moveObject( object: Object3D, parent: Object3D): void {
         if (parent === undefined) {
-            console.log('parent not found, using scene')
+            console.log('parent not found, not using scene, skipping')
             //parent = this.scene;
+            return;
         }
         parent.add(object)
     }
@@ -380,8 +391,34 @@ export class ModelUIState {
                 let parentUuid = parsedMessage.command.object.object.parent;
                 let cmd = parsedMessage.command;
                 let newUuid = cmd.objectUuid;
-                this.moveObject(this.objectByUuid(newUuid), this.objectByUuid(parentUuid));
-                this.scene?.updateMatrixWorld(true);
+                console.log("moveObject with uuid "+newUuid+" to parent "+parentUuid);
+                console.log("object to move ", this.objectByUuid(newUuid));
+                if (this.objectByUuid(parentUuid) === undefined) {
+                    console.log("parent object not found ", this.objectByUuid(parentUuid));
+                    this.sendText(JSON.stringify({
+                        type: "INFO",
+                        message: "Parent object with uuid "+parentUuid+" not found for addModelObject command with new object uuid "+newUuid
+                    }))
+                    // wait for 1 second then retry
+                    setTimeout(() => {
+                        const found = (this.objectByUuid(parentUuid)!==undefined);
+                        console.log("retry parent object found ", found);
+                        this.sendText(JSON.stringify({
+                                type: "INFO",
+                            message: "Parent object with uuid "+parentUuid+" is found? "+found
+                        }))
+                        this.moveObject(this.objectByUuid(newUuid), this.objectByUuid(parentUuid));
+                        this.scene?.updateMatrixWorld(true);
+                    }, 1000);
+                }
+                else {
+                    this.sendText(JSON.stringify({
+                        type: "INFO",
+                        message: "Parent object with uuid "+parentUuid+" was found for addModelObject command"+newUuid
+                    }))
+                    this.moveObject(this.objectByUuid(newUuid), this.objectByUuid(parentUuid));
+                    this.scene?.updateMatrixWorld(true);
+                }
                 break;
             case "Frame":
                 if (this.processingSocketMessage)
@@ -452,7 +489,42 @@ export class ModelUIState {
                     }
                 }
                 // Create AnimationClips for the clip in the message,
-                this.createAnimationClipFromMessage(parsedMessage);
+                const modelFound = (this.objectByUuid(parsedMessage.Root)!==undefined);
+                this.sendText(JSON.stringify({
+                        type: "INFO",
+                        message: "AddAnimationClip modelFound "+modelFound+" for clip "+parsedMessage.Clip.name+" with root uuid "+parsedMessage.Root
+                }))
+                if (modelFound)
+                    this.createAnimationClipFromMessage(parsedMessage);
+                else {
+                    // if root model not found, likely the animation message arrived before the model was loaded, retry after 1 second
+                    console.log(`Root model with uuid ${parsedMessage.Root} not found for animation clip ${parsedMessage.Clip.name}. Retrying after 1 second.`);
+                    setTimeout(() => {
+                        this.createAnimationClipFromMessage(parsedMessage);
+                        this.sendText(JSON.stringify({
+                            type: "INFO",
+                            message: "Retrying AddAnimationClip for clip "+parsedMessage.Clip.name+
+                            " with root uuid "+parsedMessage.Root+" num Animations now "+this.viewerState.animations.length
+                            
+                        })
+                    ); // send text to GUI to update on retry result
+                    this.viewerState.clearCurrentAnimationIndices();
+                    const animationID = parsedMessage.Clip.uuid;
+                    for (let i = 0; i < this.viewerState.animations.length; i++) {
+                        if (this.viewerState.animations[i].uuid === animationID) {
+                            this.viewerState.addCurrentAnimationIndex(i);
+                            //console.log("  set as current animation at index "+i+" uuid "+animationID);
+                            break;
+                        }
+                    }
+                    this.sendText(JSON.stringify({
+                            type: "INFO",
+                            message: "Current animation set to "+this.viewerState.animations[0]+
+                            " with root uuid "+this.viewerState.animationRoots[0].uuid
+                        })
+                    ); 
+                    }, 3000);
+                }
                 break;
             case "SetCurrentAnimations":
                 this.viewerState.animating = false; 
