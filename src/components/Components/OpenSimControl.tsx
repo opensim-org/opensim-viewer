@@ -10,8 +10,11 @@ import { getTimestamp } from "../../helpers/timeHelpers"
 
 import { Box3, Object3D, PerspectiveCamera, Sphere, Vector2, Vector3, Color, WebGLRenderer } from 'three';
 
+// Watermark
+import { loadWatermarkImage } from '../../helpers/watermarkUtils';
+
 // OpenSimControl.tsx
-import { forwardRef, useImperativeHandle, useRef } from 'react';
+import {forwardRef, useEffect, useImperativeHandle, useRef} from 'react';
 import { GroupProps } from '@react-three/fiber';
 
 export type OpenSimControlHandle = {
@@ -44,6 +47,11 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
         return curState.viewerState.addCamera(camera as PerspectiveCamera, controlsRef.current!.target, cameraName)
     }
   }));
+
+    useEffect(() => {
+      // Preload watermark for snapshots
+      loadWatermarkImage('/assets/opensimLogo23.png').catch(console.error);
+    }, []);
 
    function implementDolly(amount: number) {
         if (controlsRef.current) {
@@ -106,7 +114,7 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
             controlsRef.current.update()
         }
    }
-   useFrame((_, delta) => {
+   useFrame(async (_, delta) => {
         // If camera moves and was a fixed camera, then make it none/default
         if (!lastPosition.current.equals(camera.position)) {
             let diff = lastPosition.current.clone();
@@ -174,7 +182,6 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
             // Get base dimension from quality level
             const selectedQuality = qualityLevels.find(q => q.label === curState.snapshotProps.quality_level);
             const baseWidth = selectedQuality ? selectedQuality.baseDimension : 1920;
-            alert(baseWidth)
 
             // Store original renderer size
             const originalSize = new Vector2();
@@ -203,13 +210,8 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
                 finalHeight = renderHeight;
             }
             else if (curState.snapshotProps.size_choice === "aspect") {
-
-                const targetAspectRatio =
-                    curState.snapshotProps.aspect_ratio || "16:9";
-
-                const [aspectW, aspectH] =
-                    targetAspectRatio.split(':').map(Number);
-
+                const targetAspectRatio = curState.snapshotProps.aspect_ratio || "16:9";
+                const [aspectW, aspectH] = targetAspectRatio.split(':').map(Number);
                 const targetAspect = aspectW / aspectH;
 
                 // Render dimensions based on current viewport aspect
@@ -227,16 +229,13 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
 
                     finalHeight = renderHeight;
                     finalWidth = Math.floor(renderHeight * targetAspect);
-
                     cropOffsetX = Math.floor((renderWidth - finalWidth) / 2);
                     cropOffsetY = 0;
-
                 } else {
                     // Taller than target -> crop TOP/BOTTOM
 
                     finalWidth = renderWidth;
                     finalHeight = Math.floor(renderWidth / targetAspect);
-
                     cropOffsetX = 0;
                     cropOffsetY = Math.floor((renderHeight - finalHeight) / 2);
                 }
@@ -244,7 +243,6 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
                 // Ensure even dimensions
                 finalWidth = finalWidth % 2 === 0 ? finalWidth : finalWidth - 1;
                 finalHeight = finalHeight % 2 === 0 ? finalHeight : finalHeight - 1;
-
                 cropOffsetX = cropOffsetX % 2 === 0 ? cropOffsetX : cropOffsetX - 1;
                 cropOffsetY = cropOffsetY % 2 === 0 ? cropOffsetY : cropOffsetY - 1;
             }
@@ -329,6 +327,44 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
                             0, 0, finalWidth, finalHeight
                         );
                     }
+                }
+
+                try {
+                    // Wait for watermark to load if not already loaded
+                    const watermarkImg = await loadWatermarkImage('/assets/opensimLogo23.png');
+
+                    // Draw watermark on finalCanvas
+                    const watermarkCtx = finalCanvas.getContext('2d');
+                    if (watermarkCtx && watermarkImg) {
+                        // Calculate watermark size
+                        const relativeSize = Math.min(
+                            finalCanvas.width * 0.1,  // 10% of canvas width
+                            150,  // Maximum size in pixels
+                            Math.max(50, finalCanvas.height * 0.08) // At least 8% of height or 50px
+                        );
+
+                        // Maintain aspect ratio
+                        const aspectRatio = watermarkImg.width / watermarkImg.height;
+                        const watermarkWidth = relativeSize;
+                        const watermarkHeight = relativeSize / aspectRatio;
+
+                        // Position at bottom left with padding
+                        const padding = Math.max(10, Math.min(finalCanvas.width * 0.05, 20));
+                        const x = padding;
+                        const y = finalCanvas.height - watermarkHeight - padding;
+
+                        // Draw with transparency
+                        watermarkCtx.save();
+                        watermarkCtx.globalAlpha = 0.85;
+                        watermarkCtx.drawImage(watermarkImg, x, y, watermarkWidth, watermarkHeight);
+                        watermarkCtx.restore();
+
+                        console.log('Watermark added successfully to snapshot'); // Debug log
+                    } else {
+                        console.warn('Watermark context or image not available');
+                    }
+                } catch (error) {
+                    console.error('Failed to add watermark to snapshot:', error);
                 }
 
                 // Convert to requested format
