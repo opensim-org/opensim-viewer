@@ -197,7 +197,7 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
             const currentAspect = currentWidth / currentHeight;
 
             let renderWidth = baseWidth;
-            let renderHeight = baseWidth; // Actual value is asigned in the following if-else.
+            let renderHeight = baseWidth; // Actual value is assigned in the following if-else.
             let cropOffsetX = 0;
             let cropOffsetY = 0;
             let finalWidth = renderWidth;

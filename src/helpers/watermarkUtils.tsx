@@ -1,6 +1,18 @@
 // utils/watermarkUtils.tsx
 import { WebGLRenderer, Scene, Camera } from 'three';
 
+// Variables
+let canvasWidthPercentage = 0.1 // 10% of canvas width
+let watermarkMaxSize = 150 // Maximum size in pixels
+let watermarkMinSize = 50 // At least 8% of height or 50px
+let watermarkSizeRelativePercentage = 0.08 // At least 8% of height or 50px
+
+let watermarkMinPadding = 10 // Minimum size in pixels
+let watermarkMaxPadding = 20 // At least 5% of height or 20px
+let watermarkPaddingRelativePercentage = 0.05 // At least 5% of height or 20px
+
+let watermarkTransparency = 0.85
+
 // Cache for loaded watermark image
 let watermarkImageCache: HTMLImageElement | null = null;
 let watermarkLoadPromise: Promise<HTMLImageElement> | null = null;
@@ -16,9 +28,9 @@ export const drawWatermark = (
 
   // Calculate watermark size - consistent relative to video dimensions
   const relativeSize = Math.min(
-    canvasWidth * 0.1,  // 10% of canvas width
-    150,  // Maximum size in pixels
-    Math.max(50, canvasHeight * 0.08) // At least 8% of height or 50px
+    canvasWidth * canvasWidthPercentage,
+    watermarkMaxSize,
+    Math.max(watermarkMinSize, canvasHeight * watermarkSizeRelativePercentage)
   );
 
   // Maintain aspect ratio
@@ -27,13 +39,13 @@ export const drawWatermark = (
   const watermarkHeight = relativeSize / aspectRatio;
 
   // Position at bottom left with padding
-  const padding = Math.max(10, Math.min(canvasWidth * 0.05, 20)); // 2% padding, min 10px, max 20px
+  const padding = Math.max(watermarkMinPadding, Math.min(canvasWidth * watermarkPaddingRelativePercentage, watermarkMaxPadding)); // 2% padding, min 10px, max 20px
   const x = padding;
   const y = canvasHeight - watermarkHeight - padding;
 
   // Draw with slight transparency
   ctx.save();
-  ctx.globalAlpha = 0.85;
+  ctx.globalAlpha = watermarkTransparency;
   ctx.drawImage(watermarkImage, x, y, watermarkWidth, watermarkHeight);
   ctx.restore();
 };
