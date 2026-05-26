@@ -116,7 +116,7 @@ export const addWatermarkToCanvas = (
   return resultCanvas;
 };
 
-// Render scene with watermark (for snapshot use)
+// Render scene with watermark (for snapshot use). Will crop canvas to adapt to aspect ratio.
 export const renderSceneWithWatermark = async (
   scene: Scene,
   camera: Camera,
@@ -183,7 +183,7 @@ export const renderSceneWithWatermark = async (
 
   fullCtx.putImageData(imageData, 0, 0);
 
-  // Crop if needed
+  // Crop if needed based on aspect ratio
   let finalCanvas = fullCanvas;
   if (cropOptions) {
     finalCanvas = document.createElement('canvas');
@@ -201,7 +201,7 @@ export const renderSceneWithWatermark = async (
     }
   }
 
-  // Add watermark if enabled and not transparent background (or always if desired)
+  // After cropping, add watermark if enabled
   if (watermarkEnabled && watermarkImageCache) {
     try {
       finalCanvas = addWatermarkToCanvas(finalCanvas, watermarkImageCache);
