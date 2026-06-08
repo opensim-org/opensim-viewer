@@ -407,7 +407,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     // By the time we're here the model is guaranteed to be available
     return <>
-      <group name='OpenSim Environment' ref={envRef}>
+      <group name='OpenSim Scene' ref={envRef}>
         <directionalLight name="Scene Dir Light" ref={lightRef} position={[0.5, 1.5, -0.5]}
           intensity={curState.viewerState.lightIntensity} color={curState.viewerState.lightColor}
           castShadow={true}
@@ -440,12 +440,12 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             <meshStandardMaterial color="red" />
           </mesh>
         </group>
+        <group name='Models' ref={modelsRef}  
+              onClick={(e)=>{ handleClick(e);}}
+              onPointerMissed={(e)=>{clearSelection();}} 
+        />
+        <boxHelper name='SelectionBox' ref={bboxRef} visible={false}/>
       </group>
-      <group name='Models' ref={modelsRef}  
-            onClick={(e)=>{ handleClick(e);}}
-            onPointerMissed={(e)=>{clearSelection();}} 
-      />
-      <boxHelper name='SelectionBox' ref={bboxRef} visible={false}/>
       </>
 }
 
