@@ -83,7 +83,8 @@ export class ModelUIState {
     guiAnimationLoop: boolean = false
     guiAnimationReverse: boolean = false
     showBottomBar: boolean = false;
-    showAspectRatioFunctionality: boolean = false;
+    showAspectRatioFunctionality: boolean = true;
+    isInRecordMode: boolean = false;
     visibleHelpers: boolean = true;
     constructor(
         currentModelPathState: string
@@ -133,6 +134,8 @@ export class ModelUIState {
             visibleHelpers: observable,
             debug: observable,
             setDebug: action,
+            isInRecordMode: observable,
+            setIsInRecordMode: action
         })
         console.log("Created ModelUIState instance ", currentModelPathState);
         setTimeout(() => {
@@ -202,6 +205,9 @@ export class ModelUIState {
     }
     setIsGuiMode(newGuiMode: boolean = false) {
         this.isGuiMode = newGuiMode;
+    }
+    setIsInRecordMode(newValue: boolean = false) {
+        this.isInRecordMode = newValue;
     }
     getModernBrowserMode() {
         return this.isModernBrowser;
