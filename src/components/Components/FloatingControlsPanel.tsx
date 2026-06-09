@@ -8,12 +8,9 @@ import InfoIcon from '@mui/icons-material/Info';
 import ZoomOutTwoToneIcon from '@mui/icons-material/ZoomOutTwoTone';
 import ZoomInTwoToneIcon from '@mui/icons-material/ZoomInTwoTone';
 import FitScreenTwoToneIcon from '@mui/icons-material/FitScreenTwoTone';
-import AddAPhotoTwoToneIcon from '@mui/icons-material/AddAPhotoTwoTone';
 import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
 import { useModelContext } from '../../state/ModelUIStateContext';
 import SnapShotModal from './SnapShotModal';
-import RecordingModal from './RecordingModal';
-import { ToggleButton } from '@mui/material';
 import { ModelInfo } from '../../state/ModelUIState';
 import { observer } from "mobx-react";
 

@@ -8,7 +8,7 @@ import { useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { getTimestamp } from "../../helpers/timeHelpers";
-import { PerspectiveCamera, WebGLRenderer } from 'three';
+import { WebGLRenderer } from 'three';
 import JSZip from 'jszip';
 
 // Extend Navigator interface to include deviceMemory
@@ -51,11 +51,6 @@ function VideoRecorder(props: VideoRecorderViewProps) {
   const isRecordingRef = useRef(false);
   const animationDurationRef = useRef(0);
   const ffmpegLoadedRef = useRef(false);
-  const originalUpdateProjectionMatrixRef = useRef<(() => void) | null>(null);
-
-  // Store original camera state
-  const originalCameraAspectRef = useRef<number | null>(null);
-  const originalCameraMatrixRef = useRef<any>(null);
 
   // Offscreen renderer
   const offscreenRenderer = useRef<WebGLRenderer | null>(null);
@@ -544,9 +539,9 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
       let fps = viewerState.recordedVideoFPS || 30;
 
-      if (fps == 30)
+      if (fps === 30)
         fps = 25
-      if (fps == 60)
+      if (fps === 60)
         fps = 50
 
       await ffmpeg.exec(['-framerate', `${fps}`, '-i', 'gif%03d.png', '-vf', 'palettegen', 'palette.png']);

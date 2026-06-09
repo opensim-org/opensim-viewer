@@ -127,7 +127,7 @@ const FileDropArea: React.FC<FileDropAreaProps> =observer(({ paddingY = 16}) => 
                       const gltf_url = "https://s3.us-west-2.amazonaws.com/opensim-viewer-public-download/" + user_uuid + "/"+key
                       /* appState.setCurrentModelPath(gltf_url); */
                       // navigate("/viewer/"+encodeURIComponent(gltf_url))
-                      console.log('Lambda function invoked successfully:', data);
+                      console.log('Lambda function invoked successfully:', data, gltf_url);
                       closeSnackbar()
                     }
                 });

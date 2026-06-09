@@ -6,7 +6,7 @@ import '@aws-amplify/ui-react/styles.css';
 import { CssBaseline, ThemeProvider, useMediaQuery } from '@mui/material';
 import { useMediaQuery as useResponsiveQuery } from 'react-responsive';
 import screenfull from 'screenfull';
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import './App.css'
 import appTheme from './Theme'
@@ -38,7 +38,6 @@ function App({ signOut, user }: WithAuthenticatorProps) {
   const isPortrait = useDeviceOrientation();
   const isSmallScreen = useMediaQuery('(max-width:600px)');
   const elementRef = useRef(null);
-  const [ displayAppBar, setDisplayAppBar ] = useState('inherit');
   const curState = useModelContext();
   const viewerState = curState.viewerState;
   const toggleFullscreen = () => {
@@ -76,7 +75,7 @@ function App({ signOut, user }: WithAuthenticatorProps) {
         // Force landscape mode
         alert(t('app.switch_landscape'));
       }
-    }, [isSmallScreen, isPortrait, t]);
+    }, [isSmallScreen, isPortrait, t, curState.isGuiMode]);
 
     // On file system we'll have a folder per model containing cached/versioned gltf, possibly .osim file, data files, display 
     // preferences

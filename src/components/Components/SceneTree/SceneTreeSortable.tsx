@@ -180,7 +180,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
 
     useEffect(() => {
       onWidthChange?.(isOpen ? PANEL_WIDTH : 0);
-    }, [isOpen]);
+    }, [isOpen, onWidthChange]);
 
     useEffect(() => {
       if (scene) {

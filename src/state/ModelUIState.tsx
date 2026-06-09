@@ -619,7 +619,7 @@ export class ModelUIState {
     // Process Path operations from GUI
     processPathEdit(pathEditJson: any) { 
         const pathOp = pathEditJson.SubOperation;
-        const pathObject = this.objectByUuid(pathEditJson.uuid);
+        //const pathObject = this.objectByUuid(pathEditJson.uuid);
         switch(pathOp) {
             case "refresh":
                 const updPoints = pathEditJson.points;

@@ -29,7 +29,6 @@ import OpenSimHtmlLogo from '../Components/OpenSimLogo';
 import RecordModeOverlay from '../Components/RecordModeOverlay'
 
 import { Stats } from '@react-three/drei'
-import { Perf } from 'r3f-perf'
 
 import { createTempHelper, removeTempHelper, updateTempHelperVisibility } from '../Components/SceneTree/SceneTreeSortable'
 
@@ -227,7 +226,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
 
   useEffect(() => {
     const path = uiState.viewerState.currentModelPath;
-    if (path && path != "mt.json") {
+    if (path && path !== "mt.json") {
       localStorage.setItem("lastModelPath", path);
     }
   }, [uiState.viewerState.currentModelPath]);
@@ -349,7 +348,7 @@ useEffect(() => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [curState]);
 
   if (urlParam!== undefined) {
     var decodedUrl = decodeURIComponent(urlParam);

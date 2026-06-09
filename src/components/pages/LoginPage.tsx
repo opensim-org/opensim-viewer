@@ -12,7 +12,6 @@ interface LoginPageProps {
 
 const LoginPage: React.FC<LoginPageProps> = ({ isLoggedIn }) => {
     const { t } = useTranslation();
-    const viewerState = useModelContext().viewerState;
     
     const navigate = useNavigate();
     const curState = useModelContext();
