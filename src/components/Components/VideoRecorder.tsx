@@ -8,15 +8,8 @@ import { useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { getTimestamp } from "../../helpers/timeHelpers";
-import { WebGLRenderer } from 'three';
+import { PerspectiveCamera, WebGLRenderer } from 'three';
 import JSZip from 'jszip';
-
-import {
-  drawWatermark,
-  loadWatermarkImage,
-  isWatermarkReady,
-  getWatermarkImage
-} from '../../helpers/watermarkUtils';
 
 // Extend Navigator interface to include deviceMemory
 interface NavigatorWithMemory extends Navigator {
@@ -58,9 +51,18 @@ function VideoRecorder(props: VideoRecorderViewProps) {
   const isRecordingRef = useRef(false);
   const animationDurationRef = useRef(0);
   const ffmpegLoadedRef = useRef(false);
+  const originalUpdateProjectionMatrixRef = useRef<(() => void) | null>(null);
+
+  // Store original camera state
+  const originalCameraAspectRef = useRef<number | null>(null);
+  const originalCameraMatrixRef = useRef<any>(null);
 
   // Offscreen renderer
   const offscreenRenderer = useRef<WebGLRenderer | null>(null);
+
+  // Watermark references
+  const watermarkImageRef = useRef<HTMLImageElement | null>(null);
+  const watermarkLoadedRef = useRef(false);
 
   // Check if local file exists
   const checkLocalFileExists = async (url: string): Promise<boolean> => {
@@ -73,10 +75,22 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     }
   };
 
+  // Helper function to load image
+  const loadImage = (url: string): Promise<HTMLImageElement> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error(`Failed to load image: ${url}`));
+      img.src = url;
+    });
+  };
+
   // Load watermark image
   const loadWatermark = async () => {
     try {
-      await loadWatermarkImage('/assets/opensimLogo23.png');
+      const img = await loadImage('/assets/opensimLogo23.png');
+      watermarkImageRef.current = img;
+      watermarkLoadedRef.current = true;
       console.log('Watermark loaded successfully');
     } catch (error) {
       console.error('Failed to load watermark:', error);
@@ -87,6 +101,41 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         });
       }
     }
+  };
+
+  // Draw watermark on canvas
+  const drawWatermark = (
+    ctx: CanvasRenderingContext2D,
+    canvasWidth: number,
+    canvasHeight: number
+  ): void => {
+    if (!watermarkImageRef.current) return;
+
+    const watermarkImg = watermarkImageRef.current;
+
+    // Calculate watermark size - consistent relative to video dimensions
+    // Adjust these values to get the desired watermark size
+    const relativeSize = Math.min(
+      canvasWidth * 0.1,  // 10% of video width
+      150,  // Maximum size in pixels
+      Math.max(50, canvasHeight * 0.08) // At least 8% of height or 50px
+    );
+
+    // Maintain aspect ratio
+    const aspectRatio = watermarkImg.width / watermarkImg.height;
+    const watermarkWidth = relativeSize;
+    const watermarkHeight = relativeSize / aspectRatio;
+
+    // Position at bottom left with padding
+    const padding = Math.max(10, Math.min(canvasWidth * 0.05, 20)); // 2% padding, min 10px, max 20px
+    const x = padding;
+    const y = canvasHeight - watermarkHeight - padding;
+
+    // Draw with slight transparency
+    ctx.save();
+    ctx.globalAlpha = 0.85;
+    ctx.drawImage(watermarkImg, x, y, watermarkWidth, watermarkHeight);
+    ctx.restore();
   };
 
   // Load FFmpeg once and track loading state
@@ -299,6 +348,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       offscreenRenderer.current.render(scene, camera);
 
       const ctx = offscreenRenderer.current.getContext();
+
       const buffer = new Uint8Array(width * height * 4);
       ctx.readPixels(0, 0, width, height, ctx.RGBA, ctx.UNSIGNED_BYTE, buffer);
 
@@ -324,11 +374,13 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       baseCtx.putImageData(img, 0, 0);
 
       // Crop to target aspect ratio
-      const { cropWidth, cropHeight, offsetX, offsetY } = computeCrop(width, height);
+      const { cropWidth, cropHeight, offsetX, offsetY } =
+        computeCrop(width, height);
 
       const finalCanvas = document.createElement('canvas');
       finalCanvas.width = cropWidth;
       finalCanvas.height = cropHeight;
+
       const finalCtx = finalCanvas.getContext('2d')!;
 
       // Draw the cropped portion first
@@ -338,16 +390,13 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         0, 0, cropWidth, cropHeight
       );
 
-      // Draw watermark on the final cropped canvas using imported function
-      if (isWatermarkReady()) {
-        try {
-          drawWatermark(finalCtx, cropWidth, cropHeight, getWatermarkImage());
-        } catch (error) {
-          console.error('Failed to draw watermark:', error);
-        }
+      // Draw watermark on the final cropped canvas
+      if (watermarkLoadedRef.current) {
+        drawWatermark(finalCtx, cropWidth, cropHeight);
       }
 
       return finalCanvas.toDataURL('image/png');
+
     } catch (error) {
       console.error('Frame capture failed:', error);
       return null;
@@ -754,7 +803,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
           }
         }
 
-        await stopRecording();
+        stopRecording();
       };
 
       loop();
