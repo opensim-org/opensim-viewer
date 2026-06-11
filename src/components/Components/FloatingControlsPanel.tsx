@@ -32,8 +32,13 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
   const [isWindowOpen, setIsWindowOpen] = useState(false);
 
 
-  const handleButtonClick = () => {
+  const handleInfoButtonClick = () => {
     setIsWindowOpen(!isWindowOpen);
+  };
+
+  const handleRecordButtonClick = () => {
+    curState.setIsInRecordMode(true)
+    curState.viewerState.setShowAspectRatioGuides?.(true);
   };
 
   return (
@@ -74,14 +79,20 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
         </Grid>
 
         <Grid item xs={6}>
-          <RecordingModal videoRecorderRef={props.videoRecorderRef} />
+          <Tooltip title={t("bottomBar.record")} placement="right">
+              <IconButton
+                color="primary"
+                onClick={handleRecordButtonClick}>
+                  <VideoCameraFrontTwoToneIcon />
+              </IconButton>
+          </Tooltip>
         </Grid>
 
         <Grid item xs={6}>
           <Tooltip title={t('floatingButton.model_info')} placement="right">
               <IconButton
                 color="primary"
-                onClick={handleButtonClick}>
+                onClick={handleInfoButtonClick}>
                   <InfoIcon />
               </IconButton>
           </Tooltip>
