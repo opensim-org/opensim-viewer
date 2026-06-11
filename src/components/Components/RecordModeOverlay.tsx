@@ -1,14 +1,24 @@
+<<<<<<< dev
+=======
+import React, { useEffect, useRef } from 'react';
+>>>>>>> snapshot-fixes
 import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import InfoIcon from "@mui/icons-material/Info";
+<<<<<<< dev
 import SettingsIcon from "@mui/icons-material/Settings";
 import { observer } from "mobx-react";
 import { useModelContext } from "../../state/ModelUIStateContext";
 import RecordingModal from "./RecordingModal";
 import React from "react";
+=======
+import { observer } from "mobx-react";
+import { MyModelContext } from "../../state/ModelUIStateContext";
+import { useModelContext } from "../../state/ModelUIStateContext";
+>>>>>>> snapshot-fixes
 
 interface RecordModeOverlayProps {
   videoRecorderRef: React.RefObject<any>;
@@ -16,6 +26,7 @@ interface RecordModeOverlayProps {
 }
 
 const OverlayContainer = styled(Box)({
+<<<<<<< dev
   position: "absolute",
   bottom: "30px",
   left: "50%",
@@ -53,11 +64,44 @@ const StyledButton = styled(Button)({
     color: "white",
     "&:hover": {
       backgroundColor: "#333333",
+=======
+  position: 'absolute',
+  bottom: '30px',
+  left: '50%',
+  transform: 'translateX(-50%)',
+  display: 'flex',
+  gap: '16px',
+  alignItems: 'center',
+  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  padding: '12px 24px',
+  borderRadius: '40px',
+  backdropFilter: 'blur(8px)',
+  zIndex: 9999, // Increased z-index to ensure it appears above everything
+  boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+});
+
+const StyledButton = styled(Button)({
+  minWidth: '100px',
+  fontWeight: 'bold',
+  '&.record-button': {
+    backgroundColor: '#ff4444',
+    color: 'white',
+    '&:hover': {
+      backgroundColor: '#cc0000',
+    },
+  },
+  '&.cancel-button': {
+    backgroundColor: '#666666',
+    color: 'white',
+    '&:hover': {
+      backgroundColor: '#444444',
+>>>>>>> snapshot-fixes
     },
   },
 });
 
 const InfoButton = styled(IconButton)({
+<<<<<<< dev
   color: "white",
   backgroundColor: "rgba(255,255,255,0.2)",
   "&:hover": {
@@ -82,6 +126,45 @@ const RecordModeOverlay: React.FC<RecordModeOverlayProps> = ({
   const handleModalClose = () => {
     setIsModalOpen(false);
   };
+=======
+  color: 'white',
+  backgroundColor: 'rgba(255,255,255,0.2)',
+  '&:hover': {
+    backgroundColor: 'rgba(255,255,255,0.3)',
+  },
+});
+
+const RecordModeOverlay: React.FC<RecordModeOverlayProps> = ({ videoRecorderRef, onRecordComplete }) => {
+  const uiState = useModelContext();
+  const [originalShowGuides, setOriginalShowGuides] = React.useState<boolean | undefined>(undefined);
+  const [infoTooltipOpen, setInfoTooltipOpen] = React.useState(false);
+  const [isRecording, setIsRecording] = React.useState(false);
+
+  // Save original state when entering record mode and restore when exiting
+  useEffect(() => {
+
+    if (uiState.isInRecordMode) {
+      // Store the original value before changing it
+      const currentGuideState = uiState.viewerState.showAspectRatioGuides;
+      console.log("Saving original guides state:", currentGuideState);
+      setOriginalShowGuides(currentGuideState);
+
+      // Set showAspectRatioGuides to true
+      if (uiState.viewerState.setShowAspectRatioGuides) {
+        console.log("Setting showAspectRatioGuides to true");
+        uiState.viewerState.setShowAspectRatioGuides(true);
+      }
+    } else if (originalShowGuides !== undefined) {
+      // Restore when exiting record mode
+      console.log("Restoring original guides state:", originalShowGuides);
+      if (uiState.viewerState.setShowAspectRatioGuides) {
+        uiState.viewerState.setShowAspectRatioGuides(originalShowGuides);
+      }
+      // Reset originalShowGuides to avoid restoring again
+      setOriginalShowGuides(undefined);
+    }
+  }, [uiState.isInRecordMode, uiState.viewerState, originalShowGuides]);
+>>>>>>> snapshot-fixes
 
   const handleRecordClick = async () => {
     if (isRecording) {
@@ -105,7 +188,11 @@ const RecordModeOverlay: React.FC<RecordModeOverlayProps> = ({
       }
 
       // Wait a moment for recording to start properly
+<<<<<<< dev
       await new Promise((resolve) => setTimeout(resolve, 100));
+=======
+      await new Promise(resolve => setTimeout(resolve, 100));
+>>>>>>> snapshot-fixes
 
       // Exit record mode - this will trigger the useEffect cleanup to restore guides
       console.log("Exiting record mode");
@@ -125,8 +212,13 @@ const RecordModeOverlay: React.FC<RecordModeOverlayProps> = ({
 
   const handleCancelClick = () => {
     console.log("Cancelling record mode");
+<<<<<<< dev
     uiState.setIsInRecordMode(false);
     uiState.viewerState.setShowAspectRatioGuides?.(false);
+=======
+    // Simply exit record mode - useEffect will handle restoration
+    uiState.setIsInRecordMode(false);
+>>>>>>> snapshot-fixes
   };
 
   const handleInfoClick = () => {
@@ -136,6 +228,7 @@ const RecordModeOverlay: React.FC<RecordModeOverlayProps> = ({
   console.log("Rendering RecordModeOverlay - isRecording:", isRecording);
 
   return (
+<<<<<<< dev
     <>
       <OverlayContainer>
         <InfoButton size="small" onClick={handleInfoClick}>
@@ -197,6 +290,54 @@ const RecordModeOverlay: React.FC<RecordModeOverlayProps> = ({
         onClose={handleModalClose}
       />
     </>
+=======
+    <OverlayContainer>
+      <InfoButton
+        size="small"
+        onClick={handleInfoClick}
+      >
+        <Tooltip
+          title="Please, center your model in the highlighted recording area and preview the video by playing your animation. Then click Record to export your video."
+          open={infoTooltipOpen}
+          onOpen={() => setInfoTooltipOpen(true)}
+          onClose={() => setInfoTooltipOpen(false)}
+          placement="top"
+          arrow
+          PopperProps={{
+            sx: {
+              '& .MuiTooltip-tooltip': {
+                backgroundColor: 'rgba(0,0,0,0.9)',
+                fontSize: '0.875rem',
+                maxWidth: '300px',
+                textAlign: 'center',
+                padding: '12px',
+              },
+            },
+          }}
+        >
+          <InfoIcon />
+        </Tooltip>
+      </InfoButton>
+
+      <StyledButton
+        className="record-button"
+        variant="contained"
+        onClick={handleRecordClick}
+        disabled={isRecording}
+      >
+        {isRecording ? "Recording..." : "Record"}
+      </StyledButton>
+
+      <StyledButton
+        className="cancel-button"
+        variant="contained"
+        onClick={handleCancelClick}
+        disabled={isRecording}
+      >
+        Cancel
+      </StyledButton>
+    </OverlayContainer>
+>>>>>>> snapshot-fixes
   );
 };
 

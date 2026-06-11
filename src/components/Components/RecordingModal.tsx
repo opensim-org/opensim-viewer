@@ -104,6 +104,14 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
     }
   }, [selectedFormat]);
 
+<<<<<<< dev
+=======
+  const handleRecordingMode = () => {
+    setOpen(false);
+    curState.setIsInRecordMode(true)
+  };
+
+>>>>>>> snapshot-fixes
   const handleFormatChange = (value: string) => {
     setSelectedFormat(value);
     viewerState.setRecordedVideoFormat(value);
@@ -181,6 +189,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
               ))}
             </Select>
           </FormControl>
+<<<<<<< dev
         )}
 
         {/* FPS */}
@@ -204,6 +213,17 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
         <Button onClick={onClose}>Confirm</Button>
       </DialogActions>
     </Dialog>
+=======
+        </DialogContent>
+
+
+        <DialogActions>
+          <Button onClick={handleRecordingMode}>Record</Button>
+          <Button onClick={handleClose}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
+    </>
+>>>>>>> snapshot-fixes
   );
 };
 
