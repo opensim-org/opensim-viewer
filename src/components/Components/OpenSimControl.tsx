@@ -8,25 +8,16 @@ import { useFrame, useThree } from '@react-three/fiber'
 
 import { getTimestamp } from "../../helpers/timeHelpers"
 
-import { Box3, Object3D, PerspectiveCamera, Sphere, Vector2, Vector3, Color, WebGLRenderer } from 'three';
-
-// Watermark
-import { loadWatermarkImage } from '../../helpers/watermarkUtils';
+import THREE, { Color, Box3, Object3D, PerspectiveCamera, Sphere, Vector2, Vector3 } from 'three';
 
 // OpenSimControl.tsx
-import {forwardRef, useEffect, useImperativeHandle, useRef} from 'react';
+import { forwardRef, useImperativeHandle, useRef } from 'react';
 import { GroupProps } from '@react-three/fiber';
 
 export type OpenSimControlHandle = {
   addCamera: (cameraName: any, parent: Object3D | null) => PerspectiveCamera;
 };
 
-const qualityLevels = [
-  { label: "1080p HD", baseDimension: 1920 },
-  { label: "1440p HD", baseDimension: 2560 },
-  { label: "2160p 4K", baseDimension: 3840 },
-  { label: "4320p 8K", baseDimension: 7680 },
-];
 
 const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref) => {
     const {
@@ -47,11 +38,6 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
         return curState.viewerState.addCamera(camera as PerspectiveCamera, controlsRef.current!.target, cameraName)
     }
   }));
-
-    useEffect(() => {
-      // Preload watermark for snapshots
-      loadWatermarkImage('/assets/opensimLogo23.png').catch(console.error);
-    }, []);
 
    function implementDolly(amount: number) {
         if (controlsRef.current) {
@@ -114,7 +100,7 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
             controlsRef.current.update()
         }
    }
-   useFrame(async (_, delta) => {
+   useFrame((_, delta) => {
         // If camera moves and was a fixed camera, then make it none/default
         if (!lastPosition.current.equals(camera.position)) {
             let diff = lastPosition.current.clone();
@@ -177,229 +163,107 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
         }
         else if (curState.takeSnapshot){
             const timestamp = getTimestamp();
-            const snapshot_filename = viewerState.snapshotName + "_" + timestamp + "." + curState.snapshotProps.image_format;
+            const snapshot_filename = viewerState.snapshotName + "_" + timestamp + "." + viewerState.snapshotFormat;
+            if (curState.snapshotProps.size_choice==="screen"){
+                const link = document.createElement('a')
+                if (curState.snapshotProps.transparent_background) {
+                  // Save clear state
+                  const prevColor = new Color();
+                  gl.getClearColor(prevColor);
+                  const prevAlpha = gl.getClearAlpha();
 
-            // Get base dimension from quality level
-            const selectedQuality = qualityLevels.find(q => q.label === curState.snapshotProps.quality_level);
-            const baseWidth = selectedQuality ? selectedQuality.baseDimension : 1920;
+                  // Find the skysphere object
+                  const skySphere = scene.getObjectByName("SkySphere");
+                  let prevSkyVisibility = true;
+                  if (skySphere) {
+                      prevSkyVisibility = skySphere.visible;
+                      skySphere.visible = false; // hide sky
+                  }
 
-            // Store original renderer size
-            const originalSize = new Vector2();
-            gl.getSize(originalSize);
-            const originalClearColor = new Color();
-            const originalClearAlpha = gl.getClearAlpha();
-            gl.getClearColor(originalClearColor);
+                  // Set transparent clear
+                  gl.setClearColor(prevColor, 0);
+                  gl.clear(true, true, true);
 
-            // Get current canvas dimensions
-            const canvas = gl.domElement;
-            const currentWidth = canvas.clientWidth;
-            const currentHeight = canvas.clientHeight;
-            const currentAspect = currentWidth / currentHeight;
+                  // Render ONE frame with transparency
+                  gl.render(scene, camera);
 
-            let renderWidth = baseWidth;
-            let renderHeight = baseWidth; // Actual value is assigned in the following if-else.
-            let cropOffsetX = 0;
-            let cropOffsetY = 0;
-            let finalWidth = renderWidth;
-            let finalHeight = renderHeight;
+                  // Capture snapshot
+                  const link = document.createElement("a");
+                   link.setAttribute(
+                      "download",
+                      snapshot_filename
+                  );
+                  link.setAttribute(
+                      "href",
+                      gl.domElement
+                          .toDataURL("image/png")
+                          .replace("image/png", "image/octet-stream")
+                  );
+                  link.click();
+                  curState.takeSnapshot = false;
 
-            if (curState.snapshotProps.size_choice === "screen") {
-                // Use current canvas aspect ratio
-                renderHeight = Math.round(renderWidth / currentAspect);
-                finalWidth = renderWidth;
-                finalHeight = renderHeight;
-            }
-            else if (curState.snapshotProps.size_choice === "aspect") {
-                const targetAspectRatio = curState.snapshotProps.aspect_ratio || "16:9";
-                const [aspectW, aspectH] = targetAspectRatio.split(':').map(Number);
-                const targetAspect = aspectW / aspectH;
+                  // Restore skysphere visibility
+                  if (skySphere) {
+                      skySphere.visible = prevSkyVisibility;
+                  }
 
-                // Render dimensions based on current viewport aspect
-                renderWidth = baseWidth;
-                renderHeight = Math.round(baseWidth / currentAspect);
+                  // Restore clear state
+                  gl.setClearColor(prevColor, prevAlpha);
 
-                // Ensure even dimensions
-                renderWidth = renderWidth % 2 === 0 ? renderWidth : renderWidth - 1;
-                renderHeight = renderHeight % 2 === 0 ? renderHeight : renderHeight - 1;
-
-                const renderAspect = renderWidth / renderHeight;
-
-                if (renderAspect > targetAspect) {
-                    // Wider than target -> crop LEFT/RIGHT
-
-                    finalHeight = renderHeight;
-                    finalWidth = Math.floor(renderHeight * targetAspect);
-                    cropOffsetX = Math.floor((renderWidth - finalWidth) / 2);
-                    cropOffsetY = 0;
-                } else {
-                    // Taller than target -> crop TOP/BOTTOM
-
-                    finalWidth = renderWidth;
-                    finalHeight = Math.floor(renderWidth / targetAspect);
-                    cropOffsetX = 0;
-                    cropOffsetY = Math.floor((renderHeight - finalHeight) / 2);
+                  // Re-render normal frame
+                  gl.render(scene, camera);
+              }
+                else{
+                    link.setAttribute('download', snapshot_filename);
+                    link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
+                    link.click()
+                    curState.takeSnapshot = false;
                 }
-
-                // Ensure even dimensions
-                finalWidth = finalWidth % 2 === 0 ? finalWidth : finalWidth - 1;
-                finalHeight = finalHeight % 2 === 0 ? finalHeight : finalHeight - 1;
-                cropOffsetX = cropOffsetX % 2 === 0 ? cropOffsetX : cropOffsetX - 1;
-                cropOffsetY = cropOffsetY % 2 === 0 ? cropOffsetY : cropOffsetY - 1;
             }
-
-            // Ensure even dimensions for encoding
-            renderWidth = renderWidth % 2 === 0 ? renderWidth : renderWidth - 1;
-            renderHeight = renderHeight % 2 === 0 ? renderHeight : renderHeight - 1;
-            finalWidth = finalWidth % 2 === 0 ? finalWidth : finalWidth - 1;
-            finalHeight = finalHeight % 2 === 0 ? finalHeight : finalHeight - 1;
-
-            // Create a temporary WebGL renderer for offscreen rendering
-            const tempRenderer = new WebGLRenderer({
-                preserveDrawingBuffer: true,
-                alpha: curState.snapshotProps.transparent_background,
-                antialias: true
-            });
-
-            tempRenderer.setSize(renderWidth, renderHeight);
-            tempRenderer.setPixelRatio(1);
-
-            // Store skysphere visibility state
-            let prevSkyVisibility: boolean | null = null;
-
-            // Set clear color based on transparency
-            if (curState.snapshotProps.transparent_background) {
-                tempRenderer.setClearColor(0x000000, 0);
-                // Find and hide skysphere if it exists
-                const skySphere = scene.getObjectByName("SkySphere");
-                if (skySphere) {
-                    prevSkyVisibility = skySphere.visible;
-                    skySphere.visible = false;
+            else {  // Custom
+                const originalSize = new Vector2 ();
+                gl.getSize (originalSize);
+                let renderWidth = curState.snapshotProps.width;
+                let renderHeight = curState.snapshotProps.height;
+                if (curState.snapshotProps.preserve_aspect_ratio){
+                      const canvasHeight = window.document.getElementById("canvas-element")?.clientHeight
+                      const canvasWidth = window.document.getElementById("canvas-element")?.clientWidth
+                    renderHeight = renderWidth *canvasHeight!/canvasWidth!
                 }
-            } else {
-                tempRenderer.setClearColor(originalClearColor, originalClearAlpha);
-            }
-
-            // Render the scene to the temporary renderer
-            tempRenderer.render(scene, camera);
-
-            // Read pixels from the temporary renderer
-            const glContext = tempRenderer.getContext();
-            const buffer = new Uint8Array(renderWidth * renderHeight * 4);
-            glContext.readPixels(0, 0, renderWidth, renderHeight, glContext.RGBA, glContext.UNSIGNED_BYTE, buffer);
-
-            // Create a canvas for the full render
-            const fullCanvas = document.createElement('canvas');
-            fullCanvas.width = renderWidth;
-            fullCanvas.height = renderHeight;
-            const fullCtx = fullCanvas.getContext('2d');
-
-            if (fullCtx) {
-                const imageData = fullCtx.createImageData(renderWidth, renderHeight);
-
-                // Flip Y (WebGL reads from bottom)
-                for (let y = 0; y < renderHeight; y++) {
-                    for (let x = 0; x < renderWidth; x++) {
-                        const src = ((renderHeight - y - 1) * renderWidth + x) * 4;
-                        const dst = (y * renderWidth + x) * 4;
-                        imageData.data[dst] = buffer[src];
-                        imageData.data[dst + 1] = buffer[src + 1];
-                        imageData.data[dst + 2] = buffer[src + 2];
-                        imageData.data[dst + 3] = buffer[src + 3];
+                if (window.devicePixelRatio) {
+                    renderWidth /= window.devicePixelRatio;
+                    renderHeight /= window.devicePixelRatio;
+                }
+                if (curState.snapshotProps.transparent_background){
+                    let clearAlpha = gl.getClearAlpha ();
+                    gl.setClearAlpha (0.0);
+                    // Find the skysphere object
+                    const skySphere = scene.getObjectByName("SkySphere");
+                    let prevSkyVisibility = true;
+                    if (skySphere) {
+                        prevSkyVisibility = skySphere.visible;
+                        skySphere.visible = false; // hide sky
+                    }
+                    resizeRenderer (renderWidth, renderHeight);
+                    const link = document.createElement('a')
+                    link.setAttribute('download', snapshot_filename);
+                    link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
+                    link.click()
+                    gl.setClearAlpha (clearAlpha);
+                    if (skySphere) {
+                        skySphere.visible = prevSkyVisibility;
                     }
                 }
-
-                fullCtx.putImageData(imageData, 0, 0);
-
-                // If we need to crop (aspect ratio mode), create a cropped canvas
-                let finalCanvas = fullCanvas;
-
-                if (curState.snapshotProps.size_choice === "aspect") {
-                    finalCanvas = document.createElement('canvas');
-                    finalCanvas.width = finalWidth;
-                    finalCanvas.height = finalHeight;
-                    const finalCtx = finalCanvas.getContext('2d');
-
-                    if (finalCtx) {
-                        // Draw the cropped portion
-                        finalCtx.drawImage(
-                            fullCanvas,
-                            cropOffsetX, cropOffsetY, finalWidth, finalHeight,
-                            0, 0, finalWidth, finalHeight
-                        );
-                    }
+                else {
+                    resizeRenderer (renderWidth, renderHeight);
+                    const link = document.createElement('a')
+                    link.setAttribute('download', snapshot_filename)
+                    link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
+                    link.click()
                 }
-
-                try {
-                    // Wait for watermark to load if not already loaded
-                    const watermarkImg = await loadWatermarkImage('/assets/opensimLogo23.png');
-
-                    // Draw watermark on finalCanvas
-                    const watermarkCtx = finalCanvas.getContext('2d');
-                    if (watermarkCtx && watermarkImg) {
-                        // Calculate watermark size
-                        const relativeSize = Math.min(
-                            finalCanvas.width * 0.1,  // 10% of canvas width
-                            150,  // Maximum size in pixels
-                            Math.max(50, finalCanvas.height * 0.08) // At least 8% of height or 50px
-                        );
-
-                        // Maintain aspect ratio
-                        const aspectRatio = watermarkImg.width / watermarkImg.height;
-                        const watermarkWidth = relativeSize;
-                        const watermarkHeight = relativeSize / aspectRatio;
-
-                        // Position at bottom left with padding
-                        const padding = Math.max(10, Math.min(finalCanvas.width * 0.05, 20));
-                        const x = padding;
-                        const y = finalCanvas.height - watermarkHeight - padding;
-
-                        // Draw with transparency
-                        watermarkCtx.save();
-                        watermarkCtx.globalAlpha = 0.85;
-                        watermarkCtx.drawImage(watermarkImg, x, y, watermarkWidth, watermarkHeight);
-                        watermarkCtx.restore();
-
-                        console.log('Watermark added successfully to snapshot'); // Debug log
-                    } else {
-                        console.warn('Watermark context or image not available');
-                    }
-                } catch (error) {
-                    console.error('Failed to add watermark to snapshot:', error);
-                }
-
-                // Convert to requested format
-                let mimeType = `image/${curState.snapshotProps.image_format}`;
-                if (curState.snapshotProps.image_format === 'tiff') {
-                    mimeType = 'image/tiff';
-                }
-
-                let quality = 1.0;
-                if (curState.snapshotProps.image_format === 'jpeg') {
-                    quality = 0.92; // Good quality for JPEG
-                }
-
-                const dataURL = finalCanvas.toDataURL(mimeType, quality);
-
-                // Create download link
-                const link = document.createElement('a');
-                link.setAttribute('download', snapshot_filename);
-                link.setAttribute('href', dataURL);
-                link.click();
+                curState.takeSnapshot = false;
+                resizeRenderer (originalSize.width, originalSize.height);
             }
-
-            // Clean up temporary renderer
-            tempRenderer.dispose();
-
-            // Restore skysphere visibility
-            if (curState.snapshotProps.transparent_background && prevSkyVisibility !== null) {
-                const skySphere = scene.getObjectByName("SkySphere");
-                if (skySphere) {
-                    skySphere.visible = prevSkyVisibility;
-                }
-            }
-
-            // Reset flag
-            curState.takeSnapshot = false;
         }
         if (curState.fitToBox !== null) {
             fitToBox(curState.fitToBox)
@@ -485,4 +349,76 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
         <OrbitControls ref={controlsRef} camera={camera} enableDamping={false} makeDefault />
     </>
 });
+/*
+const OpenSimControl = () => {
+    const {
+        gl, // WebGL renderer
+        camera,
+        controls,
+        scene
+    } = useThree()
+
+   const curState = useModelContext();
+   const viewerState = useModelContext().viewerState;
+   const [cameraIndex, setCameraIndex] = useState<number>(-1)
+   const controlsRef = useRef<OrbitControlsImpl | null>(null)
+
+   function fitToModels() {
+        const useScene = curState.scene;
+        useScene?.traverse((object: Object3D) => {
+            if (object.type === "Group" && (object.name === "OpenSimModels" || object.name === "Scene")) {
+                implementFitToSphere(object);
+            }
+        });
+    }
+   useEffect(() => {
+        fitToModels();
+        setCameraIndex(curState.currentCameraIndex)
+   }, [curState.currentCameraIndex])
+
+    useFrame((_, delta) => {
+        if (curState.zooming){
+            let zoomFactor = curState.zoom_inOut;
+            camera.zoom *= zoomFactor;
+            camera.updateProjectionMatrix();
+            curState.zooming = false;
+        }
+        else if (curState.takeSnapshot){
+            const link = document.createElement('a')
+            const timestamp = getTimestamp();
+            link.setAttribute('download', curState.viewerState.snapshotName +"_" + timestamp + "." + curState.viewerState.snapshotFormat)
+            link.setAttribute('href', gl.domElement.toDataURL('image/png').replace('image/png', 'image/octet-stream'))
+            link.click()
+            curState.takeSnapshot = false;
+        }
+        else if (curState.cameraLayersMask !== camera.layers.mask) {
+            for (let layernumber =0; layernumber < 31; layernumber++){
+                let newState = curState.getLayerVisibility(layernumber)
+                if (newState)
+                    camera.layers.enable(layernumber)
+                else
+                    camera.layers.disable(layernumber)
+            }
+        }
+        if (cameraIndex !== curState.currentCameraIndex){
+            setCameraIndex(curState.currentCameraIndex);
+            // Copy properties into default camera
+            const newCamera = curState.viewerState.cameras[curState.currentCameraIndex]
+            camera.position.copy(newCamera.position)
+            camera.quaternion.copy(newCamera.quaternion)
+            camera.zoom = (newCamera as PerspectiveCamera).zoom;
+            (camera as PerspectiveCamera).fov = (newCamera as PerspectiveCamera).fov;
+            (camera as PerspectiveCamera).near = (newCamera as PerspectiveCamera).near;
+            (camera as PerspectiveCamera).far = (newCamera as PerspectiveCamera).far;
+
+            camera.updateProjectionMatrix();
+            controlsRef.current!.update()
+        }
+      })
+    //console.log(viewerState.rotating);
+    return <>
+        <OrbitControls ref={controlsRef} camera={camera} autoRotate autoRotateSpeed={curState.rotating ? 2 : 0.0} makeDefault  />
+    </>
+}
+*/
 export default observer(OpenSimControl)
