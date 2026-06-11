@@ -394,7 +394,6 @@ useEffect(() => {
           }
           <div id="canvas-container">
             <>
-<<<<<<< dev
             {uiState.isInRecordMode && (
               <RecordModeOverlay
                 videoRecorderRef={videoRecorderRef}
@@ -404,8 +403,6 @@ useEffect(() => {
                 }}
               />
             )}
-=======
->>>>>>> snapshot-fixes
             {curState.viewerState.recordedVideoAspectRatio && (curState.viewerState.isRecordingVideo || curState.viewerState.showAspectRatioGuides) && (
               (() => {
                 const canvasEl = document.getElementById('canvas-element');
