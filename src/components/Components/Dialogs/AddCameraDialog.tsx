@@ -5,7 +5,6 @@ import {
 } from "@mui/material";
 import * as THREE from 'three';
 import { ModelUIState } from '../../../state/ModelUIState';
-import Autocomplete from '@mui/material/Autocomplete';
 
 interface AddCameraDialogProps {
   open: boolean;
@@ -18,7 +17,6 @@ interface AddCameraDialogProps {
 
 const AddCameraDialog: React.FC<AddCameraDialogProps> = ({ open, onClose, onAddCamera, scene, uiState, parent }) => {
   const [cameraName, setCameraName] = useState("NewCamera");
-  const [cameraType, setCameraType] = useState("PerspectiveCamera");
 
   return (
     <Dialog open={open} onClose={onClose}>
