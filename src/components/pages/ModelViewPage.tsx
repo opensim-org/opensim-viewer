@@ -347,7 +347,7 @@ useEffect(() => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [curState]);
 
   if (urlParam!== undefined) {
     var decodedUrl = decodeURIComponent(urlParam);
