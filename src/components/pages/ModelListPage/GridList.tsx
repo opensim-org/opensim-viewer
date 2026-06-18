@@ -5,16 +5,13 @@ import CardActions from '@mui/material/CardActions'
 import Link from '@mui/material/Link'
 import { Canvas } from '@react-three/fiber'
 import { useTheme } from '@mui/material'
-import { Bounds, Environment } from '@react-three/drei'
 import Typography from '@mui/material/Typography'
 import { Suspense } from 'react'
 
-import OpenSimControl from '../../Components/OpenSimControl'
 
 import SimpleModelScene  from '../../Components/SimpleModelScene'
 
 import { ModelMetadataType } from './ModelListPage'
-import { NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
 interface GridListProps {

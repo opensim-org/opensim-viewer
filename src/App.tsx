@@ -6,7 +6,7 @@ import '@aws-amplify/ui-react/styles.css';
 import { CssBaseline, ThemeProvider, useMediaQuery } from '@mui/material';
 import { useMediaQuery as useResponsiveQuery } from 'react-responsive';
 import screenfull from 'screenfull';
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import './App.css'
 import appTheme from './Theme'

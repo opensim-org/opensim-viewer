@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -19,7 +19,6 @@ import Tooltip from '@mui/material/Tooltip';
 import { useTranslation } from 'react-i18next';
 import Drawer from '@mui/material/Drawer';
 import Hidden from '@mui/material/Hidden';
-import { Auth } from 'aws-amplify';
 import { useModelContext } from '../../state/ModelUIStateContext';
 
 import logo_dark from './logo-dark.svg';
@@ -35,7 +34,6 @@ interface OpenSimAppBarProps {
 const OpenSimAppBar: React.FC<OpenSimAppBarProps> = ({ dark, isLoggedIn, isFullScreen, toggleFullscreen }) => {
   const { t } = useTranslation();
   const curState = useModelContext();
-  const viewerState = curState.viewerState;
   
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 

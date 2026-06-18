@@ -28,7 +28,6 @@ import { CircularProgress } from "@mui/material";
 import OpenSimHtmlLogo from '../Components/OpenSimLogo';
 
 import { Stats } from '@react-three/drei'
-import { Perf } from 'r3f-perf'
 
 import { createTempHelper, removeTempHelper, updateTempHelperVisibility } from '../Components/SceneTree/SceneTreeSortable'
 
