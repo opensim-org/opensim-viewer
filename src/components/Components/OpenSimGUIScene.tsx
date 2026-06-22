@@ -287,7 +287,12 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             }
           }
         }
-
+        if (curState.visibleHelpers) {
+          const helper = scene?.getObjectByName("temp_helper");
+          if (helper && helper.type === "DirectionalLightHelper") {
+            (helper as THREE.DirectionalLightHelper).update();
+          }
+        }
         // Coordinate system visibility
         csRef.current!.visible = curState.showGlobalFrame;
 
