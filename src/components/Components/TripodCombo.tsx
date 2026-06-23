@@ -6,10 +6,11 @@ import MenuItem from '@mui/material/MenuItem';
 import TripodIcon from './TripodIcon';
 import React, { useState } from 'react';
 import { useModelContext } from '../../state/ModelUIStateContext';
-let options = ['Add...'];
+import { observer } from 'mobx-react-lite';
 
-export default function TripodCombo() {
 
+export default observer(function TripodCombo() {
+  const options = ['Add...'];
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const curState = useModelContext();
   const viewerState = curState.viewerState;
@@ -50,7 +51,7 @@ export default function TripodCombo() {
       >
         <TripodIcon />
         <Typography variant="caption" sx={{ maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {selected}
+          {curState.viewerState.currentCameraIndex!==-1?selected:options[0]}
         </Typography>
         <KeyboardArrowDownIcon sx={{ fontSize: '0.875rem', transform: open ? 'rotate(180deg)' : 'none', transition: '0.2s' }} />
       </IconButton>
@@ -68,4 +69,4 @@ export default function TripodCombo() {
       </Menu>
     </>
   );
-}
+});
