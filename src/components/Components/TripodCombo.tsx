@@ -3,23 +3,40 @@ import Typography from '@mui/material/Typography';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import PhotoCameraTwoTone from '@mui/icons-material/PhotoCameraTwoTone';
+import TripodIcon from './TripodIcon';
 import React, { useState } from 'react';
 import { useModelContext } from '../../state/ModelUIStateContext';
-
 let options = ['Add...'];
 
 export default function TripodCombo() {
+
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const curState = useModelContext();
   const viewerState = curState.viewerState;
   const [selected, setSelected] = useState(options[0]);
   const open = Boolean(anchorEl);
 
+  viewerState.cameras.forEach((camera) => {
+    if (!options.includes(camera.name)) {
+      options.push(camera.name);
+    }
+  });
   const handleOpen = (e: React.MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget);
   const handleClose = () => setAnchorEl(null);
   const handleSelect = (value: string) => {
-    setSelected(value);
+    if (value === 'Add...') {
+      const newTripodName = prompt('Enter a name for the new tripod:'); 
+      if (newTripodName) {
+        viewerState.saveCameraAndTarget = true;
+        viewerState.saveCameraName = newTripodName;
+        options.push(newTripodName);
+        setSelected(newTripodName);
+      }
+    } else {
+      const idx = viewerState.cameras.findIndex((cam) => cam.name === value);
+      curState.viewerState.setCurrentCameraIndex(idx);
+      setSelected(value);
+    }
     handleClose();
   };
 
@@ -31,7 +48,7 @@ export default function TripodCombo() {
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        <PhotoCameraTwoTone />
+        <TripodIcon />
         <Typography variant="caption" sx={{ maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {selected}
         </Typography>
