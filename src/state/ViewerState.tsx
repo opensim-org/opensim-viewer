@@ -96,6 +96,7 @@ export class ViewerState {
     // targets
     lookAtTarget: string
     saveCameraAndTarget: boolean // used to request control save current camera and target to this state
+    saveCameraName: string | undefined
     // camera Animations, sequences, then animations created by interpolating sequences
     cameraDollies: CameraDolly[]
     currentDollyIndex: number
@@ -125,7 +126,7 @@ export class ViewerState {
         recordedVideoName: string,
         recordedVideoFormat: string,
         isRecordingVideo: boolean,
-        isProcessingVideo: boolean,
+        isProcessingVideo: boolean
     ) {
         this.userPreferences = observable({
             skyTexturePath: '',
@@ -185,6 +186,7 @@ export class ViewerState {
         this.currentCameraIndex = -1
         this.lookAtTarget = ""
         this.saveCameraAndTarget = false;
+        this.saveCameraName = undefined;
         this.cameraDollies = []
         this.currentDollyIndex = -1
         this.animating = false
@@ -499,8 +501,12 @@ export class ViewerState {
                 setCurrent: boolean | undefined = true,
                 preserveUuid: boolean = false) {
         const camClone = camera.clone()
-        if (suggestedName === undefined)
-            camClone.name = "Camera_"+this.cameras.length
+        if (suggestedName === undefined){
+            if (this.saveCameraName !== undefined && this.saveCameraName !== "" )
+                camClone.name = this.saveCameraName;
+            else
+                camClone.name = "Camera_"+this.cameras.length
+        }
         else
             camClone.name = suggestedName;
         const uniqueName = this.getUniqueCameraName(camClone.name);

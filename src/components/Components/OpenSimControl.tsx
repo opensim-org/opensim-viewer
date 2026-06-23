@@ -160,6 +160,7 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
                 curState.viewerState.addCamera(camera as PerspectiveCamera, controlTarget, undefined)
             }
             curState.viewerState.saveCameraAndTarget = false
+            curState.viewerState.saveCameraName = undefined
         }
         else if (curState.takeSnapshot){
             const timestamp = getTimestamp();
