@@ -5,6 +5,7 @@ import Grid from '@mui/material/Grid';
 import { useTranslation } from 'react-i18next'
 import './FloatingControlsPanel.css';
 import InfoIcon from '@mui/icons-material/Info';
+import Button from '@mui/material/Button';
 import ZoomOutTwoToneIcon from '@mui/icons-material/ZoomOutTwoTone';
 import ZoomInTwoToneIcon from '@mui/icons-material/ZoomInTwoTone';
 import FitScreenTwoToneIcon from '@mui/icons-material/FitScreenTwoTone';
@@ -13,13 +14,14 @@ import SnapShotModal from './SnapShotModal';
 import RecordingModal from './RecordingModal';
 import { ModelInfo } from '../../state/ModelUIState';
 import { observer } from "mobx-react";
-
+import TripodCombo from './TripodCombo';
 interface FloatingControlsPanelProps {
   videoRecorderRef: any;
   info: ModelInfo;
   top: string;
   left: string;
 }
+
 
 function FloatingControlsPanel(props :FloatingControlsPanelProps) {
   const { t } = useTranslation();
@@ -86,6 +88,11 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
         </Grid>
 
         <Grid item xs={6}>
+          <TripodCombo />
+        </Grid>
+
+        {!curState.isGuiMode &&
+        <Grid item xs={6}>
           <Tooltip title={t('floatingButton.model_info')} placement="right">
               <IconButton
                 color="primary"
@@ -94,7 +101,7 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
               </IconButton>
           </Tooltip>
         </Grid>
-
+        }
       </Grid>
 
       {isWindowOpen &&
