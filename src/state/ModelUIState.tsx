@@ -277,7 +277,7 @@ export class ModelUIState {
         const theScene:Object3D = this.scene!;
         // traverse scene to find environment group, export to json
         // then add userData that contains Camera(s), other info
-        const envGroup = theScene.getObjectByName('OpenSim Environment');
+        const envGroup = theScene.getObjectByName('OpenSim Scene');
         if (envGroup) {
             var json = envGroup.toJSON();
             const blob = new Blob( [ JSON.stringify( json ) ], { type: 'application/json' } );
@@ -620,7 +620,7 @@ export class ModelUIState {
     // Process Path operations from GUI
     processPathEdit(pathEditJson: any) { 
         const pathOp = pathEditJson.SubOperation;
-        const pathObject = this.objectByUuid(pathEditJson.uuid);
+        //const pathObject = this.objectByUuid(pathEditJson.uuid);
         switch(pathOp) {
             case "refresh":
                 const updPoints = pathEditJson.points;

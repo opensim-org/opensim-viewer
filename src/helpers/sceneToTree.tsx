@@ -42,8 +42,7 @@ function getValidChildren(obj: THREE.Object3D, traverse: any) {
   return obj.children
     .filter(child => (obj as TransformControls).isTransformControls || child.type.includes("Camera") ||
     child.type.includes("Light") || child.type.includes("Object3D") || child.name === "Floor" || child.name==="WCS" ||
-    child.name.includes("SkySphere") || (child.type==="Group" && child.name !== "mt") ||
-    child.userData.opensimType==="Ground" || child.userData.opensimType==="Frame")
+    child.name.includes("SkySphere") || (child.type==="Group" && child.name !== "mt"))
     .map(traverse)
     .filter((child: any) => child !== null);
 }
@@ -67,7 +66,8 @@ export function convertSceneToTree(scene: THREE.Scene | null) {
       !obj.type.includes("Helper") &&
       !(obj.name ==="Com") &&
       !obj.type.includes("Skinned")) &&
-      !(obj.type === "Group" && obj.name === "" && obj.children.length === 0);
+      !(obj.type === "Group" && obj.name === "" && obj.children.length === 0) &&
+      !(obj.name === "Ground");
 
     if (!shouldProcess) return null;
 
@@ -135,8 +135,8 @@ function mergeTreeWithScene(oldTree: any[], scene: THREE.Scene | null) {
       !obj.type.includes("Helper") &&
       !(obj.name ==="Com") &&
       !obj.type.includes("Skinned")) &&
-      !(obj.type === "Group" && obj.name === "" && obj.children.length === 0);
-
+      !(obj.type === "Group" && obj.name === "" && obj.children.length === 0) &&
+      !(obj.name === "Ground");
     if (!shouldProcess) return null;
 
     const validChildren = getValidChildren(obj, traverse);
