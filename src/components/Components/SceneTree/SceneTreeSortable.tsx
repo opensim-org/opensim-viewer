@@ -19,6 +19,7 @@ import GridOnIcon from '@mui/icons-material/GridOn';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import TripodIcon from '../TripodIcon'
 import ViewInAr from '@mui/icons-material/ViewInAr';
 import PanoramaIcon from '@mui/icons-material/Panorama';
 
@@ -61,7 +62,7 @@ const iconMap: Record<string, JSX.Element> = {
   scene: <PanoramaIcon />,
   model: <PersonIcon />,
   group: <FolderIcon />,
-  camera: <CameraAltIcon />,
+  camera: <TripodIcon />,
   light: <LightbulbIcon />,
   axes: <ThreeDRotationIcon />,
   wcs: <ThreeDRotationIcon />,
