@@ -495,9 +495,9 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
       let fps = viewerState.recordedVideoFPS || 30;
 
-      if (fps == 30)
+      if (fps === 30)
         fps = 25
-      if (fps == 60)
+      if (fps === 60)
         fps = 50
 
       await ffmpeg.exec(['-framerate', `${fps}`, '-i', 'gif%03d.png', '-vf', 'palettegen', 'palette.png']);

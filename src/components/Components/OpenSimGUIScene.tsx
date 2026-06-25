@@ -287,7 +287,12 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             }
           }
         }
-
+        if (curState.visibleHelpers) {
+          const helper = scene?.getObjectByName("temp_helper");
+          if (helper && helper.type === "DirectionalLightHelper") {
+            (helper as THREE.DirectionalLightHelper).update();
+          }
+        }
         // Coordinate system visibility
         csRef.current!.visible = curState.showGlobalFrame;
 
@@ -407,7 +412,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     // By the time we're here the model is guaranteed to be available
     return <>
-      <group name='OpenSim Environment' ref={envRef}>
+      <group name='OpenSim Scene' ref={envRef}>
         <directionalLight name="Scene Dir Light" ref={lightRef} position={[0.5, 1.5, -0.5]}
           intensity={curState.viewerState.lightIntensity} color={curState.viewerState.lightColor}
           castShadow={true}
@@ -440,11 +445,12 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             <meshStandardMaterial color="red" />
           </mesh>
         </group>
-      </group>
-      <group name='Models' ref={modelsRef}  
+        <group name='Models' ref={modelsRef}  
             onClick={(e)=>{ handleClick(e);}}
             onPointerMissed={(e)=>{clearSelection();}} 
-      />
+        />
+      </group>
+
       <boxHelper name='SelectionBox' ref={bboxRef} visible={false}/>
       </>
 }

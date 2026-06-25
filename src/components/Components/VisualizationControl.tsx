@@ -3,7 +3,6 @@ import FormGroup from '@mui/material/FormGroup';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useModelContext } from '../../state/ModelUIStateContext';
-import Tooltip from '@mui/material/Tooltip';
 import React from 'react';
 
 interface VisualizationControlProps {
