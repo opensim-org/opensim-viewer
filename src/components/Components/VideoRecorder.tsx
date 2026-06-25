@@ -658,7 +658,6 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         return;
       }
 
-
       // Check if FFmpeg is loaded
       if (!ffmpegLoadedRef.current) {
         enqueueSnackbar('Video encoder not ready yet. Please try again in a moment.', {
@@ -689,9 +688,54 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         return;
       }
 
+      // Determine recording start and end times
+      let recordingStartTime = 0;
+      let recordingEndTime = animation.duration;
+      let isFullAnimation = true;
+
+      if (!viewerState.isRecordingFullAnimation) {
+        // Use custom start and end times
+        const startTime = viewerState.videoRecorderStartTime || 0;
+        let endTime = viewerState.videoRecorderEndTime || animation.duration;
+
+        // Clamp end time to animation duration
+        endTime = Math.min(endTime, animation.duration);
+
+        // Validate times
+        if (startTime >= endTime) {
+          enqueueSnackbar('Start time must be less than end time', {
+            variant: 'warning',
+            autoHideDuration: 5000
+          });
+          return;
+        }
+
+        if (endTime - startTime < 0.5) {
+          enqueueSnackbar('Recording duration must be at least 0.5 seconds', {
+            variant: 'warning',
+            autoHideDuration: 5000
+          });
+          return;
+        }
+
+        recordingStartTime = startTime;
+        recordingEndTime = endTime;
+        isFullAnimation = false;
+      }
+
       const startTime = viewerState.animationStartTimes[animationIndex] || 0;
+
+      // For full animation recording, use the full duration minus start time offset
+      // For partial recording, use the specified segment duration
+      let effectiveDuration;
+      if (isFullAnimation) {
+        effectiveDuration = animation.duration - startTime;
+      } else {
+        effectiveDuration = recordingEndTime - recordingStartTime;
+      }
+
       curState.guiAnimationStartTime = startTime; // Reset animation start time
-      animationDurationRef.current = animation.duration - startTime; //account for non-zero start
+      animationDurationRef.current = effectiveDuration;
 
       // Setup offscreen rendering with correct dimensions and aspect ratio
       setupOffscreenRenderer();
@@ -704,10 +748,11 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       // Wait for animation to reset and render
       await waitForNextFrame(true);
 
-      startCaptureProcess();
+      // Start capture with the correct start time
+      startCaptureProcess(recordingStartTime, recordingEndTime, isFullAnimation);
     };
 
-    const startCaptureProcess = () => {
+    const startCaptureProcess = (recordingStartTime: number = 0, recordingEndTime: number = 0, isFullAnimation: boolean = true) => {
       const fps = viewerState.recordedVideoFPS || 30;
       const numIterations = viewerState.videoRecorderNumIterations || 1;
 
@@ -755,7 +800,10 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       viewerState.animating = false; // avoid useFrame mixer advancing
       curState.viewerState.setAnimationsNeedUpdate(true);
 
-      enqueueSnackbar(`Recording ${numIterations} iteration${numIterations > 1 ? 's' : ''} of animation...`, {
+      const iterationMessage = numIterations > 1 ? ` for ${numIterations} iterations` : '';
+      const segmentMessage = !isFullAnimation ? ` (${recordingStartTime.toFixed(2)}s to ${recordingEndTime.toFixed(2)}s)` : '';
+
+      enqueueSnackbar(`Recording${iterationMessage}${segmentMessage}...`, {
         variant: 'info',
         persist: true,
         autoHideDuration: 10000
@@ -773,18 +821,31 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       const loop = async () => {
         let currentIteration = 0;
 
+        // Determine the segment duration for partial recording
+        const segmentDuration = isFullAnimation ? animationDurationRef.current : (recordingEndTime - recordingStartTime);
+
+        // The animation time offset for the start of the segment
+        const segmentStartOffset = isFullAnimation ? 0 : recordingStartTime;
+
         while (isRecordingRef.current && frameCount < totalFrames && captureErrors < MAX_ERRORS) {
-          // Calculate the animation time within the current iteration
-          const timeWithinIteration = (frameCount / effectiveFps) * animationSpeed;
+          // Calculate the time within the segment (0 to segmentDuration)
+          const timeInSegment = (frameCount / effectiveFps) * animationSpeed;
 
           // Calculate which iteration we're in
-          currentIteration = Math.floor(timeWithinIteration / animationDurationRef.current);
+          currentIteration = Math.floor(timeInSegment / segmentDuration);
 
-          // Calculate the time within the current iteration (0 to animationDuration)
-          const timeInIteration = timeWithinIteration % animationDurationRef.current;
+          // Calculate the time within the current iteration (0 to segmentDuration)
+          const timeInIteration = timeInSegment % segmentDuration;
 
-          // Add the start time offset
-          const animationTime = timeInIteration + animationStartTime;
+          // Calculate the absolute animation time
+          let animationTime;
+          if (isFullAnimation) {
+            // Full animation: start from animationStartTime and go forward
+            animationTime = timeInIteration + animationStartTime;
+          } else {
+            // Partial recording: start from recordingStartTime and go forward
+            animationTime = timeInIteration + recordingStartTime;
+          }
 
           // Set animation time
           viewerState.setCurrentAnimationTime(animationTime);
@@ -804,7 +865,11 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
             // Log progress
             if (frameCount % 10 === 0) {
-              console.log(`Captured ${frameCount}/${totalFrames} frames (iteration ${currentIteration + 1}/${numIterations}, speed: ${animationSpeed}x)`);
+              const iterationInfo = numIterations > 1 ? ` (iteration ${currentIteration + 1}/${numIterations})` : '';
+              const timeInfo = isFullAnimation ?
+                `time: ${animationTime.toFixed(2)}s` :
+                `segment: ${(timeInIteration).toFixed(2)}/${segmentDuration.toFixed(2)}s`;
+              console.log(`Captured ${frameCount}/${totalFrames} frames${iterationInfo} - ${timeInfo}`);
             }
           } else {
             captureErrors++;

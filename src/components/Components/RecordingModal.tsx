@@ -64,7 +64,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
   const [selectedAspectRatio, setSelectedAspectRatio] = useState("16:9");
 
   const [recordFullAnimation, setRecordFullAnimation] = useState(true);
-  const [iterationsToRecord, setIterationsToRecord] = useState<number>(1);
+  const [iterationsToRecord, setIterationsToRecord] = useState<string>("1");
   const [startTime, setStartTime] = useState<string>("0.0");
   const [endTime, setEndTime] = useState<string>("1.0");
   const [maxIterations, setMaxIterations] = useState<number>(10);
@@ -110,7 +110,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
 
       // Set num iterations to record
       if(viewerState.videoRecorderNumIterations) {
-        setIterationsToRecord(viewerState.videoRecorderNumIterations)
+        setIterationsToRecord(String(viewerState.videoRecorderNumIterations))
       }
 
       // Set start time
@@ -162,26 +162,52 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
     viewerState.setIsRecordingFullAnimation(value)
   };
 
-  const handleIterationsChange = (value: number) => {
-    const clampedValue = Math.min(Math.max(1, value), maxIterations);
-    setIterationsToRecord(clampedValue);
-    viewerState.setVideoRecorderNumIterations(clampedValue)
+  const handleIterationsChange = (value: string) => {
+    if (value === "" || validateInteger(value)) {
+        setIterationsToRecord(value);
+
+        // Only update viewer state if we have a valid number
+        if (value !== "") {
+            const numValue = parseInt(value, 10);
+            // Clamp the value for the viewer state
+            const clampedValue = Math.min(Math.max(1, numValue), maxIterations);
+            viewerState.setVideoRecorderNumIterations(clampedValue);
+        }
+    }
   };
 
-  const handleStartTimeChange = (value: number) => {
-    setStartTime(String(value))
-    viewerState.setVideoRecorderStartTime(value)
+  const handleStartTimeChange = (value: string) => {
+    setStartTime(value);
+    // Only update the viewer state if it's a valid number
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue) && numValue >= 0) {
+      viewerState.setVideoRecorderStartTime(numValue);
+    }
   }
 
-  const handleEndTimeChange = (value: number) => {
-    setEndTime(String(value))
-    viewerState.setVideoRecorderEndTime(value)
+  const handleEndTimeChange = (value: string) => {
+    setEndTime(value);
+    // Only update the viewer state if it's a valid number
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue) && numValue >= 0) {
+      viewerState.setVideoRecorderEndTime(numValue);
+    }
   }
 
-  const validateTimeFormat = (time: string): boolean => {
-    // Validate format: seconds.milliseconds (e.g., 1.5, 10.250)
-    const regex = /^\d+\.\d{1,3}$/;
+ const validateTimeFormat = (time: string): boolean => {
+    // Allow empty string or valid number format
+    if (time === "") return true;
+    // Allow format: digits with optional decimal point and up to 3 decimal places
+    const regex = /^\d+(\.\d{1,3})?$/;
     return regex.test(time);
+  };
+
+ const validateInteger = (integer: string): boolean => {
+    // Allow empty string or valid number format
+    if (integer === "") return true;
+    // Allow format: digits with no decimal point
+    const regex = /^\d+$/;
+    return regex.test(integer);
   };
 
   return (
@@ -279,15 +305,10 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
           <div style={{ marginTop: 2 }}>
             <TextField
               fullWidth
-              type="number"
               label="Number of iterations to record"
               value={iterationsToRecord}
-              onChange={(e) => handleIterationsChange(Number(e.target.value))}
-              inputProps={{
-                min: 1,
-                max: maxIterations,
-                step: 1
-              }}
+              onChange={(e) => handleIterationsChange(e.target.value)}
+              error={String(iterationsToRecord) !== "" && !validateInteger(String(iterationsToRecord))}
               margin="dense"
             />
           </div>
@@ -299,18 +320,18 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
                 fullWidth
                 label="Start time (s)"
                 value={startTime}
-                onChange={(e) => handleStartTimeChange(Number(e.target.value))}
+                onChange={(e) => handleStartTimeChange(e.target.value)}
                 placeholder="e.g., 0.5"
-                error={!validateTimeFormat(startTime)}
+                error={startTime !== "" && !validateTimeFormat(startTime)}
                 margin="dense"
               />
               <TextField
                 fullWidth
                 label="End time (s)"
                 value={endTime}
-                onChange={(e) => handleEndTimeChange(Number(e.target.value))}
+                onChange={(e) => handleEndTimeChange(e.target.value)}
                 placeholder="e.g., 5.0"
-                error={!validateTimeFormat(endTime)}
+                error={endTime !== "" && !validateTimeFormat(endTime)}
                 margin="dense"
               />
             </div>
