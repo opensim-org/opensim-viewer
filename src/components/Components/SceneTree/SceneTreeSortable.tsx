@@ -10,7 +10,6 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import PersonIcon from '@mui/icons-material/Person';
 import FolderIcon from '@mui/icons-material/Folder';
-import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import AddIcon from '@mui/icons-material/Add';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import ThreeDRotationIcon from '@mui/icons-material/ThreeDRotation';

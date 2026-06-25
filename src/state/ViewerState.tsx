@@ -109,6 +109,7 @@ export class ViewerState {
     currentAnimationIndices: number[]
     animationsNeedUpdate: boolean
     animationChange: null | Object
+    camerasNeedUpdate: boolean
     currentAnimationTime: number
     forceAnimationUpdate: boolean;
 
@@ -198,6 +199,7 @@ export class ViewerState {
         this.animationsNeedUpdate = false
         this.animationChange = null
         this.currentAnimationTime = 0
+        this.camerasNeedUpdate = false
         this.forceAnimationUpdate = false
         this.environmentGroup = null
         makeObservable(this, {
@@ -272,7 +274,9 @@ export class ViewerState {
             sceneVersion: observable,
             setSceneVersion: action,
             animationsNeedUpdate: observable,
+            camerasNeedUpdate: observable,
             setAnimationsNeedUpdate: action,
+            setCamerasNeedUpdate: action,
             currentAnimationTime: observable,
             setCurrentAnimationTime: action,
             forceAnimationUpdate: observable,
@@ -694,6 +698,20 @@ export class ViewerState {
     setForceAnimationUpdate(value: boolean) {
       this.forceAnimationUpdate = value;
     }
+    setCamerasNeedUpdate(value: boolean) {
+      this.camerasNeedUpdate = value;
+      this.setSceneVersion(this.sceneVersion + 1); // Increment scene version when cameras need update
+    }
+    object3DAttributeChange(sceneObject: Object3D) {
+      console.log("Object3D attribute change for uuid: ", sceneObject.uuid);
+      // Here you can implement any logic that should happen when an Object3D's attributes change.
+      // For example, you might want to update the UI, notify other parts of the application, etc.
+      if (sceneObject.type === "PerspectiveCamera") {
+        console.log("Camera attribute change detected for camera: ", sceneObject.name);
+        this.setCamerasNeedUpdate(true);
+      }
+    }
+
 }
 
 export default ViewerState

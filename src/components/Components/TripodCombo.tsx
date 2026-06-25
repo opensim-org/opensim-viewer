@@ -15,6 +15,26 @@ export default observer(function TripodCombo() {
   const curState = useModelContext();
   const viewerState = curState.viewerState;
   const [selected, setSelected] = useState(options[0]);
+  const [lastSceneVersion, setLastSceneVersion] = useState(viewerState.sceneVersion);
+
+  React.useEffect(() => {
+    if (viewerState.sceneVersion !== lastSceneVersion) {
+      setLastSceneVersion(viewerState.sceneVersion);
+      // Update options or perform any other necessary actions when the scene version changes
+      // refresh the names if the cameras have changed
+      if (viewerState.camerasNeedUpdate) {
+        options.length = 1;
+          viewerState.cameras.forEach((camera) => {
+      if (!options.includes(camera.name)) {
+        options.push(camera.name);
+        }
+      });
+      setSelected(viewerState.currentCameraIndex !== -1 ? viewerState.cameras[viewerState.currentCameraIndex].name : 'Add...');
+        //viewerState.setCamerasNeedUpdate(false);
+      }
+    }
+  }, [viewerState.sceneVersion, lastSceneVersion, viewerState.camerasNeedUpdate, viewerState.currentCameraIndex, viewerState.cameras]);
+
   const open = Boolean(anchorEl);
 
   viewerState.cameras.forEach((camera) => {
