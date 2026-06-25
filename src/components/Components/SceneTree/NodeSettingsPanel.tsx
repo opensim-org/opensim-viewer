@@ -77,16 +77,15 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             }
             const current_name = selectedNode.title ?? selectedNode.object3D?.name ?? ""
             const current_obj = scene?.getObjectByName(current_name);
-            // This is incorrect because the helper is not necessarily a child of the selectedNode.object3D, 
-            // This incorrectly renames the camera xx to xxx_Helper
             if (current_obj) {
               current_obj.name = e.target.value
             }
             patch({ title: e.target.value })
-            // Callback into the UI state to indicate that this node is changed, which can be used for other parts of the application.
-            uiState.viewerState.object3DAttributeChange(current_obj!);
-          }
-          }
+            // Callback into the UI state to indicate that this node is changed (only when an object is found).
+            if (current_obj) {
+              uiState.viewerState.object3DAttributeChange(current_obj);
+            }
+          }}
           style={{ marginBottom: 16 }}
           size="small"
         />

@@ -703,15 +703,11 @@ export class ViewerState {
       this.setSceneVersion(this.sceneVersion + 1); // Increment scene version when cameras need update
     }
     object3DAttributeChange(sceneObject: Object3D) {
-      console.log("Object3D attribute change for uuid: ", sceneObject.uuid);
-      // Here you can implement any logic that should happen when an Object3D's attributes change.
-      // For example, you might want to update the UI, notify other parts of the application, etc.
-      if (sceneObject.type === "PerspectiveCamera") {
-        console.log("Camera attribute change detected for camera: ", sceneObject.name);
-        this.setCamerasNeedUpdate(true);
-      }
+        // Force a MobX-visible update when Three.js objects mutate in-place (e.g., camera renames).
+        if (sceneObject.type === "PerspectiveCamera" || sceneObject.type === "OrthographicCamera") {
+            this.setCamerasNeedUpdate(true);
+        }
     }
-
 }
 
 export default ViewerState
