@@ -9,6 +9,9 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Checkbox,
+  FormControlLabel,
+  TextField,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useModelContext } from "../../state/ModelUIStateContext";
@@ -60,6 +63,12 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
   const [selectedFPS, setSelectedFPS] = useState(30);
   const [selectedAspectRatio, setSelectedAspectRatio] = useState("16:9");
 
+  const [recordFullAnimation, setRecordFullAnimation] = useState(true);
+  const [iterationsToRecord, setIterationsToRecord] = useState<number>(1);
+  const [startTime, setStartTime] = useState<string>("0.0");
+  const [endTime, setEndTime] = useState<string>("1.0");
+  const [maxIterations, setMaxIterations] = useState<number>(10);
+
   const getFpsOptions = () => {
     return selectedFormat === "gif" ? fpsValuesGif : fpsValues;
   };
@@ -92,6 +101,26 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
       // Set aspect ratio
       if (viewerState.recordedVideoAspectRatio) {
         setSelectedAspectRatio(viewerState.recordedVideoAspectRatio);
+      }
+
+      // Set is recording full animation
+      if(viewerState.isRecordingFullAnimation) {
+        setRecordFullAnimation(viewerState.isRecordingFullAnimation)
+      }
+
+      // Set num iterations to record
+      if(viewerState.videoRecorderNumIterations) {
+        setIterationsToRecord(viewerState.videoRecorderNumIterations)
+      }
+
+      // Set start time
+      if(viewerState.videoRecorderStartTime) {
+        setStartTime(viewerState.videoRecorderStartTime)
+      }
+
+      // Set end time
+      if(viewerState.videoRecorderEndTime) {
+        setEndTime(viewerState.videoRecorderEndTime)
       }
     }
   }, [open, viewerState]);
@@ -126,6 +155,33 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
       // Only set the base dimension, let the aspect ratio calculation determine final dimensions
       viewerState.setVideoRecorderBaseDimension(chosen.baseDimension);
     }
+  };
+
+  const handleIsRecordingFullAnimation = (value: boolean) => {
+    setRecordFullAnimation(value)
+    viewerState.setIsRecordingFullAnimation(value)
+  };
+
+  const handleIterationsChange = (value: number) => {
+    const clampedValue = Math.min(Math.max(1, value), maxIterations);
+    setIterationsToRecord(clampedValue);
+    viewerState.setVideoRecorderNumIterations(clampedValue)
+  };
+
+  const handleStartTimeChange = (value: number) => {
+    setStartTime(String(value))
+    viewerState.setVideoRecorderStartTime(value)
+  }
+
+  const handleEndTimeChange = (value: number) => {
+    setEndTime(String(value))
+    viewerState.setVideoRecorderEndTime(value)
+  }
+
+  const validateTimeFormat = (time: string): boolean => {
+    // Validate format: seconds.milliseconds (e.g., 1.5, 10.250)
+    const regex = /^\d+\.\d{1,3}$/;
+    return regex.test(time);
   };
 
   return (
@@ -198,6 +254,68 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
             ))}
           </Select>
         </FormControl>
+
+        {/* Recording Options Section */}
+        <div
+          style={{
+            marginTop: "24px",
+            borderTop: "1px solid #e0e0e0",
+            paddingTop: "16px",
+          }}
+        >
+          {/* Checkbox: Record full animation or custom times */}
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={recordFullAnimation}
+                onChange={(e) => handleIsRecordingFullAnimation(e.target.checked)}
+                name="recordFullAnimation"
+              />
+            }
+            label="Record full animation"
+          />
+
+          {/* Number of iterations */}
+          <div style={{ marginTop: 2 }}>
+            <TextField
+              fullWidth
+              type="number"
+              label="Number of iterations to record"
+              value={iterationsToRecord}
+              onChange={(e) => handleIterationsChange(Number(e.target.value))}
+              inputProps={{
+                min: 1,
+                max: maxIterations,
+                step: 1
+              }}
+              margin="dense"
+            />
+          </div>
+
+          {/* Custom times section - only shown when not recording full animation */}
+          {!recordFullAnimation && (
+            <div style={{ marginTop: 2, display: "flex", gap: 2 }}>
+              <TextField
+                fullWidth
+                label="Start time (s)"
+                value={startTime}
+                onChange={(e) => handleStartTimeChange(Number(e.target.value))}
+                placeholder="e.g., 0.5"
+                error={!validateTimeFormat(startTime)}
+                margin="dense"
+              />
+              <TextField
+                fullWidth
+                label="End time (s)"
+                value={endTime}
+                onChange={(e) => handleEndTimeChange(Number(e.target.value))}
+                placeholder="e.g., 5.0"
+                error={!validateTimeFormat(endTime)}
+                margin="dense"
+              />
+            </div>
+          )}
+        </div>
       </DialogContent>
 
       <DialogActions>

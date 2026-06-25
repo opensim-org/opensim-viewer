@@ -709,6 +709,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
     const startCaptureProcess = () => {
       const fps = viewerState.recordedVideoFPS || 30;
+      const numIterations = viewerState.videoRecorderNumIterations || 1;
 
       // Speed from currentState
       const animationSpeed = curState.guiAnimationSpeed;
@@ -724,8 +725,8 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       }
 
       if (animationSpeed > 0) {
-        // Adjust duration based on speed
-        effectiveDuration = animationDurationRef.current / animationSpeed;
+        // Adjust duration based on speed and number of iterations
+        effectiveDuration = (animationDurationRef.current / animationSpeed) * numIterations;
       } else {
         // Speed is 0. Cancel recording.
         console.warn('Animation speed is 0, recording may not work as expected');
@@ -754,7 +755,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       viewerState.animating = false; // avoid useFrame mixer advancing
       curState.viewerState.setAnimationsNeedUpdate(true);
 
-      enqueueSnackbar(t('snackbars.recording_video'), {
+      enqueueSnackbar(`Recording ${numIterations} iteration${numIterations > 1 ? 's' : ''} of animation...`, {
         variant: 'info',
         persist: true,
         autoHideDuration: 10000
@@ -770,9 +771,20 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       let animationStartTime = viewerState.animationStartTimes[animationIndex] || 0;
 
       const loop = async () => {
+        let currentIteration = 0;
+
         while (isRecordingRef.current && frameCount < totalFrames && captureErrors < MAX_ERRORS) {
-          // Calculate animation time based on speed
-          const animationTime = (frameCount / effectiveFps) * animationSpeed + animationStartTime;
+          // Calculate the animation time within the current iteration
+          const timeWithinIteration = (frameCount / effectiveFps) * animationSpeed;
+
+          // Calculate which iteration we're in
+          currentIteration = Math.floor(timeWithinIteration / animationDurationRef.current);
+
+          // Calculate the time within the current iteration (0 to animationDuration)
+          const timeInIteration = timeWithinIteration % animationDurationRef.current;
+
+          // Add the start time offset
+          const animationTime = timeInIteration + animationStartTime;
 
           // Set animation time
           viewerState.setCurrentAnimationTime(animationTime);
@@ -792,7 +804,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
             // Log progress
             if (frameCount % 10 === 0) {
-              console.log(`Captured ${frameCount}/${totalFrames} frames (speed: ${animationSpeed}x)`);
+              console.log(`Captured ${frameCount}/${totalFrames} frames (iteration ${currentIteration + 1}/${numIterations}, speed: ${animationSpeed}x)`);
             }
           } else {
             captureErrors++;
