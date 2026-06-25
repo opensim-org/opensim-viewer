@@ -46,12 +46,13 @@ export default observer(function TripodCombo() {
   const handleClose = () => setAnchorEl(null);
   const handleSelect = (value: string) => {
     if (value === 'Add...') {
-      const newTripodName = prompt('Enter a name for the new tripod:'); 
+      const rawTripodName = prompt('Enter a name for the new tripod:');
+      const newTripodName = rawTripodName?.trim();
       if (newTripodName) {
+        const uniqueTripodName = viewerState.getUniqueCameraName(newTripodName);
         viewerState.saveCameraAndTarget = true;
-        viewerState.saveCameraName = newTripodName;
-        options.push(newTripodName);
-        setSelected(newTripodName);
+        viewerState.saveCameraName = uniqueTripodName;
+        setSelected(uniqueTripodName);
       }
     } else {
       const idx = viewerState.cameras.findIndex((cam) => cam.name === value);

@@ -80,10 +80,11 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             if (current_obj) {
               current_obj.name = e.target.value
             }
-            patch({ title: e.target.value })
-            // Callback into the UI state to indicate that this node is changed, which can be used for other parts of the application.
-            uiState.viewerState.object3DAttributeChange(current_obj!);
-          }
+patch({ title: e.target.value })
+// Callback into the UI state to indicate that this node is changed (only when an object is found).
+if (current_obj) {
+  uiState.viewerState.object3DAttributeChange(current_obj);
+}
           }
           style={{ marginBottom: 16 }}
           size="small"
