@@ -702,13 +702,12 @@ export class ViewerState {
       this.camerasNeedUpdate = value;
       this.setSceneVersion(this.sceneVersion + 1); // Increment scene version when cameras need update
     }
-object3DAttributeChange(sceneObject: Object3D) {
-  // Force a MobX-visible update when Three.js objects mutate in-place (e.g., camera renames).
-  if (sceneObject.type === "PerspectiveCamera" || sceneObject.type === "OrthographicCamera") {
-    this.setCamerasNeedUpdate(true);
-  }
-}
-
+    object3DAttributeChange(sceneObject: Object3D) {
+        // Force a MobX-visible update when Three.js objects mutate in-place (e.g., camera renames).
+        if (sceneObject.type === "PerspectiveCamera" || sceneObject.type === "OrthographicCamera") {
+            this.setCamerasNeedUpdate(true);
+        }
+    }
 }
 
 export default ViewerState
