@@ -77,8 +77,6 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             }
             const current_name = selectedNode.title ?? selectedNode.object3D?.name ?? ""
             const current_obj = scene?.getObjectByName(current_name);
-            // This is incorrect because the helper is not necessarily a child of the selectedNode.object3D, 
-            // This incorrectly renames the camera xx to xxx_Helper
             if (current_obj) {
               current_obj.name = e.target.value
             }
