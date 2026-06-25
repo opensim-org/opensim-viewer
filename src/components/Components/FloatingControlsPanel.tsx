@@ -14,6 +14,7 @@ import SnapShotModal from './SnapShotModal';
 import { ModelInfo } from '../../state/ModelUIState';
 import { observer } from "mobx-react";
 import TripodCombo from './TripodCombo';
+import DollyIcon from './DollyIcon';
 interface FloatingControlsPanelProps {
   videoRecorderRef: any;
   info: ModelInfo;
@@ -90,28 +91,15 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
           <TripodCombo />
         </Grid>
 
-        {!curState.isGuiMode &&
         <Grid item xs={6}>
-          <Tooltip title={t('floatingButton.model_info')} placement="right">
-              <IconButton
-                color="primary"
-                onClick={handleInfoButtonClick}>
-                  <InfoIcon />
-              </IconButton>
-          </Tooltip>
+            <IconButton 
+              color="primary">
+              <DollyIcon />
+            </IconButton>
         </Grid>
-        }
+
       </Grid>
 
-      {isWindowOpen &&
-        <div className="floating-window">
-        {props.info.model_name}
-        <br></br>
-        Description: {props.info.desc}
-        <br></br>
-        Authors: {props.info.authors}
-        </div>
-      }
     </div>
   );
 };
