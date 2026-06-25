@@ -115,12 +115,12 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
 
       // Set start time
       if(viewerState.videoRecorderStartTime) {
-        setStartTime(viewerState.videoRecorderStartTime)
+        setStartTime(String(viewerState.videoRecorderStartTime))
       }
 
       // Set end time
       if(viewerState.videoRecorderEndTime) {
-        setEndTime(viewerState.videoRecorderEndTime)
+        setEndTime(String(viewerState.videoRecorderEndTime))
       }
     }
   }, [open, viewerState]);
