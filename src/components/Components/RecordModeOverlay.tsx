@@ -27,7 +27,7 @@ const OverlayContainer = styled(Box)({
   padding: "12px 24px",
   borderRadius: "40px",
   backdropFilter: "blur(8px)",
-  zIndex: 9999,
+  zIndex: 1000,
   boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
 });
 

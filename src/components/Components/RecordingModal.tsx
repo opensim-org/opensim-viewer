@@ -129,7 +129,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} aria-labelledby="recording-dialog">
+    <Dialog open={open} onClose={onClose} aria-labelledby="recording-dialog" style={{ zIndex: 1001 }}>
       <DialogTitle>{t("bottomBar.record")}</DialogTitle>
 
       <DialogContent sx={{ minWidth: 300 }}>
