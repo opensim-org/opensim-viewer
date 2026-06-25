@@ -68,6 +68,7 @@ export default observer(function TripodCombo() {
         sx={{ borderRadius: '8px', gap: 0.5 }}
         aria-haspopup="listbox"
         aria-expanded={open}
+        color="primary"
       >
         <TripodIcon />
         <Typography variant="caption" sx={{ maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis' }}>
