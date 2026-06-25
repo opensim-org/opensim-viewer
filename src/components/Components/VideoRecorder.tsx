@@ -435,10 +435,13 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       throw new Error('No frames captured');
     }
 
+    const numIterations = viewerState.videoRecorderNumIterations || 1;
+    const totalFrames = capturedFrames.current.length * numIterations;
+
     // Add validation for reasonable frame count
     const MAX_FRAMES = 3000; // ~100 seconds at 30fps
-    if (capturedFrames.current.length > MAX_FRAMES) {
-      throw new Error(`Too many frames (${capturedFrames.current.length}). Maximum supported: ${MAX_FRAMES}`);
+    if (totalFrames > MAX_FRAMES) {
+      throw new Error(`Too many frames (${totalFrames}). Maximum supported: ${MAX_FRAMES}`);
     }
 
     // Check device memory with type-safe approach
@@ -455,21 +458,26 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     if (!loaded) throw new Error('FFmpeg not loaded');
 
     try {
-      // Write frames to FFmpeg
-      for (let i = 0; i < capturedFrames.current.length; i++) {
-        const response = await fetch(capturedFrames.current[i]);
-        const blob = await response.blob();
+      // Write frames to FFmpeg - duplicate frames for multiple iterations
+      let frameIndex = 0;
+      for (let iter = 0; iter < numIterations; iter++) {
+        for (let i = 0; i < capturedFrames.current.length; i++) {
+          const response = await fetch(capturedFrames.current[i]);
+          const blob = await response.blob();
 
-        // Check blob size
-        if (blob.size === 0) {
-          throw new Error(`Frame ${i} is empty`);
-        }
+          // Check blob size
+          if (blob.size === 0) {
+            throw new Error(`Frame ${frameIndex} is empty`);
+          }
 
-        await ffmpeg.writeFile(`input${String(i).padStart(3, '0')}.png`, await fetchFile(blob));
+          const frameNumber = String(frameIndex).padStart(3, '0');
+          await ffmpeg.writeFile(`input${frameNumber}.png`, await fetchFile(blob));
+          frameIndex++;
 
-        // Progress notification for long recordings
-        if (i % 30 === 0) {
-          console.log(`Processed ${i}/${capturedFrames.current.length} frames`);
+          // Progress notification for long recordings
+          if (frameIndex % 30 === 0) {
+            console.log(`Processed ${frameIndex}/${totalFrames} frames (iteration ${iter + 1}/${numIterations})`);
+          }
         }
       }
 
@@ -518,14 +526,17 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     }
   };
 
-  const encodeFramesToGif = async () => {
+    const encodeFramesToGif = async () => {
     if (capturedFrames.current.length === 0) {
       throw new Error('No frames captured');
     }
 
+    const numIterations = viewerState.videoRecorderNumIterations || 1;
+    const totalFrames = capturedFrames.current.length * numIterations;
+
     const MAX_FRAMES = 500; // GIFs have lower limit
-    if (capturedFrames.current.length > MAX_FRAMES) {
-      throw new Error(`Too many frames for GIF (${capturedFrames.current.length}). Maximum supported: ${MAX_FRAMES}`);
+    if (totalFrames > MAX_FRAMES) {
+      throw new Error(`Too many frames for GIF (${totalFrames}). Maximum supported: ${MAX_FRAMES}`);
     }
 
     const ffmpeg = ffmpegRef.current;
@@ -533,10 +544,16 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     if (!loaded) throw new Error('FFmpeg not loaded');
 
     try {
-      for (let i = 0; i < capturedFrames.current.length; i++) {
-        const response = await fetch(capturedFrames.current[i]);
-        const blob = await response.blob();
-        await ffmpeg.writeFile(`gif${String(i).padStart(3, '0')}.png`, await fetchFile(blob));
+      // Write frames to FFmpeg - duplicate frames for multiple iterations
+      let frameIndex = 0;
+      for (let iter = 0; iter < numIterations; iter++) {
+        for (let i = 0; i < capturedFrames.current.length; i++) {
+          const response = await fetch(capturedFrames.current[i]);
+          const blob = await response.blob();
+          const frameNumber = String(frameIndex).padStart(3, '0');
+          await ffmpeg.writeFile(`gif${frameNumber}.png`, await fetchFile(blob));
+          frameIndex++;
+        }
       }
 
       let fps = viewerState.recordedVideoFPS || 30;
@@ -752,7 +769,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       startCaptureProcess(recordingStartTime, recordingEndTime, isFullAnimation);
     };
 
-    const startCaptureProcess = (recordingStartTime: number = 0, recordingEndTime: number = 0, isFullAnimation: boolean = true) => {
+      const startCaptureProcess = (recordingStartTime: number = 0, recordingEndTime: number = 0, isFullAnimation: boolean = true) => {
       const fps = viewerState.recordedVideoFPS || 30;
       const numIterations = viewerState.videoRecorderNumIterations || 1;
 
@@ -770,8 +787,8 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       }
 
       if (animationSpeed > 0) {
-        // Adjust duration based on speed and number of iterations
-        effectiveDuration = (animationDurationRef.current / animationSpeed) * numIterations;
+        // Adjust duration based on speed - only for ONE iteration
+        effectiveDuration = animationDurationRef.current / animationSpeed;
       } else {
         // Speed is 0. Cancel recording.
         console.warn('Animation speed is 0, recording may not work as expected');
@@ -783,8 +800,9 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         return;
       }
 
-      // Calculate total frames based on effective duration
-      const totalFrames = Math.ceil(effectiveDuration * effectiveFps);
+      // Calculate frames for ONE iteration only
+      const framesPerIteration = Math.ceil(effectiveDuration * effectiveFps);
+      const totalFrames = framesPerIteration * numIterations;
 
       // Validate total frames
       if (totalFrames > 5000) {
@@ -827,12 +845,10 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         // The animation time offset for the start of the segment
         const segmentStartOffset = isFullAnimation ? 0 : recordingStartTime;
 
-        while (isRecordingRef.current && frameCount < totalFrames && captureErrors < MAX_ERRORS) {
+        // Only capture ONE iteration worth of frames
+        while (isRecordingRef.current && frameCount < framesPerIteration && captureErrors < MAX_ERRORS) {
           // Calculate the time within the segment (0 to segmentDuration)
           const timeInSegment = (frameCount / effectiveFps) * animationSpeed;
-
-          // Calculate which iteration we're in
-          currentIteration = Math.floor(timeInSegment / segmentDuration);
 
           // Calculate the time within the current iteration (0 to segmentDuration)
           const timeInIteration = timeInSegment % segmentDuration;
@@ -851,7 +867,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
           viewerState.setCurrentAnimationTime(animationTime);
 
           // Calculate progress percentage based on actual frames captured vs total frames we expect to capture
-          const progressPercent = (frameCount / totalFrames) * 100;
+          const progressPercent = (frameCount / framesPerIteration) * 100;
           curState.setCurrentFrame(progressPercent);
 
           // Wait for rendering to complete
@@ -865,16 +881,21 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
             // Log progress
             if (frameCount % 10 === 0) {
-              const iterationInfo = numIterations > 1 ? ` (iteration ${currentIteration + 1}/${numIterations})` : '';
               const timeInfo = isFullAnimation ?
                 `time: ${animationTime.toFixed(2)}s` :
                 `segment: ${(timeInIteration).toFixed(2)}/${segmentDuration.toFixed(2)}s`;
-              console.log(`Captured ${frameCount}/${totalFrames} frames${iterationInfo} - ${timeInfo}`);
+              console.log(`Captured ${frameCount}/${framesPerIteration} frames - ${timeInfo}`);
             }
           } else {
             captureErrors++;
             console.error(`Frame capture failed (${captureErrors}/${MAX_ERRORS})`);
           }
+        }
+
+        // If we have frames captured and need multiple iterations, store the iteration count
+        if (capturedFrames.current.length > 0 && numIterations > 1) {
+          // We'll handle duplication during encoding
+          console.log(`Captured ${capturedFrames.current.length} frames for 1 iteration. Will duplicate for ${numIterations} iterations.`);
         }
 
         stopRecording();
