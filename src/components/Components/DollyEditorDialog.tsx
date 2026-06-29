@@ -150,7 +150,7 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => 
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle>Edit Dolly</DialogTitle>
+      <DialogTitle>Create/Edit Dolly</DialogTitle>
       <DialogContent>
         <TextField
           label="Dolly Name"
@@ -168,9 +168,9 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => 
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Camera Name</TableCell>
+              <TableCell>Tripod Name</TableCell>
               <TableCell>Time</TableCell>
-              <TableCell>Actions</TableCell>
+              <TableCell>Action</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

@@ -90,6 +90,7 @@ export class ViewerState {
     // update control
     sceneVersion: number
     // cameras
+    defaultCamera: Camera | null
     cameras: Camera[]
     targets: Vector3[]
     currentCameraIndex: number
@@ -104,6 +105,7 @@ export class ViewerState {
     animating: boolean
     animationSpeed: number
     animations: AnimationClip[]
+    isDollyAnimation: boolean[] = []
     animationStartTimes: number[] // parallel array to animations to track start time for each clip, needed for proper synchronization when multiple clips are playing  
     animationRoots: Object3D[] // roots for each animation clip
     currentAnimationIndices: number[]
@@ -182,6 +184,7 @@ export class ViewerState {
         this.rotating = false;
         this.pending_key = ""
         this.sceneVersion = 0
+        this.defaultCamera = null
         this.cameras = []
         this.targets = []
         this.currentCameraIndex = -1
@@ -385,6 +388,9 @@ export class ViewerState {
     setUserPreferencesJsonPath(path: string) {
       this.userPreferencesJsonPath = path
     }
+    setDefaultCamera(cam: Camera) {
+        this.defaultCamera = cam
+    }
     setCamerasList(cameras: Camera[]) {
         this.cameras=cameras
     }
@@ -400,12 +406,15 @@ export class ViewerState {
     addCameraDolly(newSequence:CameraDolly){
         this.cameraDollies.push(newSequence);
         this.animations.push(this.createAnimationClipFromSequence(newSequence));
+        this.isDollyAnimation.push(true)
         this.animationStartTimes.push(0); // default to 0, can be updated when play starts or when sequence is updated
-        this.animationRoots.push(this.cameras[0]);
+        this.animationRoots.push(this.defaultCamera!); // Should be default camera
         this.addCurrentAnimationIndex(this.animations.length - 1);
         this.setCurrentDollyIndex(this.cameraDollies.length - 1);
-        this.animationChange = {index:this.currentDollyIndex, operation:"add"};
+        const dollyAnimationIndex = this.animations.length - 1;
+        this.animationChange = {index:dollyAnimationIndex, operation:"add"};
         this.setAnimationsNeedUpdate(true);
+        this.animating = true;
 
     }
     updateCameraDolly(newSequence:CameraDolly){
@@ -453,6 +462,7 @@ export class ViewerState {
         for (let i = indicesToRemove.length - 1; i >= 0; i--) {
             const idx = indicesToRemove[i];
             this.animations.splice(idx, 1);
+            this.isDollyAnimation.splice(idx, 1);
             this.animationStartTimes.splice(idx, 1);
             this.animationRoots.splice(idx, 1);
             this.removeCurrentAnimationIndex(idx);
@@ -509,7 +519,7 @@ export class ViewerState {
             if (this.saveCameraName !== undefined && this.saveCameraName !== "" )
                 camClone.name = this.saveCameraName;
             else
-                camClone.name = "Camera_"+this.cameras.length
+                camClone.name = "Tripod_"+this.cameras.length
         }
         else
             camClone.name = suggestedName;

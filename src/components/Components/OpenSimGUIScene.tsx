@@ -23,7 +23,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     const { set, gl} = useThree();
     const { scene, camera } = useThree();
     const viewerState = useModelContext().viewerState;
-
+    viewerState.setDefaultCamera(camera);
     const sceneRef = useRef<THREE.Scene>(scene);
     const [sceneObjectMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
     const [useEffectRunning, setUseEffectRunning] = useState<boolean>(false)
@@ -303,6 +303,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         for (const idx in indices) {
           const animIndex = indices[idx];
           const mixer = mixers[animIndex];
+          if (mixer === undefined) continue; // Guard against mixer not populated yet pending useEffect
           const action = mixer.clipAction(viewerState.animations[animIndex]);
           const duration = action.getClip().duration;
 
