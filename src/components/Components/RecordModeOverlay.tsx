@@ -27,7 +27,7 @@ const OverlayContainer = styled(Box)({
   padding: "12px 24px",
   borderRadius: "40px",
   backdropFilter: "blur(8px)",
-  zIndex: 9999,
+  zIndex: 1000,
   boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
 });
 
@@ -187,16 +187,6 @@ const RecordModeOverlay: React.FC<RecordModeOverlayProps> = ({
             <InfoIcon />
           </Tooltip>
         </InfoButton>
-
-
-      <StyledButton
-        className="record-button"
-        variant="contained"
-        onClick={handleRecordClick}
-        disabled={isRecording}
-      >
-        {isRecording ? "Recording..." : "Record"}
-      </StyledButton>
 
         <StyledButton
           className="options-button"
