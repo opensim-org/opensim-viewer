@@ -557,6 +557,7 @@ export class ModelUIState {
         const clip = AnimationClip.parse(clipMessage.Clip); // This creates an AnimationClip instance
         const startTime = this.getClipStartTime(clip);
         this.viewerState.animations.push(clip);
+        this.viewerState.isDollyAnimation.push(false)
         this.viewerState.animationStartTimes.push(startTime);
         const index = this.viewerState.animations.length - 1;
         console.log(`Creating Animation Clip: Name=${clip.name}, Duration=${clip.duration}`);

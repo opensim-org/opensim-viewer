@@ -1,8 +1,8 @@
 import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import SettingsIcon from "@mui/icons-material/Settings";
+
 import DollyIcon from './DollyIcon';
 import React, { useState } from 'react';
 import { useModelContext } from '../../state/ModelUIStateContext';
@@ -55,10 +55,7 @@ export default observer(function DollyCombo() {
         color="primary"
       >
         <DollyIcon />
-        <Typography variant="caption" sx={{ maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {curState.viewerState.currentDollyIndex!==-1?selected:options[0]}
-        </Typography>
-        <KeyboardArrowDownIcon sx={{ fontSize: '0.875rem', transform: open ? 'rotate(180deg)' : 'none', transition: '0.2s' }} />
+        <SettingsIcon />
       </IconButton>
 
       <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>

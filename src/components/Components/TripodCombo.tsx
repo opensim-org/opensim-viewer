@@ -1,6 +1,5 @@
 import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import SettingsIcon from "@mui/icons-material/Settings";
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import TripodIcon from './TripodIcon';
@@ -72,10 +71,7 @@ export default observer(function TripodCombo() {
         color="primary"
       >
         <TripodIcon />
-        <Typography variant="caption" sx={{ maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {curState.viewerState.currentCameraIndex!==-1?selected:options[0]}
-        </Typography>
-        <KeyboardArrowDownIcon sx={{ fontSize: '0.875rem', transform: open ? 'rotate(180deg)' : 'none', transition: '0.2s' }} />
+        <SettingsIcon />
       </IconButton>
 
       <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
