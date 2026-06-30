@@ -11,6 +11,13 @@ import { getTimestamp } from "../../helpers/timeHelpers";
 import { WebGLRenderer } from 'three';
 import JSZip from 'jszip';
 
+import {
+  drawWatermark,
+  loadWatermarkImage,
+  isWatermarkReady,
+  getWatermarkImage
+} from '../../helpers/watermarkUtils';
+
 // Extend Navigator interface to include deviceMemory
 interface NavigatorWithMemory extends Navigator {
   deviceMemory?: number;
@@ -52,14 +59,8 @@ function VideoRecorder(props: VideoRecorderViewProps) {
   const animationDurationRef = useRef(0);
   const ffmpegLoadedRef = useRef(false);
 
-  // Store original camera state
-
   // Offscreen renderer
   const offscreenRenderer = useRef<WebGLRenderer | null>(null);
-
-  // Watermark references
-  const watermarkImageRef = useRef<HTMLImageElement | null>(null);
-  const watermarkLoadedRef = useRef(false);
 
   // Check if local file exists
   const checkLocalFileExists = async (url: string): Promise<boolean> => {
@@ -72,22 +73,10 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     }
   };
 
-  // Helper function to load image
-  const loadImage = (url: string): Promise<HTMLImageElement> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error(`Failed to load image: ${url}`));
-      img.src = url;
-    });
-  };
-
   // Load watermark image
   const loadWatermark = async () => {
     try {
-      const img = await loadImage('/assets/opensimLogo23.png');
-      watermarkImageRef.current = img;
-      watermarkLoadedRef.current = true;
+      await loadWatermarkImage('/assets/opensimLogo23.png');
       console.log('Watermark loaded successfully');
     } catch (error) {
       console.error('Failed to load watermark:', error);
@@ -98,41 +87,6 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         });
       }
     }
-  };
-
-  // Draw watermark on canvas
-  const drawWatermark = (
-    ctx: CanvasRenderingContext2D,
-    canvasWidth: number,
-    canvasHeight: number
-  ): void => {
-    if (!watermarkImageRef.current) return;
-
-    const watermarkImg = watermarkImageRef.current;
-
-    // Calculate watermark size - consistent relative to video dimensions
-    // Adjust these values to get the desired watermark size
-    const relativeSize = Math.min(
-      canvasWidth * 0.1,  // 10% of video width
-      150,  // Maximum size in pixels
-      Math.max(50, canvasHeight * 0.08) // At least 8% of height or 50px
-    );
-
-    // Maintain aspect ratio
-    const aspectRatio = watermarkImg.width / watermarkImg.height;
-    const watermarkWidth = relativeSize;
-    const watermarkHeight = relativeSize / aspectRatio;
-
-    // Position at bottom left with padding
-    const padding = Math.max(10, Math.min(canvasWidth * 0.05, 20)); // 2% padding, min 10px, max 20px
-    const x = padding;
-    const y = canvasHeight - watermarkHeight - padding;
-
-    // Draw with slight transparency
-    ctx.save();
-    ctx.globalAlpha = 0.85;
-    ctx.drawImage(watermarkImg, x, y, watermarkWidth, watermarkHeight);
-    ctx.restore();
   };
 
   // Load FFmpeg once and track loading state
@@ -345,7 +299,6 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       offscreenRenderer.current.render(scene, camera);
 
       const ctx = offscreenRenderer.current.getContext();
-
       const buffer = new Uint8Array(width * height * 4);
       ctx.readPixels(0, 0, width, height, ctx.RGBA, ctx.UNSIGNED_BYTE, buffer);
 
@@ -371,13 +324,11 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       baseCtx.putImageData(img, 0, 0);
 
       // Crop to target aspect ratio
-      const { cropWidth, cropHeight, offsetX, offsetY } =
-        computeCrop(width, height);
+      const { cropWidth, cropHeight, offsetX, offsetY } = computeCrop(width, height);
 
       const finalCanvas = document.createElement('canvas');
       finalCanvas.width = cropWidth;
       finalCanvas.height = cropHeight;
-
       const finalCtx = finalCanvas.getContext('2d')!;
 
       // Draw the cropped portion first
@@ -387,13 +338,16 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         0, 0, cropWidth, cropHeight
       );
 
-      // Draw watermark on the final cropped canvas
-      if (watermarkLoadedRef.current) {
-        drawWatermark(finalCtx, cropWidth, cropHeight);
+      // Draw watermark on the final cropped canvas using imported function
+      if (isWatermarkReady()) {
+        try {
+          drawWatermark(finalCtx, cropWidth, cropHeight, getWatermarkImage());
+        } catch (error) {
+          console.error('Failed to draw watermark:', error);
+        }
       }
 
       return finalCanvas.toDataURL('image/png');
-
     } catch (error) {
       console.error('Frame capture failed:', error);
       return null;
@@ -435,10 +389,13 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       throw new Error('No frames captured');
     }
 
+    const numIterations = viewerState.videoRecorderNumIterations || 1;
+    const totalFrames = capturedFrames.current.length * numIterations;
+
     // Add validation for reasonable frame count
     const MAX_FRAMES = 3000; // ~100 seconds at 30fps
-    if (capturedFrames.current.length > MAX_FRAMES) {
-      throw new Error(`Too many frames (${capturedFrames.current.length}). Maximum supported: ${MAX_FRAMES}`);
+    if (totalFrames > MAX_FRAMES) {
+      throw new Error(`Too many frames (${totalFrames}). Maximum supported: ${MAX_FRAMES}`);
     }
 
     // Check device memory with type-safe approach
@@ -455,21 +412,26 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     if (!loaded) throw new Error('FFmpeg not loaded');
 
     try {
-      // Write frames to FFmpeg
-      for (let i = 0; i < capturedFrames.current.length; i++) {
-        const response = await fetch(capturedFrames.current[i]);
-        const blob = await response.blob();
+      // Write frames to FFmpeg - duplicate frames for multiple iterations
+      let frameIndex = 0;
+      for (let iter = 0; iter < numIterations; iter++) {
+        for (let i = 0; i < capturedFrames.current.length; i++) {
+          const response = await fetch(capturedFrames.current[i]);
+          const blob = await response.blob();
 
-        // Check blob size
-        if (blob.size === 0) {
-          throw new Error(`Frame ${i} is empty`);
-        }
+          // Check blob size
+          if (blob.size === 0) {
+            throw new Error(`Frame ${frameIndex} is empty`);
+          }
 
-        await ffmpeg.writeFile(`input${String(i).padStart(3, '0')}.png`, await fetchFile(blob));
+          const frameNumber = String(frameIndex).padStart(3, '0');
+          await ffmpeg.writeFile(`input${frameNumber}.png`, await fetchFile(blob));
+          frameIndex++;
 
-        // Progress notification for long recordings
-        if (i % 30 === 0) {
-          console.log(`Processed ${i}/${capturedFrames.current.length} frames`);
+          // Progress notification for long recordings
+          if (frameIndex % 30 === 0) {
+            console.log(`Processed ${frameIndex}/${totalFrames} frames (iteration ${iter + 1}/${numIterations})`);
+          }
         }
       }
 
@@ -518,14 +480,17 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     }
   };
 
-  const encodeFramesToGif = async () => {
+    const encodeFramesToGif = async () => {
     if (capturedFrames.current.length === 0) {
       throw new Error('No frames captured');
     }
 
+    const numIterations = viewerState.videoRecorderNumIterations || 1;
+    const totalFrames = capturedFrames.current.length * numIterations;
+
     const MAX_FRAMES = 500; // GIFs have lower limit
-    if (capturedFrames.current.length > MAX_FRAMES) {
-      throw new Error(`Too many frames for GIF (${capturedFrames.current.length}). Maximum supported: ${MAX_FRAMES}`);
+    if (totalFrames > MAX_FRAMES) {
+      throw new Error(`Too many frames for GIF (${totalFrames}). Maximum supported: ${MAX_FRAMES}`);
     }
 
     const ffmpeg = ffmpegRef.current;
@@ -533,10 +498,16 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     if (!loaded) throw new Error('FFmpeg not loaded');
 
     try {
-      for (let i = 0; i < capturedFrames.current.length; i++) {
-        const response = await fetch(capturedFrames.current[i]);
-        const blob = await response.blob();
-        await ffmpeg.writeFile(`gif${String(i).padStart(3, '0')}.png`, await fetchFile(blob));
+      // Write frames to FFmpeg - duplicate frames for multiple iterations
+      let frameIndex = 0;
+      for (let iter = 0; iter < numIterations; iter++) {
+        for (let i = 0; i < capturedFrames.current.length; i++) {
+          const response = await fetch(capturedFrames.current[i]);
+          const blob = await response.blob();
+          const frameNumber = String(frameIndex).padStart(3, '0');
+          await ffmpeg.writeFile(`gif${frameNumber}.png`, await fetchFile(blob));
+          frameIndex++;
+        }
       }
 
       let fps = viewerState.recordedVideoFPS || 30;
@@ -658,7 +629,6 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         return;
       }
 
-
       // Check if FFmpeg is loaded
       if (!ffmpegLoadedRef.current) {
         enqueueSnackbar('Video encoder not ready yet. Please try again in a moment.', {
@@ -689,9 +659,54 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         return;
       }
 
+      // Determine recording start and end times
+      let recordingStartTime = 0;
+      let recordingEndTime = animation.duration;
+      let isFullAnimation = true;
+
+      if (!viewerState.isRecordingFullAnimation) {
+        // Use custom start and end times
+        const startTime = viewerState.videoRecorderStartTime || 0;
+        let endTime = viewerState.videoRecorderEndTime || animation.duration;
+
+        // Clamp end time to animation duration
+        endTime = Math.min(endTime, animation.duration);
+
+        // Validate times
+        if (startTime >= endTime) {
+          enqueueSnackbar('Start time must be less than end time', {
+            variant: 'warning',
+            autoHideDuration: 5000
+          });
+          return;
+        }
+
+        if (endTime - startTime < 0.5) {
+          enqueueSnackbar('Recording duration must be at least 0.5 seconds', {
+            variant: 'warning',
+            autoHideDuration: 5000
+          });
+          return;
+        }
+
+        recordingStartTime = startTime;
+        recordingEndTime = endTime;
+        isFullAnimation = false;
+      }
+
       const startTime = viewerState.animationStartTimes[animationIndex] || 0;
+
+      // For full animation recording, use the full duration minus start time offset
+      // For partial recording, use the specified segment duration
+      let effectiveDuration;
+      if (isFullAnimation) {
+        effectiveDuration = animation.duration - startTime;
+      } else {
+        effectiveDuration = recordingEndTime - recordingStartTime;
+      }
+
       curState.guiAnimationStartTime = startTime; // Reset animation start time
-      animationDurationRef.current = animation.duration - startTime; //account for non-zero start
+      animationDurationRef.current = effectiveDuration;
 
       // Setup offscreen rendering with correct dimensions and aspect ratio
       setupOffscreenRenderer();
@@ -704,11 +719,13 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       // Wait for animation to reset and render
       await waitForNextFrame(true);
 
-      startCaptureProcess();
+      // Start capture with the correct start time
+      startCaptureProcess(recordingStartTime, recordingEndTime, isFullAnimation);
     };
 
-    const startCaptureProcess = () => {
+      const startCaptureProcess = (recordingStartTime: number = 0, recordingEndTime: number = 0, isFullAnimation: boolean = true) => {
       const fps = viewerState.recordedVideoFPS || 30;
+      const numIterations = viewerState.videoRecorderNumIterations || 1;
 
       // Speed from currentState
       const animationSpeed = curState.guiAnimationSpeed;
@@ -724,7 +741,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       }
 
       if (animationSpeed > 0) {
-        // Adjust duration based on speed
+        // Adjust duration based on speed - only for ONE iteration
         effectiveDuration = animationDurationRef.current / animationSpeed;
       } else {
         // Speed is 0. Cancel recording.
@@ -737,8 +754,9 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         return;
       }
 
-      // Calculate total frames based on effective duration
-      const totalFrames = Math.ceil(effectiveDuration * effectiveFps);
+      // Calculate frames for ONE iteration only
+      const framesPerIteration = Math.ceil(effectiveDuration * effectiveFps);
+      const totalFrames = framesPerIteration * numIterations;
 
       // Validate total frames
       if (totalFrames > 5000) {
@@ -754,7 +772,10 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       viewerState.animating = false; // avoid useFrame mixer advancing
       curState.viewerState.setAnimationsNeedUpdate(true);
 
-      enqueueSnackbar(t('snackbars.recording_video'), {
+      const iterationMessage = numIterations > 1 ? ` for ${numIterations} iterations` : '';
+      const segmentMessage = !isFullAnimation ? ` (${recordingStartTime.toFixed(2)}s to ${recordingEndTime.toFixed(2)}s)` : '';
+
+      enqueueSnackbar(`Recording${iterationMessage}${segmentMessage}...`, {
         variant: 'info',
         persist: true,
         autoHideDuration: 10000
@@ -770,15 +791,37 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       let animationStartTime = viewerState.animationStartTimes[animationIndex] || 0;
 
       const loop = async () => {
-        while (isRecordingRef.current && frameCount < totalFrames && captureErrors < MAX_ERRORS) {
-          // Calculate animation time based on speed
-          const animationTime = (frameCount / effectiveFps) * animationSpeed + animationStartTime;
+        let currentIteration = 0;
+
+        // Determine the segment duration for partial recording
+        const segmentDuration = isFullAnimation ? animationDurationRef.current : (recordingEndTime - recordingStartTime);
+
+        // The animation time offset for the start of the segment
+        const segmentStartOffset = isFullAnimation ? 0 : recordingStartTime;
+
+        // Only capture ONE iteration worth of frames
+        while (isRecordingRef.current && frameCount < framesPerIteration && captureErrors < MAX_ERRORS) {
+          // Calculate the time within the segment (0 to segmentDuration)
+          const timeInSegment = (frameCount / effectiveFps) * animationSpeed;
+
+          // Calculate the time within the current iteration (0 to segmentDuration)
+          const timeInIteration = timeInSegment % segmentDuration;
+
+          // Calculate the absolute animation time
+          let animationTime;
+          if (isFullAnimation) {
+            // Full animation: start from animationStartTime and go forward
+            animationTime = timeInIteration + animationStartTime;
+          } else {
+            // Partial recording: start from recordingStartTime and go forward
+            animationTime = timeInIteration + recordingStartTime;
+          }
 
           // Set animation time
           viewerState.setCurrentAnimationTime(animationTime);
 
           // Calculate progress percentage based on actual frames captured vs total frames we expect to capture
-          const progressPercent = (frameCount / totalFrames) * 100;
+          const progressPercent = (frameCount / framesPerIteration) * 100;
           curState.setCurrentFrame(progressPercent);
 
           // Wait for rendering to complete
@@ -792,12 +835,21 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
             // Log progress
             if (frameCount % 10 === 0) {
-              console.log(`Captured ${frameCount}/${totalFrames} frames (speed: ${animationSpeed}x)`);
+              const timeInfo = isFullAnimation ?
+                `time: ${animationTime.toFixed(2)}s` :
+                `segment: ${(timeInIteration).toFixed(2)}/${segmentDuration.toFixed(2)}s`;
+              console.log(`Captured ${frameCount}/${framesPerIteration} frames - ${timeInfo}`);
             }
           } else {
             captureErrors++;
             console.error(`Frame capture failed (${captureErrors}/${MAX_ERRORS})`);
           }
+        }
+
+        // If we have frames captured and need multiple iterations, store the iteration count
+        if (capturedFrames.current.length > 0 && numIterations > 1) {
+          // We'll handle duplication during encoding
+          console.log(`Captured ${capturedFrames.current.length} frames for 1 iteration. Will duplicate for ${numIterations} iterations.`);
         }
 
         stopRecording();

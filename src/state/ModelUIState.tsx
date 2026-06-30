@@ -26,12 +26,18 @@ export class SnapshotProps {
     height: number
     preserve_aspect_ratio: boolean
     transparent_background: boolean
+    image_format: string
+    quality_level: string
+    aspect_ratio: string
     constructor(){
         this.size_choice = "screen"
         this.height = 600
         this.width = 800
         this.preserve_aspect_ratio = true
         this.transparent_background = false
+        this.image_format = "png"
+        this.quality_level = "1080p HD"
+        this.aspect_ratio = "16:9"
     }
 }
 
