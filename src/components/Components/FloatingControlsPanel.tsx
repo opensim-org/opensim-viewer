@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import './FloatingControlsPanel.css';
 import ZoomOutTwoToneIcon from '@mui/icons-material/ZoomOutTwoTone';
 import ZoomInTwoToneIcon from '@mui/icons-material/ZoomInTwoTone';
+import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
 import FitScreenTwoToneIcon from '@mui/icons-material/FitScreenTwoTone';
 import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
 import { useModelContext } from '../../state/ModelUIStateContext';

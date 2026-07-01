@@ -1,3 +1,4 @@
+import React, { useEffect, useRef } from 'react';
 import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -8,7 +9,6 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import { observer } from "mobx-react";
 import { useModelContext } from "../../state/ModelUIStateContext";
 import RecordingModal from "./RecordingModal";
-import React from "react";
 
 interface RecordModeOverlayProps {
   videoRecorderRef: React.RefObject<any>;
@@ -27,18 +27,18 @@ const OverlayContainer = styled(Box)({
   padding: "12px 24px",
   borderRadius: "40px",
   backdropFilter: "blur(8px)",
-  zIndex: 9999,
+  zIndex: 1000,
   boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
 });
 
 const StyledButton = styled(Button)({
-  minWidth: "100px",
-  fontWeight: "bold",
-  "&.record-button": {
-    backgroundColor: "#ff4444",
-    color: "white",
-    "&:hover": {
-      backgroundColor: "#cc0000",
+  minWidth: '100px',
+  fontWeight: 'bold',
+  '&.record-button': {
+    backgroundColor: '#ff4444',
+    color: 'white',
+    '&:hover': {
+      backgroundColor: '#cc0000',
     },
   },
   "&.cancel-button": {
@@ -70,9 +70,35 @@ const RecordModeOverlay: React.FC<RecordModeOverlayProps> = ({
   onRecordComplete,
 }) => {
   const uiState = useModelContext();
+  const [originalShowGuides, setOriginalShowGuides] = React.useState<boolean | undefined>(undefined);
   const [infoTooltipOpen, setInfoTooltipOpen] = React.useState(false);
   const [isRecording, setIsRecording] = React.useState(false);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+
+  // Save original state when entering record mode and restore when exiting
+  useEffect(() => {
+
+    if (uiState.isInRecordMode) {
+      // Store the original value before changing it
+      const currentGuideState = uiState.viewerState.showAspectRatioGuides;
+      console.log("Saving original guides state:", currentGuideState);
+      setOriginalShowGuides(currentGuideState);
+
+      // Set showAspectRatioGuides to true
+      if (uiState.viewerState.setShowAspectRatioGuides) {
+        console.log("Setting showAspectRatioGuides to true");
+        uiState.viewerState.setShowAspectRatioGuides(true);
+      }
+    } else if (originalShowGuides !== undefined) {
+      // Restore when exiting record mode
+      console.log("Restoring original guides state:", originalShowGuides);
+      if (uiState.viewerState.setShowAspectRatioGuides) {
+        uiState.viewerState.setShowAspectRatioGuides(originalShowGuides);
+      }
+      // Reset originalShowGuides to avoid restoring again
+      setOriginalShowGuides(undefined);
+    }
+  }, [uiState.isInRecordMode, uiState.viewerState, originalShowGuides]);
 
   const handleOptionsClick = () => {
     console.log("Options clicked - opening recording settings");
@@ -105,7 +131,7 @@ const RecordModeOverlay: React.FC<RecordModeOverlayProps> = ({
       }
 
       // Wait a moment for recording to start properly
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // Exit record mode - this will trigger the useEffect cleanup to restore guides
       console.log("Exiting record mode");
@@ -125,8 +151,8 @@ const RecordModeOverlay: React.FC<RecordModeOverlayProps> = ({
 
   const handleCancelClick = () => {
     console.log("Cancelling record mode");
+    // Simply exit record mode - useEffect will handle restoration
     uiState.setIsInRecordMode(false);
-    uiState.viewerState.setShowAspectRatioGuides?.(false);
   };
 
   const handleInfoClick = () => {

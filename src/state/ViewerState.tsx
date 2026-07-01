@@ -61,6 +61,12 @@ export class ViewerState {
     isProcessingVideo: boolean
     videoRecorderBaseDimension: number
     videoRecorderPreserveAspectRatio: boolean
+
+    isRecordingFullAnimation = true
+    videoRecorderNumIterations: number
+    videoRecorderStartTime: number
+    videoRecorderEndTime: number
+
     user_uuid: string
     // user preferences
     userPreferencesJsonPath: string = ''
@@ -153,6 +159,11 @@ export class ViewerState {
         this.showAspectRatioGuides = false
         this.videoRecorderBaseDimension = 1920
 
+        this.isRecordingFullAnimation = true
+        this.videoRecorderNumIterations = 1
+        this.videoRecorderStartTime = 0.0
+        this.videoRecorderEndTime = 1.0
+
         this.videoRecorderPreserveAspectRatio = true
         this.user_uuid = ''
         this.backgroundColor = new Color(0.12, 0.12, 0.12)
@@ -234,6 +245,10 @@ export class ViewerState {
             showAspectRatioGuides: observable,
             setShowAspectRatioGuides: action,
             setVideoRecorderBaseDimension: action,
+            isRecordingFullAnimation: observable,
+            videoRecorderNumIterations: observable,
+            videoRecorderStartTime: observable,
+            videoRecorderEndTime: observable,
             videoRecorderPreserveAspectRatio: observable,
             userPreferencesJsonPath: observable,
             userPreferences: observable,
@@ -242,6 +257,10 @@ export class ViewerState {
             isProcessingVideo: observable,
             setIsProcessingVideo: action,
             setIsRecordingVideo: action,
+            setIsRecordingFullAnimation: action,
+            setVideoRecorderNumIterations: action,
+            setVideoRecorderStartTime: action,
+            setVideoRecorderEndTime: action,
             defaultFloorTextures: observable,
             skyVisible: observable,
             skyTextureIndex: observable,
@@ -350,6 +369,18 @@ export class ViewerState {
     }
     setIsRecordingVideo(newState: boolean) {
         this.isRecordingVideo = newState
+    }
+    setIsRecordingFullAnimation(newState: boolean) {
+        this.isRecordingFullAnimation = newState
+    }
+    setVideoRecorderNumIterations(newValue: number) {
+        this.videoRecorderNumIterations = newValue
+    }
+    setVideoRecorderStartTime(newValue: number) {
+        this.videoRecorderStartTime = newValue
+    }
+    setVideoRecorderEndTime(newValue: number) {
+        this.videoRecorderEndTime = newValue
     }
     setLightColor(newColor: Color) {
         this.lightColor = newColor

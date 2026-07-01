@@ -437,6 +437,16 @@ useEffect(() => {
                 );
               })()
             )}
+            {curState.isInRecordMode && (
+              (() => {
+                <RecordModeOverlay
+                  videoRecorderRef={videoRecorderRef}
+                  onRecordComplete={() => {
+                    console.log("Recording process finished");
+                  }}
+                />}
+              )())
+            }
             {!canvasLoaded && (
               <div
                 style={{
