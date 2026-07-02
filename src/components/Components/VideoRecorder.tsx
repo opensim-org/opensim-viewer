@@ -664,7 +664,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       let recordingEndTime = animation.duration;
       let isFullAnimation = true;
 
-      if (!viewerState.isRecordingFullAnimation) {
+      if (viewerState.isTrimmingMotion) {
         // Use custom start and end times
         const startTime = viewerState.videoRecorderStartTime || 0;
         let endTime = viewerState.videoRecorderEndTime || animation.duration;

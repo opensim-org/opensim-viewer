@@ -12,6 +12,7 @@ import {
   Checkbox,
   FormControlLabel,
   TextField,
+  Slider,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useModelContext } from "../../state/ModelUIStateContext";
@@ -63,15 +64,21 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
   const [selectedFPS, setSelectedFPS] = useState(30);
   const [selectedAspectRatio, setSelectedAspectRatio] = useState("16:9");
 
-  const [recordFullAnimation, setRecordFullAnimation] = useState(true);
+  const [trimMotion, setTrimMotion] = useState(false);
   const [iterationsToRecord, setIterationsToRecord] = useState<string>("1");
   const [startTime, setStartTime] = useState<string>("0.0");
   const [endTime, setEndTime] = useState<string>("1.0");
-  const [maxIterations, setMaxIterations] = useState<number>(10);
+  const [maxIterations, setMaxIterations] = useState<number>(10); // Limited to 10 to avoid long waiting times.
+
+  // Slider range state
+  const [timeRange, setTimeRange] = useState<number[]>([0, 1]);
+  const [maxTime, setMaxTime] = useState<number>(10);
 
   const getFpsOptions = () => {
     return selectedFormat === "gif" ? fpsValuesGif : fpsValues;
   };
+
+  console.log("Animation End Time: " + curState.guiAnimationEndTime)
 
   // Initialize state from viewerState when modal opens
   useEffect(() => {
@@ -104,8 +111,8 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
       }
 
       // Set is recording full animation
-      if(viewerState.isRecordingFullAnimation) {
-        setRecordFullAnimation(viewerState.isRecordingFullAnimation)
+      if(viewerState.isTrimmingMotion) {
+        setTrimMotion(viewerState.isTrimmingMotion)
       }
 
       // Set num iterations to record
@@ -116,11 +123,15 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
       // Set start time
       if(viewerState.videoRecorderStartTime) {
         setStartTime(String(viewerState.videoRecorderStartTime))
+        // Initialize slider start value
+        setTimeRange(prev => [viewerState.videoRecorderStartTime, prev[1]]);
       }
 
       // Set end time
       if(viewerState.videoRecorderEndTime) {
         setEndTime(String(viewerState.videoRecorderEndTime))
+        // Initialize slider end value
+        setTimeRange(prev => [prev[0], viewerState.videoRecorderEndTime]);
       }
     }
   }, [open, viewerState]);
@@ -162,9 +173,9 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
     }
   };
 
-  const handleIsRecordingFullAnimation = (value: boolean) => {
-    setRecordFullAnimation(value)
-    viewerState.setIsRecordingFullAnimation(value)
+  const handleIsTrimmingMotion = (value: boolean) => {
+    setTrimMotion(value)
+    viewerState.setIsTrimmingMotion(value)
   };
 
   const handleIterationsChange = (value: string) => {
@@ -181,12 +192,30 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
     }
   };
 
+  // Handle slider change with two handlers
+  const handleTimeRangeChange = (event: Event, newValue: number | number[]) => {
+    const range = newValue as number[];
+    setTimeRange(range);
+
+    // Update start time
+    const startValue = range[0];
+    setStartTime(String(startValue));
+    viewerState.setVideoRecorderStartTime(startValue);
+
+    // Update end time
+    const endValue = range[1];
+    setEndTime(String(endValue));
+    viewerState.setVideoRecorderEndTime(endValue);
+  };
+
   const handleStartTimeChange = (value: string) => {
     setStartTime(value);
     // Only update the viewer state if it's a valid number
     const numValue = parseFloat(value);
-    if (!isNaN(numValue) && numValue >= 0) {
+    if (!isNaN(numValue) && numValue >= 0 && numValue < timeRange[1]) {
       viewerState.setVideoRecorderStartTime(numValue);
+      // Update slider
+      setTimeRange([numValue, timeRange[1]]);
     }
   }
 
@@ -194,8 +223,10 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
     setEndTime(value);
     // Only update the viewer state if it's a valid number
     const numValue = parseFloat(value);
-    if (!isNaN(numValue) && numValue >= 0) {
+    if (!isNaN(numValue) && numValue >= 0 && numValue > timeRange[0]) {
       viewerState.setVideoRecorderEndTime(numValue);
+      // Update slider
+      setTimeRange([timeRange[0], numValue]);
     }
   }
 
@@ -220,37 +251,6 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
       <DialogTitle>{t("bottomBar.record")}</DialogTitle>
 
       <DialogContent sx={{ minWidth: 300 }}>
-        {/* Video Format */}
-        <FormControl fullWidth margin="dense">
-          <InputLabel>Video Format</InputLabel>
-          <Select
-            value={selectedFormat}
-            label="Video Format"
-            onChange={(e) => handleFormatChange(e.target.value)}
-          >
-            {videoFormats.map((fmt) => (
-              <MenuItem key={fmt.value} value={fmt.value}>
-                {fmt.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        {/* Quality Level */}
-        <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
-          <InputLabel>Quality Level</InputLabel>
-          <Select
-            value={selectedQuality}
-            label="Quality Level"
-            onChange={(e) => handleQualityChange(e.target.value)}
-          >
-            {qualityLevels.map((quality) => (
-              <MenuItem key={quality.label} value={quality.label}>
-                {quality.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
 
         {/* Aspect Ratio */}
         {curState.showAspectRatioFunctionality && (
@@ -268,8 +268,39 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
               ))}
             </Select>
           </FormControl>
-
         )}
+
+        {/* Quality Level */}
+        <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
+          <InputLabel>Quality Level</InputLabel>
+          <Select
+            value={selectedQuality}
+            label="Quality Level"
+            onChange={(e) => handleQualityChange(e.target.value)}
+          >
+            {qualityLevels.map((quality) => (
+              <MenuItem key={quality.label} value={quality.label}>
+                {quality.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        {/* Video Format */}
+        <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
+          <InputLabel>Video Format</InputLabel>
+          <Select
+            value={selectedFormat}
+            label="Video Format"
+            onChange={(e) => handleFormatChange(e.target.value)}
+          >
+            {videoFormats.map((fmt) => (
+              <MenuItem key={fmt.value} value={fmt.value}>
+                {fmt.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
         {/* FPS */}
         <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
@@ -287,6 +318,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
           </Select>
         </FormControl>
 
+
         {/* Recording Options Section */}
         <div
           style={{
@@ -295,23 +327,13 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
             paddingTop: "16px",
           }}
         >
-          {/* Checkbox: Record full animation or custom times */}
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={recordFullAnimation}
-                onChange={(e) => handleIsRecordingFullAnimation(e.target.checked)}
-                name="recordFullAnimation"
-              />
-            }
-            label="Record full animation"
-          />
+
 
           {/* Number of iterations */}
           <div style={{ marginTop: 2 }}>
             <TextField
               fullWidth
-              label="Number of iterations to record"
+              label="Number of loops to record"
               value={iterationsToRecord}
               onChange={(e) => handleIterationsChange(e.target.value)}
               error={String(iterationsToRecord) !== "" && !validateInteger(String(iterationsToRecord))}
@@ -319,35 +341,66 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
             />
           </div>
 
+          {/* Checkbox: Record full animation or custom times */}
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={trimMotion}
+                onChange={(e) => handleIsTrimmingMotion(e.target.checked)}
+                name="trimMotion"
+              />
+            }
+            label="Trim Motion"
+          />
+
           {/* Custom times section - only shown when not recording full animation */}
-          {!recordFullAnimation && (
-            <div style={{ marginTop: 2, display: "flex", gap: 2 }}>
-              <TextField
-                fullWidth
-                label="Start time (s)"
-                value={startTime}
-                onChange={(e) => handleStartTimeChange(e.target.value)}
-                placeholder="e.g., 0.5"
-                error={startTime !== "" && !validateTimeFormat(startTime)}
-                margin="dense"
-              />
-              <TextField
-                fullWidth
-                label="End time (s)"
-                value={endTime}
-                onChange={(e) => handleEndTimeChange(e.target.value)}
-                placeholder="e.g., 5.0"
-                error={endTime !== "" && !validateTimeFormat(endTime)}
-                margin="dense"
-              />
+          {trimMotion && (
+            <div style={{ marginTop: 2 }}>
+              {/* Dual-handle slider */}
+              <div style={{ marginBottom: "16px" }}>
+                <Slider
+                  value={timeRange}
+                  onChange={handleTimeRangeChange}
+                  valueLabelDisplay="auto"
+                  min={0}
+                  max={maxTime}
+                  step={0.1}
+                  marks={[
+                    { value: 0, label: '0' },
+                    { value: maxTime, label: `${maxTime}s` },
+                  ]}
+                  sx={{ mt: 1 }}
+                />
+              </div>
+
+              {/* Text fields for manual input */}
+              <div style={{ display: "flex", gap: 2 }}>
+                <TextField
+                  fullWidth
+                  label="Start time (s)"
+                  value={startTime}
+                  onChange={(e) => handleStartTimeChange(e.target.value)}
+                  placeholder="e.g., 0.5"
+                  error={startTime !== "" && !validateTimeFormat(startTime)}
+                  margin="dense"
+                />
+                <TextField
+                  fullWidth
+                  label="End time (s)"
+                  value={endTime}
+                  onChange={(e) => handleEndTimeChange(e.target.value)}
+                  placeholder="e.g., 5.0"
+                  error={endTime !== "" && !validateTimeFormat(endTime)}
+                  margin="dense"
+                />
+              </div>
             </div>
           )}
         </div>
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose}>Confirm</Button>
-        <Button onClick={handleRecordingMode}>Record</Button>
+        <Button onClick={onClose}>Close</Button>
       </DialogActions>
     </Dialog>
   );

@@ -62,7 +62,7 @@ export class ViewerState {
     videoRecorderBaseDimension: number
     videoRecorderPreserveAspectRatio: boolean
 
-    isRecordingFullAnimation = true
+    isTrimmingMotion = false
     videoRecorderNumIterations: number
     videoRecorderStartTime: number
     videoRecorderEndTime: number
@@ -155,7 +155,7 @@ export class ViewerState {
         this.showAspectRatioGuides = false
         this.videoRecorderBaseDimension = 1920
 
-        this.isRecordingFullAnimation = true
+        this.isTrimmingMotion = false
         this.videoRecorderNumIterations = 1
         this.videoRecorderStartTime = 0.0
         this.videoRecorderEndTime = 1.0
@@ -238,7 +238,7 @@ export class ViewerState {
             showAspectRatioGuides: observable,
             setShowAspectRatioGuides: action,
             setVideoRecorderBaseDimension: action,
-            isRecordingFullAnimation: observable,
+            isTrimmingMotion: observable,
             videoRecorderNumIterations: observable,
             videoRecorderStartTime: observable,
             videoRecorderEndTime: observable,
@@ -250,7 +250,7 @@ export class ViewerState {
             isProcessingVideo: observable,
             setIsProcessingVideo: action,
             setIsRecordingVideo: action,
-            setIsRecordingFullAnimation: action,
+            setIsTrimmingMotion: action,
             setVideoRecorderNumIterations: action,
             setVideoRecorderStartTime: action,
             setVideoRecorderEndTime: action,
@@ -361,8 +361,8 @@ export class ViewerState {
     setIsRecordingVideo(newState: boolean) {
         this.isRecordingVideo = newState
     }
-    setIsRecordingFullAnimation(newState: boolean) {
-        this.isRecordingFullAnimation = newState
+    setIsTrimmingMotion(newState: boolean) {
+        this.isTrimmingMotion = newState
     }
     setVideoRecorderNumIterations(newValue: number) {
         this.videoRecorderNumIterations = newValue
