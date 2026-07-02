@@ -8,7 +8,6 @@ import ZoomOutTwoToneIcon from '@mui/icons-material/ZoomOutTwoTone';
 import ZoomInTwoToneIcon from '@mui/icons-material/ZoomInTwoTone';
 import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
 import FitScreenTwoToneIcon from '@mui/icons-material/FitScreenTwoTone';
-import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
 import { useModelContext } from '../../state/ModelUIStateContext';
 import SnapShotModal from './SnapShotModal';
 import { ModelInfo } from '../../state/ModelUIState';

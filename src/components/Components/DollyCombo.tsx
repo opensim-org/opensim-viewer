@@ -10,7 +10,7 @@ import { observer } from 'mobx-react-lite';
 import DollyEditorDialog from './DollyEditorDialog';
 
 export default observer(function DollyCombo() {
-  const options = ['Add...'];
+  const options = ['Dollies..'];
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const curState = useModelContext();
   const viewerState = curState.viewerState;
@@ -34,21 +34,14 @@ export default observer(function DollyCombo() {
   });
   const handleOpen = (e: React.MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget);
   const handleClose = () => setAnchorEl(null);
-  const handleSelect = (value: string) => {
-    if (value === 'Add...') {
-      setDollyEditorOpen(true);
-    } else {
-      const idx = viewerState.cameraDollies.findIndex((dolly) => dolly.name === value);
-      curState.viewerState.setCurrentDollyIndex(idx);
-      setSelected(value);
-    }
-    handleClose();
+  const handleSelect = () => {
+      curState.setIsInDollyEditMode(true);
   };
 
   return (
     <>
       <IconButton
-        onClick={handleOpen}
+        onClick={handleSelect}
         sx={{ borderRadius: '8px', gap: 0.5 }}
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -57,18 +50,6 @@ export default observer(function DollyCombo() {
         <DollyIcon />
         <SettingsIcon />
       </IconButton>
-
-      <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-        {options.map(opt => (
-          <MenuItem
-            key={opt}
-            selected={opt === selected}
-            onClick={() => handleSelect(opt)}
-          >
-            {opt}
-          </MenuItem>
-        ))}
-      </Menu>
       <DollyEditorDialog
           open={dollyEditorOpen}
           edit={false}

@@ -1,4 +1,4 @@
-import { Grid, Container, IconButton, ToggleButton, FormControl, Slider, SelectChangeEvent, Input, MenuItem, Select, Divider } from '@mui/material';
+import { Grid, Paper, IconButton, Button, ToggleButton, FormControl, Slider, SelectChangeEvent, Input, MenuItem, Select, Divider } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useState, useEffect } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -19,6 +19,34 @@ const NonAnimatedSlider = styled(Slider)(() => ({
   },
   "& .MuiSlider-track": {
     transition: 'none'
+  },
+}));
+
+// Floating overlay container — replaces the old docked <Container>
+const OverlayPaper = styled(Paper)(({ theme }) => ({
+  position: 'absolute',
+  left: '50%',
+  bottom: theme.spacing(3),
+  transform: 'translateX(-50%)',
+  zIndex: 1200, // sits above the R3F canvas, below modals/dialogs
+  display: 'inline-flex',
+  alignItems: 'center',
+  padding: theme.spacing(0.5, 2),
+  borderRadius: 999, // pill shape
+  maxWidth: 'calc(100vw - 32px)',
+  overflowX: 'auto',
+  overflowY: 'hidden',
+  backgroundColor: theme.palette.mode === 'dark'
+    ? 'rgba(30, 30, 30, 0.72)'
+    : 'rgba(255, 255, 255, 0.82)',
+  backdropFilter: 'blur(10px)',
+  WebkitBackdropFilter: 'blur(10px)',
+  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
+  pointerEvents: 'auto',
+  // hide scrollbar but keep it scrollable on overflow
+  scrollbarWidth: 'thin',
+  '&::-webkit-scrollbar': {
+    height: 4,
   },
 }));
 
@@ -64,7 +92,7 @@ const BottomBar = React.forwardRef(function CustomContent(
     const isSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('sm'));
     const isMediumScreen = useMediaQuery((theme:any) => theme.breakpoints.only('md'));
 
-    const minWidthSlider = isExtraSmallScreen ? 150 : isSmallScreen ? 175 : isMediumScreen ? 250 : 300;
+    const minWidthSlider = isExtraSmallScreen ? 120 : isSmallScreen ? 150 : isMediumScreen ? 200 : 260;
     const maxWidthTime = 60; // Increased to accommodate mm:ss.dd format
 
     // Update time display when animation time changes
@@ -211,16 +239,15 @@ const BottomBar = React.forwardRef(function CustomContent(
             selectedAnim, curState.viewerState.animationsNeedUpdate]);
 
     return (
-      <Container ref={(ref as any) || bottomBarRef}>
-        <Grid container spacing={1} alignItems="center" justifyContent="center">
+      <OverlayPaper ref={(ref as any) || bottomBarRef} elevation={0}>
+        <Grid container spacing={1} alignItems="center" wrap="nowrap">
             <>
-              <Grid item sx={{ mt: 1, display: { lg: 'block' } }}>
+              <Grid item sx={{ display: { lg: 'block' } }}>
                   <CameraPanel uState={curState} />
               </Grid>
-              <Divider orientation="vertical" sx={{ mx: 2, display: { xs: 'none', lg: 'block' } }} />
             </>
           { curState.viewerState.animations.length < 1 ? null : (
-          <Grid item sx={{ mt: 1 }}>
+          <Grid item>
             <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
               <Select
                 labelId="simple-select-standard-label"
@@ -240,29 +267,7 @@ const BottomBar = React.forwardRef(function CustomContent(
           </Grid>
           )}
 
-          {curState.getGuiMode()?"":
-            <Grid item sx={{ mt: 1 }}>
-              <FormControl margin="dense" size="small" variant="standard">
-                <Select
-                  labelId="demo-simple-select-label"
-                  id="demo-simple-select"
-                  value={speed.toString()}
-                  label={t('visualizationControl.speed')}
-                  onChange={handleSpeedChange}
-                  disabled={curState.viewerState.animations.length < 1}>
-                    <MenuItem value={0.01}>0.01</MenuItem>
-                    <MenuItem value={0.1}>0.1</MenuItem>
-                    <MenuItem value={0.2}>0.2</MenuItem>
-                    <MenuItem value={0.3}>0.3</MenuItem>
-                    <MenuItem value={0.4}>0.4</MenuItem>
-                    <MenuItem value={0.5}>0.5</MenuItem>
-                    <MenuItem value={1.0}>1.0</MenuItem>
-                    <MenuItem value={2.0}>2.0</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          }
-          <Grid item sx={{ mt: 1 }}>
+          <Grid item>
             <FormControl margin="dense" size="small" variant="standard">
               <IconButton
                 size="small"
@@ -274,7 +279,7 @@ const BottomBar = React.forwardRef(function CustomContent(
               </IconButton>
             </FormControl>
           </Grid>
-          <Grid item sx={{ mt: 1 }}>
+          <Grid item>
             <FormControl margin="dense" size="small" sx={{minWidth: minWidthSlider}}>
               <NonAnimatedSlider
                 value={getCurrentPercentage()}
@@ -287,7 +292,7 @@ const BottomBar = React.forwardRef(function CustomContent(
           </Grid>
           {/// Time display in mm:ss.dd format with total duration
           }
-          <Grid item sx={{ mt: 1 }}>
+          <Grid item>
             <FormControl margin="dense" size="small" variant="filled">
               <Input
                 sx={{maxWidth: maxWidthTime}}
@@ -305,31 +310,30 @@ const BottomBar = React.forwardRef(function CustomContent(
           </Grid>
           {/// Total duration display
           curState.viewerState.animations.length > 0 && viewerState.currentAnimationIndices.length > 0 && (
-            <Grid item sx={{ mt: 1 }}>
+            <Grid item>
               <span style={{
                 fontSize: '0.875rem',
                 color: 'text.secondary',
-                marginLeft: '4px'
+                marginLeft: '4px',
+                whiteSpace: 'nowrap'
               }}>
                 / {totalDurationDisplay}
               </span>
             </Grid>
           )}
-          {curState.getGuiMode()?"":
-            <Grid item sx={{ mt: 1 }}>
-              <Tooltip title={t('bottomBar.autoRotate')}>
-                <ToggleButton
-                  color="primary"
-                  selected={viewerState.rotating}
-                  value={'Rotate'}
-                  onClick={() => viewerState.setRotating(!viewerState.rotating)}>
-                    <ThreeSixtyTwoToneIcon />
-                </ToggleButton>
-              </Tooltip>
-            </Grid>
-          }
         </Grid>
-      </Container>
+        <Grid item>
+        <FormControl margin="dense" size="small" variant="standard">
+          <Button
+          className="cancel-button"
+          variant="contained"
+          onClick={()=>curState.setIsInDollyEditMode(false)}
+        >
+          Close
+        </Button>
+        </FormControl>
+        </Grid>
+      </OverlayPaper>
     )
 });
 

@@ -270,17 +270,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     }
     setTransformTargetInternal(customTarget)
   }
-  useEffect(() => {
-    if (bottomBarRef.current) {
-      const heightBottomBar = bottomBarRef.current.offsetHeight;
-      if(!curState.showBottomBar)
-        setHeightBottomBar(0);
-      else
-        setHeightBottomBar(bottomBarRef.current.offsetHeight);
-
-      setCanvasHeight("calc(100vh - " + heightBottomBar + "px)");
-    }
-  }, [curState.showBottomBar]);
 
   React.useEffect(() => {
     // Change interface if we are in GUI mode.
@@ -543,7 +532,7 @@ useEffect(() => {
                 parent={treeRef.current?.selectedNode() ?? null}
               />
 
-              {curState.showBottomBar && (
+              {curState.isInDollyEditMode && (
               <BottomBar
                 ref={bottomBarRef}
                 animationPlaySpeed={1.0}

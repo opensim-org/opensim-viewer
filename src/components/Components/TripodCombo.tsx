@@ -6,6 +6,7 @@ import TripodIcon from './TripodIcon';
 import React, { useState } from 'react';
 import { useModelContext } from '../../state/ModelUIStateContext';
 import { observer } from 'mobx-react-lite';
+import { usePrompt } from './Dialogs/PromptDialog';
 
 
 export default observer(function TripodCombo() {
@@ -15,6 +16,7 @@ export default observer(function TripodCombo() {
   const viewerState = curState.viewerState;
   const [selected, setSelected] = useState(options[0]);
   const [lastSceneVersion, setLastSceneVersion] = useState(viewerState.sceneVersion);
+  const { prompt, PromptDialog } = usePrompt();
 
   React.useEffect(() => {
     if (viewerState.sceneVersion !== lastSceneVersion) {
@@ -43,16 +45,20 @@ export default observer(function TripodCombo() {
   });
   const handleOpen = (e: React.MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget);
   const handleClose = () => setAnchorEl(null);
-  const handleSelect = (value: string) => {
-    if (value === 'Add...') {
-      const rawTripodName = prompt('Enter a name for the new tripod:');
-      const newTripodName = rawTripodName?.trim();
-      if (newTripodName) {
-        const uniqueTripodName = viewerState.getUniqueCameraName(newTripodName);
+  const handleRename = async () => {
+    const name = await prompt({ title: 'New Tripod', label: 'Name', defaultValue: 'Tripod 1' });
+    if (name !== null) {
+        const uniqueTripodName = viewerState.getUniqueCameraName(name);
         viewerState.saveCameraAndTarget = true;
         viewerState.saveCameraName = uniqueTripodName;
         setSelected(uniqueTripodName);
-      }
+      // user confirmed
+      return uniqueTripodName;
+    }
+  };
+  const handleSelect = (value: string) => {
+    if (value === 'Add...') {
+      handleRename();
     } else {
       const idx = viewerState.cameras.findIndex((cam) => cam.name === value);
       curState.viewerState.setCurrentCameraIndex(idx);
@@ -85,6 +91,7 @@ export default observer(function TripodCombo() {
           </MenuItem>
         ))}
       </Menu>
+      {PromptDialog}
     </>
   );
 });
