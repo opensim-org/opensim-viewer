@@ -311,28 +311,6 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
         </>
       )}
 
-      {selectedNode?.type === "PerspectiveCamera" && (
-        <>
-          <TextField
-            label="Field of view (°)"
-            type="number"
-            fullWidth
-            inputProps={{ min: 1, max: 179, step: 1 }}
-            value={selectedNode.fov ?? selectedNode.object3D?.fov ?? 50}
-            onChange={(e) => {
-              const v = parseFloat(e.target.value);
-              patch({
-                fov: v,
-                object3DProps: { fov: v },
-              });
-              refreshCamera();
-            }}
-            style={{ marginTop: 16 }}
-            size="small"
-          />
-        </>
-      )}
-
       {(selectedNode?.nodeType === "floor") && (
         <>
           <TextField
