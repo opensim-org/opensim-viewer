@@ -7,10 +7,11 @@ import React, { useState } from 'react';
 import { useModelContext } from '../../state/ModelUIStateContext';
 import { observer } from 'mobx-react-lite';
 import { usePrompt } from './Dialogs/PromptDialog';
+import Tooltip from '@mui/material/Tooltip';
 
 
 export default observer(function TripodCombo() {
-  const options = ['Add...'];
+  const options = ['New...'];
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const curState = useModelContext();
   const viewerState = curState.viewerState;
@@ -30,8 +31,7 @@ export default observer(function TripodCombo() {
         options.push(camera.name);
         }
       });
-      setSelected(viewerState.currentCameraIndex !== -1 ? viewerState.cameras[viewerState.currentCameraIndex].name : 'Add...');
-        //viewerState.setCamerasNeedUpdate(false);
+      setSelected(viewerState.currentCameraIndex !== -1 ? viewerState.cameras[viewerState.currentCameraIndex].name : 'New...');
       }
     }
   }, [viewerState.sceneVersion, lastSceneVersion, viewerState.camerasNeedUpdate, viewerState.currentCameraIndex, viewerState.cameras]);
@@ -45,7 +45,7 @@ export default observer(function TripodCombo() {
   });
   const handleOpen = (e: React.MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget);
   const handleClose = () => setAnchorEl(null);
-  const handleRename = async () => {
+  const handleName = async () => {
     const name = await prompt({ title: 'New Tripod', label: 'Name', defaultValue: 'Tripod 1' });
     if (name !== null) {
         const uniqueTripodName = viewerState.getUniqueCameraName(name);
@@ -57,8 +57,8 @@ export default observer(function TripodCombo() {
     }
   };
   const handleSelect = (value: string) => {
-    if (value === 'Add...') {
-      handleRename();
+    if (value === 'New...') {
+      handleName();
     } else {
       const idx = viewerState.cameras.findIndex((cam) => cam.name === value);
       curState.viewerState.setCurrentCameraIndex(idx);
@@ -69,6 +69,7 @@ export default observer(function TripodCombo() {
 
   return (
     <>
+    <Tooltip title="Tripods..." placement="right">
       <IconButton
         onClick={handleOpen}
         sx={{ borderRadius: '8px', gap: 0.5 }}
@@ -79,7 +80,7 @@ export default observer(function TripodCombo() {
         <TripodIcon />
         <SettingsIcon />
       </IconButton>
-
+    </Tooltip>
       <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
         {options.map(opt => (
           <MenuItem

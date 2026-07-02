@@ -22,23 +22,12 @@ import { CameraDolly } from '../../state/ViewerState'
 import { saveAs } from 'file-saver';
 
 import DollyEditorDialog from '../Components/DollyEditorDialog'
-import tripodIcon from './tripod.png'
-import dollyIcon from './dolly.png'
-const attachmentType = ['Fixed Camera', 'Camera Dolly']
-
-const attachmentIcons: { [key: string]: React.ReactElement } = {
-  'Fixed Camera': <img src={tripodIcon} alt="Fixed Camera" />,
-  'Camera Dolly': <img src={dollyIcon} alt="Camera Dolly" />
-}
 
 type CameraPanelProps = {
   uState: ModelUIState;
 }
 
-
 function CameraPanel(props :CameraPanelProps) {
-  const [selectedAttachment, setSelectedAttachment] = useState('Fixed Camera')
-  const [selectedCamera, setSelectedCamera] = useState('')
   const [selectedDolly, setSelectedDolly] = useState('')
   const [availableCameras, setAvailableCameras] = useState<Camera[]>(props.uState.viewerState.cameras);
   const [availableDollies, setAvailableDollies] = useState<CameraDolly[]>(props.uState.viewerState.cameraDollies);
@@ -48,7 +37,6 @@ function CameraPanel(props :CameraPanelProps) {
 
   const handleCameraChange = useCallback((cameraName: string) => {
     const targetName = cameraName
-    setSelectedCamera(cameraName);
     const idx = curState.viewerState.cameras.findIndex((value: Camera)=>{return (value.name === targetName)})
     curState.viewerState.setCurrentCameraIndex(idx)
 
@@ -82,16 +70,7 @@ function CameraPanel(props :CameraPanelProps) {
   }, [availableCameras, curState.viewerState.cameraDollies, curState.viewerState.currentDollyIndex, curState.viewerState.cameras, 
       curState.viewerState.cameras.length, curState.viewerState.currentCameraIndex, 
       curState.viewerState.animationsNeedUpdate, handleCameraChange, handleDollyChange]);
-
-  const handleCameraChangeEvent = (event: SelectChangeEvent) => {
-    const targetName = event.target.value as string
-    handleCameraChange(targetName)
-  };
   
-  const handleDollyChangeEvent = (event: SelectChangeEvent) => {
-    const targetName = event.target.value as string
-    handleDollyChange(targetName)
-  };
 
   const handleAdd = function() {
     setEditMode(false)
@@ -107,10 +86,6 @@ function CameraPanel(props :CameraPanelProps) {
       curState.viewerState.deleteCurrentDolly();
    }
 
-  const handleCameraTypeChange = (event: SelectChangeEvent) => {
-    const targetName = event.target.value as string;
-    setSelectedAttachment(targetName);
-  }
 
   const handleSaveCamerasOrDollies = function() {
     const json = curState.viewerState.saveDolliesToJson();

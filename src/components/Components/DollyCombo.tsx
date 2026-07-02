@@ -8,6 +8,7 @@ import React, { useState } from 'react';
 import { useModelContext } from '../../state/ModelUIStateContext';
 import { observer } from 'mobx-react-lite';
 import DollyEditorDialog from './DollyEditorDialog';
+import Tooltip from '@mui/material/Tooltip';
 
 export default observer(function DollyCombo() {
   const options = ['Dollies..'];
@@ -40,6 +41,7 @@ export default observer(function DollyCombo() {
 
   return (
     <>
+    <Tooltip title="Dollies..." placement="right">
       <IconButton
         onClick={handleSelect}
         sx={{ borderRadius: '8px', gap: 0.5 }}
@@ -50,6 +52,7 @@ export default observer(function DollyCombo() {
         <DollyIcon />
         <SettingsIcon />
       </IconButton>
+      </Tooltip>
       <DollyEditorDialog
           open={dollyEditorOpen}
           edit={false}

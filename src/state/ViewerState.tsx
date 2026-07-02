@@ -445,7 +445,6 @@ export class ViewerState {
         const dollyAnimationIndex = this.animations.length - 1;
         this.animationChange = {index:dollyAnimationIndex, operation:"add"};
         this.setAnimationsNeedUpdate(true);
-        this.animating = true;
 
     }
     updateCameraDolly(newSequence:CameraDolly){

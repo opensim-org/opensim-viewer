@@ -1,8 +1,7 @@
-import { Grid, Paper, IconButton, Button, ToggleButton, FormControl, Slider, SelectChangeEvent, Input, MenuItem, Select, Divider } from '@mui/material';
+import { Grid, Paper, IconButton, Button, FormControl, Slider, SelectChangeEvent, Input, MenuItem, Select} from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useState, useEffect } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import ThreeSixtyTwoToneIcon from '@mui/icons-material/ThreeSixtyTwoTone';
 import PauseCircleTwoToneIcon from '@mui/icons-material/PauseCircleTwoTone';
 import PlayCircleTwoToneIcon from '@mui/icons-material/PlayCircleTwoTone';
 import Tooltip from '@mui/material/Tooltip';
@@ -266,7 +265,6 @@ const BottomBar = React.forwardRef(function CustomContent(
             </FormControl>
           </Grid>
           )}
-
           <Grid item>
             <FormControl margin="dense" size="small" variant="standard">
               <IconButton
