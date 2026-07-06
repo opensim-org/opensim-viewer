@@ -1,4 +1,4 @@
-import { Button, Checkbox, Dialog, DialogActions, DialogContent, FormControl, FormControlLabel, FormLabel, IconButton, Radio, RadioGroup, Select, MenuItem, InputLabel } from '@mui/material';
+import { Button, Checkbox, Dialog, DialogActions, DialogContent, FormControl, FormControlLabel, FormLabel, IconButton, ToggleButton, ToggleButtonGroup , Select, MenuItem, InputLabel } from '@mui/material';
 import React from 'react';
 import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone';
 import { useModelContext } from '../../state/ModelUIStateContext';
@@ -108,18 +108,32 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
       >
         <DialogContent>
           <FormControl>
-              <FormLabel id="demo-controlled-radio-buttons-group">Size</FormLabel>
-              <RadioGroup
-                aria-labelledby="demo-controlled-radio-buttons-group"
-                name="size_choice"
-                value={formData.size_choice}
-                onChange={handleChange}
-              >
-                <FormControlLabel value="screen" control={<Radio />} label="Default Size" />
-                <FormControlLabel value="aspect" control={<Radio />} label="Aspect Ratio" />
-              </RadioGroup>
+              <FormLabel id="demo-controlled-radio-buttons-group">Dimensions</FormLabel>
+              <FormControlLabel
+                label="Use Custom Aspect Ratio"
+                control={
+                  <Checkbox
+                    name="size_choice"
+                    checked={formData.size_choice === "aspect"}
+                    onChange={(event) => {
+                      const value = event.target.checked ? "aspect" : "screen";
+                      const syntheticEvent = {
+                        target: {
+                          name: "size_choice",
+                          value: value,
+                        },
+                        currentTarget: {
+                          name: "size_choice",
+                          value: value,
+                        },
+                      } as React.ChangeEvent<HTMLInputElement>;
+                      handleChange(syntheticEvent);
+                    }}
+                  />
+                }
+              />
 
-              {/* Aspect Ratio Selection - only shown when aspect ratio mode is selected */}
+              {/* Aspect Ratio Selection - only shown when custom aspect ratio is enabled */}
               {formData.size_choice === "aspect" && (
                 <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
                   <InputLabel>Aspect Ratio</InputLabel>

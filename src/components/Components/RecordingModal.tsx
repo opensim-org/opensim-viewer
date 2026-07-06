@@ -74,11 +74,54 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
   const [timeRange, setTimeRange] = useState<number[]>([0, 1]);
   const [maxTime, setMaxTime] = useState<number>(10);
 
+  // Get the current animation duration
+  const getCurrentAnimationDuration = (): number => {
+    const currentIndex = viewerState.currentAnimationIndices[0];
+    if (currentIndex !== undefined && currentIndex >= 0 && currentIndex < viewerState.animations.length) {
+      const animation = viewerState.animations[currentIndex];
+      // Subtract the start time offset to get the effective duration
+      const startTimeOffset = viewerState.animationStartTimes[currentIndex] || 0;
+      return Math.max(0, animation.duration - startTimeOffset);
+    }
+    return 10; // Default fallback
+  };
+
+  // Update max time and slider range when animation changes or modal opens
+  useEffect(() => {
+    if (open) {
+      const duration = getCurrentAnimationDuration();
+      setMaxTime(Math.max(1, duration)); // Ensure at least 1 second
+
+      // Update end time to match animation duration
+      const newEndTime = Math.max(1, duration);
+      setEndTime(String(newEndTime));
+      viewerState.setVideoRecorderEndTime(newEndTime);
+
+      // Update slider range
+      setTimeRange([0, newEndTime]);
+    }
+  }, [open, viewerState.currentAnimationIndices, viewerState.animations]);
+
+  // Watch for animation changes while modal is open
+  useEffect(() => {
+    if (open) {
+      const duration = getCurrentAnimationDuration();
+      setMaxTime(Math.max(1, duration));
+
+      // Only update if the current end time exceeds the new duration
+      const currentEndTime = parseFloat(endTime);
+      if (currentEndTime > duration || isNaN(currentEndTime)) {
+        const newEndTime = Math.max(1, duration);
+        setEndTime(String(newEndTime));
+        viewerState.setVideoRecorderEndTime(newEndTime);
+        setTimeRange([timeRange[0], newEndTime]);
+      }
+    }
+  }, [viewerState.animations, viewerState.currentAnimationIndices]);
+
   const getFpsOptions = () => {
     return selectedFormat === "gif" ? fpsValuesGif : fpsValues;
   };
-
-  console.log("Animation End Time: " + curState.guiAnimationEndTime)
 
   // Initialize state from viewerState when modal opens
   useEffect(() => {
@@ -128,11 +171,11 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
       }
 
       // Set end time
-      if(viewerState.videoRecorderEndTime) {
-        setEndTime(String(viewerState.videoRecorderEndTime))
-        // Initialize slider end value
-        setTimeRange(prev => [prev[0], viewerState.videoRecorderEndTime]);
-      }
+      const duration = getCurrentAnimationDuration();
+      const currentEndTime = viewerState.videoRecorderEndTime || duration;
+      setEndTime(String(Math.min(currentEndTime, duration)));
+      setTimeRange(prev => [prev[0], Math.min(currentEndTime, duration)]);
+      setMaxTime(Math.max(1, duration));
     }
   }, [open, viewerState]);
 
@@ -223,7 +266,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
     setEndTime(value);
     // Only update the viewer state if it's a valid number
     const numValue = parseFloat(value);
-    if (!isNaN(numValue) && numValue >= 0 && numValue > timeRange[0]) {
+    if (!isNaN(numValue) && numValue >= 0 && numValue > timeRange[0] && numValue <= maxTime) {
       viewerState.setVideoRecorderEndTime(numValue);
       // Update slider
       setTimeRange([timeRange[0], numValue]);
@@ -244,6 +287,21 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
     // Allow format: digits with no decimal point
     const regex = /^\d+$/;
     return regex.test(integer);
+  };
+
+  // Calculate slider marks based on maxTime
+  const getSliderMarks = () => {
+    if (maxTime <= 5) {
+      return [
+        { value: 0, label: '0' },
+        { value: maxTime, label: `${maxTime.toFixed(1)}s` }
+      ];
+    }
+    return [
+      { value: 0, label: '0' },
+      { value: Math.floor(maxTime / 2), label: `${Math.floor(maxTime / 2)}s` },
+      { value: maxTime, label: `${maxTime.toFixed(1)}s` }
+    ];
   };
 
   return (
@@ -356,6 +414,15 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
           {/* Custom times section - only shown when not recording full animation */}
           {trimMotion && (
             <div style={{ marginTop: 2 }}>
+              {/* Display current animation duration */}
+              <div style={{
+                fontSize: '0.875rem',
+                color: 'text.secondary',
+                marginBottom: '8px'
+              }}>
+                Motion duration: {maxTime.toFixed(2)}s
+              </div>
+
               {/* Dual-handle slider */}
               <div style={{ marginBottom: "16px" }}>
                 <Slider
@@ -365,10 +432,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
                   min={0}
                   max={maxTime}
                   step={0.1}
-                  marks={[
-                    { value: 0, label: '0' },
-                    { value: maxTime, label: `${maxTime}s` },
-                  ]}
+                  marks={getSliderMarks()}
                   sx={{ mt: 1 }}
                 />
               </div>
@@ -391,6 +455,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
                   onChange={(e) => handleEndTimeChange(e.target.value)}
                   placeholder="e.g., 5.0"
                   error={endTime !== "" && !validateTimeFormat(endTime)}
+                  helperText={`Max: ${maxTime.toFixed(2)}s`}
                   margin="dense"
                 />
               </div>
