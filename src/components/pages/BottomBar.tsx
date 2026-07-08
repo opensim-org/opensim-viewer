@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import PauseCircleTwoToneIcon from '@mui/icons-material/PauseCircleTwoTone';
 import PlayCircleTwoToneIcon from '@mui/icons-material/PlayCircleTwoTone';
-import Tooltip from '@mui/material/Tooltip';
 import { observer } from 'mobx-react'
 import { AnimationClip} from 'three';
 import { useTranslation } from 'react-i18next';
@@ -35,9 +34,7 @@ const OverlayPaper = styled(Paper)(({ theme }) => ({
   maxWidth: 'calc(100vw - 32px)',
   overflowX: 'auto',
   overflowY: 'hidden',
-  backgroundColor: theme.palette.mode === 'dark'
-    ? 'rgba(30, 30, 30, 0.72)'
-    : 'rgba(255, 255, 255, 0.82)',
+  backgroundColor: "rgba(0, 0, 0, 0.7)",
   backdropFilter: 'blur(10px)',
   WebkitBackdropFilter: 'blur(10px)',
   boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
@@ -81,9 +78,9 @@ const BottomBar = React.forwardRef(function CustomContent(
     const { t } = useTranslation();
     const curState = useModelContext();
     const viewerState = curState.viewerState
-    const [speed, setSpeed] = useState(1.0);
     const [play, setPlay] = useState(false);
     const [selectedAnim, setSelectedAnim] = useState("");
+    const [dollyIndexInAnimations, setDollyIndexInAnimations] = useState(-1);
     const [currentTimeDisplay, setCurrentTimeDisplay] = useState("00:00.00");
     const [totalDuration, setTotalDuration] = useState(0);
     const [totalDurationDisplay, setTotalDurationDisplay] = useState("00:00.00");
@@ -93,25 +90,7 @@ const BottomBar = React.forwardRef(function CustomContent(
 
     const minWidthSlider = isExtraSmallScreen ? 120 : isSmallScreen ? 150 : isMediumScreen ? 200 : 260;
     const maxWidthTime = 60; // Increased to accommodate mm:ss.dd format
-
-    // Update time display when animation time changes
-    useEffect(() => {
-      // if (viewerState.currentAnimationIndices.length > 0) {
-      //   const currentTime = viewerState.currentAnimationTime;
-      //   setCurrentTimeDisplay(formatTime(currentTime));
-
-      //   // Update total duration when animation changes
-      //   const currentAnimation = viewerState.animations[viewerState.currentAnimationIndices];
-      //   if (currentAnimation && currentAnimation.duration !== totalDuration) {
-      //     setTotalDuration(currentAnimation.duration);
-      //     setTotalDurationDisplay(formatTime(currentAnimation.duration));
-      //   }
-      // } else {
-      //   setCurrentTimeDisplay("00:00.00");
-      //   setTotalDuration(0);
-      //   setTotalDurationDisplay("00:00.00");
-      // }
-    }, [viewerState.currentAnimationTime, viewerState.currentAnimationIndices, viewerState.animations, totalDuration]);
+    const dollyAnimations = viewerState.animations.filter((anim, i)=>viewerState.isDollyAnimation[i]);
 
     const handleAnimationChange = useCallback((animationName: string, animate: boolean) => {
       const targetName = animationName
@@ -123,9 +102,10 @@ const BottomBar = React.forwardRef(function CustomContent(
         setPlay(false);
         return;
       }
+      // idx is index into the full animations list rather than dollyAnimations
       const idx = curState.viewerState.animations.findIndex((value: AnimationClip)=>{return (value.name === targetName)});
       curState.viewerState.addCurrentAnimationIndex(idx);
-
+      setDollyIndexInAnimations(idx);
       // Set total duration for new animation
       if (idx !== -1) {
         const animation = curState.viewerState.animations[idx];
@@ -146,11 +126,6 @@ const BottomBar = React.forwardRef(function CustomContent(
         setPlay(!play);
     }
 
-    function handleSpeedChange(event: SelectChangeEvent) {
-        curState.viewerState.setAnimationSpeed(Number(event.target.value));
-        setSpeed(Number(event.target.value))
-    }
-
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       if (viewerState.currentAnimationIndices.length === 0) return;
 
@@ -160,9 +135,10 @@ const BottomBar = React.forwardRef(function CustomContent(
 
     const handleSliderChange = (event: Event, newValue: number | number[]) => {
       if (viewerState.currentAnimationIndices.length === 0) return;
+      if (dollyIndexInAnimations === -1) return;
 
       const percentage = newValue as number;
-      const currentAnimation = viewerState.animations[viewerState.currentAnimationIndices[0]];
+      const currentAnimation = viewerState.animations[dollyIndexInAnimations];
       if (currentAnimation) {
         const newTime = (percentage / 100) * currentAnimation.duration;
         viewerState.setCurrentAnimationTime(newTime);
@@ -173,15 +149,18 @@ const BottomBar = React.forwardRef(function CustomContent(
           curState.viewerState.forceAnimationUpdate = true;
         }
       }
+      if (percentage > 99)
+        viewerState.setAnimating(false);
     };
 
     const handleInputBlur = (event: React.FocusEvent<HTMLInputElement>) => {
       if (viewerState.currentAnimationIndices.length === 0) return;
 
       const timeString = event.target.value;
+      if (dollyIndexInAnimations===-1) return;
       if (/^\d{1,2}:\d{2}\.\d{2}$/.test(timeString)) {
         const newTime = parseTime(timeString);
-        const currentAnimation = viewerState.animations[viewerState.currentAnimationIndices[0]];
+        const currentAnimation = viewerState.animations[dollyIndexInAnimations];
         if (currentAnimation) {
           let clampedTime = newTime;
           if (newTime < 0) {
@@ -225,17 +204,22 @@ const BottomBar = React.forwardRef(function CustomContent(
     };
 
     useEffect(() => {
-      if (curState.viewerState.animations.length > 0 && curState.viewerState.currentAnimationIndices.length > 0)
+      if (viewerState.currentDollyIndex !== -1){
+        // compute index and selectedAnim from current Dollyconst 
+        const dollyName = curState.viewerState.cameraDollies[viewerState.currentDollyIndex].name;
+        const idx = curState.viewerState.animations.findIndex((value: AnimationClip)=>{return (value.name === dollyName)});
+        curState.viewerState.addCurrentAnimationIndex(idx);
+        setDollyIndexInAnimations(idx);
+      }
+      if (curState.viewerState.animations.length > 0 && dollyIndexInAnimations >= 0)
       {
-        setSelectedAnim(curState.viewerState.animations[curState.viewerState.currentAnimationIndices[0]].name)
-        handleAnimationChange(curState.viewerState.animations[curState.viewerState.currentAnimationIndices[0]].name, false)
+        setSelectedAnim(curState.viewerState.animations[dollyIndexInAnimations].name)
+        handleAnimationChange(curState.viewerState.animations[dollyIndexInAnimations].name, false)
       }
       else if (curState.viewerState.currentAnimationIndices.length === 0){
         setSelectedAnim("")
       }
-    }, [curState.viewerState.animations, curState.viewerState.currentAnimationIndices,
-        curState.viewerState.cameraDollies, curState.viewerState.currentDollyIndex,
-            selectedAnim, curState.viewerState.animationsNeedUpdate]);
+    }, [curState.viewerState.animations, curState.viewerState.currentAnimationIndices, curState.viewerState.cameraDollies, curState.viewerState.currentDollyIndex, selectedAnim, curState.viewerState.animationsNeedUpdate, dollyIndexInAnimations, handleAnimationChange, viewerState.currentDollyIndex, curState.viewerState]);
 
     return (
       <OverlayPaper ref={(ref as any) || bottomBarRef} elevation={0}>
@@ -245,7 +229,7 @@ const BottomBar = React.forwardRef(function CustomContent(
                   <CameraPanel uState={curState} />
               </Grid>
             </>
-          { curState.viewerState.animations.length < 1 ? null : (
+          { dollyAnimations.length < 1 ? null : (
           <Grid item>
             <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
               <Select
@@ -254,9 +238,9 @@ const BottomBar = React.forwardRef(function CustomContent(
                 value={selectedAnim}
                 onChange={handleAnimationChangeEvent}
                 displayEmpty
-                disabled={curState.viewerState.animations.length < 1}>
+                disabled={dollyAnimations.length < 1}>
                   <MenuItem value="">None</MenuItem>
-                  {curState.viewerState.animations.map(anim => (
+                  {dollyAnimations.map(anim=> (
                     <MenuItem key={anim.name} value={anim.name}>
                       {anim.name}
                     </MenuItem>
@@ -271,7 +255,7 @@ const BottomBar = React.forwardRef(function CustomContent(
                 size="small"
                 color="primary"
                 value={'Animation'}
-                disabled={curState.viewerState.animations.length < 1 }
+                disabled={dollyAnimations.length < 1 }
                 onClick={togglePlayAnimation}>
                   {play?<PauseCircleTwoToneIcon/>:<PlayCircleTwoToneIcon/>}
               </IconButton>
@@ -285,7 +269,7 @@ const BottomBar = React.forwardRef(function CustomContent(
                 valueLabelDisplay="auto"
                 valueLabelFormat={valueLabelFormat}
                 onChange={handleSliderChange}
-                disabled={curState.viewerState.animations.length < 1}/>
+                disabled={dollyAnimations.length < 1}/>
             </FormControl>
           </Grid>
           {/// Time display in mm:ss.dd format with total duration
@@ -303,11 +287,11 @@ const BottomBar = React.forwardRef(function CustomContent(
                   pattern: '^\\d{1,2}:\\d{2}\\.\\d{2}$',
                   placeholder: 'mm:ss.dd',
                   'aria-labelledby': 'time-input'}}
-                disabled={curState.viewerState.animations.length < 1}/>
+                disabled={dollyAnimations.length < 1}/>
             </FormControl>
           </Grid>
           {/// Total duration display
-          curState.viewerState.animations.length > 0 && viewerState.currentAnimationIndices.length > 0 && (
+          dollyAnimations.length > 0 && dollyIndexInAnimations >= 0 && (
             <Grid item>
               <span style={{
                 fontSize: '0.875rem',

@@ -121,8 +121,8 @@ export class ViewerState {
     currentAnimationTime: number
     forceAnimationUpdate: boolean;
 
-    // Environment holders
-    environmentGroup: Group | null
+    // Tripods place holder
+    tripodsGroup: Group | null
     constructor(
         currentModelPathState: string,
         featuredModelsFilePathState: string,
@@ -215,7 +215,7 @@ export class ViewerState {
         this.currentAnimationTime = 0
         this.camerasNeedUpdate = false
         this.forceAnimationUpdate = false
-        this.environmentGroup = null
+        this.tripodsGroup = null
         makeObservable(this, {
             currentModelPath: observable,
             featuredModelsFilePath: observable,
@@ -559,7 +559,7 @@ export class ViewerState {
             camClone.uuid = camera.uuid;
         this.cameras.push(camClone);
         this.targets.push(target.clone())
-        this.environmentGroup!.add(camClone);
+        this.tripodsGroup!.add(camClone);
         if (setCurrent!== false)
             this.currentCameraIndex = (this.cameras.length - 1);
         this.setSceneVersion(this.sceneVersion +1);
@@ -580,7 +580,9 @@ export class ViewerState {
         }
         return uniqueName;
     }
-
+    addTripodAtCamera(name: string) {
+        this.addCamera(this.defaultCamera as PerspectiveCamera, new Vector3(0, 0, 0), name);
+    }
     deleteCurrentCamera() {
         const idx = this.currentCameraIndex;
         const cam = this.cameras[idx];
@@ -723,8 +725,8 @@ export class ViewerState {
             this.addCamera(cam, tgt, cam.name, false, true);
         });
     }
-    setEnvironmentGroup(grp: Group) {
-        this.environmentGroup = grp;
+    setTripodsGroup(grp: Group) {
+        this.tripodsGroup = grp;
     }
     setSceneVersion(version: number) {
         this.sceneVersion = version;

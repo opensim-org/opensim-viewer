@@ -31,9 +31,9 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     const [colorNodeMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
     const lightRef = useRef<THREE.DirectionalLight | null>(null)
     const csRef = useRef<THREE.Group>(null)
-    const envRef = useRef<THREE.Group>(null)
     const bboxRef = useRef<THREE.BoxHelper>(null)
     const modelsRef = useRef<THREE.Group>(null);
+    const tripodsRef = useRef<THREE.Group>(null);
     let frameCount = 0;
     let renderTime = 0;
     const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
@@ -79,8 +79,8 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     // This useEffect loads the cameras and assign them to its respective states.
     useEffect(() => {
-      if (envRef.current && scene) 
-        curState.viewerState.setEnvironmentGroup(envRef.current)
+      if (tripodsRef.current && scene) 
+        curState.viewerState.setTripodsGroup(tripodsRef.current)
 
       if (modelsRef.current!==null) {
         const boundingBox = new THREE.Box3();
@@ -116,8 +116,8 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             cameraPers.aspect = aspectRatio;
             cameraPers.updateProjectionMatrix();
 
-            if (envRef.current) {
-              envRef.current.add(camera);
+            if (tripodsRef.current) {
+              tripodsRef.current.add(camera);
             }
         });
         // Update cameras list.
@@ -413,7 +413,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     // By the time we're here the model is guaranteed to be available
     return <>
-      <group name='OpenSim Scene' ref={envRef}>
+      <group name='OpenSim Scene'>
         <directionalLight name="Scene Dir Light" ref={lightRef} position={[0.5, 1.5, -0.5]}
           intensity={curState.viewerState.lightIntensity} color={curState.viewerState.lightColor}
           castShadow={true}
@@ -445,6 +445,8 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             <cylinderGeometry args={[.005, .005, 0.4, 32]}/>
             <meshStandardMaterial color="red" />
           </mesh>
+        </group>
+        <group name='Tripods' ref={tripodsRef}>
         </group>
         <group name='Models' ref={modelsRef}  
             onClick={(e)=>{ handleClick(e);}}
