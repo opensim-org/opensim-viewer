@@ -19,6 +19,9 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import TripodIcon from '../TripodIcon';
+import SaveTwoToneIcon from '@mui/icons-material/SaveTwoTone';
+import FileOpenTwoToneIcon from '@mui/icons-material/FileOpenTwoTone';
+
 import ViewInAr from '@mui/icons-material/ViewInAr';
 import PanoramaIcon from '@mui/icons-material/Panorama';
 
@@ -27,6 +30,7 @@ import { useModelContext } from '../../../state/ModelUIStateContext';
 import { ModelUIState } from '../../../state/ModelUIState';
 
 import NodeSettingsPanel from "./NodeSettingsPanel";
+import { saveAs } from 'file-saver';
 
 import './SceneTreeSortable.css';
 
@@ -231,6 +235,34 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
       setTreeData([...treeData]);
     };
 
+    const handleSaveTripods = () => {
+      const json = uiState.viewerState.saveCamerasToJson();
+      // query for file name and save
+      const defaultName = "tripods.json";
+      const fileName = window.prompt("Enter file name:", defaultName) || defaultName;
+      saveAs(new Blob([JSON.stringify(json, null, 2)], { type: "application/json" }), fileName);
+    };
+    
+    const handleLoadTripods = function() {
+      // Create a file input element to select the JSON file
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json,application/json';
+      input.onchange = (event) => {
+        const file = (event.target as HTMLInputElement).files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const json = e.target?.result;
+            if (json) {
+              uiState.viewerState.loadCamerasFromJson(JSON.parse(json as string));
+            }
+          };
+          reader.readAsText(file);
+        }
+      };
+      input.click();
+    };
 
     const panelBg = alpha(theme.palette.background.paper, 0.9);
 
@@ -394,6 +426,12 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                         {node.object3D && node.type !== 'Group' && node.title !== 'Scene' && (
                           <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleVisibilityToggle(node); }} style={{ marginLeft: 8 }}>
                             {node.object3D.visible ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
+                          </IconButton>
+                        )}
+                        {node.object3D && node.title === 'Tripods' && (
+                          <IconButton size="small" style={{ marginLeft: 8 }}>
+                            {<SaveTwoToneIcon fontSize="small" onClick={(e) => { e.stopPropagation(); handleSaveTripods(); }} /> }
+                            {<FileOpenTwoToneIcon fontSize="small" onClick={(e) => { e.stopPropagation(); handleLoadTripods(); }} /> }
                           </IconButton>
                         )}
                         {node.nodeType === 'addCameraButton' && (
