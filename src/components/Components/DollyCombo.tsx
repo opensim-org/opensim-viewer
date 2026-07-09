@@ -58,6 +58,7 @@ export default observer(function DollyCombo() {
           edit={false}
           onClose={function() {setDollyEditorOpen(false)}}
           uiState={curState}
+          controlsRef={null}
       />
     </>
   );

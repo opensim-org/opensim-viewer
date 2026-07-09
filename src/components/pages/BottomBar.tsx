@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useModelContext } from '../../state/ModelUIStateContext';
 import React, { useCallback, useRef } from 'react';
 import CameraPanel from './CameraPanel';
+import { OpenSimControlHandle } from '../Components/OpenSimControl';
 
 const NonAnimatedSlider = styled(Slider)(() => ({
   "& .MuiSlider-thumb": {
@@ -52,6 +53,7 @@ interface BottomBarProps {
   animationList: AnimationClip[];
   animationPlaySpeed?: number;
   animationBounds?: number[];
+  controlsRef: OpenSimControlHandle | null; 
 }
 
 // Helper function to format seconds to mm:ss.dd
@@ -91,6 +93,7 @@ const BottomBar = React.forwardRef(function CustomContent(
     const minWidthSlider = isExtraSmallScreen ? 120 : isSmallScreen ? 150 : isMediumScreen ? 200 : 260;
     const maxWidthTime = 60; // Increased to accommodate mm:ss.dd format
     const dollyAnimations = viewerState.animations.filter((anim, i)=>viewerState.isDollyAnimation[i]);
+    const controls = props.controlsRef;
 
     const handleAnimationChange = useCallback((animationName: string, animate: boolean) => {
       const targetName = animationName
@@ -226,7 +229,7 @@ const BottomBar = React.forwardRef(function CustomContent(
         <Grid container spacing={1} alignItems="center" wrap="nowrap">
             <>
               <Grid item sx={{ display: { lg: 'block' } }}>
-                  <CameraPanel uState={curState} />
+                  <CameraPanel uState={curState} controlsRef={props.controlsRef} />
               </Grid>
             </>
           { dollyAnimations.length < 1 ? null : (

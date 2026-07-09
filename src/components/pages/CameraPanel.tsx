@@ -22,9 +22,11 @@ import { CameraDolly } from '../../state/ViewerState'
 import { saveAs } from 'file-saver';
 
 import DollyEditorDialog from '../Components/DollyEditorDialog'
+import { OpenSimControlHandle } from '../Components/OpenSimControl'
 
 type CameraPanelProps = {
   uState: ModelUIState;
+  controlsRef?: OpenSimControlHandle | null;
 }
 
 function CameraPanel(props :CameraPanelProps) {
@@ -34,7 +36,8 @@ function CameraPanel(props :CameraPanelProps) {
   const [dollyEditorOpen, setDollyEditorOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const curState = props.uState;
-
+  const passedControls = props.controlsRef;
+  
   const handleCameraChange = useCallback((cameraName: string) => {
     const targetName = cameraName
     const idx = curState.viewerState.cameras.findIndex((value: Camera)=>{return (value.name === targetName)})
@@ -149,6 +152,7 @@ function CameraPanel(props :CameraPanelProps) {
           edit={editMode}
           onClose={function() {setDollyEditorOpen(false)}}
           uiState={curState}
+          controlsRef={null}
       />
     </>
   )

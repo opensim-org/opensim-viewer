@@ -537,8 +537,9 @@ useEffect(() => {
                 ref={bottomBarRef}
                 animationPlaySpeed={1.0}
                 animating={uiState.viewerState.animating}
-                animationList={uiState.viewerState.animations}/>
-              )}
+                animationList={uiState.viewerState.animations}
+                controlsRef={openSimControlsRef.current}
+              />)}
 
               {scene && camera && (
                 <div

@@ -20,6 +20,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { ModelUIState } from "../../state/ModelUIState";
 import { CameraFrame, CameraDolly } from "../../state/ViewerState";
 import { Camera } from 'three';
+import { OpenSimControlHandle } from './OpenSimControl';
 
 type CameraEntry = {
   id: string;
@@ -33,9 +34,10 @@ type Props = {
   edit: boolean;
   onClose: () => void;
   uiState: ModelUIState;
+  controlsRef: OpenSimControlHandle | null;
 };
 
-const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => {
+const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState, controlsRef }) => {
   const cameraOptions = uiState.viewerState.cameras.map(cam=>cam.name);
 
   const initalEntries: CameraEntry[] = uiState.viewerState.cameras.map((cam, index) => ({
@@ -46,6 +48,7 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => 
   const [entries, setEntries] = useState<CameraEntry[]>(initalEntries);
   const [dollyName, setDollyName] = useState<string>('Dolly')
   const [cameras, ] = useState<Camera[]>(uiState.viewerState.cameras);
+  const controls = controlsRef;
   const paperRef = useRef<HTMLDivElement>(null);
 
   const generateCameraEntryFromFrame = (frame: CameraFrame) =>{
@@ -103,6 +106,18 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => 
         id: Math.random().toString(36).substring(2, 9),
         name: '',
         time: '',
+        errors: {}
+      }
+    ]);
+  };
+  const addKeyframeRow = () => {
+    const {tripodName, tripodTime} = uiState.viewerState.addTripodAndTime(dollyName);
+    setEntries([
+      ...entries,
+      {
+        id: Math.random().toString(36).substring(2, 9),
+        name: tripodName,
+        time: `${tripodTime}`,
         errors: {}
       }
     ]);
@@ -204,7 +219,7 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState}) => 
             Add
           </Button>
 
-          <Button variant="outlined" onClick={addRow} sx={{ mb: 1 }}>
+          <Button variant="outlined" onClick={addKeyframeRow} sx={{ mb: 1 }}>
             Add from Motion
           </Button>
 

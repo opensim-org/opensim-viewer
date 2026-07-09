@@ -580,9 +580,12 @@ export class ViewerState {
         }
         return uniqueName;
     }
-    addTripodAtCamera(name: string) {
+    
+    addTripodAndTime(name: string) {
         this.addCamera(this.defaultCamera as PerspectiveCamera, new Vector3(0, 0, 0), name);
+        return { tripodName: name, tripodTime: this.currentAnimationTime };
     }
+ 
     deleteCurrentCamera() {
         const idx = this.currentCameraIndex;
         const cam = this.cameras[idx];
