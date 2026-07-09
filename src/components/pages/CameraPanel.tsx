@@ -26,7 +26,7 @@ import { OpenSimControlHandle } from '../Components/OpenSimControl'
 
 type CameraPanelProps = {
   uState: ModelUIState;
-  controlsRef?: OpenSimControlHandle | null;
+  controlsRef: OpenSimControlHandle | null;
 }
 
 function CameraPanel(props :CameraPanelProps) {
@@ -152,7 +152,7 @@ function CameraPanel(props :CameraPanelProps) {
           edit={editMode}
           onClose={function() {setDollyEditorOpen(false)}}
           uiState={curState}
-          controlsRef={null}
+          controlsRef={passedControls}
       />
     </>
   )
