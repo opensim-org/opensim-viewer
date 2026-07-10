@@ -111,12 +111,15 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState, cont
     ]);
   };
   const addKeyframeRow = () => {
-    const {tripodName, tripodTime} = uiState.viewerState.addTripodAndTime(dollyName);
+    const suggestedName = uiState.viewerState.getUniqueCameraName(dollyName+"_cam");
+    const newTripod = controls?.addCamera(suggestedName, null);
+    const tripodTime = uiState.viewerState.currentAnimationTime || 0;
+    // Refresh the camera list in case a new camera was added
     setEntries([
       ...entries,
       {
         id: Math.random().toString(36).substring(2, 9),
-        name: tripodName,
+        name: suggestedName,
         time: `${tripodTime}`,
         errors: {}
       }
@@ -220,7 +223,7 @@ const DollyEditorDialog: React.FC<Props> = ({ open, edit, onClose, uiState, cont
           </Button>
 
           <Button variant="outlined" onClick={addKeyframeRow} sx={{ mb: 1 }}>
-            Add from Motion
+            Add from View
           </Button>
 
           <Table size="small" sx={{
