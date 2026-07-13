@@ -197,19 +197,21 @@ const BottomBar = React.forwardRef(function CustomContent(
         const idx = curState.viewerState.animations.findIndex((value: AnimationClip)=>{return (value.name === dollyName)});
         if (idx !== dollyIndexInAnimations) {
           setDollyIndexInAnimations(idx); 
+          //console.log(`Dolly index in animations updated to ${idx} for dolly ${dollyName}`);
           curState.viewerState.addCurrentAnimationIndex(idx);
         }
-        if (curState.viewerState.animations.length > 0 && dollyIndexInAnimations >= 0)
+        if (curState.viewerState.animations.length > 0 && idx >= 0)
         { // Make sure name exists in select as may have been deleted or renamed
-          setSelectedAnim(curState.viewerState.animations[dollyIndexInAnimations].name)
-          handleAnimationChange(curState.viewerState.animations[dollyIndexInAnimations].name, false)
+          setSelectedAnim(curState.viewerState.animations[idx].name)
+          handleAnimationChange(curState.viewerState.animations[idx].name, false)
         }
         else if (curState.viewerState.currentAnimationIndices.length === 0){
           handleAnimationChange("None", false);
         }
-        if (play && !curState.viewerState.animating) {
-          setPlay(false);
-        }
+      }
+      
+      if (play && !curState.viewerState.animating) {
+        setPlay(false);
       }
     }, [curState.viewerState.animations, curState.viewerState.currentAnimationIndices, 
       curState.viewerState.cameraDollies, curState.viewerState.currentDollyIndex, 
