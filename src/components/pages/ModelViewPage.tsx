@@ -559,6 +559,7 @@ useEffect(() => {
                       ref={treeRef}
                       scene={scene}
                       camera={camera}
+                      controls={openSimControlsRef.current}
                       /* let it stretch to parent height */
                       height="100%"
                       onAddCameraClick={setAddCameraDialogOpen}

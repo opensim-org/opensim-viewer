@@ -38,16 +38,21 @@ import { DirectionalLightHelper,
   SpotLightHelper,
   PointLightHelper,
   CameraHelper,
-  Object3D
+  Object3D,
+  PerspectiveCamera,
+  Matrix4,
+  Vector3
 } from 'three';
 import { observer } from 'mobx-react';
 import SaveSceneSettingsDialog from '../Dialogs/SaveSceneSettings';
+import { OpenSimControlHandle } from '../OpenSimControl';
 
 const PANEL_WIDTH = 300;
 
 interface SceneTreeSortableProps {
   scene: THREE.Scene | null;
   camera: THREE.Camera | null;
+  controls: OpenSimControlHandle | null;
   height: string;
   onAddCameraClick?: (node: any) => void;
   onAddLightClick?: (node: any) => void;
@@ -153,6 +158,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
   ({
       scene,
       camera,
+      controls,
       height,
       onAddCameraClick,
       onAddLightClick,
@@ -268,6 +274,40 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
 
     const handleSaveSceneOptions  = () => {
       setSaveSceneSettingsDialogOpen(true);
+    }
+
+    const handleLoadSceneOptions = () => {
+           const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json,application/json';
+      input.onchange = (event) => {
+        const file = (event.target as HTMLInputElement).files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const json = e.target?.result;
+            if (json) {
+              const defaultCameraJson = JSON.parse(json as string).default_camera;
+              const restoredCamera = new PerspectiveCamera();
+              //restoredCamera.name = defaultCameraJson.object.name;
+              //restoredCamera.uuid = defaultCameraJson.object.uuid;
+              const matrix = new Matrix4().fromArray(defaultCameraJson.object.matrix);
+              matrix.decompose(restoredCamera.position, restoredCamera.quaternion, restoredCamera.scale);
+              camera?.copy(restoredCamera);
+              const controlsTarget = new Vector3().fromArray(JSON.parse(json as string).camera_target);
+              if (controls) {
+                controls.setTarget(controlsTarget);
+              }
+              const dolliesJson = JSON.parse(json as string).dolly_list;
+              const offsetsJson = JSON.parse(json as string).offsets;
+              uiState.viewerState.loadDolliesFromJson(dolliesJson);
+
+            }
+          };
+          reader.readAsText(file);
+        }
+      };
+      input.click();
     }
     const panelBg = alpha(theme.palette.background.paper, 0.9);
 
@@ -436,7 +476,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                         {node.object3D && node.type === 'Group' && node.title === 'OpenSim Scene' && (
                          <IconButton size="small" style={{ marginLeft: 8 }}>
                             {<SaveTwoToneIcon fontSize="small" onClick={(e) => { e.stopPropagation(); handleSaveSceneOptions(); }} /> }
-                            {<FileOpenTwoToneIcon fontSize="small" onClick={(e) => { e.stopPropagation(); handleLoadTripods(); }} /> }
+                            {<FileOpenTwoToneIcon fontSize="small" onClick={(e) => { e.stopPropagation(); handleLoadSceneOptions(); }} /> }
                           </IconButton>
                         )}
                         {node.object3D && node.title === 'Tripods' && (
@@ -572,7 +612,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
               onSave={(options) => {
                 // prompt for file name and save
                 const fileName = window.prompt("Enter file name:", "scene_settings.json") || "scene_settings.json";
-                const saveJson = uiState.viewerState.saveSceneSettingsToJson(options, scene);
+                const saveJson = uiState.viewerState.saveSceneSettingsToJson(options, scene, controls!.getTarget());
                 saveAs(new Blob([JSON.stringify(saveJson, null, 2)], { type: "application/json" }), fileName);  
                 setSaveSceneSettingsDialogOpen(false);
                 // Handle save options

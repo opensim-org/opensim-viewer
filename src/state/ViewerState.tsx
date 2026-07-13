@@ -789,9 +789,10 @@ export class ViewerState {
         });
         return JSON.stringify(offsets);
     }
-    saveSceneSettingsToJson(options: any, scene:THREE.Scene | null) {
+    saveSceneSettingsToJson(options: any, scene:THREE.Scene | null, cameraTarget: Vector3 | null) {
         const jsonSave = {
-            def_camera:  this.defaultCamera!.toJSON(),
+            default_camera:  this.defaultCamera!.toJSON(),
+            camera_target: cameraTarget?.toArray(),
             dolly_list: this.saveDolliesToJson(),
             offsets: this.getModelOffsetsJson(scene!),
             options: options
