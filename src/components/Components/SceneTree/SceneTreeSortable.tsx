@@ -297,11 +297,13 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
               const controlsTarget = new Vector3().fromArray(JSON.parse(json as string).camera_target);
               if (controls) {
                 controls.setTarget(controlsTarget);
+                controls.update();
               }
               const dolliesJson = JSON.parse(json as string).dolly_list;
-              const offsetsJson = JSON.parse(json as string).offsets;
               uiState.viewerState.loadDolliesFromJson(dolliesJson);
-
+              const offsetsJson = JSON.parse(json as string).offsets;
+              // apply offsets to models
+              uiState.viewerState.applyModelOffsetsFromJson(scene!, offsetsJson);
             }
           };
           reader.readAsText(file);

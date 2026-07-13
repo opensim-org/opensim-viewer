@@ -202,7 +202,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     return () => ro.disconnect();
   }, []);
 
-  const [heightBottomBar, setHeightBottomBar] = useState(0);
+  const [heightBottomBar, ] = useState(0);
 
   const curState = useModelContext();
   let { urlParam } = useParams();

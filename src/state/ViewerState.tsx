@@ -789,6 +789,22 @@ export class ViewerState {
         });
         return JSON.stringify(offsets);
     }
+    applyModelOffsetsFromJson(scene:THREE.Scene, offsetsJson: string) {
+        const offsets = JSON.parse(offsetsJson);
+        scene.traverse((child) => {
+            if (child.name.startsWith("Models")) {
+                const modelsGroup = child;
+                // If the number of offsets is less than the number of models, only apply to the available ones
+                for (let i = 0; i < modelsGroup.children.length && i < offsets.positions.length; i++) {
+                    const model = modelsGroup.children[i];
+                    const offset = offsets.positions[i];
+                    if (offset) {
+                        model.position.fromArray(offset.position);
+                    }
+                }
+            }
+        });
+    }
     saveSceneSettingsToJson(options: any, scene:THREE.Scene | null, cameraTarget: Vector3 | null) {
         const jsonSave = {
             default_camera:  this.defaultCamera!.toJSON(),

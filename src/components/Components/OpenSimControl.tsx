@@ -21,6 +21,7 @@ export type OpenSimControlHandle = {
   setTarget: (controlsTarget: Vector3) => void;
   addCamera: (cameraName: any, parent: Object3D | null) => PerspectiveCamera;
   getTarget: () => Vector3 | null;
+  update: () => void;
 };
 
 const qualityLevels = [
@@ -54,6 +55,11 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
     setTarget: (controlsTarget: Vector3) => {
         if (controlsRef.current) {
             controlsRef.current.target.copy(controlsTarget);
+        }
+    },
+    update: () => {
+        if (controlsRef.current) {
+            controlsRef.current.update();
         }
     }
   }));
