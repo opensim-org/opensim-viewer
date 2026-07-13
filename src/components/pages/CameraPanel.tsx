@@ -90,7 +90,7 @@ function CameraPanel(props :CameraPanelProps) {
    }
 
 
-  const handleSaveCamerasOrDollies = function() {
+  const handleSaveDollies = function() {
     const json = curState.viewerState.saveDolliesToJson();
     // query for file name and save
     const defaultName = "dollies.json";
@@ -98,7 +98,7 @@ function CameraPanel(props :CameraPanelProps) {
     saveAs(new Blob([JSON.stringify(json, null, 2)], { type: "application/json" }), fileName);
   }
 
-  const handleLoadCamerasOrDollies = function() {
+  const handleLoadDollies = function() {
       // Create a file input element to select the JSON file
       const input = document.createElement('input');
       input.type = 'file';
@@ -138,11 +138,11 @@ function CameraPanel(props :CameraPanelProps) {
         </IconButton>
         <IconButton color="primary" title="Save to File" 
             disabled={(!selectedDolly )}
-            onClick={function() { handleSaveCamerasOrDollies();}}>
+            onClick={function() { handleSaveDollies();}}>
           <SaveTwoToneIcon />
         </IconButton>
         <IconButton color="primary" title="Load from File" 
-          onClick={function() { handleLoadCamerasOrDollies();}}>
+          onClick={function() { handleLoadDollies();}}>
           <FileOpenTwoToneIcon />
         </IconButton>
       </Stack>

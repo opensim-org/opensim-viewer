@@ -41,6 +41,7 @@ import { DirectionalLightHelper,
   Object3D
 } from 'three';
 import { observer } from 'mobx-react';
+import SaveSceneSettingsDialog from '../Dialogs/SaveSceneSettings';
 
 const PANEL_WIDTH = 300;
 
@@ -171,6 +172,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
 
     const [contextMenu, setContextMenu] = useState<{ mouseX: number; mouseY: number; node: any; path: number[] } | null>(null);
     const [nodeToDelete, setNodeToDelete] = useState<{ node: any; path: number[] } | null>(null);
+    const [isSaveSceneSettingsDialogOpen, setSaveSceneSettingsDialogOpen] = useState(false);
     const outerDivRef = useRef<HTMLDivElement>(null);
 
     const typesNotModifiable = ['skySphere', 'floor', 'axes', 'group', 'model', 'modelComponent', 'wcs'];
@@ -264,6 +266,9 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
       input.click();
     };
 
+    const handleSaveSceneOptions  = () => {
+      setSaveSceneSettingsDialogOpen(true);
+    }
     const panelBg = alpha(theme.palette.background.paper, 0.9);
 
     return (
@@ -428,6 +433,12 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                             {node.object3D.visible ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
                           </IconButton>
                         )}
+                        {node.object3D && node.type === 'Group' && node.title === 'OpenSim Scene' && (
+                         <IconButton size="small" style={{ marginLeft: 8 }}>
+                            {<SaveTwoToneIcon fontSize="small" onClick={(e) => { e.stopPropagation(); handleSaveSceneOptions(); }} /> }
+                            {<FileOpenTwoToneIcon fontSize="small" onClick={(e) => { e.stopPropagation(); handleLoadTripods(); }} /> }
+                          </IconButton>
+                        )}
                         {node.object3D && node.title === 'Tripods' && (
                           <IconButton size="small" style={{ marginLeft: 8 }}>
                             {<SaveTwoToneIcon fontSize="small" onClick={(e) => { e.stopPropagation(); handleSaveTripods(); }} /> }
@@ -553,7 +564,23 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
             </Button>
           </DialogActions>
         </Dialog>
-
+        {
+          isSaveSceneSettingsDialogOpen && (
+            <SaveSceneSettingsDialog
+              open={isSaveSceneSettingsDialogOpen}
+              onClose={() => setSaveSceneSettingsDialogOpen(false)}
+              onSave={(options) => {
+                // prompt for file name and save
+                const fileName = window.prompt("Enter file name:", "scene_settings.json") || "scene_settings.json";
+                const saveJson = uiState.viewerState.saveSceneSettingsToJson(options, scene);
+                saveAs(new Blob([JSON.stringify(saveJson, null, 2)], { type: "application/json" }), fileName);  
+                setSaveSceneSettingsDialogOpen(false);
+                // Handle save options
+              }}
+              scene={scene}
+            />
+          )
+        }
 
       </div>
     );
