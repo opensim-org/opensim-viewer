@@ -142,7 +142,10 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
-          viewerState.handleKey(event.key);
+          if (event.ctrlKey) {
+            event.preventDefault(); // Prevent default behavior for Ctrl key combinations
+            viewerState.handleKey(event.key);
+        }
       };
       window.addEventListener('keydown', handleKeyDown);
       return () => {
