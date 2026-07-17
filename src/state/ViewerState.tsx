@@ -436,25 +436,32 @@ export class ViewerState {
     }
     addCameraDolly(newSequence:CameraDolly){
         this.cameraDollies.push(newSequence);
-        this.animations.push(this.createAnimationClipFromSequence(newSequence));
+        const theClip = this.createAnimationClipFromSequence(newSequence);
+        this.animations.push(theClip);
         this.isDollyAnimation.push(true)
-        this.animationStartTimes.push(0); // default to 0, can be updated when play starts or when sequence is updated
+        this.animationStartTimes.push(this.getClipStartTime(theClip)); // Compute from clip
         this.animationRoots.push(this.defaultCamera!); // Should be default camera
-        this.addCurrentAnimationIndex(this.animations.length - 1);
         this.setCurrentDollyIndex(this.cameraDollies.length - 1);
         const dollyAnimationIndex = this.animations.length - 1;
         this.animationChange = {index:dollyAnimationIndex, operation:"add"};
+        // remove from currentAnimationIndices any dolly animations
+        this.currentAnimationIndices = this.currentAnimationIndices.filter(index => !this.isDollyAnimation[index]);
+        // if we are adding a new dolly animation, we want to make sure it is included in the current animation indices
+        this.addCurrentAnimationIndex(dollyAnimationIndex);
         this.setAnimationsNeedUpdate(true);
 
     }
     updateCameraDolly(newSequence:CameraDolly){
         // update entry at  this.currentDollyIndex
+        //keep track of old name as it may have changed and we need to update the animation clip name as well
+        const oldName = this.cameraDollies[this.currentDollyIndex].name;
         this.cameraDollies.splice(this.currentDollyIndex, 1, newSequence);
         const theClip = this.createAnimationClipFromSequence(newSequence);
-        this.animations.splice(this.currentDollyIndex, 1, theClip);
-        this.animationStartTimes.splice(this.currentDollyIndex, 1, 0); // reset start time for updated clip
-        this.animationRoots.splice(this.currentDollyIndex, 1, this.cameras[0]);
-        this.animationChange = {index:this.currentDollyIndex, operation:"update"};
+        // find old dolly in animations by name and replace with new clip
+        const oldClipIndex = this.animations.findIndex(clip => clip.name === oldName);
+        this.animations.splice(oldClipIndex, 1, theClip);
+        this.animationStartTimes.splice(oldClipIndex, 1, this.getClipStartTime(theClip)); // reset start time for updated clip
+        this.animationChange = {index:oldClipIndex, operation:"update"};
         this.setAnimationsNeedUpdate(true);
     }
     setAnimationList(animations: AnimationClip[]) {
@@ -521,6 +528,15 @@ export class ViewerState {
         // Create an AnimationClip from saved KeyFrameCameras, add to ui
         return new AnimationClip(newSequence.name!, duration, [positionKF, orientationKF])
     }
+    getClipStartTime(clip: THREE.AnimationClip): number {
+        let start = Infinity;
+        for (const track of clip.tracks) {
+            if (track.times.length > 0) {
+            start = Math.min(start, track.times[0]); // times[] is sorted ascending
+            }
+        }
+        return start === Infinity ? 0 : start;
+    }
     async loadUserPreferences() {
         try {
             const response = await fetch(this.userPreferencesJsonPath);
@@ -580,9 +596,12 @@ export class ViewerState {
         }
         return uniqueName;
     }
-    addTripodAtCamera(name: string) {
+    
+    addTripodAndTime(name: string) {
         this.addCamera(this.defaultCamera as PerspectiveCamera, new Vector3(0, 0, 0), name);
+        return { tripodName: name, tripodTime: this.currentAnimationTime };
     }
+ 
     deleteCurrentCamera() {
         const idx = this.currentCameraIndex;
         const cam = this.cameras[idx];
@@ -749,6 +768,52 @@ export class ViewerState {
         if (sceneObject.type === "PerspectiveCamera" || sceneObject.type === "OrthographicCamera") {
             this.setCamerasNeedUpdate(true);
         }
+    }
+    getModelOffsetsJson(scene:THREE.Scene) {
+        var offsets: any = {
+            "type": "transforms",
+             "positions": []
+        };
+        // find the scene node for modelsGroup and get the offsets for each model group in its parent
+        scene.traverse((child) => {
+            if (child.name.startsWith("Models")) {
+                const modelsGroup = child; 
+                for (let i = 0; i < modelsGroup.children.length; i++) {
+                    const model = modelsGroup.children[i];
+                    offsets.positions.push({
+                        uuid: model.uuid,
+                        position: model.position.toArray()
+                    });
+                }
+            }
+        });
+        return JSON.stringify(offsets);
+    }
+    applyModelOffsetsFromJson(scene:THREE.Scene, offsetsJson: string) {
+        const offsets = JSON.parse(offsetsJson);
+        scene.traverse((child) => {
+            if (child.name.startsWith("Models")) {
+                const modelsGroup = child;
+                // If the number of offsets is less than the number of models, only apply to the available ones
+                for (let i = 0; i < modelsGroup.children.length && i < offsets.positions.length; i++) {
+                    const model = modelsGroup.children[i];
+                    const offset = offsets.positions[i];
+                    if (offset) {
+                        model.position.fromArray(offset.position);
+                    }
+                }
+            }
+        });
+    }
+    saveSceneSettingsToJson(options: any, scene:THREE.Scene | null, cameraTarget: Vector3 | null) {
+        const jsonSave = {
+            default_camera:  this.defaultCamera!.toJSON(),
+            camera_target: cameraTarget?.toArray(),
+            dolly_list: this.saveDolliesToJson(),
+            offsets: this.getModelOffsetsJson(scene!),
+            options: options
+        }
+        return jsonSave;
     }
 }
 

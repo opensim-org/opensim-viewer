@@ -58,12 +58,6 @@ export default observer(function DollyCombo() {
         <SettingsIcon />
       </IconButton>
       </Tooltip>
-      <DollyEditorDialog
-          open={dollyEditorOpen}
-          edit={false}
-          onClose={function() {setDollyEditorOpen(false)}}
-          uiState={curState}
-      />
     </>
   );
 });

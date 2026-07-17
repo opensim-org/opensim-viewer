@@ -142,7 +142,10 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
-          viewerState.handleKey(event.key);
+          if (event.ctrlKey) {
+            event.preventDefault(); // Prevent default behavior for Ctrl key combinations
+            viewerState.handleKey(event.key);
+        }
       };
       window.addEventListener('keydown', handleKeyDown);
       return () => {
@@ -179,6 +182,13 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             else {
               action.setLoop(THREE.LoopOnce, 1);
             }
+            if (curState.viewerState.isDollyAnimation[clipIndex] && curState.viewerState.currentAnimationIndices.length === 1) {
+              nextMixer.addEventListener('finished', (e) => {
+                // Handle dolly animation finished event
+                console.log(`Dolly animation ${clip.name} finished.`);
+                viewerState.setAnimating(false);
+              });
+            }
             mixers[clipIndex] = nextMixer
           }
         }
@@ -199,6 +209,13 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             }
             else {
               action.setLoop(THREE.LoopOnce, 1);
+            }
+            if (curState.viewerState.isDollyAnimation[clipIndex] && curState.viewerState.currentAnimationIndices.length === 1) {
+              nextMixer.addEventListener('finished', (e) => {
+                // Handle dolly animation finished event
+                console.log(`Dolly animation ${clip.name} finished.`);
+                viewerState.setAnimating(false);
+              });
             }
             mixers[clipIndex] = nextMixer
           }

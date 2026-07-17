@@ -202,7 +202,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
     return () => ro.disconnect();
   }, []);
 
-  const [heightBottomBar, setHeightBottomBar] = useState(0);
+  const [heightBottomBar, ] = useState(0);
 
   const curState = useModelContext();
   let { urlParam } = useParams();
@@ -537,8 +537,9 @@ useEffect(() => {
                 ref={bottomBarRef}
                 animationPlaySpeed={1.0}
                 animating={uiState.viewerState.animating}
-                animationList={uiState.viewerState.animations}/>
-              )}
+                animationList={uiState.viewerState.animations}
+                controlsRef={openSimControlsRef.current}
+              />)}
 
               {scene && camera && (
                 <div
@@ -558,6 +559,7 @@ useEffect(() => {
                       ref={treeRef}
                       scene={scene}
                       camera={camera}
+                      controls={openSimControlsRef.current}
                       /* let it stretch to parent height */
                       height="100%"
                       onAddCameraClick={setAddCameraDialogOpen}

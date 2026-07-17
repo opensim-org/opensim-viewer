@@ -38,15 +38,21 @@ import { DirectionalLightHelper,
   SpotLightHelper,
   PointLightHelper,
   CameraHelper,
-  Object3D
+  Object3D,
+  PerspectiveCamera,
+  Matrix4,
+  Vector3
 } from 'three';
 import { observer } from 'mobx-react';
+import SaveSceneSettingsDialog from '../Dialogs/SaveSceneSettings';
+import { OpenSimControlHandle } from '../OpenSimControl';
 
 const PANEL_WIDTH = 300;
 
 interface SceneTreeSortableProps {
   scene: THREE.Scene | null;
   camera: THREE.Camera | null;
+  controls: OpenSimControlHandle | null;
   height: string;
   onAddCameraClick?: (node: any) => void;
   onAddLightClick?: (node: any) => void;
@@ -152,6 +158,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
   ({
       scene,
       camera,
+      controls,
       height,
       onAddCameraClick,
       onAddLightClick,
@@ -171,6 +178,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
 
     const [contextMenu, setContextMenu] = useState<{ mouseX: number; mouseY: number; node: any; path: number[] } | null>(null);
     const [nodeToDelete, setNodeToDelete] = useState<{ node: any; path: number[] } | null>(null);
+    const [isSaveSceneSettingsDialogOpen, setSaveSceneSettingsDialogOpen] = useState(false);
     const outerDivRef = useRef<HTMLDivElement>(null);
 
     const typesNotModifiable = ['skySphere', 'floor', 'axes', 'group', 'model', 'modelComponent', 'wcs'];
@@ -264,6 +272,45 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
       input.click();
     };
 
+    const handleSaveSceneOptions  = () => {
+      setSaveSceneSettingsDialogOpen(true);
+    }
+
+    const handleLoadSceneOptions = () => {
+           const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json,application/json';
+      input.onchange = (event) => {
+        const file = (event.target as HTMLInputElement).files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const json = e.target?.result;
+            if (json) {
+              const defaultCameraJson = JSON.parse(json as string).default_camera;
+              const restoredCamera = new PerspectiveCamera();
+              //restoredCamera.name = defaultCameraJson.object.name;
+              //restoredCamera.uuid = defaultCameraJson.object.uuid;
+              const matrix = new Matrix4().fromArray(defaultCameraJson.object.matrix);
+              matrix.decompose(restoredCamera.position, restoredCamera.quaternion, restoredCamera.scale);
+              camera?.copy(restoredCamera);
+              const controlsTarget = new Vector3().fromArray(JSON.parse(json as string).camera_target);
+              if (controls) {
+                controls.setTarget(controlsTarget);
+                controls.update();
+              }
+              const dolliesJson = JSON.parse(json as string).dolly_list;
+              uiState.viewerState.loadDolliesFromJson(dolliesJson);
+              const offsetsJson = JSON.parse(json as string).offsets;
+              // apply offsets to models
+              uiState.viewerState.applyModelOffsetsFromJson(scene!, offsetsJson);
+            }
+          };
+          reader.readAsText(file);
+        }
+      };
+      input.click();
+    }
     const panelBg = alpha(theme.palette.background.paper, 0.9);
 
     return (
@@ -428,6 +475,12 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                             {node.object3D.visible ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
                           </IconButton>
                         )}
+                        {node.object3D && node.type === 'Group' && node.title === 'OpenSim Scene' && (
+                         <IconButton size="small" style={{ marginLeft: 8 }}>
+                            {<SaveTwoToneIcon fontSize="small" onClick={(e) => { e.stopPropagation(); handleSaveSceneOptions(); }} /> }
+                            {<FileOpenTwoToneIcon fontSize="small" onClick={(e) => { e.stopPropagation(); handleLoadSceneOptions(); }} /> }
+                          </IconButton>
+                        )}
                         {node.object3D && node.title === 'Tripods' && (
                           <IconButton size="small" style={{ marginLeft: 8 }}>
                             {<SaveTwoToneIcon fontSize="small" onClick={(e) => { e.stopPropagation(); handleSaveTripods(); }} /> }
@@ -553,7 +606,23 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
             </Button>
           </DialogActions>
         </Dialog>
-
+        {
+          isSaveSceneSettingsDialogOpen && (
+            <SaveSceneSettingsDialog
+              open={isSaveSceneSettingsDialogOpen}
+              onClose={() => setSaveSceneSettingsDialogOpen(false)}
+              onSave={(options) => {
+                // prompt for file name and save
+                const fileName = window.prompt("Enter file name:", "scene_settings.json") || "scene_settings.json";
+                const saveJson = uiState.viewerState.saveSceneSettingsToJson(options, scene, controls!.getTarget());
+                saveAs(new Blob([JSON.stringify(saveJson, null, 2)], { type: "application/json" }), fileName);  
+                setSaveSceneSettingsDialogOpen(false);
+                // Handle save options
+              }}
+              scene={scene}
+            />
+          )
+        }
 
       </div>
     );

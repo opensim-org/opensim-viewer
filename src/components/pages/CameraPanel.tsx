@@ -22,9 +22,11 @@ import { CameraDolly } from '../../state/ViewerState'
 import { saveAs } from 'file-saver';
 
 import DollyEditorDialog from '../Components/DollyEditorDialog'
+import { OpenSimControlHandle } from '../Components/OpenSimControl'
 
 type CameraPanelProps = {
   uState: ModelUIState;
+  controlsRef: OpenSimControlHandle | null;
 }
 
 function CameraPanel(props :CameraPanelProps) {
@@ -34,7 +36,8 @@ function CameraPanel(props :CameraPanelProps) {
   const [dollyEditorOpen, setDollyEditorOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const curState = props.uState;
-
+  const passedControls = props.controlsRef;
+  
   const handleCameraChange = useCallback((cameraName: string) => {
     const targetName = cameraName
     const idx = curState.viewerState.cameras.findIndex((value: Camera)=>{return (value.name === targetName)})
@@ -87,7 +90,7 @@ function CameraPanel(props :CameraPanelProps) {
    }
 
 
-  const handleSaveCamerasOrDollies = function() {
+  const handleSaveDollies = function() {
     const json = curState.viewerState.saveDolliesToJson();
     // query for file name and save
     const defaultName = "dollies.json";
@@ -95,7 +98,7 @@ function CameraPanel(props :CameraPanelProps) {
     saveAs(new Blob([JSON.stringify(json, null, 2)], { type: "application/json" }), fileName);
   }
 
-  const handleLoadCamerasOrDollies = function() {
+  const handleLoadDollies = function() {
       // Create a file input element to select the JSON file
       const input = document.createElement('input');
       input.type = 'file';
@@ -135,11 +138,11 @@ function CameraPanel(props :CameraPanelProps) {
         </IconButton>
         <IconButton color="primary" title="Save to File" 
             disabled={(!selectedDolly )}
-            onClick={function() { handleSaveCamerasOrDollies();}}>
+            onClick={function() { handleSaveDollies();}}>
           <SaveTwoToneIcon />
         </IconButton>
         <IconButton color="primary" title="Load from File" 
-          onClick={function() { handleLoadCamerasOrDollies();}}>
+          onClick={function() { handleLoadDollies();}}>
           <FileOpenTwoToneIcon />
         </IconButton>
       </Stack>
@@ -149,6 +152,7 @@ function CameraPanel(props :CameraPanelProps) {
           edit={editMode}
           onClose={function() {setDollyEditorOpen(false)}}
           uiState={curState}
+          controlsRef={passedControls}
       />
     </>
   )
