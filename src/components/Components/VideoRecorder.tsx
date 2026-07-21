@@ -808,17 +808,8 @@ function VideoRecorder(props: VideoRecorderViewProps) {
             animationTime = timeInIteration + recordingStartTime;
           }
 
-          // For the very first frame, use the time that was already set in startRecording
-          // to avoid rendering the initial state twice
-          if (frameCount === 0) {
-            // Use the time that was already set in startRecording
-            // Don't change it, just capture what's already rendered
-            console.log(`First frame using pre-rendered state at time: ${viewerState.currentAnimationTime}`);
-          } else {
-            // Set external time for subsequent frames
-            viewerState.externalAnimationTime = animationTime;
-            viewerState.setCurrentAnimationTime(animationTime);
-          }
+          viewerState.externalAnimationTime = animationTime;
+          viewerState.setCurrentAnimationTime(animationTime);
 
           // Calculate progress percentage based on actual frames captured vs total frames we expect to capture
           const progressPercent = (frameCount / framesPerIteration) * 100;
