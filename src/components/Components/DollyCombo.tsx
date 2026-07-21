@@ -9,6 +9,7 @@ import { useModelContext } from '../../state/ModelUIStateContext';
 import { observer } from 'mobx-react-lite';
 import DollyEditorDialog from './DollyEditorDialog';
 import Tooltip from '@mui/material/Tooltip';
+import Typography from '@mui/material/Typography';
 
 export default observer(function DollyCombo() {
   const options = ['Dollies..'];
@@ -41,7 +42,11 @@ export default observer(function DollyCombo() {
 
   return (
     <>
-    <Tooltip title="Dollies..." placement="right">
+    <Tooltip title={
+      (viewerState.currentDollyIndex !== -1) ?
+        viewerState.cameraDollies[viewerState.currentDollyIndex].name :
+        'no Dolly'
+      } placement="right">
       <IconButton
         onClick={handleSelect}
         sx={{ borderRadius: '8px', gap: 0.5 }}
