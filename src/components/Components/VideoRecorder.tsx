@@ -787,13 +787,8 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       let animationStartTime = viewerState.animationStartTimes[animationIndex] || 0;
 
       const loop = async () => {
-        let currentIteration = 0;
-
         // Determine the segment duration for partial recording
         const segmentDuration = isFullAnimation ? animationDurationRef.current : (recordingEndTime - recordingStartTime);
-
-        // The animation time offset for the start of the segment
-        const segmentStartOffset = isFullAnimation ? 0 : recordingStartTime;
 
         // Only capture ONE iteration worth of frames
         while (isRecordingRef.current && frameCount < framesPerIteration && captureErrors < MAX_ERRORS) {
