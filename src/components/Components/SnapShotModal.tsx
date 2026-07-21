@@ -110,7 +110,7 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
           <FormControl>
               <FormLabel id="demo-controlled-radio-buttons-group">Dimensions</FormLabel>
               <FormControlLabel
-                label="Use Custom Aspect Ratio"
+                label="Select Aspect Ratio"
                 control={
                   <Checkbox
                     name="size_choice"
