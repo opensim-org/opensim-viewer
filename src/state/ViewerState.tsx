@@ -67,6 +67,10 @@ export class ViewerState {
     videoRecorderStartTime: number
     videoRecorderEndTime: number
 
+    // External time control for recording
+    isTimeControlledExternally: boolean
+    externalAnimationTime: number
+
     user_uuid: string
     // user preferences
     userPreferencesJsonPath: string = ''
@@ -112,7 +116,7 @@ export class ViewerState {
     animationSpeed: number
     animations: AnimationClip[]
     isDollyAnimation: boolean[] = []
-    animationStartTimes: number[] // parallel array to animations to track start time for each clip, needed for proper synchronization when multiple clips are playing  
+    animationStartTimes: number[] // parallel array to animations to track start time for each clip, needed for proper synchronization when multiple clips are playing
     animationRoots: Object3D[] // roots for each animation clip
     currentAnimationIndices: number[]
     animationsNeedUpdate: boolean
@@ -165,6 +169,11 @@ export class ViewerState {
         this.videoRecorderEndTime = 1.0
 
         this.videoRecorderPreserveAspectRatio = true
+
+        // Initialize external time control properties
+        this.isTimeControlledExternally = false
+        this.externalAnimationTime = 0
+
         this.user_uuid = ''
         this.backgroundColor = new Color(0.12, 0.12, 0.12)
         this.backgroundImage = null
@@ -250,6 +259,10 @@ export class ViewerState {
             videoRecorderStartTime: observable,
             videoRecorderEndTime: observable,
             videoRecorderPreserveAspectRatio: observable,
+            isTimeControlledExternally: observable,
+            externalAnimationTime: observable,
+            setIsTimeControlledExternally: action,
+            setExternalAnimationTime: action,
             userPreferencesJsonPath: observable,
             userPreferences: observable,
             setUserPreferencesJsonPath: action,
@@ -381,6 +394,12 @@ export class ViewerState {
     }
     setVideoRecorderEndTime(newValue: number) {
         this.videoRecorderEndTime = newValue
+    }
+    setIsTimeControlledExternally(newState: boolean) {
+        this.isTimeControlledExternally = newState
+    }
+    setExternalAnimationTime(newTime: number) {
+        this.externalAnimationTime = newTime
     }
     setLightColor(newColor: Color) {
         this.lightColor = newColor
@@ -596,12 +615,12 @@ export class ViewerState {
         }
         return uniqueName;
     }
-    
+
     addTripodAndTime(name: string) {
         this.addCamera(this.defaultCamera as PerspectiveCamera, new Vector3(0, 0, 0), name);
         return { tripodName: name, tripodTime: this.currentAnimationTime };
     }
- 
+
     deleteCurrentCamera() {
         const idx = this.currentCameraIndex;
         const cam = this.cameras[idx];
@@ -777,7 +796,7 @@ export class ViewerState {
         // find the scene node for modelsGroup and get the offsets for each model group in its parent
         scene.traverse((child) => {
             if (child.name.startsWith("Models")) {
-                const modelsGroup = child; 
+                const modelsGroup = child;
                 for (let i = 0; i < modelsGroup.children.length; i++) {
                     const model = modelsGroup.children[i];
                     offsets.positions.push({

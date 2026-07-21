@@ -152,7 +152,19 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         window.removeEventListener('keydown', handleKeyDown);
       };
     }, [viewerState]);
-  
+
+    useEffect(() => {
+      if (curState.viewerState.cameras.length > 0 && currentCamera) {
+        const selectedCamera = curState.viewerState.cameras[curState.viewerState.currentCameraIndex] as PerspectiveCamera;
+        if (selectedCamera !== camera) {
+          setCurrentCamera(selectedCamera);
+          set({camera: selectedCamera});
+        }
+      }
+    }, [
+      curState.viewerState.currentCameraIndex,
+      curState.viewerState.cameras
+    ]);
   
     // This useEffect sets the current selected camera.
     useEffect(() => {
@@ -324,6 +336,32 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           const action = mixer.clipAction(viewerState.animations[animIndex]);
           const duration = action.getClip().duration;
 
+          // Check if time is controlled externally (by recorder)
+          if (viewerState.isTimeControlledExternally) {
+            // Use the external time set by the recorder
+            const externalTime = viewerState.externalAnimationTime;
+
+            // Update the mixer time without advancing
+            if (Math.abs(action.time - externalTime) > 0.001) {
+              action.time = externalTime;
+              mixer.update(0); // Apply the time change without advancing
+              applyAnimationColors();
+            }
+
+            // Update UI elements
+            const newFrame = Math.trunc((externalTime / duration) * 100);
+            if (newFrame !== curState.currentFrame) {
+              curState.setCurrentFrame(newFrame);
+            }
+
+            // Update viewer state time
+            viewerState.setCurrentAnimationTime(externalTime);
+            curState.setTimeGUIAnimation(externalTime);
+
+            // Skip normal animation logic
+            continue;
+          }
+
           // If we're animating (playing), update the mixer with delta time
           if (viewerState.animating) {
             const direction = curState.guiAnimationReverse ? -1 : 1;
@@ -331,6 +369,15 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
               mixer.update(delta * curState.guiAnimationSpeed * direction);
             else
               mixer.update(delta * viewerState.animationSpeed);
+
+            if (viewerState.isDollyAnimation[animIndex]) {
+              const cam = viewerState.cameras[viewerState.currentCameraIndex];
+
+              if (cam) {
+                  cam.updateMatrixWorld(true);
+              }
+            }
+
             applyAnimationColors();
 
             // Update animation time from the action
@@ -364,7 +411,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
               viewerState.forceAnimationUpdate = false;
             }
           }
-        } 
+        }
       }
 
       // FPS counter
@@ -409,7 +456,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           setUseEffectRunning(true)
         };
       }, [scene, supportControls, currentModelPath, curState, sceneObjectMap])
-    
+
   function handleClick(event: ThreeEvent<MouseEvent>): void {
     //event.stopPropagation();
     if (event.object !== undefined) {
@@ -465,9 +512,9 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         </group>
         <group name='Tripods' ref={tripodsRef}>
         </group>
-        <group name='Models' ref={modelsRef}  
+        <group name='Models' ref={modelsRef}
             onClick={(e)=>{ handleClick(e);}}
-            onPointerMissed={(e)=>{clearSelection();}} 
+            onPointerMissed={(e)=>{clearSelection();}}
         />
       </group>
 
