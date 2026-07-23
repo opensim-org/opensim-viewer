@@ -479,7 +479,9 @@ useEffect(() => {
                 </GizmoHelper>
                 <OpenSimControl ref={openSimControlsRef}/>
                 <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
-                <VideoRecorder videoRecorderRef={videoRecorderRef}/>
+                <VideoRecorder
+                    videoRecorderRef={videoRecorderRef}
+                    treeReference={treeRef}/>
                 {transformTarget && uiState.visibleHelpers && (
                   <>
                       <TransformControls object={transformTarget} mode={transformMode} />

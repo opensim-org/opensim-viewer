@@ -10,6 +10,7 @@ import { useModelContext } from "../../state/ModelUIStateContext";
 import { getTimestamp } from "../../helpers/timeHelpers";
 import { WebGLRenderer } from 'three';
 import JSZip from 'jszip';
+import SceneTreeSortable, { SceneTreeSortableHandle } from "../Components/SceneTree/SceneTreeSortable"
 
 import {
   drawWatermark,
@@ -30,6 +31,7 @@ type VideoRecorderRef = {
 
 type VideoRecorderViewProps = {
   videoRecorderRef: React.MutableRefObject<VideoRecorderRef | null>;
+  treeReference?: React.RefObject<SceneTreeSortableHandle> | null;
 };
 
 // Aspect ratio utility functions
@@ -613,6 +615,10 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     setupOffscreenRenderer();
 
     const startRecording = async () => {
+      if (props.treeReference?.current) {
+        props.treeReference.current.close();
+      }
+
       const current = viewerState.currentAnimationIndices;
       if (current[0] === -1) {
         enqueueSnackbar(t('snackbars.no_animation_selected'), {

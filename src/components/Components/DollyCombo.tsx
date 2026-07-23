@@ -38,6 +38,8 @@ export default observer(function DollyCombo() {
   const handleClose = () => setAnchorEl(null);
   const handleSelect = () => {
       curState.setIsInDollyEditMode(true);
+      curState.setIsInRecordMode(false)
+      curState.viewerState.setShowAspectRatioGuides?.(false);
   };
 
   return (

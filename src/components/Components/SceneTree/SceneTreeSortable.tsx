@@ -221,6 +221,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
       }
     }, [isOpen, scene, uiState, setTransformTargetFunction]);
 
+
     const handleSettingsClick = (node: any, path: number[]) => {
       setSettingsNode(node);
 
