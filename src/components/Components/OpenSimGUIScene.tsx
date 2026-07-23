@@ -169,7 +169,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     // This useEffect sets the current selected camera.
     useEffect(() => {
       //console.log("Change effect", curState.viewerState.animationsNeedUpdate)
-      if (curState.viewerState.cameras.length > 0 && currentCamera) {
+      if (curState.viewerState.cameras.length > 0 && currentCamera && curState.viewerState.currentCameraIndex !== -1) {
         const selectedCamera = curState.viewerState.cameras[curState.viewerState.currentCameraIndex] as PerspectiveCamera;
         setCurrentCamera(selectedCamera);
         set({ camera: selectedCamera });
@@ -372,7 +372,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
             if (viewerState.isDollyAnimation[animIndex]) {
               const cam = viewerState.cameras[viewerState.currentCameraIndex];
-
+              // cam could be null or undefined if currentCameraIndex is -1
               if (cam) {
                   cam.updateMatrixWorld(true);
               }

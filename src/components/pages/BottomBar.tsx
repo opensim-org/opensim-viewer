@@ -163,11 +163,11 @@ const BottomBar = React.forwardRef(function CustomContent(
       if (currentAnimation) {
         const newTime = (percentage / 100) * currentAnimation.duration;
         viewerState.setCurrentAnimationTime(newTime);
-
+        curState.setCurrentFrame(Math.trunc((newTime / currentAnimation.duration) * 100));
         // Force the animation to update immediately when manually scrubbing
         if (!viewerState.animating) {
           // This will trigger the scene to update the animation pose
-          curState.viewerState.forceAnimationUpdate = true;
+          curState.viewerState.setForceAnimationUpdate(true);
         }
         else {
           // If the animation is playing, we want to pause it when scrubbing
