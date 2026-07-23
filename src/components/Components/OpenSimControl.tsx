@@ -132,14 +132,14 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
    }
    useFrame(async (_, delta) => {
         // If camera moves and was a fixed camera, then make it none/default
-        // if (!lastPosition.current.equals(camera.position)) {
-        //     let diff = lastPosition.current.clone();
-        //     diff.sub(camera.position);
-        //     lastPosition.current.copy(camera.position)
-        //     if ((curState.viewerState.currentCameraIndex!==-1) && diff.length() > 1e-3) {
-        //         curState.viewerState.setCurrentCameraIndex(-1)
-        //     }
-        // }
+        if (!lastPosition.current.equals(camera.position)) {
+            let diff = lastPosition.current.clone();
+            diff.sub(camera.position);
+            lastPosition.current.copy(camera.position)
+            if ((curState.viewerState.currentCameraIndex!==-1) && diff.length() > 1e-3) {
+                curState.viewerState.setCurrentCameraIndex(-1)
+            }
+        }
         if (viewerState.pending_key !== "") {
             switch (viewerState.pending_key) {
                 case 'i':
