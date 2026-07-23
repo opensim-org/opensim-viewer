@@ -1,4 +1,20 @@
-import { Button, Checkbox, Dialog, DialogActions, DialogContent, FormControl, FormControlLabel, FormLabel, IconButton, Radio, RadioGroup, Select, MenuItem, InputLabel } from '@mui/material';
+import {
+  Button,
+  Checkbox,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  IconButton,
+  Radio,
+  RadioGroup,
+  Select,
+  MenuItem,
+  InputLabel,
+  TextField
+} from '@mui/material';
 import React from 'react';
 import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone';
 import { useModelContext } from '../../state/ModelUIStateContext';
@@ -73,13 +89,12 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
     setFormData({ ...formData, [name]: value });
     setChanged(!changed)
   };
-  const handleAspectRatioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    formData.preserve_aspect_ratio = event.currentTarget.checked?'true':'false';
-    setChanged(!changed)
-  };
   const handleTransparentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     formData.transparent_background = event.currentTarget.checked?'true':'false';
     setChanged(!changed)
+  };
+  const handleImageNameChange = (event:any) => {
+    curState.viewerState.setSnapshotName(event.target.value)
   };
   const handleImageFormatChange = (event: any) => {
     setFormData({ ...formData, image_format: event.target.value });
@@ -121,7 +136,7 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
 
               {/* Aspect Ratio Selection - only shown when aspect ratio mode is selected */}
               {formData.size_choice === "aspect" && (
-                <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
+                <FormControl fullWidth margin="dense" sx={{ marginTop: 1 }}>
                   <InputLabel>Aspect Ratio</InputLabel>
                   <Select
                     value={formData.aspect_ratio}
@@ -137,14 +152,6 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
                 </FormControl>
               )}
 
-              {/*<FormControlLabel*/}
-              {/*    label="Preserve Aspect Ratio"*/}
-              {/*    control={<Checkbox name="preserve_aspect_ratio"*/}
-              {/*      value={formData.preserve_aspect_ratio==="true"}*/}
-              {/*      checked={formData.preserve_aspect_ratio==="true"}*/}
-              {/*      disabled={formData.size_choice==="screen"}*/}
-              {/*      onChange={handleAspectRatioChange} />}*/}
-              {/*  />*/}
                 <FormControlLabel
                   label="Make background Transparent"
                   control={<Checkbox name="transparent_background"
@@ -153,10 +160,22 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
                     onChange={handleTransparentChange} />}
                 />
 
+                {/* Image Name */}
+                <FormControl fullWidth margin="dense" sx={{ marginTop: 1 }}>
+                  <TextField
+                    size="small"
+                    label={t('recordView.image_name_label')}
+                    value={curState.viewerState.snapshotName}
+                    onChange={handleImageNameChange}
+                    fullWidth
+                  />
+                </FormControl>
+
                 {/* Image Format Selection */}
-                <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
+                <FormControl fullWidth margin="dense" sx={{ marginTop: 1 }}>
                   <InputLabel>Image Format</InputLabel>
                   <Select
+                    size="small"
                     value={formData.image_format}
                     label="Image Format"
                     onChange={handleImageFormatChange}
@@ -170,9 +189,10 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
                 </FormControl>
 
                 {/* Quality Level Selection */}
-                <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
+                <FormControl fullWidth margin="dense" sx={{ marginTop: 1 }}>
                   <InputLabel>Quality Level</InputLabel>
                   <Select
+                    size="small"
                     value={formData.quality_level}
                     label="Quality Level"
                     onChange={handleQualityLevelChange}

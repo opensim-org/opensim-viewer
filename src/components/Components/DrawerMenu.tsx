@@ -7,15 +7,10 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import TextSnippetIcon from '@mui/icons-material/TextSnippet';
 import { useTranslation } from 'react-i18next'
-import AccountTreeTwoToneIcon from '@mui/icons-material/AccountTreeTwoTone'
-import LayersTwoToneIcon from '@mui/icons-material/LayersTwoTone';
 import CameraEnhanceIcon from '@mui/icons-material/CameraEnhance';
 
-import SceneTreeView from '../Components/SceneTreeView';
 import FileView from '../Components/FileView';
 import ShareView from '../Components/ShareView';
-import VisualizationControl from '../Components/VisualizationControl';
-import RecordView from '../Components/RecordView';
 import { ModelUIState } from '../../state/ModelUIState';
 import { observer } from 'mobx-react';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -94,30 +89,6 @@ function DrawerMenu(props :DrawerMenuProps) {
             </div>
           )}
 
-          {props.selectedTabName === 'SceneTreeView' && (
-            <div style={{ margin: '1em' }}>
-              <DrawerHeader>
-                <h3>{t('modelView.sceneTree')}</h3>
-                <IconButton onClick={() => props.toggleOpenMenu()}>
-                  {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-                </IconButton>
-              </DrawerHeader>
-              <SceneTreeView />
-            </div>
-          )}
-
-          {props.selectedTabName === 'VisualizationControl' && (
-            <div style={{ margin: '1em' }}>
-              <DrawerHeader>
-                <h3>{t('modelView.visualizationControl')}</h3>
-                <IconButton onClick={() => props.toggleOpenMenu('')}>
-                  {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-                </IconButton>
-              </DrawerHeader>
-              <VisualizationControl />
-            </div>
-          )}
-
           {props.selectedTabName === 'Share' && (
             <div style={{ margin: '1em' }}>
               <DrawerHeader>
@@ -127,18 +98,6 @@ function DrawerMenu(props :DrawerMenuProps) {
                 </IconButton>
               </DrawerHeader>
               <ShareView />
-            </div>
-          )}
-
-          {props.selectedTabName === 'Record' && (
-            <div style={{ margin: '1em' }}>
-              <DrawerHeader>
-                <h3>{t('modelView.record')}</h3>
-                <IconButton onClick={() => props.toggleOpenMenu('')}>
-                  {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-                </IconButton>
-              </DrawerHeader>
-              <RecordView />
             </div>
           )}
       </Drawer>
@@ -158,21 +117,6 @@ function DrawerMenu(props :DrawerMenuProps) {
             <Tooltip title={t('modelView.file')} placement="right">
                 <ListItem button onClick={() => props.toggleOpenMenu('File')}>
                     <TextSnippetIcon />
-                </ListItem>
-            </Tooltip>
-            <Tooltip title={t('modelView.sceneTree')} placement="right">
-                <ListItem button onClick={() => props.toggleOpenMenu('SceneTreeView')}>
-                        <AccountTreeTwoToneIcon />
-                </ListItem>
-            </Tooltip>
-            <Tooltip title={t('modelView.visualizationControl')} placement="right">
-                <ListItem button onClick={() => props.toggleOpenMenu('VisualizationControl')}>
-                        <LayersTwoToneIcon />
-                </ListItem>
-            </Tooltip>
-            <Tooltip title={t('modelView.record')} placement="right">
-                <ListItem button onClick={() => props.toggleOpenMenu('Record')}>
-                        <CameraEnhanceIcon />
                 </ListItem>
             </Tooltip>
             {viewerState.isLoggedIn && !viewerState.isLocalUpload && (
