@@ -577,7 +577,7 @@ export class ViewerState {
     }
     addCamera(camera: PerspectiveCamera, target: Vector3,
                 suggestedName: string | undefined,
-                setCurrent: boolean | undefined = true,
+                setCurrent: boolean | undefined = false,
                 preserveUuid: boolean = false) {
         const camClone = camera.clone()
         if (suggestedName === undefined){

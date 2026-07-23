@@ -38,13 +38,6 @@ function CameraPanel(props :CameraPanelProps) {
   const curState = props.uState;
   const passedControls = props.controlsRef;
   
-  const handleCameraChange = useCallback((cameraName: string) => {
-    const targetName = cameraName
-    const idx = curState.viewerState.cameras.findIndex((value: Camera)=>{return (value.name === targetName)})
-    curState.viewerState.setCurrentCameraIndex(idx)
-
-  }, [curState]);
-  
   const handleDollyChange = useCallback((dollyName: string) => {
     const targetName = dollyName
     setSelectedDolly(dollyName);
@@ -71,8 +64,8 @@ function CameraPanel(props :CameraPanelProps) {
       // Optional cleanup logic
     };
   }, [availableCameras, curState.viewerState.cameraDollies, curState.viewerState.currentDollyIndex, curState.viewerState.cameras, 
-      curState.viewerState.cameras.length, curState.viewerState.currentCameraIndex, 
-      curState.viewerState.animationsNeedUpdate, handleCameraChange, handleDollyChange]);
+      curState.viewerState.cameras.length, 
+      curState.viewerState.animationsNeedUpdate, handleDollyChange]);
   
 
   const handleAdd = function() {
