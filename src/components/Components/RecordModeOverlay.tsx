@@ -153,6 +153,7 @@ const RecordModeOverlay: React.FC<RecordModeOverlayProps> = ({
     console.log("Cancelling record mode");
     // Simply exit record mode - useEffect will handle restoration
     uiState.setIsInRecordMode(false);
+    uiState.viewerState.setShowAspectRatioGuides?.(false);
   };
 
   const handleInfoClick = () => {
