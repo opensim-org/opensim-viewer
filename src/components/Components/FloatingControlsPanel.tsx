@@ -33,6 +33,7 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
   const handleRecordButtonClick = () => {
     curState.setIsInRecordMode(true)
     curState.viewerState.setShowAspectRatioGuides?.(true);
+    curState.setIsInDollyEditMode(false)
   };
 
   return (
