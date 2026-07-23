@@ -78,7 +78,6 @@ export default observer(function TripodCombo() {
         color="primary"
       >
         <TripodIcon />
-        <SettingsIcon />
       </IconButton>
     </Tooltip>
       <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
