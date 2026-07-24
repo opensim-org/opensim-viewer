@@ -22,6 +22,7 @@ export type OpenSimControlHandle = {
   addCamera: (cameraName: any, parent: Object3D | null) => PerspectiveCamera;
   getTarget: () => Vector3 | null;
   update: () => void;
+  setEnabled: (enabled: boolean) => void;
 };
 
 const qualityLevels = [
@@ -60,6 +61,11 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
     update: () => {
         if (controlsRef.current) {
             controlsRef.current.update();
+        }
+    },
+    setEnabled: (enabled: boolean) => {
+        if (controlsRef.current) {
+            controlsRef.current.enabled = enabled;
         }
     }
   }));
@@ -438,7 +444,7 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
                 //     target.x, target.y, target.z, false)
                 controlsRef.current.update()
             }
-
+            curState.viewerState.setCurrentCameraIndex(-1);
         }
 
        function fitToModels(transition: boolean) {

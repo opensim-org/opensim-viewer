@@ -157,17 +157,19 @@ const BottomBar = React.forwardRef(function CustomContent(
     const handleSliderChange = (event: Event, newValue: number | number[]) => {
       if (viewerState.currentAnimationIndices.length === 0) return;
       if (dollyIndexInAnimations === -1) return;
-
+      if (controls !==null) {
+        controls.setEnabled(false);
+      }
       const percentage = newValue as number;
       const currentAnimation = viewerState.animations[dollyIndexInAnimations];
       if (currentAnimation) {
         const newTime = (percentage / 100) * currentAnimation.duration;
-        viewerState.setCurrentAnimationTime(newTime);
-        curState.setCurrentFrame(Math.trunc((newTime / currentAnimation.duration) * 100));
+        viewerState.currentAnimationTime = newTime;
+        curState.currentFrame = Math.trunc((newTime / currentAnimation.duration) * 100);
         // Force the animation to update immediately when manually scrubbing
         if (!viewerState.animating) {
           // This will trigger the scene to update the animation pose
-          curState.viewerState.setForceAnimationUpdate(true);
+          curState.viewerState.animationsNeedUpdate = true;
         }
         else {
           // If the animation is playing, we want to pause it when scrubbing
@@ -267,6 +269,11 @@ const BottomBar = React.forwardRef(function CustomContent(
                 valueLabelDisplay="auto"
                 valueLabelFormat={valueLabelFormat}
                 onChange={handleSliderChange}
+                onChangeCommitted={() => {
+                  if (controls !==null) {
+                    controls.setEnabled(true);
+                  }
+                }}
                 disabled={dollyIndexInAnimations === -1}/>
             </FormControl>
           </Grid>
