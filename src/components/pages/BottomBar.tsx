@@ -97,7 +97,6 @@ const BottomBar = React.forwardRef(function CustomContent(
 
     const handleAnimationChange = useCallback(function handleAnimChangeInternal(animationName: string, animate: boolean) {
       const targetName = animationName
-      console.log(`Animation change requested: ${targetName}, animate: ${animate}`);
       // remove old dolly animation index if any
       if (dollyIndexInAnimations !== -1) {
         curState.viewerState.removeCurrentAnimationIndex(dollyIndexInAnimations);
