@@ -65,10 +65,10 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
   const [selectedAspectRatio, setSelectedAspectRatio] = useState("16:9");
 
   const [trimMotion, setTrimMotion] = useState(false);
-  const [iterationsToRecord, setIterationsToRecord] = useState<string>("1");
+  const [loopsToRecord, setLoopsToRecord] = useState<string>("1");
   const [startTime, setStartTime] = useState<string>("0.0");
   const [endTime, setEndTime] = useState<string>("1.0");
-  const [maxIterations, setMaxIterations] = useState<number>(10); // Limited to 10 to avoid long waiting times.
+  const [maxLoops, setMaxLoops] = useState<number>(10); // Limited to 10 to avoid long waiting times.
 
   // Slider range state
   const [timeRange, setTimeRange] = useState<number[]>([0, 1]);
@@ -158,9 +158,9 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
         setTrimMotion(viewerState.isTrimmingMotion)
       }
 
-      // Set num iterations to record
-      if(viewerState.videoRecorderNumIterations) {
-        setIterationsToRecord(String(viewerState.videoRecorderNumIterations))
+      // Set num loops to record
+      if(viewerState.videoRecorderNumLoops) {
+        setLoopsToRecord(String(viewerState.videoRecorderNumLoops))
       }
 
       // Set start time
@@ -221,16 +221,16 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
     viewerState.setIsTrimmingMotion(value)
   };
 
-  const handleIterationsChange = (value: string) => {
+  const handleLoopsChange = (value: string) => {
     if (value === "" || validateInteger(value)) {
-        setIterationsToRecord(value);
+        setLoopsToRecord(value);
 
         // Only update viewer state if we have a valid number
         if (value !== "") {
             const numValue = parseInt(value, 10);
             // Clamp the value for the viewer state
-            const clampedValue = Math.min(Math.max(1, numValue), maxIterations);
-            viewerState.setVideoRecorderNumIterations(clampedValue);
+            const clampedValue = Math.min(Math.max(1, numValue), maxLoops);
+            viewerState.setVideoRecorderNumLoops(clampedValue);
         }
     }
   };
@@ -387,14 +387,14 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
         >
 
 
-          {/* Number of iterations */}
+          {/* Number of loops */}
           <div style={{ marginTop: 2 }}>
             <TextField
               fullWidth
               label="Number of loops to record"
-              value={iterationsToRecord}
-              onChange={(e) => handleIterationsChange(e.target.value)}
-              error={String(iterationsToRecord) !== "" && !validateInteger(String(iterationsToRecord))}
+              value={loopsToRecord}
+              onChange={(e) => handleLoopsChange(e.target.value)}
+              error={String(loopsToRecord) !== "" && !validateInteger(String(loopsToRecord))}
               margin="dense"
             />
           </div>

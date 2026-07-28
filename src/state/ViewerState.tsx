@@ -63,7 +63,7 @@ export class ViewerState {
     videoRecorderPreserveAspectRatio: boolean
 
     isTrimmingMotion = false
-    videoRecorderNumIterations: number
+    videoRecorderNumLoops: number
     videoRecorderStartTime: number
     videoRecorderEndTime: number
 
@@ -156,7 +156,7 @@ export class ViewerState {
         this.videoRecorderBaseDimension = 1920
 
         this.isTrimmingMotion = false
-        this.videoRecorderNumIterations = 1
+        this.videoRecorderNumLoops = 1
         this.videoRecorderStartTime = 0.0
         this.videoRecorderEndTime = 1.0
 
@@ -239,7 +239,7 @@ export class ViewerState {
             setShowAspectRatioGuides: action,
             setVideoRecorderBaseDimension: action,
             isTrimmingMotion: observable,
-            videoRecorderNumIterations: observable,
+            videoRecorderNumLoops: observable,
             videoRecorderStartTime: observable,
             videoRecorderEndTime: observable,
             videoRecorderPreserveAspectRatio: observable,
@@ -251,7 +251,7 @@ export class ViewerState {
             setIsProcessingVideo: action,
             setIsRecordingVideo: action,
             setIsTrimmingMotion: action,
-            setVideoRecorderNumIterations: action,
+            setVideoRecorderNumLoops: action,
             setVideoRecorderStartTime: action,
             setVideoRecorderEndTime: action,
             defaultFloorTextures: observable,
@@ -364,8 +364,8 @@ export class ViewerState {
     setIsTrimmingMotion(newState: boolean) {
         this.isTrimmingMotion = newState
     }
-    setVideoRecorderNumIterations(newValue: number) {
-        this.videoRecorderNumIterations = newValue
+    setVideoRecorderNumLoops(newValue: number) {
+        this.videoRecorderNumLoops = newValue
     }
     setVideoRecorderStartTime(newValue: number) {
         this.videoRecorderStartTime = newValue
