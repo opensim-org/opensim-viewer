@@ -263,7 +263,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     offscreenRenderer.current.setSize(width, height);
     offscreenRenderer.current.setPixelRatio(1);
     offscreenRenderer.current.setClearColor(0xffffff, 1);
-
+    offscreenRenderer.current.shadowMap.enabled = true;
     return { width, height, renderer: offscreenRenderer.current };
   };
 

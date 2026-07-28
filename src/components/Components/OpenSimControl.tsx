@@ -282,7 +282,7 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
                 alpha: curState.snapshotProps.transparent_background,
                 antialias: true
             });
-
+            tempRenderer.shadowMap.enabled = true;
             tempRenderer.setSize(renderWidth, renderHeight);
             tempRenderer.setPixelRatio(1);
 
