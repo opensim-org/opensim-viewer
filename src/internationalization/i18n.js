@@ -100,7 +100,8 @@ i18next
                         wrapObjects: "WrapObjects",
                         contactObjects: "Contacts",
                         markers: "Markers",
-                        speed: "Speed"
+                        speed: "Speed",
+                        helpers: "Helpers"
                     },
                     shareView: {
                         share: "Share",
@@ -293,7 +294,8 @@ i18next
                         wrapObjects: "Envolturas",
                         contactObjects: "Contactos",
                         markers: "Marcadores",
-                        speed: "Velocidad"
+                        speed: "Velocidad",
+                        helpers: "Helpers"
                     },
                     shareView: {
                         share: "Compartir",

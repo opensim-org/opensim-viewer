@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import Grid from '@mui/material/Grid';
@@ -7,13 +7,11 @@ import './FloatingControlsPanel.css';
 import InfoIcon from '@mui/icons-material/Info';
 import ZoomOutTwoToneIcon from '@mui/icons-material/ZoomOutTwoTone';
 import ZoomInTwoToneIcon from '@mui/icons-material/ZoomInTwoTone';
-import FitScreenTwoToneIcon from '@mui/icons-material/FitScreenTwoTone';
-import AddAPhotoTwoToneIcon from '@mui/icons-material/AddAPhotoTwoTone';
 import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
+import FitScreenTwoToneIcon from '@mui/icons-material/FitScreenTwoTone';
 import { useModelContext } from '../../state/ModelUIStateContext';
 import SnapShotModal from './SnapShotModal';
 import RecordingModal from './RecordingModal';
-import { ToggleButton } from '@mui/material';
 import { ModelInfo } from '../../state/ModelUIState';
 import { observer } from "mobx-react";
 
@@ -32,8 +30,13 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
   const [isWindowOpen, setIsWindowOpen] = useState(false);
 
 
-  const handleButtonClick = () => {
+  const handleInfoButtonClick = () => {
     setIsWindowOpen(!isWindowOpen);
+  };
+
+  const handleRecordButtonClick = () => {
+    curState.setIsInRecordMode(true)
+    curState.viewerState.setShowAspectRatioGuides?.(true);
   };
 
   return (
@@ -74,14 +77,20 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
         </Grid>
 
         <Grid item xs={6}>
-          <RecordingModal videoRecorderRef={props.videoRecorderRef} />
+          <Tooltip title={t("bottomBar.record")} placement="right">
+              <IconButton
+                color="primary"
+                onClick={handleRecordButtonClick}>
+                  <VideoCameraFrontTwoToneIcon />
+              </IconButton>
+          </Tooltip>
         </Grid>
 
         <Grid item xs={6}>
           <Tooltip title={t('floatingButton.model_info')} placement="right">
               <IconButton
                 color="primary"
-                onClick={handleButtonClick}>
+                onClick={handleInfoButtonClick}>
                   <InfoIcon />
               </IconButton>
           </Tooltip>

@@ -77,7 +77,7 @@ const iconMap: Record<string, JSX.Element> = {
 };
 
 
-export function createTempHelper(node:any, scene: THREE.Scene | null) {
+export function createTempHelper(node:any, scene: THREE.Scene | null, uiState?: ModelUIState) {
   let helper: Object3D | null = null;
 
   switch (node.type) {
@@ -102,7 +102,13 @@ export function createTempHelper(node:any, scene: THREE.Scene | null) {
 
   if (helper) {
     helper.name = "temp_helper";
-    helper.visible = true;
+
+    const isVisible = uiState ? uiState.visibleHelpers : true;
+    helper.visible = isVisible;
+    helper.traverse((child) => {
+      child.visible = isVisible;
+    });
+
     scene?.add(helper);
   }
 
@@ -114,6 +120,16 @@ export function removeTempHelper(scene: THREE.Scene | null) {
     if (helper && helper.parent) {
       helper.parent.remove(helper);
     }
+}
+
+export function updateTempHelperVisibility(scene: THREE.Scene | null, visible: boolean) {
+  const helper = scene?.getObjectByName("temp_helper");
+  if (helper) {
+    helper.visible = visible;
+    helper.traverse((child) => {
+      child.visible = visible;
+    });
+  }
 }
 
 function applyTreeToScene(tree: any[], scene: THREE.Scene) {
@@ -177,6 +193,25 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
       }
     }, [scene, camera, uiState.viewerState.sceneVersion]);
 
+    // Update helper visibility
+    useEffect(() => {
+      if (scene) {
+        updateTempHelperVisibility(scene, uiState.visibleHelpers);
+      }
+    }, [uiState.visibleHelpers, scene]);
+
+    // Clear selection when panel closes
+    useEffect(() => {
+      if (!isOpen) {
+        // Clear all selections and helpers
+        setSelectedPath(null);
+        setSettingsNode(null);
+        //uiState.setSelected("");
+        setTransformTargetFunction?.(null);
+        removeTempHelper(scene);
+      }
+    }, [isOpen, scene, uiState, setTransformTargetFunction]);
+
     const handleSettingsClick = (node: any, path: number[]) => {
       setSettingsNode(node);
 
@@ -207,7 +242,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
         ref={outerDivRef}
         style={{
           position: 'absolute',
-          top: uiState.isGuiMode ? '-66px' : '0px',
+          top: uiState.isGuiMode ? '0px' : '0px',
           right: 0,
           height,
           display: 'flex',
@@ -231,7 +266,15 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
           {/* Close Button */}
           {isOpen && (
             <IconButton
-              onClick={() => setIsOpen(false)}
+              onClick={() => {
+                setIsOpen(false);
+                // Immediate cleanup when manually closing
+                setSelectedPath(null);
+                setSettingsNode(null);
+                uiState.setSelected("");
+                setTransformTargetFunction?.(null);
+                removeTempHelper(scene);
+              }}
               style={{
                 position: 'absolute',
                 left: '-20px',
@@ -305,7 +348,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                         removeTempHelper(scene)
 
                         // Create new helper.
-                        createTempHelper(node.object3D, scene)
+                        createTempHelper(node.object3D, scene, uiState)
                       }
                     },
                     onContextMenu: (e: React.MouseEvent) => {
@@ -339,7 +382,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                       removeTempHelper(scene)
 
                       // Create new helper.
-                      createTempHelper(node.object3D, scene)
+                      createTempHelper(node.object3D, scene, uiState)
                     },
                     icons: [icon],
                     title: (
@@ -417,9 +460,11 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
           }
         >
 
-          <MenuItem onClick={() => { onAddCameraClick?.(contextMenu?.node); setContextMenu(null); }}>
-            {t('contextMenu.add_camera')}
-          </MenuItem>
+          {uiState.showBottomBar && (
+            <MenuItem onClick={() => { onAddCameraClick?.(contextMenu?.node); setContextMenu(null); }}>
+              {t('contextMenu.add_camera')}
+            </MenuItem>
+          )}
           <MenuItem onClick={() => { onAddLightClick?.(contextMenu?.node); setContextMenu(null); }}>
             {t('contextMenu.add_light')}
           </MenuItem>

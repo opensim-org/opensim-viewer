@@ -17,7 +17,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { ModelUIState } from "../../state/ModelUIState";
 import { CameraFrame, CameraDolly } from "../../state/ViewerState";
-import { Camera, Vector3 } from 'three';
+import { Camera } from 'three';
 
 type CameraEntry = {
   id: string;

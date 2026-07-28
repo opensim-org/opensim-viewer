@@ -17,7 +17,7 @@ import AddLightDialog from "../Components/Dialogs/AddLightDialog"
 import SceneTreeBridge from "../Components/SceneTree/SceneTreeBridge"
 import SceneTreeSortable, { SceneTreeSortableHandle } from "../Components/SceneTree/SceneTreeSortable"
 import DrawerMenu from "../Components/DrawerMenu";
-import OpenSimScene from "../Components/OpenSimScene";
+
 import OpenSimGUIScene from "../Components/OpenSimGUIScene";
 import { ModelInfo, ModelUIState } from "../../state/ModelUIState";
 import { observer } from "mobx-react";
@@ -25,12 +25,12 @@ import { MyModelContext } from "../../state/ModelUIStateContext";
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { useParams } from 'react-router-dom';
 import { CircularProgress } from "@mui/material";
-import OpenSimHtmlLogo from '../Components/OpenSimLogo';  
+import OpenSimHtmlLogo from '../Components/OpenSimLogo';
+import RecordModeOverlay from '../Components/RecordModeOverlay'
 
 import { Stats } from '@react-three/drei'
-import { Perf } from 'r3f-perf'
 
-import { createTempHelper, removeTempHelper } from '../Components/SceneTree/SceneTreeSortable'
+import { createTempHelper, removeTempHelper, updateTempHelperVisibility } from '../Components/SceneTree/SceneTreeSortable'
 
 import * as THREE from 'three';
 
@@ -44,6 +44,38 @@ import VideoRecorder from "../Components/VideoRecorder"
 // import GUI from 'lil-gui';
 import { Color} from 'three';
 import { TransformControls } from "@react-three/drei";
+
+
+// Aspect ratio utility functions
+const parseAspectRatio = (aspectRatio: string): { width: number; height: number } => {
+  const [widthStr, heightStr] = aspectRatio.split(':');
+  return { width: parseInt(widthStr, 10), height: parseInt(heightStr, 10) };
+};
+
+const getRecordingRect = (canvasWidth: number, canvasHeight: number, aspectRatio: string) => {
+  const { width: arW, height: arH } = parseAspectRatio(aspectRatio);
+  const canvasAR = canvasWidth / canvasHeight;
+  const targetAR = arW / arH;
+
+  let recWidth, recHeight, offsetX, offsetY;
+
+  if (canvasAR > targetAR) {
+    // Canvas is wider → height fits, width is smaller than canvas width
+    recHeight = canvasHeight;
+    recWidth = canvasHeight * targetAR;
+    offsetX = (canvasWidth - recWidth) / 2;
+    offsetY = 0;
+  } else {
+    // Canvas is taller → width fits, height is smaller than canvas height
+    recWidth = canvasWidth;
+    recHeight = canvasWidth / targetAR;
+    offsetX = 0;
+    offsetY = (canvasHeight - recHeight) / 2;
+  }
+
+  return { recWidth, recHeight, offsetX, offsetY };
+};
+
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
@@ -78,11 +110,10 @@ export const addNewCamera = (
 
   // Remove previous helper and create current.
   removeTempHelper(scene)
-  createTempHelper(camera, scene)
+  createTempHelper(camera, scene, uiState)
 
   onSceneUpdated();
 
-  camera.layers.enableAll()
   return camera;
 };
 
@@ -128,7 +159,7 @@ export const addNewLight = (
 
   // Remove previous helper and create current.
   removeTempHelper(scene)
-  createTempHelper(light, scene)
+  createTempHelper(light, scene, uiState)
 
   onSceneUpdated();
 
@@ -148,8 +179,6 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const leftMenuWidth = 60;
   const drawerContentWidth = 250;
 
-  const [showDebug, setShowDebug] = useState(false);
-
   const [canvasLoaded, setCanvasLoaded] = useState(false);
 
   const [addCameraDialogOpen, setAddCameraDialogOpen] = useState(false);
@@ -159,6 +188,8 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const treeRef = useRef<SceneTreeSortableHandle>(null);
   const [treeWidth, setTreeWidth] = useState(0);
   const openSimControlsRef = useRef<OpenSimControlHandle>(null);
+
+  const [guiModeMarginTop, setGuiModeMarginTop] = useState(68);
 
   useLayoutEffect(() => {
     const el = treeRef.current?.getWidth ? treeRef.current : null;
@@ -191,7 +222,39 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const [scene, setScene] = useState<THREE.Scene | null>(null);
   const [camera, setCamera] = useState<THREE.Camera | null>(null);
   const [transformTarget, setTransformTargetInternal] = useState<THREE.Object3D | null>(null);
-  const [transformMode, setTransformMode] = useState<'translate' | 'rotate'>('translate');
+  const [transformMode, ] = useState<'translate' | 'rotate'>('translate');
+
+  useEffect(() => {
+    const path = uiState.viewerState.currentModelPath;
+    if (path && path !== "mt.json") {
+      localStorage.setItem("lastModelPath", path);
+    }
+  }, [uiState.viewerState.currentModelPath]);
+
+  useEffect(() => {
+    let pathToLoad: string | null = null;
+
+    if (urlParam !== undefined) {
+      pathToLoad = decodeURIComponent(urlParam);
+      uiState.viewerState.setIsLocalUpload(false);
+    } else {
+      const savedPath = localStorage.getItem("lastModelPath");
+      if (savedPath) {
+        pathToLoad = savedPath;
+
+        // Preserve existing query parameters
+        const params = new URLSearchParams(window.location.search);
+        params.set("model", encodeURIComponent(savedPath));
+
+        const newUrl = `${window.location.pathname}?${params.toString()}`;
+        window.history.replaceState(null, '', newUrl);
+      }
+    }
+
+    if (pathToLoad) {
+      uiState.viewerState.setCurrentModelPath(pathToLoad);
+    }
+  }, [urlParam, uiState.viewerState]);
 
   function isImmovableObject(name: string){
     return name==="Ground" || name.startsWith("Body");
@@ -210,28 +273,38 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   useEffect(() => {
     if (bottomBarRef.current) {
       const heightBottomBar = bottomBarRef.current.offsetHeight;
-      setHeightBottomBar(bottomBarRef.current.offsetHeight);
+      if(!curState.showBottomBar)
+        setHeightBottomBar(0);
+      else
+        setHeightBottomBar(bottomBarRef.current.offsetHeight);
 
-      setCanvasHeight("calc(100vh - 68px - " + heightBottomBar + "px)");
+      setCanvasHeight("calc(100vh - " + heightBottomBar + "px)");
     }
-  }, []);
+  }, [curState.showBottomBar]);
 
   React.useEffect(() => {
     // Change interface if we are in GUI mode.
     if (uiState.isGuiMode) {
       setDisplaySideBar('none');
       setCanvasWidth('100%');
-      setCanvasHeight('calc(100vh - 68px)');
+      setCanvasHeight('calc(100vh)');
       setCanvasLeft(0);
       setFloatingButtonsContainerTop("12px")
       setFloatingButtonsContainerLeft("12px")
+      setGuiModeMarginTop(0)
     }
     setBgndColor(uiState.viewerState.backgroundColor);
   }, [uiState.viewerState.backgroundColor, uiState.isGuiMode]);
 
+  useEffect(() => {
+    if (scene) {
+      updateTempHelperVisibility(scene, uiState.visibleHelpers);
+    }
+  }, [uiState.visibleHelpers, scene]);
+
 useEffect(() => {
     // Create fresh WebSocket
-    if (uiState.isGuiMode) {
+    if (uiState.isGuiMode && uiState.socket === null) {
       const socket = new WebSocket('ws://127.0.0.1:8002/visEndpoint');
       socket.onopen = () => { uiState.setSocketHandle(socket); console.log("socket opened");}
       socket.onmessage = function(evt) {
@@ -258,15 +331,24 @@ useEffect(() => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Toggle debug with Ctrl+D
       if (e.ctrlKey && e.key.toLowerCase() === "d") {
         e.preventDefault(); // prevent browser bookmark shortcut
-        setShowDebug(prev => !prev);
+        curState.setDebug?.(!curState.debug);
+      }
+
+      // Toggle aspect ratio guides with Ctrl+G
+      if (curState.showAspectRatioFunctionality) {
+        if (e.ctrlKey && e.key.toLowerCase() === "g") {
+          e.preventDefault();
+          curState.viewerState.setShowAspectRatioGuides?.(!curState.viewerState.showAspectRatioGuides);
+        }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [curState]);
 
   if (urlParam!== undefined) {
     var decodedUrl = decodeURIComponent(urlParam);
@@ -310,6 +392,61 @@ useEffect(() => {
           </div>
           }
           <div id="canvas-container">
+            <>
+            {uiState.isInRecordMode && (
+              <RecordModeOverlay
+                videoRecorderRef={videoRecorderRef}
+                onRecordComplete={() => {
+                  console.log("Recording process finished");
+                  uiState.viewerState.setShowAspectRatioGuides?.(false);
+                }}
+              />
+            )}
+            {curState.viewerState.recordedVideoAspectRatio && (curState.viewerState.isRecordingVideo || curState.viewerState.showAspectRatioGuides) && (
+              (() => {
+                const canvasEl = document.getElementById('canvas-element');
+                if (!canvasEl) return null;
+
+                const canvasWidth = canvasEl.clientWidth;
+                const canvasHeight = canvasEl.clientHeight;
+
+                const { recWidth, recHeight, offsetX, offsetY } = getRecordingRect(
+                  canvasWidth,
+                  canvasHeight,
+                  curState.viewerState.recordedVideoAspectRatio
+                );
+
+                const overlayStyle = {
+                  position: 'absolute' as const,
+                  backgroundColor: 'rgba(0,0,0,0.4)',
+                  pointerEvents: 'none' as const,
+                  zIndex: 1001,
+                };
+
+                return (
+                  <>
+                    {/* Top overlay */}
+                    <div style={{ ...overlayStyle, top: guiModeMarginTop, left: canvasLeft, width: 'calc(100% - ' + canvasLeft + 'px)', height: offsetY }} />
+                    {/* Bottom overlay */}
+                    <div style={{ ...overlayStyle, top: guiModeMarginTop + offsetY + recHeight, left: canvasLeft, width: 'calc(100% - ' + canvasLeft + 'px)', height: canvasHeight - (offsetY + recHeight) }} />
+                    {/* Left overlay */}
+                    <div style={{ ...overlayStyle, top: guiModeMarginTop + offsetY, left: canvasLeft, width: offsetX, height: recHeight }} />
+                    {/* Right overlay */}
+                    <div style={{ ...overlayStyle, top: guiModeMarginTop + offsetY, left: canvasLeft + offsetX + recWidth, width: canvasWidth - (offsetX + recWidth), height: recHeight }} />
+                  </>
+                );
+              })()
+            )}
+            {curState.isInRecordMode && (
+              (() => {
+                <RecordModeOverlay
+                  videoRecorderRef={videoRecorderRef}
+                  onRecordComplete={() => {
+                    console.log("Recording process finished");
+                  }}
+                />}
+              )())
+            }
             {!canvasLoaded && (
               <div
                 style={{
@@ -318,9 +455,10 @@ useEffect(() => {
                   left: 0,
                   width: '100%',
                   height: '100%',
+                  display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: 'rgba(255, 255, 255, 0.8)', // Optional: semi-transparent background
+                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
                   zIndex: 1000, // Ensure it's above the canvas
                 }}
               >
@@ -353,7 +491,7 @@ useEffect(() => {
                     currentModelPath={uiState.viewerState.currentModelPath}
                     supportControls={true}
                   />
-                : <OpenSimScene
+                : <OpenSimGUIScene
                   currentModelPath={uiState.viewerState.currentModelPath}
                   supportControls={true}
                 />}
@@ -363,7 +501,7 @@ useEffect(() => {
                 <OpenSimControl ref={openSimControlsRef}/>
                 <axesHelper visible={uiState.showGlobalFrame} args={[20]} />
                 <VideoRecorder videoRecorderRef={videoRecorderRef}/>
-                {transformTarget && (
+                {transformTarget && uiState.visibleHelpers && (
                   <>
                       <TransformControls object={transformTarget} mode={transformMode} />
                   </>
@@ -373,7 +511,7 @@ useEffect(() => {
                   <CameraPreview selectedCameraUuid={uiState.selected} marginRight={treeWidth} />
                 )}
 
-                {showDebug && (
+                {curState.debug && (
                   <>
                     <Stats />
                     { curState.isModernBrowser && Perf &&  (<Perf position="top-right" />) }
@@ -405,17 +543,19 @@ useEffect(() => {
                 parent={treeRef.current?.selectedNode() ?? null}
               />
 
+              {curState.showBottomBar && (
               <BottomBar
                 ref={bottomBarRef}
                 animationPlaySpeed={1.0}
                 animating={uiState.viewerState.animating}
                 animationList={uiState.viewerState.animations}/>
+              )}
 
               {scene && camera && (
                 <div
                   style={{
                     position: "absolute",
-                    top: 66,
+                    top: guiModeMarginTop,
                     right: 0,
                     zIndex: 1002,
                     height: canvasHeight,          // full canvas height
@@ -440,9 +580,9 @@ useEffect(() => {
                 </div>
               )}
 
-
+            </>
           </div>
-          <OpenSimHtmlLogo />
+          <OpenSimHtmlLogo/>
         </Main>
       </Box>
     </MyModelContext.Provider>

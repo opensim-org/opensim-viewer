@@ -69,22 +69,22 @@ const BottomBar = React.forwardRef(function CustomContent(
 
     // Update time display when animation time changes
     useEffect(() => {
-      if (viewerState.currentAnimationIndex !== -1 && viewerState.animations.length > 0) {
-        const currentTime = viewerState.currentAnimationTime;
-        setCurrentTimeDisplay(formatTime(currentTime));
+      // if (viewerState.currentAnimationIndices.length > 0) {
+      //   const currentTime = viewerState.currentAnimationTime;
+      //   setCurrentTimeDisplay(formatTime(currentTime));
 
-        // Update total duration when animation changes
-        const currentAnimation = viewerState.animations[viewerState.currentAnimationIndex];
-        if (currentAnimation && currentAnimation.duration !== totalDuration) {
-          setTotalDuration(currentAnimation.duration);
-          setTotalDurationDisplay(formatTime(currentAnimation.duration));
-        }
-      } else {
-        setCurrentTimeDisplay("00:00.00");
-        setTotalDuration(0);
-        setTotalDurationDisplay("00:00.00");
-      }
-    }, [viewerState.currentAnimationTime, viewerState.currentAnimationIndex, viewerState.animations, totalDuration]);
+      //   // Update total duration when animation changes
+      //   const currentAnimation = viewerState.animations[viewerState.currentAnimationIndices];
+      //   if (currentAnimation && currentAnimation.duration !== totalDuration) {
+      //     setTotalDuration(currentAnimation.duration);
+      //     setTotalDurationDisplay(formatTime(currentAnimation.duration));
+      //   }
+      // } else {
+      //   setCurrentTimeDisplay("00:00.00");
+      //   setTotalDuration(0);
+      //   setTotalDurationDisplay("00:00.00");
+      // }
+    }, [viewerState.currentAnimationTime, viewerState.currentAnimationIndices, viewerState.animations, totalDuration]);
 
     const handleAnimationChange = useCallback((animationName: string, animate: boolean) => {
       const targetName = animationName
@@ -92,12 +92,12 @@ const BottomBar = React.forwardRef(function CustomContent(
       if (targetName === "") {
         // 'None' selected: stop animation and reset index
         curState.viewerState.setAnimating(false);
-        curState.viewerState.setCurrentAnimationIndex(-1);
+        curState.viewerState.clearCurrentAnimationIndices();
         setPlay(false);
         return;
       }
       const idx = curState.viewerState.animations.findIndex((value: AnimationClip)=>{return (value.name === targetName)});
-      curState.viewerState.setCurrentAnimationIndex(idx);
+      curState.viewerState.addCurrentAnimationIndex(idx);
 
       // Set total duration for new animation
       if (idx !== -1) {
@@ -114,6 +114,8 @@ const BottomBar = React.forwardRef(function CustomContent(
 
     function togglePlayAnimation() {
         curState.viewerState.setAnimating(!curState.viewerState.animating);
+        curState.viewerState.animationChange = {index:0, operation:"start"};
+        curState.viewerState.setAnimationsNeedUpdate(true)
         setPlay(!play);
     }
 
@@ -123,23 +125,23 @@ const BottomBar = React.forwardRef(function CustomContent(
     }
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      if (viewerState.currentAnimationIndex === -1) return;
+      if (viewerState.currentAnimationIndices.length === 0) return;
 
       const timeString = event.target.value;
       setCurrentTimeDisplay(timeString);
     };
 
     const handleSliderChange = (event: Event, newValue: number | number[]) => {
-      if (viewerState.currentAnimationIndex === -1) return;
+      if (viewerState.currentAnimationIndices.length === 0) return;
 
       const percentage = newValue as number;
-      const currentAnimation = viewerState.animations[viewerState.currentAnimationIndex];
+      const currentAnimation = viewerState.animations[viewerState.currentAnimationIndices[0]];
       if (currentAnimation) {
         const newTime = (percentage / 100) * currentAnimation.duration;
         viewerState.setCurrentAnimationTime(newTime);
 
         // Force the animation to update immediately when manually scrubbing
-        if (!viewerState.animating && !curState.isGUIAnimating) {
+        if (!viewerState.animating) {
           // This will trigger the scene to update the animation pose
           curState.viewerState.forceAnimationUpdate = true;
         }
@@ -147,12 +149,12 @@ const BottomBar = React.forwardRef(function CustomContent(
     };
 
     const handleInputBlur = (event: React.FocusEvent<HTMLInputElement>) => {
-      if (viewerState.currentAnimationIndex === -1) return;
+      if (viewerState.currentAnimationIndices.length === 0) return;
 
       const timeString = event.target.value;
       if (/^\d{1,2}:\d{2}\.\d{2}$/.test(timeString)) {
         const newTime = parseTime(timeString);
-        const currentAnimation = viewerState.animations[viewerState.currentAnimationIndex];
+        const currentAnimation = viewerState.animations[viewerState.currentAnimationIndices[0]];
         if (currentAnimation) {
           let clampedTime = newTime;
           if (newTime < 0) {
@@ -165,7 +167,7 @@ const BottomBar = React.forwardRef(function CustomContent(
           setCurrentTimeDisplay(formatTime(clampedTime));
 
           // Force update when manually setting time
-          if (!viewerState.animating && !curState.isGUIAnimating) {
+          if (!viewerState.animating) {
             curState.viewerState.forceAnimationUpdate = true;
           }
         }
@@ -184,37 +186,39 @@ const BottomBar = React.forwardRef(function CustomContent(
 
     // Calculate current percentage for slider
     const getCurrentPercentage = (): number => {
-      if (viewerState.currentAnimationIndex === -1 || totalDuration === 0) return 0;
+      if (viewerState.currentAnimationIndices.length === 0 || totalDuration === 0) return 0;
       return (viewerState.currentAnimationTime / totalDuration) * 100;
     };
 
     // Format value for slider tooltip
     const valueLabelFormat = (value: number): string => {
-      if (viewerState.currentAnimationIndex === -1 || totalDuration === 0) return "00:00.00";
+      if (viewerState.currentAnimationIndices.length === 0 || totalDuration === 0) return "00:00.00";
       const time = (value / 100) * totalDuration;
       return formatTime(time);
     };
 
     useEffect(() => {
-      if (curState.viewerState.animations.length > 0 && curState.viewerState.currentAnimationIndex !== -1)
+      if (curState.viewerState.animations.length > 0 && curState.viewerState.currentAnimationIndices.length > 0)
       {
-        setSelectedAnim(curState.viewerState.animations[curState.viewerState.currentAnimationIndex].name)
-        handleAnimationChange(curState.viewerState.animations[curState.viewerState.currentAnimationIndex].name, false)
+        setSelectedAnim(curState.viewerState.animations[curState.viewerState.currentAnimationIndices[0]].name)
+        handleAnimationChange(curState.viewerState.animations[curState.viewerState.currentAnimationIndices[0]].name, false)
       }
-      else if (curState.viewerState.currentAnimationIndex === -1){
+      else if (curState.viewerState.currentAnimationIndices.length === 0){
         setSelectedAnim("")
       }
-    }, [curState.viewerState.animations, curState.viewerState.currentAnimationIndex,
+    }, [curState.viewerState.animations, curState.viewerState.currentAnimationIndices,
         curState.viewerState.cameraDollies, curState.viewerState.currentDollyIndex,
             selectedAnim, curState.viewerState.animationsNeedUpdate]);
 
     return (
       <Container ref={(ref as any) || bottomBarRef}>
-        <Grid container spacing={1}>
-          <Grid item sx={{ mt: 1, display: { lg: 'block' } }}>
-            <CameraPanel uState={curState} />
-          </Grid>
-          <Divider orientation="vertical" sx={{ mx: 2, display: { xs: 'none', lg: 'block' } }} />
+        <Grid container spacing={1} alignItems="center" justifyContent="center">
+            <>
+              <Grid item sx={{ mt: 1, display: { lg: 'block' } }}>
+                  <CameraPanel uState={curState} />
+              </Grid>
+              <Divider orientation="vertical" sx={{ mx: 2, display: { xs: 'none', lg: 'block' } }} />
+            </>
           { curState.viewerState.animations.length < 1 ? null : (
           <Grid item sx={{ mt: 1 }}>
             <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
@@ -264,7 +268,7 @@ const BottomBar = React.forwardRef(function CustomContent(
                 size="small"
                 color="primary"
                 value={'Animation'}
-                disabled={curState.viewerState.animations.length < 1 || curState.isGUIAnimating}
+                disabled={curState.viewerState.animations.length < 1 }
                 onClick={togglePlayAnimation}>
                   {play?<PauseCircleTwoToneIcon/>:<PlayCircleTwoToneIcon/>}
               </IconButton>
@@ -300,7 +304,7 @@ const BottomBar = React.forwardRef(function CustomContent(
             </FormControl>
           </Grid>
           {/// Total duration display
-          curState.viewerState.animations.length > 0 && viewerState.currentAnimationIndex !== -1 && (
+          curState.viewerState.animations.length > 0 && viewerState.currentAnimationIndices.length > 0 && (
             <Grid item sx={{ mt: 1 }}>
               <span style={{
                 fontSize: '0.875rem',
@@ -312,18 +316,18 @@ const BottomBar = React.forwardRef(function CustomContent(
             </Grid>
           )}
           {curState.getGuiMode()?"":
-          <Grid item sx={{ mt: 1 }}>
-            <Tooltip title={t('bottomBar.autoRotate')}>
-              <ToggleButton
-                color="primary"
-                selected={viewerState.rotating}
-                value={'Rotate'}
-                onClick={() => viewerState.setRotating(!viewerState.rotating)}>
-                  <ThreeSixtyTwoToneIcon />
-              </ToggleButton>
-            </Tooltip>
-          </Grid>
-        }
+            <Grid item sx={{ mt: 1 }}>
+              <Tooltip title={t('bottomBar.autoRotate')}>
+                <ToggleButton
+                  color="primary"
+                  selected={viewerState.rotating}
+                  value={'Rotate'}
+                  onClick={() => viewerState.setRotating(!viewerState.rotating)}>
+                    <ThreeSixtyTwoToneIcon />
+                </ToggleButton>
+              </Tooltip>
+            </Grid>
+          }
         </Grid>
       </Container>
     )

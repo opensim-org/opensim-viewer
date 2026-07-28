@@ -5,13 +5,13 @@ import CardActions from '@mui/material/CardActions'
 import Link from '@mui/material/Link'
 import { Canvas } from '@react-three/fiber'
 import { useTheme } from '@mui/material'
-import { Bounds, Environment } from '@react-three/drei'
 import Typography from '@mui/material/Typography'
+import { Suspense } from 'react'
 
-import OpenSimControl from '../../Components/OpenSimControl'
-import OpenSimScene  from '../../Components/OpenSimScene'
+
+import SimpleModelScene  from '../../Components/SimpleModelScene'
+
 import { ModelMetadataType } from './ModelListPage'
-import { NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
 interface GridListProps {
@@ -28,30 +28,33 @@ const GridList = ({ modelMetadata }: GridListProps) => {
                     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                         <div id="canvas-container">
                             <Canvas
-                                gl={{ preserveDrawingBuffer: false }}
-                                shadows
+                                gl={{ alpha: true, autoClearColor: true, preserveDrawingBuffer: true }}
+                                shadows="soft"
                                 style={{ width: '100%', height: '40vh' }}
-                                camera={{ position: [1500, 1500, 1000], fov: 75, far: 10000 }}
                             >
+                                <directionalLight name="Scene Dir Light" position={[0.5, 1.5, -0.5]}
+                                  intensity={5}
+                                  castShadow={true}
+                                  shadow-camera-far={8}
+                                  shadow-camera-left={-2}
+                                  shadow-camera-right={2}
+                                  shadow-camera-top={2}
+                                  shadow-camera-bottom={-2}/>
+                                <ambientLight name="Ambient Light" intensity={1.5} color="white"/>
                                 <color
                                     attach="background"
                                     args={theme.palette.mode === 'dark' ? ['#151518'] : ['#aaaaaa']}
                                 />
-                                <Environment files="/assets/potsdamer_platz_1k.hdr"/>
-                                <Bounds fit clip>
-                                    <OpenSimScene currentModelPath={element.path} supportControls={false}/>
-                                </Bounds>
-                                <OpenSimControl />
+                                <Suspense fallback={null}>
+                                  <SimpleModelScene modelPath={element.path} />
+                                </Suspense>
                             </Canvas>
                         </div>
                         <CardContent sx={{ flexGrow: 1 }}>
                             <Typography gutterBottom variant="h5" component="h2">
-                                <Link
-                                    component={NavLink}
-                                    to={"/viewer/"+encodeURIComponent(element.path)}
-                                >
-                                    {element.name}
-                                </Link>
+                              <Link href={"/viewer/" + encodeURIComponent(element.path)}>
+                                {element.name}
+                              </Link>
                             </Typography>
                             <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'left' }}>
                                 {element.description}

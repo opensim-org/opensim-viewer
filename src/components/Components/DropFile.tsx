@@ -10,12 +10,6 @@ import { useSnackbar } from 'notistack'
 import { useModelContext } from '../../state/ModelUIStateContext';
 
 
-AWS.config.update({
-  accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID, // replace with own credentials to test
-  secretAccessKey: process.env.REACT_APP_AWS_SECRET_KEY_ID,
-  region: 'us-west-2' // replace with your region
-});
-
 const lambda = new AWS.Lambda({
   region: 'us-west-2', // replace with your region
 });
@@ -129,8 +123,8 @@ const FileDropArea: React.FC<FileDropAreaProps> =observer(({ paddingY = 16}) => 
                     if (err) {
                         console.error(err);
                     } else {
-                      const key = file.name.replace(/\.\w+$/, '.gltf')
-                      const gltf_url = "https://s3.us-west-2.amazonaws.com/opensim-viewer-public-download/" + user_uuid + "/"+key
+                      //const key = file.name.replace(/\.\w+$/, '.gltf')
+                      //const gltf_url = "https://s3.us-west-2.amazonaws.com/opensim-viewer-public-download/" + user_uuid + "/"+key
                       /* appState.setCurrentModelPath(gltf_url); */
                       // navigate("/viewer/"+encodeURIComponent(gltf_url))
                       console.log('Lambda function invoked successfully:', data);

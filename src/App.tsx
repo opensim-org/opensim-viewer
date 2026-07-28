@@ -6,7 +6,7 @@ import '@aws-amplify/ui-react/styles.css';
 import { CssBaseline, ThemeProvider, useMediaQuery } from '@mui/material';
 import { useMediaQuery as useResponsiveQuery } from 'react-responsive';
 import screenfull from 'screenfull';
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import './App.css'
 import appTheme from './Theme'
@@ -38,7 +38,6 @@ function App({ signOut, user }: WithAuthenticatorProps) {
   const isPortrait = useDeviceOrientation();
   const isSmallScreen = useMediaQuery('(max-width:600px)');
   const elementRef = useRef(null);
-  const [ displayAppBar, setDisplayAppBar ] = useState('inherit');
   const curState = useModelContext();
   const viewerState = curState.viewerState;
   const toggleFullscreen = () => {
@@ -76,19 +75,8 @@ function App({ signOut, user }: WithAuthenticatorProps) {
         // Force landscape mode
         alert(t('app.switch_landscape'));
       }
-    }, [isSmallScreen, isPortrait, t]);
+    }, [isSmallScreen, isPortrait, t, curState.isGuiMode]);
 
-    // On file system we'll have a folder per model containing cached/versioned gltf, possibly .osim file, data files, display 
-    // preferences
-    // urls could be something like:
-    // The Desktop Application can retrieve (an API operation)
-    // without necessarily viewing online
-    //
-    ///models/  # will show list personal models
-    ///models/id/ = retrieve_model(id) # retrieve specfic model
-    ///viewer/ show model gallery of personal models, or stock models if not logged-in
-    ///viewer/url  show model specified by url in 3D view
-    ///viewer = redirect to viewer/DEFAULT_MODEL/ 
     // / current home page of opensim-viewer with upload and login options
     return (
         <ThemeProvider theme={viewerState.dark ? appTheme : lightTheme}>
@@ -111,7 +99,7 @@ function App({ signOut, user }: WithAuthenticatorProps) {
                             />
                             <Route
                                 path="/viewer/:urlParam?"
-                                element={<ModelViewPage />}
+                                element={<ModelViewPage/>}
                             />
                             <Route
                                 path="/log_in"
