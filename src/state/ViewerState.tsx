@@ -62,8 +62,8 @@ export class ViewerState {
     videoRecorderBaseDimension: number
     videoRecorderPreserveAspectRatio: boolean
 
-    isRecordingFullAnimation = true
-    videoRecorderNumIterations: number
+    isTrimmingMotion = false
+    videoRecorderNumLoops: number
     videoRecorderStartTime: number
     videoRecorderEndTime: number
 
@@ -163,8 +163,8 @@ export class ViewerState {
         this.showAspectRatioGuides = false
         this.videoRecorderBaseDimension = 1920
 
-        this.isRecordingFullAnimation = true
-        this.videoRecorderNumIterations = 1
+        this.isTrimmingMotion = false
+        this.videoRecorderNumLoops = 1
         this.videoRecorderStartTime = 0.0
         this.videoRecorderEndTime = 1.0
 
@@ -254,8 +254,8 @@ export class ViewerState {
             showAspectRatioGuides: observable,
             setShowAspectRatioGuides: action,
             setVideoRecorderBaseDimension: action,
-            isRecordingFullAnimation: observable,
-            videoRecorderNumIterations: observable,
+            isTrimmingMotion: observable,
+            videoRecorderNumLoops: observable,
             videoRecorderStartTime: observable,
             videoRecorderEndTime: observable,
             videoRecorderPreserveAspectRatio: observable,
@@ -270,8 +270,8 @@ export class ViewerState {
             isProcessingVideo: observable,
             setIsProcessingVideo: action,
             setIsRecordingVideo: action,
-            setIsRecordingFullAnimation: action,
-            setVideoRecorderNumIterations: action,
+            setIsTrimmingMotion: action,
+            setVideoRecorderNumLoops: action,
             setVideoRecorderStartTime: action,
             setVideoRecorderEndTime: action,
             defaultFloorTextures: observable,
@@ -383,11 +383,11 @@ export class ViewerState {
     setIsRecordingVideo(newState: boolean) {
         this.isRecordingVideo = newState
     }
-    setIsRecordingFullAnimation(newState: boolean) {
-        this.isRecordingFullAnimation = newState
+    setIsTrimmingMotion(newState: boolean) {
+        this.isTrimmingMotion = newState
     }
-    setVideoRecorderNumIterations(newValue: number) {
-        this.videoRecorderNumIterations = newValue
+    setVideoRecorderNumLoops(newValue: number) {
+        this.videoRecorderNumLoops = newValue
     }
     setVideoRecorderStartTime(newValue: number) {
         this.videoRecorderStartTime = newValue
