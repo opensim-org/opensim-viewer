@@ -5,10 +5,13 @@ import {
   Checkbox,
   Typography,
   MenuItem,
+  Button,
 } from "@mui/material";
+import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import { ModelUIState } from '../../../state/ModelUIState';
 import { observer } from 'mobx-react-lite';
 import { Color, MathUtils } from 'three'
+import downloadFile from "../../../helpers/downloadFile";
 
 interface NodeSettingsPanelProps {
   selectedNode: any;
@@ -459,6 +462,45 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               />
       )}
 
+      {/* Model settings - download and remove Model */}
+      {selectedNode?.nodeType === "model" && (
+        <>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<CloudDownloadIcon />}
+            onClick={() => downloadFile(uiState.viewerState.currentModelPath)}
+            style={{ marginTop: 16 }}
+            fullWidth
+          >
+            Download GLTF File
+          </Button>
+
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              // Get the node to remove
+              const nodeToRemove = selectedNode.object3D || selectedNode;
+
+              // Remove from scene if it exists
+              if (scene && nodeToRemove.parent) {
+                nodeToRemove.parent.remove(nodeToRemove);
+              }
+
+              // Clear the selected node
+              setSelectedNode(null);
+
+              // If you need to trigger any additional cleanup or updates
+              updateNodeFn?.(null);
+            }}
+            style={{ marginTop: 16 }}
+            fullWidth
+          >
+            Close Model
+          </Button>
+        </>
+      )}
 
       {/* Position controls for lights and cameras */}
       {( selectedNode?.type === "PerspectiveCamera" ||
