@@ -65,12 +65,12 @@ const formatTime = (seconds: number): string => {
 };
 
 // Helper function to parse mm:ss.dd to seconds
-const parseTime = (timeString: string): number => {
-  const [timePart, hundredthsPart] = timeString.split('.');
-  const [mins, secs] = timePart.split(':').map(Number);
-  const hundredths = hundredthsPart ? Number(hundredthsPart) : 0;
-  return (mins * 60) + (secs || 0) + (hundredths / 100);
-};
+// const parseTime = (timeString: string): number => {
+//   const [timePart, hundredthsPart] = timeString.split('.');
+//   const [mins, secs] = timePart.split(':').map(Number);
+//   const hundredths = hundredthsPart ? Number(hundredthsPart) : 0;
+//   return (mins * 60) + (secs || 0) + (hundredths / 100);
+// };
 
 const BottomBar = React.forwardRef(function CustomContent(
     props: BottomBarProps,

@@ -13,7 +13,6 @@ import {
   Box,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { ModelUIState } from '../../../state/ModelUIState';
 
 interface SaveOptions {
   dollies: boolean;

@@ -1,14 +1,8 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   FormControl,
-  Select,
-  MenuItem,
   IconButton,
-  Stack,
-  InputLabel,
-  SelectChangeEvent,
-  ListItemIcon
-} from '@mui/material'
+  Stack} from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -32,7 +26,7 @@ type CameraPanelProps = {
 function CameraPanel(props :CameraPanelProps) {
   const [selectedDolly, setSelectedDolly] = useState('')
   const [availableCameras, setAvailableCameras] = useState<Camera[]>(props.uState.viewerState.cameras);
-  const [availableDollies, setAvailableDollies] = useState<CameraDolly[]>(props.uState.viewerState.cameraDollies);
+  const [, setAvailableDollies] = useState<CameraDolly[]>(props.uState.viewerState.cameraDollies);
   const [dollyEditorOpen, setDollyEditorOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const curState = props.uState;

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import Grid from '@mui/material/Grid';
@@ -26,9 +25,6 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
   const { t } = useTranslation();
   const curState = useModelContext();
   const viewerState = curState.viewerState;
-  
-  const [isWindowOpen, setIsWindowOpen] = useState(false);
-
 
   const handleRecordButtonClick = () => {
     curState.setIsInRecordMode(true)

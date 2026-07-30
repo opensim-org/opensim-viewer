@@ -460,15 +460,6 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
        }
        })
 
-    function resizeRenderer (width:number, height:number)
-    {
-        if (window.devicePixelRatio) {
-            gl.setPixelRatio (window.devicePixelRatio);
-        }
-        gl.setSize (width, height);
-        gl.render (scene, camera);
-    }
-
     function completeTransform(e?: THREE.Event | undefined): void {
         if (curState.debug)
             console.log(e!.target!.object)
