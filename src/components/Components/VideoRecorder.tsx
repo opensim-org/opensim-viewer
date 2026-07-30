@@ -10,7 +10,7 @@ import { useModelContext } from "../../state/ModelUIStateContext";
 import { getTimestamp } from "../../helpers/timeHelpers";
 import { WebGLRenderer } from 'three';
 import JSZip from 'jszip';
-import SceneTreeSortable, { SceneTreeSortableHandle } from "../Components/SceneTree/SceneTreeSortable"
+import { SceneTreeSortableHandle } from "../Components/SceneTree/SceneTreeSortable"
 
 import {
   drawWatermark,
@@ -793,7 +793,6 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       let animationStartTime = viewerState.animationStartTimes[animationIndex] || 0;
 
       const loop = async () => {
-        let currentLoop = 0;
 
         // Determine the segment duration for partial recording
         const segmentDuration = isFullAnimation ? animationDurationRef.current : (recordingEndTime - recordingStartTime);
