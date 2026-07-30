@@ -46,11 +46,11 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
   };
 
   /** after editing any camera param we need to refresh the projection */
-  const refreshCamera = () => {
-    if (selectedNode.object3D?.updateProjectionMatrix) {
-      selectedNode.object3D.updateProjectionMatrix();
-    }
-  };
+  // const refreshCamera = () => {
+  //   if (selectedNode.object3D?.updateProjectionMatrix) {
+  //     selectedNode.object3D.updateProjectionMatrix();
+  //   }
+  // };
 
   return (
     <div
