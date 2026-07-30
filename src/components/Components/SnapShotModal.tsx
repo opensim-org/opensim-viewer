@@ -1,4 +1,4 @@
-import { Button, Checkbox, Dialog, DialogActions, DialogContent, FormControl, FormControlLabel, FormLabel, IconButton, ToggleButton, ToggleButtonGroup , Select, MenuItem, InputLabel } from '@mui/material';
+import { Button, Checkbox, Dialog, DialogActions, DialogContent, FormControl, FormControlLabel, FormLabel, IconButton, Select, MenuItem, InputLabel } from '@mui/material';
 import React from 'react';
 import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone';
 import { useModelContext } from '../../state/ModelUIStateContext';
@@ -73,10 +73,10 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
     setFormData({ ...formData, [name]: value });
     setChanged(!changed)
   };
-  const handleAspectRatioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    formData.preserve_aspect_ratio = event.currentTarget.checked?'true':'false';
-    setChanged(!changed)
-  };
+  // const handleAspectRatioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   formData.preserve_aspect_ratio = event.currentTarget.checked?'true':'false';
+  //   setChanged(!changed)
+  // };
   const handleTransparentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     formData.transparent_background = event.currentTarget.checked?'true':'false';
     setChanged(!changed)

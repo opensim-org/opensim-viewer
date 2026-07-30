@@ -92,6 +92,7 @@ export class ModelUIState {
     showAspectRatioFunctionality: boolean = true;
     isInRecordMode: boolean = false;
     visibleHelpers: boolean = true;
+    isInDollyEditMode: boolean = false;
     constructor(
         currentModelPathState: string
     ) {
@@ -141,7 +142,9 @@ export class ModelUIState {
             debug: observable,
             setDebug: action,
             isInRecordMode: observable,
-            setIsInRecordMode: action
+            setIsInRecordMode: action,
+            isInDollyEditMode: observable,
+            setIsInDollyEditMode: action
         })
         console.log("Created ModelUIState instance ", currentModelPathState);
         setTimeout(() => {
@@ -214,6 +217,9 @@ export class ModelUIState {
     }
     setIsInRecordMode(newValue: boolean = false) {
         this.isInRecordMode = newValue;
+    }
+    setIsInDollyEditMode(newValue: boolean = false) {
+        this.isInDollyEditMode = newValue;
     }
     getModernBrowserMode() {
         return this.isModernBrowser;
@@ -563,6 +569,7 @@ export class ModelUIState {
         const clip = AnimationClip.parse(clipMessage.Clip); // This creates an AnimationClip instance
         const startTime = this.getClipStartTime(clip);
         this.viewerState.animations.push(clip);
+        this.viewerState.isDollyAnimation.push(false)
         this.viewerState.animationStartTimes.push(startTime);
         const index = this.viewerState.animations.length - 1;
         console.log(`Creating Animation Clip: Name=${clip.name}, Duration=${clip.duration}`);

@@ -1,17 +1,16 @@
-import { Grid, Container, IconButton, ToggleButton, FormControl, Slider, SelectChangeEvent, Input, MenuItem, Select, Divider } from '@mui/material';
+import { Grid, Paper, IconButton, Button, FormControl, Slider, SelectChangeEvent, Input, MenuItem, Select} from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useState, useEffect } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import ThreeSixtyTwoToneIcon from '@mui/icons-material/ThreeSixtyTwoTone';
 import PauseCircleTwoToneIcon from '@mui/icons-material/PauseCircleTwoTone';
 import PlayCircleTwoToneIcon from '@mui/icons-material/PlayCircleTwoTone';
-import Tooltip from '@mui/material/Tooltip';
 import { observer } from 'mobx-react'
 import { AnimationClip} from 'three';
 import { useTranslation } from 'react-i18next';
 import { useModelContext } from '../../state/ModelUIStateContext';
 import React, { useCallback, useRef } from 'react';
 import CameraPanel from './CameraPanel';
+import { OpenSimControlHandle } from '../Components/OpenSimControl';
 
 const NonAnimatedSlider = styled(Slider)(() => ({
   "& .MuiSlider-thumb": {
@@ -22,12 +21,39 @@ const NonAnimatedSlider = styled(Slider)(() => ({
   },
 }));
 
+// Floating overlay container — replaces the old docked <Container>
+const OverlayPaper = styled(Paper)(({ theme }) => ({
+  position: 'absolute',
+  left: '50%',
+  bottom: theme.spacing(3),
+  transform: 'translateX(-50%)',
+  zIndex: 1200, // sits above the R3F canvas, below modals/dialogs
+  display: 'inline-flex',
+  alignItems: 'center',
+  padding: theme.spacing(0.5, 2),
+  borderRadius: 999, // pill shape
+  maxWidth: 'calc(100vw - 32px)',
+  overflowX: 'auto',
+  overflowY: 'hidden',
+  backgroundColor: "rgba(0, 0, 0, 0.7)",
+  backdropFilter: 'blur(10px)',
+  WebkitBackdropFilter: 'blur(10px)',
+  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
+  pointerEvents: 'auto',
+  // hide scrollbar but keep it scrollable on overflow
+  scrollbarWidth: 'thin',
+  '&::-webkit-scrollbar': {
+    height: 4,
+  },
+}));
+
 interface BottomBarProps {
   ref?: React.RefObject<HTMLButtonElement>;
   animating?: boolean;
   animationList: AnimationClip[];
   animationPlaySpeed?: number;
   animationBounds?: number[];
+  controlsRef: OpenSimControlHandle | null; 
 }
 
 // Helper function to format seconds to mm:ss.dd
@@ -39,12 +65,12 @@ const formatTime = (seconds: number): string => {
 };
 
 // Helper function to parse mm:ss.dd to seconds
-const parseTime = (timeString: string): number => {
-  const [timePart, hundredthsPart] = timeString.split('.');
-  const [mins, secs] = timePart.split(':').map(Number);
-  const hundredths = hundredthsPart ? Number(hundredthsPart) : 0;
-  return (mins * 60) + (secs || 0) + (hundredths / 100);
-};
+// const parseTime = (timeString: string): number => {
+//   const [timePart, hundredthsPart] = timeString.split('.');
+//   const [mins, secs] = timePart.split(':').map(Number);
+//   const hundredths = hundredthsPart ? Number(hundredthsPart) : 0;
+//   return (mins * 60) + (secs || 0) + (hundredths / 100);
+// };
 
 const BottomBar = React.forwardRef(function CustomContent(
     props: BottomBarProps,
@@ -54,9 +80,9 @@ const BottomBar = React.forwardRef(function CustomContent(
     const { t } = useTranslation();
     const curState = useModelContext();
     const viewerState = curState.viewerState
-    const [speed, setSpeed] = useState(1.0);
     const [play, setPlay] = useState(false);
-    const [selectedAnim, setSelectedAnim] = useState("");
+    const [selectedAnim, setSelectedAnim] = useState("None");
+    const [dollyIndexInAnimations, setDollyIndexInAnimations] = useState(-1);
     const [currentTimeDisplay, setCurrentTimeDisplay] = useState("00:00.00");
     const [totalDuration, setTotalDuration] = useState(0);
     const [totalDurationDisplay, setTotalDurationDisplay] = useState("00:00.00");
@@ -64,64 +90,60 @@ const BottomBar = React.forwardRef(function CustomContent(
     const isSmallScreen = useMediaQuery((theme:any) => theme.breakpoints.only('sm'));
     const isMediumScreen = useMediaQuery((theme:any) => theme.breakpoints.only('md'));
 
-    const minWidthSlider = isExtraSmallScreen ? 150 : isSmallScreen ? 175 : isMediumScreen ? 250 : 300;
+    const minWidthSlider = isExtraSmallScreen ? 120 : isSmallScreen ? 150 : isMediumScreen ? 200 : 260;
     const maxWidthTime = 60; // Increased to accommodate mm:ss.dd format
+    const dollyAnimations = viewerState.animations.filter((anim, i)=>viewerState.isDollyAnimation[i]);
+    const controls = props.controlsRef;
 
-    // Update time display when animation time changes
-    useEffect(() => {
-      // if (viewerState.currentAnimationIndices.length > 0) {
-      //   const currentTime = viewerState.currentAnimationTime;
-      //   setCurrentTimeDisplay(formatTime(currentTime));
-
-      //   // Update total duration when animation changes
-      //   const currentAnimation = viewerState.animations[viewerState.currentAnimationIndices];
-      //   if (currentAnimation && currentAnimation.duration !== totalDuration) {
-      //     setTotalDuration(currentAnimation.duration);
-      //     setTotalDurationDisplay(formatTime(currentAnimation.duration));
-      //   }
-      // } else {
-      //   setCurrentTimeDisplay("00:00.00");
-      //   setTotalDuration(0);
-      //   setTotalDurationDisplay("00:00.00");
-      // }
-    }, [viewerState.currentAnimationTime, viewerState.currentAnimationIndices, viewerState.animations, totalDuration]);
-
-    const handleAnimationChange = useCallback((animationName: string, animate: boolean) => {
+    const handleAnimationChange = useCallback(function handleAnimChangeInternal(animationName: string, animate: boolean) {
       const targetName = animationName
+      // remove old dolly animation index if any
+      if (dollyIndexInAnimations !== -1) {
+        curState.viewerState.removeCurrentAnimationIndex(dollyIndexInAnimations);
+        setDollyIndexInAnimations(-1);
+      }
       setSelectedAnim(animationName);
-      if (targetName === "") {
+      if (targetName === "None") {
+        curState.viewerState.setCurrentDollyIndex(-1);
+        setDollyIndexInAnimations(-1);
         // 'None' selected: stop animation and reset index
         curState.viewerState.setAnimating(false);
-        curState.viewerState.clearCurrentAnimationIndices();
+        //curState.viewerState.clearCurrentAnimationIndices();
         setPlay(false);
         return;
       }
+      // idx is index into the full animations list rather than dollyAnimations
       const idx = curState.viewerState.animations.findIndex((value: AnimationClip)=>{return (value.name === targetName)});
       curState.viewerState.addCurrentAnimationIndex(idx);
-
+      setDollyIndexInAnimations(idx);
       // Set total duration for new animation
       if (idx !== -1) {
         const animation = curState.viewerState.animations[idx];
         setTotalDuration(animation.duration);
         setTotalDurationDisplay(formatTime(animation.duration));
       }
-    }, [curState.viewerState]);
+    }, [curState.viewerState, dollyIndexInAnimations]);
 
     const handleAnimationChangeEvent = (event: SelectChangeEvent) => {
       const targetName = event.target.value as string
-      handleAnimationChange(targetName, true)
+      handleAnimationChange(targetName, play)
     };
 
     function togglePlayAnimation() {
-        curState.viewerState.setAnimating(!curState.viewerState.animating);
-        curState.viewerState.animationChange = {index:0, operation:"start"};
-        curState.viewerState.setAnimationsNeedUpdate(true)
-        setPlay(!play);
-    }
+        if (curState.viewerState.animating) {
+          curState.viewerState.setAnimating(false);
+          curState.viewerState.setAnimationsNeedUpdate(true)
+        }
+        else {
+          curState.viewerState.setAnimating(true);
+          // If starting animation, reset time to 0
+          curState.viewerState.setCurrentAnimationTime(0);
+          setCurrentTimeDisplay(formatTime(0));
+          curState.viewerState.animationChange = {index:dollyIndexInAnimations, operation:"start"};
+          curState.viewerState.setAnimationsNeedUpdate(true)
 
-    function handleSpeedChange(event: SelectChangeEvent) {
-        curState.viewerState.setAnimationSpeed(Number(event.target.value));
-        setSpeed(Number(event.target.value))
+        }
+        setPlay(!play);
     }
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -133,56 +155,28 @@ const BottomBar = React.forwardRef(function CustomContent(
 
     const handleSliderChange = (event: Event, newValue: number | number[]) => {
       if (viewerState.currentAnimationIndices.length === 0) return;
-
+      if (dollyIndexInAnimations === -1) return;
+      if (controls !==null) {
+        controls.setEnabled(false);
+      }
       const percentage = newValue as number;
-      const currentAnimation = viewerState.animations[viewerState.currentAnimationIndices[0]];
+      const currentAnimation = viewerState.animations[dollyIndexInAnimations];
       if (currentAnimation) {
         const newTime = (percentage / 100) * currentAnimation.duration;
-        viewerState.setCurrentAnimationTime(newTime);
-
+        viewerState.currentAnimationTime = newTime;
+        curState.currentFrame = Math.trunc((newTime / currentAnimation.duration) * 100);
         // Force the animation to update immediately when manually scrubbing
         if (!viewerState.animating) {
           // This will trigger the scene to update the animation pose
-          curState.viewerState.forceAnimationUpdate = true;
+          curState.viewerState.animationsNeedUpdate = true;
+        }
+        else {
+          // If the animation is playing, we want to pause it when scrubbing
+          curState.viewerState.setAnimating(false);
+          setPlay(false);
         }
       }
     };
-
-    const handleInputBlur = (event: React.FocusEvent<HTMLInputElement>) => {
-      if (viewerState.currentAnimationIndices.length === 0) return;
-
-      const timeString = event.target.value;
-      if (/^\d{1,2}:\d{2}\.\d{2}$/.test(timeString)) {
-        const newTime = parseTime(timeString);
-        const currentAnimation = viewerState.animations[viewerState.currentAnimationIndices[0]];
-        if (currentAnimation) {
-          let clampedTime = newTime;
-          if (newTime < 0) {
-            clampedTime = 0;
-          } else if (newTime > currentAnimation.duration) {
-            clampedTime = currentAnimation.duration;
-          }
-
-          viewerState.setCurrentAnimationTime(clampedTime);
-          setCurrentTimeDisplay(formatTime(clampedTime));
-
-          // Force update when manually setting time
-          if (!viewerState.animating) {
-            curState.viewerState.forceAnimationUpdate = true;
-          }
-        }
-      } else {
-        setCurrentTimeDisplay(formatTime(viewerState.currentAnimationTime));
-      }
-    };
-
-
-    const handleInputKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
-      if (event.key === 'Enter') {
-        (event.target as HTMLInputElement).blur();
-      }
-    };
-
 
     // Calculate current percentage for slider
     const getCurrentPercentage = (): number => {
@@ -198,29 +192,44 @@ const BottomBar = React.forwardRef(function CustomContent(
     };
 
     useEffect(() => {
-      if (curState.viewerState.animations.length > 0 && curState.viewerState.currentAnimationIndices.length > 0)
-      {
-        setSelectedAnim(curState.viewerState.animations[curState.viewerState.currentAnimationIndices[0]].name)
-        handleAnimationChange(curState.viewerState.animations[curState.viewerState.currentAnimationIndices[0]].name, false)
+      if (viewerState.currentDollyIndex !== -1){
+        // compute index and selectedAnim from current Dollyconst 
+        const dollyName = curState.viewerState.cameraDollies[viewerState.currentDollyIndex].name;
+        const idx = curState.viewerState.animations.findIndex((value: AnimationClip)=>{return (value.name === dollyName)});
+        if (idx !== dollyIndexInAnimations) {
+          setDollyIndexInAnimations(idx); 
+          //console.log(`Dolly index in animations updated to ${idx} for dolly ${dollyName}`);
+          curState.viewerState.addCurrentAnimationIndex(idx);
+        }
+        if (curState.viewerState.animations.length > 0 && idx >= 0)
+        { // Make sure name exists in select as may have been deleted or renamed
+          setSelectedAnim(curState.viewerState.animations[idx].name)
+          handleAnimationChange(curState.viewerState.animations[idx].name, false)
+        }
+        else if (curState.viewerState.currentAnimationIndices.length === 0){
+          handleAnimationChange("None", false);
+        }
       }
-      else if (curState.viewerState.currentAnimationIndices.length === 0){
-        setSelectedAnim("")
+      
+      if (play && !curState.viewerState.animating) {
+        setPlay(false);
       }
-    }, [curState.viewerState.animations, curState.viewerState.currentAnimationIndices,
-        curState.viewerState.cameraDollies, curState.viewerState.currentDollyIndex,
-            selectedAnim, curState.viewerState.animationsNeedUpdate]);
+    }, [curState.viewerState.animations, curState.viewerState.currentAnimationIndices, 
+      curState.viewerState.cameraDollies, curState.viewerState.currentDollyIndex, 
+      curState.viewerState.animationsNeedUpdate, dollyIndexInAnimations, 
+      viewerState.currentDollyIndex, curState.viewerState, curState.viewerState.animating,
+      play]);
 
     return (
-      <Container ref={(ref as any) || bottomBarRef}>
-        <Grid container spacing={1} alignItems="center" justifyContent="center">
+      <OverlayPaper ref={(ref as any) || bottomBarRef} elevation={0}>
+        <Grid container spacing={1} alignItems="center" wrap="nowrap">
             <>
-              <Grid item sx={{ mt: 1, display: { lg: 'block' } }}>
-                  <CameraPanel uState={curState} />
+              <Grid item sx={{ display: { lg: 'block' } }}>
+                  <CameraPanel uState={curState} controlsRef={props.controlsRef} />
               </Grid>
-              <Divider orientation="vertical" sx={{ mx: 2, display: { xs: 'none', lg: 'block' } }} />
             </>
-          { curState.viewerState.animations.length < 1 ? null : (
-          <Grid item sx={{ mt: 1 }}>
+          { dollyAnimations.length < 1 ? null : (
+          <Grid item>
             <FormControl margin="dense" size="small" variant="standard" sx={{maxWidth: 100 }}>
               <Select
                 labelId="simple-select-standard-label"
@@ -228,9 +237,9 @@ const BottomBar = React.forwardRef(function CustomContent(
                 value={selectedAnim}
                 onChange={handleAnimationChangeEvent}
                 displayEmpty
-                disabled={curState.viewerState.animations.length < 1}>
-                  <MenuItem value="">None</MenuItem>
-                  {curState.viewerState.animations.map(anim => (
+                disabled={dollyAnimations.length < 1}>
+                  <MenuItem value="None">None</MenuItem>
+                  {dollyAnimations.map(anim=> (
                     <MenuItem key={anim.name} value={anim.name}>
                       {anim.name}
                     </MenuItem>
@@ -239,42 +248,19 @@ const BottomBar = React.forwardRef(function CustomContent(
             </FormControl>
           </Grid>
           )}
-
-          {curState.getGuiMode()?"":
-            <Grid item sx={{ mt: 1 }}>
-              <FormControl margin="dense" size="small" variant="standard">
-                <Select
-                  labelId="demo-simple-select-label"
-                  id="demo-simple-select"
-                  value={speed.toString()}
-                  label={t('visualizationControl.speed')}
-                  onChange={handleSpeedChange}
-                  disabled={curState.viewerState.animations.length < 1}>
-                    <MenuItem value={0.01}>0.01</MenuItem>
-                    <MenuItem value={0.1}>0.1</MenuItem>
-                    <MenuItem value={0.2}>0.2</MenuItem>
-                    <MenuItem value={0.3}>0.3</MenuItem>
-                    <MenuItem value={0.4}>0.4</MenuItem>
-                    <MenuItem value={0.5}>0.5</MenuItem>
-                    <MenuItem value={1.0}>1.0</MenuItem>
-                    <MenuItem value={2.0}>2.0</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          }
-          <Grid item sx={{ mt: 1 }}>
+          <Grid item>
             <FormControl margin="dense" size="small" variant="standard">
               <IconButton
                 size="small"
                 color="primary"
                 value={'Animation'}
-                disabled={curState.viewerState.animations.length < 1 }
+                disabled={dollyIndexInAnimations === -1}
                 onClick={togglePlayAnimation}>
                   {play?<PauseCircleTwoToneIcon/>:<PlayCircleTwoToneIcon/>}
               </IconButton>
             </FormControl>
           </Grid>
-          <Grid item sx={{ mt: 1 }}>
+          <Grid item>
             <FormControl margin="dense" size="small" sx={{minWidth: minWidthSlider}}>
               <NonAnimatedSlider
                 value={getCurrentPercentage()}
@@ -282,54 +268,56 @@ const BottomBar = React.forwardRef(function CustomContent(
                 valueLabelDisplay="auto"
                 valueLabelFormat={valueLabelFormat}
                 onChange={handleSliderChange}
-                disabled={curState.viewerState.animations.length < 1}/>
+                onChangeCommitted={() => {
+                  if (controls !==null) {
+                    controls.setEnabled(true);
+                  }
+                }}
+                disabled={dollyIndexInAnimations === -1}/>
             </FormControl>
           </Grid>
           {/// Time display in mm:ss.dd format with total duration
           }
-          <Grid item sx={{ mt: 1 }}>
+          <Grid item>
             <FormControl margin="dense" size="small" variant="filled">
               <Input
                 sx={{maxWidth: maxWidthTime}}
                 size="small"
                 value={currentTimeDisplay}
                 onChange={handleInputChange}
-                onBlur={handleInputBlur}
-                onKeyPress={handleInputKeyPress}
                 inputProps={{
                   pattern: '^\\d{1,2}:\\d{2}\\.\\d{2}$',
                   placeholder: 'mm:ss.dd',
                   'aria-labelledby': 'time-input'}}
-                disabled={curState.viewerState.animations.length < 1}/>
+                disabled={dollyIndexInAnimations === -1}/>
             </FormControl>
           </Grid>
           {/// Total duration display
-          curState.viewerState.animations.length > 0 && viewerState.currentAnimationIndices.length > 0 && (
-            <Grid item sx={{ mt: 1 }}>
+          dollyAnimations.length > 0 && dollyIndexInAnimations >= 0 && (
+            <Grid item>
               <span style={{
                 fontSize: '0.875rem',
                 color: 'text.secondary',
-                marginLeft: '4px'
+                marginLeft: '4px',
+                whiteSpace: 'nowrap'
               }}>
                 / {totalDurationDisplay}
               </span>
             </Grid>
           )}
-          {curState.getGuiMode()?"":
-            <Grid item sx={{ mt: 1 }}>
-              <Tooltip title={t('bottomBar.autoRotate')}>
-                <ToggleButton
-                  color="primary"
-                  selected={viewerState.rotating}
-                  value={'Rotate'}
-                  onClick={() => viewerState.setRotating(!viewerState.rotating)}>
-                    <ThreeSixtyTwoToneIcon />
-                </ToggleButton>
-              </Tooltip>
-            </Grid>
-          }
         </Grid>
-      </Container>
+        <Grid item>
+        <FormControl margin="dense" size="small" variant="standard">
+          <Button
+          className="cancel-button"
+          variant="contained"
+          onClick={()=>curState.setIsInDollyEditMode(false)}
+        >
+          Close
+        </Button>
+        </FormControl>
+        </Grid>
+      </OverlayPaper>
     )
 });
 

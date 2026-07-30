@@ -46,11 +46,11 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
   };
 
   /** after editing any camera param we need to refresh the projection */
-  const refreshCamera = () => {
-    if (selectedNode.object3D?.updateProjectionMatrix) {
-      selectedNode.object3D.updateProjectionMatrix();
-    }
-  };
+  // const refreshCamera = () => {
+  //   if (selectedNode.object3D?.updateProjectionMatrix) {
+  //     selectedNode.object3D.updateProjectionMatrix();
+  //   }
+  // };
 
   return (
     <div
@@ -76,12 +76,16 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
               return
             }
             const current_name = selectedNode.title ?? selectedNode.object3D?.name ?? ""
-            const helper = scene?.getObjectByName(current_name);
-            if (helper) {
-              helper.name = e.target.value + "_Helper"
+            const current_obj = scene?.getObjectByName(current_name);
+            if (current_obj) {
+              current_obj.name = e.target.value
             }
-            patch({ title: e.target.value })}
-          }
+            patch({ title: e.target.value })
+            // Callback into the UI state to indicate that this node is changed (only when an object is found).
+            if (current_obj) {
+              uiState.viewerState.object3DAttributeChange(current_obj);
+            }
+          }}
           style={{ marginBottom: 16 }}
           size="small"
         />
@@ -303,28 +307,6 @@ const NodeSettingsPanel: React.FC<NodeSettingsPanelProps> = observer(({
             }
             label="Cast Shadow"
             style={{ marginTop: 16 }}
-          />
-        </>
-      )}
-
-      {selectedNode?.type === "PerspectiveCamera" && (
-        <>
-          <TextField
-            label="Field of view (°)"
-            type="number"
-            fullWidth
-            inputProps={{ min: 1, max: 179, step: 1 }}
-            value={selectedNode.fov ?? selectedNode.object3D?.fov ?? 50}
-            onChange={(e) => {
-              const v = parseFloat(e.target.value);
-              patch({
-                fov: v,
-                object3DProps: { fov: v },
-              });
-              refreshCamera();
-            }}
-            style={{ marginTop: 16 }}
-            size="small"
           />
         </>
       )}

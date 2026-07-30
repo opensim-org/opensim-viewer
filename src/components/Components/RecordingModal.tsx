@@ -68,7 +68,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
   const [loopsToRecord, setLoopsToRecord] = useState<string>("1");
   const [startTime, setStartTime] = useState<string>("0.0");
   const [endTime, setEndTime] = useState<string>("1.0");
-  const [maxLoops, setMaxLoops] = useState<number>(10); // Limited to 10 to avoid long waiting times.
+  const [maxLoops] = useState<number>(10); // Limited to 10 to avoid long waiting times.
 
   // Slider range state
   const [timeRange, setTimeRange] = useState<number[]>([0, 1]);
@@ -187,10 +187,10 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
     }
   }, [selectedFormat]);
 
-  const handleRecordingMode = () => {
-    onClose();
-    curState.setIsInRecordMode(true)
-  };
+  // const handleRecordingMode = () => {
+  //   onClose();
+  //   curState.setIsInRecordMode(true)
+  // };
 
   const handleFormatChange = (value: string) => {
     setSelectedFormat(value);

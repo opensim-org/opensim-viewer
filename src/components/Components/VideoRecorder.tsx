@@ -10,6 +10,7 @@ import { useModelContext } from "../../state/ModelUIStateContext";
 import { getTimestamp } from "../../helpers/timeHelpers";
 import { WebGLRenderer } from 'three';
 import JSZip from 'jszip';
+import { SceneTreeSortableHandle } from "../Components/SceneTree/SceneTreeSortable"
 
 import {
   drawWatermark,
@@ -30,6 +31,7 @@ type VideoRecorderRef = {
 
 type VideoRecorderViewProps = {
   videoRecorderRef: React.MutableRefObject<VideoRecorderRef | null>;
+  treeReference?: React.RefObject<SceneTreeSortableHandle> | null;
 };
 
 // Aspect ratio utility functions
@@ -261,7 +263,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     offscreenRenderer.current.setSize(width, height);
     offscreenRenderer.current.setPixelRatio(1);
     offscreenRenderer.current.setClearColor(0xffffff, 1);
-
+    offscreenRenderer.current.shadowMap.enabled = true;
     return { width, height, renderer: offscreenRenderer.current };
   };
 
@@ -355,32 +357,25 @@ function VideoRecorder(props: VideoRecorderViewProps) {
   };
 
   const waitForNextFrame = async (ensureOffscreenSync: boolean = true): Promise<void> => {
-    return new Promise(async resolve => {
-      // Wait for main renderer frame
-      await new Promise<void>(r => {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => r());
-        });
-      });
+    return new Promise<void>((resolve) => {
+      // Use requestAnimationFrame to capture the next frame
+      requestAnimationFrame(() => {
+        if (ensureOffscreenSync && offscreenRenderer.current) {
+          // Force offscreen renderer to render
+          offscreenRenderer.current.render(scene, camera);
 
-      if (ensureOffscreenSync && offscreenRenderer.current) {
-        // Force offscreen renderer to render
-        offscreenRenderer.current.render(scene, camera);
-
-        // Wait for offscreen renderer's frame
-        await new Promise<void>(r => {
+          // Use requestAnimationFrame again to ensure the render is complete,
           requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              // Ensure GPU has processed all commands
-              const gl = offscreenRenderer.current?.getContext();
-              gl?.finish();
-              r();
-            });
+            // Ensure GPU has processed all commands
+            const gl = offscreenRenderer.current?.getContext();
+            gl?.finish();
+            resolve();
           });
-        });
-      }
-
-      resolve();
+        } else {
+          // If no offscreen sync needed, just resolve
+          resolve();
+        }
+      });
     });
   };
 
@@ -620,6 +615,10 @@ function VideoRecorder(props: VideoRecorderViewProps) {
     setupOffscreenRenderer();
 
     const startRecording = async () => {
+      if (props.treeReference?.current) {
+        props.treeReference.current.close();
+      }
+
       const current = viewerState.currentAnimationIndices;
       if (current[0] === -1) {
         enqueueSnackbar(t('snackbars.no_animation_selected'), {
@@ -711,19 +710,19 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       // Setup offscreen rendering with correct dimensions and aspect ratio
       setupOffscreenRenderer();
 
-      // Reset to beginning
+      // Reset to beginning and render once
       viewerState.setCurrentAnimationTime(startTime);
       viewerState.forceAnimationUpdate = true;
       curState.setCurrentFrame(0);
 
-      // Wait for animation to reset and render
+      // Wait for animation to reset and render - this ensures the first frame is ready
       await waitForNextFrame(true);
 
       // Start capture with the correct start time
       startCaptureProcess(recordingStartTime, recordingEndTime, isFullAnimation);
     };
 
-      const startCaptureProcess = (recordingStartTime: number = 0, recordingEndTime: number = 0, isFullAnimation: boolean = true) => {
+    const startCaptureProcess = (recordingStartTime: number = 0, recordingEndTime: number = 0, isFullAnimation: boolean = true) => {
       const fps = viewerState.recordedVideoFPS || 30;
       const numLoops = viewerState.videoRecorderNumLoops || 1;
 
@@ -769,6 +768,9 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       viewerState.setIsRecordingVideo(true);
       curState.guiAnimationLoop = false; // Stop any existing loops
       curState.viewerState.animationChange = { index: 0, operation: "start" };
+
+      // Enable external time control
+      viewerState.isTimeControlledExternally = true;
       viewerState.animating = false; // avoid useFrame mixer advancing
       curState.viewerState.setAnimationsNeedUpdate(true);
 
@@ -791,13 +793,9 @@ function VideoRecorder(props: VideoRecorderViewProps) {
       let animationStartTime = viewerState.animationStartTimes[animationIndex] || 0;
 
       const loop = async () => {
-        let currentLoop = 0;
 
         // Determine the segment duration for partial recording
         const segmentDuration = isFullAnimation ? animationDurationRef.current : (recordingEndTime - recordingStartTime);
-
-        // The animation time offset for the start of the segment
-        const segmentStartOffset = isFullAnimation ? 0 : recordingStartTime;
 
         // Only capture ONE loop worth of frames
         while (isRecordingRef.current && frameCount < framesPerLoop && captureErrors < MAX_ERRORS) {
@@ -817,15 +815,15 @@ function VideoRecorder(props: VideoRecorderViewProps) {
             animationTime = timeInLoop + recordingStartTime;
           }
 
-          // Set animation time
+          viewerState.externalAnimationTime = animationTime;
           viewerState.setCurrentAnimationTime(animationTime);
 
           // Calculate progress percentage based on actual frames captured vs total frames we expect to capture
           const progressPercent = (frameCount / framesPerLoop) * 100;
           curState.setCurrentFrame(progressPercent);
 
-          // Wait for rendering to complete
-          await waitForNextFrame(true);
+          // Wait for rendering to complete - don't force offscreen sync here to avoid double rendering
+          await waitForNextFrame(false);
 
           // Capture frame using offscreen renderer
           const frame = captureFrameOffscreen();
@@ -836,7 +834,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
             // Log progress
             if (frameCount % 10 === 0) {
               const timeInfo = isFullAnimation ?
-                `time: ${animationTime.toFixed(2)}s` :
+                `time: ${(frameCount === 0 ? viewerState.currentAnimationTime : animationTime).toFixed(2)}s` :
                 `segment: ${(timeInLoop).toFixed(2)}/${segmentDuration.toFixed(2)}s`;
               console.log(`Captured ${frameCount}/${framesPerLoop} frames - ${timeInfo}`);
             }
@@ -863,6 +861,10 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
       closeSnackbar();
       isRecordingRef.current = false;
+
+      // Disable external time control
+      viewerState.isTimeControlledExternally = false;
+
       curState.finishRecording();
       enqueueSnackbar(t('snackbars.processing_video'), {
         variant: 'info',

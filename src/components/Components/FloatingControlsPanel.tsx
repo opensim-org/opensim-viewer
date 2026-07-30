@@ -1,20 +1,18 @@
-import { useState } from 'react';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import Grid from '@mui/material/Grid';
 import { useTranslation } from 'react-i18next'
 import './FloatingControlsPanel.css';
-import InfoIcon from '@mui/icons-material/Info';
 import ZoomOutTwoToneIcon from '@mui/icons-material/ZoomOutTwoTone';
 import ZoomInTwoToneIcon from '@mui/icons-material/ZoomInTwoTone';
 import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
 import FitScreenTwoToneIcon from '@mui/icons-material/FitScreenTwoTone';
 import { useModelContext } from '../../state/ModelUIStateContext';
 import SnapShotModal from './SnapShotModal';
-import RecordingModal from './RecordingModal';
 import { ModelInfo } from '../../state/ModelUIState';
 import { observer } from "mobx-react";
-
+import TripodCombo from './TripodCombo';
+import DollyCombo from './DollyCombo';
 interface FloatingControlsPanelProps {
   videoRecorderRef: any;
   info: ModelInfo;
@@ -22,21 +20,16 @@ interface FloatingControlsPanelProps {
   left: string;
 }
 
+
 function FloatingControlsPanel(props :FloatingControlsPanelProps) {
   const { t } = useTranslation();
   const curState = useModelContext();
   const viewerState = curState.viewerState;
-  
-  const [isWindowOpen, setIsWindowOpen] = useState(false);
-
-
-  const handleInfoButtonClick = () => {
-    setIsWindowOpen(!isWindowOpen);
-  };
 
   const handleRecordButtonClick = () => {
     curState.setIsInRecordMode(true)
     curState.viewerState.setShowAspectRatioGuides?.(true);
+    curState.setIsInDollyEditMode(false)
   };
 
   return (
@@ -87,26 +80,15 @@ function FloatingControlsPanel(props :FloatingControlsPanelProps) {
         </Grid>
 
         <Grid item xs={6}>
-          <Tooltip title={t('floatingButton.model_info')} placement="right">
-              <IconButton
-                color="primary"
-                onClick={handleInfoButtonClick}>
-                  <InfoIcon />
-              </IconButton>
-          </Tooltip>
+          <TripodCombo />
+        </Grid>
+
+        <Grid item xs={6}>
+            <DollyCombo />
         </Grid>
 
       </Grid>
 
-      {isWindowOpen &&
-        <div className="floating-window">
-        {props.info.model_name}
-        <br></br>
-        Description: {props.info.desc}
-        <br></br>
-        Authors: {props.info.authors}
-        </div>
-      }
     </div>
   );
 };

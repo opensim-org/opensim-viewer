@@ -23,7 +23,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     const { set, gl} = useThree();
     const { scene, camera } = useThree();
     const viewerState = useModelContext().viewerState;
-
+    viewerState.setDefaultCamera(camera);
     const sceneRef = useRef<THREE.Scene>(scene);
     const [sceneObjectMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
     const [useEffectRunning, setUseEffectRunning] = useState<boolean>(false)
@@ -31,9 +31,9 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     const [colorNodeMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
     const lightRef = useRef<THREE.DirectionalLight | null>(null)
     const csRef = useRef<THREE.Group>(null)
-    const envRef = useRef<THREE.Group>(null)
     const bboxRef = useRef<THREE.BoxHelper>(null)
     const modelsRef = useRef<THREE.Group>(null);
+    const tripodsRef = useRef<THREE.Group>(null);
     let frameCount = 0;
     let renderTime = 0;
     const [currentCamera, setCurrentCamera] = useState<PerspectiveCamera>()
@@ -79,8 +79,8 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     // This useEffect loads the cameras and assign them to its respective states.
     useEffect(() => {
-      if (envRef.current && scene) 
-        curState.viewerState.setEnvironmentGroup(envRef.current)
+      if (tripodsRef.current && scene) 
+        curState.viewerState.setTripodsGroup(tripodsRef.current)
 
       if (modelsRef.current!==null) {
         const boundingBox = new THREE.Box3();
@@ -116,8 +116,8 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             cameraPers.aspect = aspectRatio;
             cameraPers.updateProjectionMatrix();
 
-            if (envRef.current) {
-              envRef.current.add(camera);
+            if (tripodsRef.current) {
+              tripodsRef.current.add(camera);
             }
         });
         // Update cameras list.
@@ -126,14 +126,6 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         //setCurrentCamera(cameras.length > 0 ? cameras[0] as PerspectiveCamera : new PerspectiveCamera())
         //curState.viewerState.setCurrentCameraIndex(0)
       }
-      // else { // use the default camera, call it DefaultCam
-      //   if (curState.viewerState.cameras.length === 0){
-      //     const cam = camera as PerspectiveCamera;  // Provided by the library
-      //     cam.name = "Default Camera"
-      //     curState.viewerState.setCamerasList([cam])
-      //     curState.setCurrentCameraIndex(0)
-      //   }
-      // }
       // lightRef.current!.color = viewerState.lightColor
       // spotlightRef.current!.color = viewerState.lightColor
     }, [curState, scene, gl.domElement.clientWidth, gl.domElement, set, modelGroup, viewerState.lightColor, camera]);
@@ -142,19 +134,34 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
-          viewerState.handleKey(event.key);
+          if (event.ctrlKey) {
+            event.preventDefault(); // Prevent default behavior for Ctrl key combinations
+            viewerState.handleKey(event.key);
+        }
       };
       window.addEventListener('keydown', handleKeyDown);
       return () => {
         window.removeEventListener('keydown', handleKeyDown);
       };
     }, [viewerState]);
-  
+
+    useEffect(() => {
+      if (curState.viewerState.cameras.length > 0 && currentCamera && curState.viewerState.currentCameraIndex !== -1) {
+        const selectedCamera = curState.viewerState.cameras[curState.viewerState.currentCameraIndex] as PerspectiveCamera;
+        if (selectedCamera !== camera) {
+          setCurrentCamera(selectedCamera);
+          set({camera: selectedCamera});
+        }
+      }
+    }, [
+      curState.viewerState.currentCameraIndex,
+      curState.viewerState.cameras
+    ]);
   
     // This useEffect sets the current selected camera.
     useEffect(() => {
       //console.log("Change effect", curState.viewerState.animationsNeedUpdate)
-      if (curState.viewerState.cameras.length > 0 && currentCamera) {
+      if (curState.viewerState.cameras.length > 0 && currentCamera && curState.viewerState.currentCameraIndex !== -1) {
         const selectedCamera = curState.viewerState.cameras[curState.viewerState.currentCameraIndex] as PerspectiveCamera;
         setCurrentCamera(selectedCamera);
         set({ camera: selectedCamera });
@@ -179,6 +186,13 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             else {
               action.setLoop(THREE.LoopOnce, 1);
             }
+            if (curState.viewerState.isDollyAnimation[clipIndex] && curState.viewerState.currentAnimationIndices.length === 1) {
+              nextMixer.addEventListener('finished', (e) => {
+                // Handle dolly animation finished event
+                console.log(`Dolly animation ${clip.name} finished.`);
+                viewerState.setAnimating(false);
+              });
+            }
             mixers[clipIndex] = nextMixer
           }
         }
@@ -199,6 +213,13 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             }
             else {
               action.setLoop(THREE.LoopOnce, 1);
+            }
+            if (curState.viewerState.isDollyAnimation[clipIndex] && curState.viewerState.currentAnimationIndices.length === 1) {
+              nextMixer.addEventListener('finished', (e) => {
+                // Handle dolly animation finished event
+                console.log(`Dolly animation ${clip.name} finished.`);
+                viewerState.setAnimating(false);
+              });
             }
             mixers[clipIndex] = nextMixer
           }
@@ -303,8 +324,35 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         for (const idx in indices) {
           const animIndex = indices[idx];
           const mixer = mixers[animIndex];
+          if (mixer === undefined) continue; // Guard against mixer not populated yet pending useEffect
           const action = mixer.clipAction(viewerState.animations[animIndex]);
           const duration = action.getClip().duration;
+
+          // Check if time is controlled externally (by recorder)
+          if (viewerState.isTimeControlledExternally) {
+            // Use the external time set by the recorder
+            const externalTime = viewerState.externalAnimationTime;
+
+            // Update the mixer time without advancing
+            if (Math.abs(action.time - externalTime) > 0.001) {
+              action.time = externalTime;
+              mixer.update(0); // Apply the time change without advancing
+              applyAnimationColors();
+            }
+
+            // Update UI elements
+            const newFrame = Math.trunc((externalTime / duration) * 100);
+            if (newFrame !== curState.currentFrame) {
+              curState.setCurrentFrame(newFrame);
+            }
+
+            // Update viewer state time
+            viewerState.setCurrentAnimationTime(externalTime);
+            curState.setTimeGUIAnimation(externalTime);
+
+            // Skip normal animation logic
+            continue;
+          }
 
           // If we're animating (playing), update the mixer with delta time
           if (viewerState.animating) {
@@ -313,6 +361,15 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
               mixer.update(delta * curState.guiAnimationSpeed * direction);
             else
               mixer.update(delta * viewerState.animationSpeed);
+
+            if (viewerState.isDollyAnimation[animIndex]) {
+              const cam = viewerState.cameras[viewerState.currentCameraIndex];
+              // cam could be null or undefined if currentCameraIndex is -1
+              if (cam) {
+                  cam.updateMatrixWorld(true);
+              }
+            }
+
             applyAnimationColors();
 
             // Update animation time from the action
@@ -346,7 +403,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
               viewerState.forceAnimationUpdate = false;
             }
           }
-        } 
+        }
       }
 
       // FPS counter
@@ -391,7 +448,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           setUseEffectRunning(true)
         };
       }, [scene, supportControls, currentModelPath, curState, sceneObjectMap])
-    
+
   function handleClick(event: ThreeEvent<MouseEvent>): void {
     //event.stopPropagation();
     if (event.object !== undefined) {
@@ -412,7 +469,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     // By the time we're here the model is guaranteed to be available
     return <>
-      <group name='OpenSim Scene' ref={envRef}>
+      <group name='OpenSim Scene'>
         <directionalLight name="Scene Dir Light" ref={lightRef} position={[0.5, 1.5, -0.5]}
           intensity={curState.viewerState.lightIntensity} color={curState.viewerState.lightColor}
           castShadow={true}
@@ -445,9 +502,11 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             <meshStandardMaterial color="red" />
           </mesh>
         </group>
-        <group name='Models' ref={modelsRef}  
+        <group name='Tripods' ref={tripodsRef}>
+        </group>
+        <group name='Models' ref={modelsRef}
             onClick={(e)=>{ handleClick(e);}}
-            onPointerMissed={(e)=>{clearSelection();}} 
+            onPointerMissed={(e)=>{clearSelection();}}
         />
       </group>
 

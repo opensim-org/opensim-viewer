@@ -18,7 +18,11 @@ import {forwardRef, useEffect, useImperativeHandle, useRef} from 'react';
 import { GroupProps } from '@react-three/fiber';
 
 export type OpenSimControlHandle = {
+  setTarget: (controlsTarget: Vector3) => void;
   addCamera: (cameraName: any, parent: Object3D | null) => PerspectiveCamera;
+  getTarget: () => Vector3 | null;
+  update: () => void;
+  setEnabled: (enabled: boolean) => void;
 };
 
 const qualityLevels = [
@@ -45,6 +49,24 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
   useImperativeHandle(ref, () => ({
     addCamera: (cameraName: any, parent: Object3D | null) => {
         return curState.viewerState.addCamera(camera as PerspectiveCamera, controlsRef.current!.target, cameraName)
+    },
+    getTarget: () => {
+        return controlsRef.current?.target || null;
+    },
+    setTarget: (controlsTarget: Vector3) => {
+        if (controlsRef.current) {
+            controlsRef.current.target.copy(controlsTarget);
+        }
+    },
+    update: () => {
+        if (controlsRef.current) {
+            controlsRef.current.update();
+        }
+    },
+    setEnabled: (enabled: boolean) => {
+        if (controlsRef.current) {
+            controlsRef.current.enabled = enabled;
+        }
     }
   }));
 
@@ -174,6 +196,7 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
                 curState.viewerState.addCamera(camera as PerspectiveCamera, controlTarget, undefined)
             }
             curState.viewerState.saveCameraAndTarget = false
+            curState.viewerState.saveCameraName = undefined
         }
         else if (curState.takeSnapshot){
             const timestamp = getTimestamp();
@@ -259,7 +282,7 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
                 alpha: curState.snapshotProps.transparent_background,
                 antialias: true
             });
-
+            tempRenderer.shadowMap.enabled = true;
             tempRenderer.setSize(renderWidth, renderHeight);
             tempRenderer.setPixelRatio(1);
 
@@ -421,7 +444,7 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
                 //     target.x, target.y, target.z, false)
                 controlsRef.current.update()
             }
-
+            curState.viewerState.setCurrentCameraIndex(-1);
         }
 
        function fitToModels(transition: boolean) {
@@ -436,15 +459,6 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
            });
        }
        })
-
-    function resizeRenderer (width:number, height:number)
-    {
-        if (window.devicePixelRatio) {
-            gl.setPixelRatio (window.devicePixelRatio);
-        }
-        gl.setSize (width, height);
-        gl.render (scene, camera);
-    }
 
     function completeTransform(e?: THREE.Event | undefined): void {
         if (curState.debug)

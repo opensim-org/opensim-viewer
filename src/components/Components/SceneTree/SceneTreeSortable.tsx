@@ -10,7 +10,6 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import PersonIcon from '@mui/icons-material/Person';
 import FolderIcon from '@mui/icons-material/Folder';
-import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import AddIcon from '@mui/icons-material/Add';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import ThreeDRotationIcon from '@mui/icons-material/ThreeDRotation';
@@ -19,6 +18,10 @@ import GridOnIcon from '@mui/icons-material/GridOn';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import TripodIcon from '../TripodIcon';
+import SaveTwoToneIcon from '@mui/icons-material/SaveTwoTone';
+import FileOpenTwoToneIcon from '@mui/icons-material/FileOpenTwoTone';
+
 import ViewInAr from '@mui/icons-material/ViewInAr';
 import PanoramaIcon from '@mui/icons-material/Panorama';
 
@@ -27,6 +30,7 @@ import { useModelContext } from '../../../state/ModelUIStateContext';
 import { ModelUIState } from '../../../state/ModelUIState';
 
 import NodeSettingsPanel from "./NodeSettingsPanel";
+import { saveAs } from 'file-saver';
 
 import './SceneTreeSortable.css';
 
@@ -34,15 +38,21 @@ import { DirectionalLightHelper,
   SpotLightHelper,
   PointLightHelper,
   CameraHelper,
-  Object3D
+  Object3D,
+  PerspectiveCamera,
+  Matrix4,
+  Vector3
 } from 'three';
 import { observer } from 'mobx-react';
+import SaveSceneSettingsDialog from '../Dialogs/SaveSceneSettings';
+import { OpenSimControlHandle } from '../OpenSimControl';
 
 const PANEL_WIDTH = 300;
 
 interface SceneTreeSortableProps {
   scene: THREE.Scene | null;
   camera: THREE.Camera | null;
+  controls: OpenSimControlHandle | null;
   height: string;
   onAddCameraClick?: (node: any) => void;
   onAddLightClick?: (node: any) => void;
@@ -61,7 +71,7 @@ const iconMap: Record<string, JSX.Element> = {
   scene: <PanoramaIcon />,
   model: <PersonIcon />,
   group: <FolderIcon />,
-  camera: <CameraAltIcon />,
+  camera: <TripodIcon />,
   light: <LightbulbIcon />,
   axes: <ThreeDRotationIcon />,
   wcs: <ThreeDRotationIcon />,
@@ -148,6 +158,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
   ({
       scene,
       camera,
+      controls,
       height,
       onAddCameraClick,
       onAddLightClick,
@@ -167,6 +178,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
 
     const [contextMenu, setContextMenu] = useState<{ mouseX: number; mouseY: number; node: any; path: number[] } | null>(null);
     const [nodeToDelete, setNodeToDelete] = useState<{ node: any; path: number[] } | null>(null);
+    const [isSaveSceneSettingsDialogOpen, setSaveSceneSettingsDialogOpen] = useState(false);
     const outerDivRef = useRef<HTMLDivElement>(null);
 
     const typesNotModifiable = ['skySphere', 'floor', 'axes', 'group', 'model', 'modelComponent', 'wcs'];
@@ -209,6 +221,7 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
       }
     }, [isOpen, scene, uiState, setTransformTargetFunction]);
 
+
     const handleSettingsClick = (node: any, path: number[]) => {
       setSettingsNode(node);
 
@@ -231,7 +244,74 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
       setTreeData([...treeData]);
     };
 
+    const handleSaveTripods = () => {
+      const json = uiState.viewerState.saveCamerasToJson();
+      // query for file name and save
+      const defaultName = "tripods.json";
+      const fileName = window.prompt("Enter file name:", defaultName) || defaultName;
+      saveAs(new Blob([JSON.stringify(json, null, 2)], { type: "application/json" }), fileName);
+    };
+    
+    const handleLoadTripods = function() {
+      // Create a file input element to select the JSON file
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json,application/json';
+      input.onchange = (event) => {
+        const file = (event.target as HTMLInputElement).files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const json = e.target?.result;
+            if (json) {
+              uiState.viewerState.loadCamerasFromJson(JSON.parse(json as string));
+            }
+          };
+          reader.readAsText(file);
+        }
+      };
+      input.click();
+    };
 
+    const handleSaveSceneOptions  = () => {
+      setSaveSceneSettingsDialogOpen(true);
+    }
+
+    const handleLoadSceneOptions = () => {
+           const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json,application/json';
+      input.onchange = (event) => {
+        const file = (event.target as HTMLInputElement).files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const json = e.target?.result;
+            if (json) {
+              const defaultCameraJson = JSON.parse(json as string).default_camera;
+              const restoredCamera = new PerspectiveCamera();
+              //restoredCamera.name = defaultCameraJson.object.name;
+              //restoredCamera.uuid = defaultCameraJson.object.uuid;
+              const matrix = new Matrix4().fromArray(defaultCameraJson.object.matrix);
+              matrix.decompose(restoredCamera.position, restoredCamera.quaternion, restoredCamera.scale);
+              camera?.copy(restoredCamera);
+              const controlsTarget = new Vector3().fromArray(JSON.parse(json as string).camera_target);
+              if (controls) {
+                controls.setTarget(controlsTarget);
+                controls.update();
+              }
+              const dolliesJson = JSON.parse(json as string).dolly_list;
+              uiState.viewerState.loadDolliesFromJson(dolliesJson);
+              const offsetsJson = JSON.parse(json as string).offsets;
+              // apply offsets to models
+              uiState.viewerState.applyModelOffsetsFromJson(scene!, offsetsJson);
+            }
+          };
+          reader.readAsText(file);
+        }
+      };
+      input.click();
+    }
     const panelBg = alpha(theme.palette.background.paper, 0.9);
 
     return (
@@ -396,6 +476,18 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
                             {node.object3D.visible ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
                           </IconButton>
                         )}
+                        {node.object3D && node.type === 'Group' && node.title === 'OpenSim Scene' && (
+                         <IconButton size="small" style={{ marginLeft: 8 }}>
+                            {<SaveTwoToneIcon fontSize="small" onClick={(e) => { e.stopPropagation(); handleSaveSceneOptions(); }} /> }
+                            {<FileOpenTwoToneIcon fontSize="small" onClick={(e) => { e.stopPropagation(); handleLoadSceneOptions(); }} /> }
+                          </IconButton>
+                        )}
+                        {node.object3D && node.title === 'Tripods' && (
+                          <IconButton size="small" style={{ marginLeft: 8 }}>
+                            {<SaveTwoToneIcon fontSize="small" onClick={(e) => { e.stopPropagation(); handleSaveTripods(); }} /> }
+                            {<FileOpenTwoToneIcon fontSize="small" onClick={(e) => { e.stopPropagation(); handleLoadTripods(); }} /> }
+                          </IconButton>
+                        )}
                         {node.nodeType === 'addCameraButton' && (
                           <IconButton onClick={() => onAddCameraClick?.(true)}>
                             <AddIcon fontSize="small" />
@@ -515,7 +607,23 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
             </Button>
           </DialogActions>
         </Dialog>
-
+        {
+          isSaveSceneSettingsDialogOpen && (
+            <SaveSceneSettingsDialog
+              open={isSaveSceneSettingsDialogOpen}
+              onClose={() => setSaveSceneSettingsDialogOpen(false)}
+              onSave={(options) => {
+                // prompt for file name and save
+                const fileName = window.prompt("Enter file name:", "scene_settings.json") || "scene_settings.json";
+                const saveJson = uiState.viewerState.saveSceneSettingsToJson(options, scene, controls!.getTarget());
+                saveAs(new Blob([JSON.stringify(saveJson, null, 2)], { type: "application/json" }), fileName);  
+                setSaveSceneSettingsDialogOpen(false);
+                // Handle save options
+              }}
+              scene={scene}
+            />
+          )
+        }
 
       </div>
     );
