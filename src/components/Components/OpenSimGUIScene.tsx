@@ -334,11 +334,9 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
             const externalTime = viewerState.externalAnimationTime;
 
             // Update the mixer time without advancing
-            if (Math.abs(action.time - externalTime) > 0.001) {
-              action.time = externalTime;
-              mixer.update(0); // Apply the time change without advancing
-              applyAnimationColors();
-            }
+            action.time = externalTime;
+            mixer.update(0); // Apply the time change without advancing
+            applyAnimationColors();
 
             // Update UI elements
             const newFrame = Math.trunc((externalTime / duration) * 100);
