@@ -16,6 +16,7 @@ import { loadWatermarkImage } from '../../helpers/watermarkUtils';
 // OpenSimControl.tsx
 import {forwardRef, useEffect, useImperativeHandle, useRef} from 'react';
 import { GroupProps } from '@react-three/fiber';
+import {createRendererWithInheritedCharacteristics} from "../../helpers/inheritRendererCharacteristics";
 
 export type OpenSimControlHandle = {
   setTarget: (controlsTarget: Vector3) => void;
@@ -275,41 +276,13 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
             finalHeight = finalHeight % 2 === 0 ? finalHeight : finalHeight - 1;
 
             // Create a temporary WebGL renderer for offscreen rendering
-            const tempRenderer = new WebGLRenderer({
+            const tempRenderer = createRendererWithInheritedCharacteristics(gl, {
                 preserveDrawingBuffer: true,
                 alpha: curState.snapshotProps.transparent_background,
                 antialias: true
             });
 
-            // Inherit all lightning/color/shadow properties from main renderer (gl)
-
-            // 1. Color Management & Tone Mapping
-            // Use outputColorSpace for newer Three.js (r152+), outputEncoding for older versions
-            if ('outputColorSpace' in gl) {
-                (tempRenderer as any).outputColorSpace = (gl as any).outputColorSpace;
-            } else if ('outputEncoding' in gl) {
-                (tempRenderer as any).outputEncoding = (gl as any).outputEncoding;
-            }
-
-            tempRenderer.toneMapping = gl.toneMapping;
-            tempRenderer.toneMappingExposure = gl.toneMappingExposure;
-
-            // Lighting Modes
-            if ('useLegacyLights' in gl) {
-                (tempRenderer as any).useLegacyLights = (gl as any).useLegacyLights;
-            }
-            if ('physicallyCorrectLights' in gl) {
-                (tempRenderer as any).physicallyCorrectLights = (gl as any).physicallyCorrectLights;
-            }
-
-            // 2. Shadows
-            tempRenderer.shadowMap.enabled = gl.shadowMap.enabled;
-            tempRenderer.shadowMap.type = gl.shadowMap.type;
-            tempRenderer.shadowMap.autoUpdate = gl.shadowMap.autoUpdate;
-
-            // 3. Clipping
-            tempRenderer.localClippingEnabled = gl.localClippingEnabled;
-
+            // Set size for offscreen renderer
             tempRenderer.setSize(renderWidth, renderHeight);
             tempRenderer.setPixelRatio(1);
 
@@ -325,9 +298,9 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
                     prevSkyVisibility = skySphere.visible;
                     skySphere.visible = false;
                 }
-            } else {
-                tempRenderer.setClearColor(originalClearColor, originalClearAlpha);
             }
+            // Clear color is already inherited from main renderer via createRendererWithInheritedCharacteristics
+            // No need to set it again
 
             // Render the scene to the temporary renderer
             tempRenderer.render(scene, camera);

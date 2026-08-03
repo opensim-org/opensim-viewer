@@ -18,6 +18,7 @@ import {
   isWatermarkReady,
   getWatermarkImage
 } from '../../helpers/watermarkUtils';
+import {inheritRendererCharacteristics} from "../../helpers/inheritRendererCharacteristics";
 
 // Extend Navigator interface to include deviceMemory
 interface NavigatorWithMemory extends Navigator {
@@ -257,44 +258,13 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         antialias: true
       });
 
-      // Inherit all lightning/color/shadow properties from main renderer (gl)
-
-      // 1. Color Management & Tone Mapping
-      // Use outputColorSpace for newer Three.js (r152+), outputEncoding for older versions
-      if ('outputColorSpace' in gl) {
-        (offscreenRenderer.current as any).outputColorSpace = (gl as any).outputColorSpace;
-      } else if ('outputEncoding' in gl) {
-        (offscreenRenderer.current as any).outputEncoding = (gl as any).outputEncoding;
-      }
-
-      offscreenRenderer.current.toneMapping = gl.toneMapping;
-      offscreenRenderer.current.toneMappingExposure = gl.toneMappingExposure;
-
-      // Lighting Modes
-      if ('useLegacyLights' in gl) {
-        (offscreenRenderer.current as any).useLegacyLights = (gl as any).useLegacyLights;
-      }
-      if ('physicallyCorrectLights' in gl) {
-        (offscreenRenderer.current as any).physicallyCorrectLights = (gl as any).physicallyCorrectLights;
-      }
-
-      // 2. Shadows
-      offscreenRenderer.current.shadowMap.enabled = gl.shadowMap.enabled;
-      offscreenRenderer.current.shadowMap.type = gl.shadowMap.type;
-      offscreenRenderer.current.shadowMap.autoUpdate = gl.shadowMap.autoUpdate;
-
-      // 3. Clipping
-      offscreenRenderer.current.localClippingEnabled = gl.localClippingEnabled;
+      // Inherit all characteristics from main renderer
+      inheritRendererCharacteristics(offscreenRenderer.current, gl);
     }
 
     // Set size for offscreen renderer
     offscreenRenderer.current.setSize(width, height);
     offscreenRenderer.current.setPixelRatio(1);
-
-    // Inherit the clear color from the main scene/renderer
-    const clearColor = gl.getClearColor(new Color());
-    const clearAlpha = gl.getClearAlpha();
-    offscreenRenderer.current.setClearColor(clearColor, clearAlpha);
 
     return { width, height, renderer: offscreenRenderer.current };
   };
