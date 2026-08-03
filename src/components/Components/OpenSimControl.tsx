@@ -249,14 +249,12 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
 
                 if (renderAspect > targetAspect) {
                     // Wider than target -> crop LEFT/RIGHT
-
                     finalHeight = renderHeight;
                     finalWidth = Math.floor(renderHeight * targetAspect);
                     cropOffsetX = Math.floor((renderWidth - finalWidth) / 2);
                     cropOffsetY = 0;
                 } else {
                     // Taller than target -> crop TOP/BOTTOM
-
                     finalWidth = renderWidth;
                     finalHeight = Math.floor(renderWidth / targetAspect);
                     cropOffsetX = 0;
@@ -282,7 +280,36 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
                 alpha: curState.snapshotProps.transparent_background,
                 antialias: true
             });
-            tempRenderer.shadowMap.enabled = true;
+
+            // Inherit all lightning/color/shadow properties from main renderer (gl)
+
+            // 1. Color Management & Tone Mapping
+            // Use outputColorSpace for newer Three.js (r152+), outputEncoding for older versions
+            if ('outputColorSpace' in gl) {
+                (tempRenderer as any).outputColorSpace = (gl as any).outputColorSpace;
+            } else if ('outputEncoding' in gl) {
+                (tempRenderer as any).outputEncoding = (gl as any).outputEncoding;
+            }
+
+            tempRenderer.toneMapping = gl.toneMapping;
+            tempRenderer.toneMappingExposure = gl.toneMappingExposure;
+
+            // Lighting Modes
+            if ('useLegacyLights' in gl) {
+                (tempRenderer as any).useLegacyLights = (gl as any).useLegacyLights;
+            }
+            if ('physicallyCorrectLights' in gl) {
+                (tempRenderer as any).physicallyCorrectLights = (gl as any).physicallyCorrectLights;
+            }
+
+            // 2. Shadows
+            tempRenderer.shadowMap.enabled = gl.shadowMap.enabled;
+            tempRenderer.shadowMap.type = gl.shadowMap.type;
+            tempRenderer.shadowMap.autoUpdate = gl.shadowMap.autoUpdate;
+
+            // 3. Clipping
+            tempRenderer.localClippingEnabled = gl.localClippingEnabled;
+
             tempRenderer.setSize(renderWidth, renderHeight);
             tempRenderer.setPixelRatio(1);
 

@@ -8,7 +8,7 @@ import { useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { getTimestamp } from "../../helpers/timeHelpers";
-import { WebGLRenderer } from 'three';
+import {Color, WebGLRenderer} from 'three';
 import JSZip from 'jszip';
 import { SceneTreeSortableHandle } from "../Components/SceneTree/SceneTreeSortable"
 
@@ -256,14 +256,46 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         alpha: false,
         antialias: true
       });
+
+      // Inherit all lightning/color/shadow properties from main renderer (gl)
+
+      // 1. Color Management & Tone Mapping
+      // Use outputColorSpace for newer Three.js (r152+), outputEncoding for older versions
+      if ('outputColorSpace' in gl) {
+        (offscreenRenderer.current as any).outputColorSpace = (gl as any).outputColorSpace;
+      } else if ('outputEncoding' in gl) {
+        (offscreenRenderer.current as any).outputEncoding = (gl as any).outputEncoding;
+      }
+
+      offscreenRenderer.current.toneMapping = gl.toneMapping;
+      offscreenRenderer.current.toneMappingExposure = gl.toneMappingExposure;
+
+      // Lighting Modes
+      if ('useLegacyLights' in gl) {
+        (offscreenRenderer.current as any).useLegacyLights = (gl as any).useLegacyLights;
+      }
+      if ('physicallyCorrectLights' in gl) {
+        (offscreenRenderer.current as any).physicallyCorrectLights = (gl as any).physicallyCorrectLights;
+      }
+
+      // 2. Shadows
+      offscreenRenderer.current.shadowMap.enabled = gl.shadowMap.enabled;
+      offscreenRenderer.current.shadowMap.type = gl.shadowMap.type;
+      offscreenRenderer.current.shadowMap.autoUpdate = gl.shadowMap.autoUpdate;
+
+      // 3. Clipping
+      offscreenRenderer.current.localClippingEnabled = gl.localClippingEnabled;
     }
 
     // Set size for offscreen renderer
-
     offscreenRenderer.current.setSize(width, height);
     offscreenRenderer.current.setPixelRatio(1);
-    offscreenRenderer.current.setClearColor(0xffffff, 1);
-    offscreenRenderer.current.shadowMap.enabled = true;
+
+    // Inherit the clear color from the main scene/renderer
+    const clearColor = gl.getClearColor(new Color());
+    const clearAlpha = gl.getClearAlpha();
+    offscreenRenderer.current.setClearColor(clearColor, clearAlpha);
+
     return { width, height, renderer: offscreenRenderer.current };
   };
 
