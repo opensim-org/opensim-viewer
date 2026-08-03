@@ -549,11 +549,6 @@ export const SceneTreeSortable = forwardRef<SceneTreeSortableHandle, SceneTreeSo
           }
         >
 
-          {uiState.showBottomBar && (
-            <MenuItem onClick={() => { onAddCameraClick?.(contextMenu?.node); setContextMenu(null); }}>
-              Add Camera
-            </MenuItem>
-          )}
           <MenuItem onClick={() => { onAddLightClick?.(contextMenu?.node); setContextMenu(null); }}>
             Add Light
           </MenuItem>

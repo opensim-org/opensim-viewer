@@ -88,7 +88,6 @@ export class ModelUIState {
     guiAnimationSpeed: number = 1.0
     guiAnimationLoop: boolean = false
     guiAnimationReverse: boolean = false
-    showBottomBar: boolean = false;
     showAspectRatioFunctionality: boolean = true;
     isInRecordMode: boolean = false;
     visibleHelpers: boolean = true;

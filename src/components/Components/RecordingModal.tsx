@@ -187,10 +187,9 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
     }
   }, [selectedFormat]);
 
-  // const handleRecordingMode = () => {
-  //   onClose();
-  //   curState.setIsInRecordMode(true)
-  // };
+  const handleVideoNameChange = (event:any) => {
+    viewerState.setRecordedVideoName(event.target.value)
+  };
 
   const handleFormatChange = (value: string) => {
     setSelectedFormat(value);
@@ -310,13 +309,24 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
 
       <DialogContent sx={{ minWidth: 300 }}>
 
+        {/* Video Name */}
+        <FormControl fullWidth margin="dense">
+           <TextField
+            size="small"
+            label={t('recordView.video_name_label')}
+            value={viewerState.recordedVideoName}
+            onChange={handleVideoNameChange}
+          />
+        </FormControl>
+
         {/* Aspect Ratio */}
         {curState.showAspectRatioFunctionality && (
-          <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
+          <FormControl fullWidth margin="dense" sx={{ marginTop: 1 }}>
             <InputLabel>Aspect Ratio</InputLabel>
             <Select
               value={selectedAspectRatio}
               label="Aspect Ratio"
+              size="small"
               onChange={(e) => handleAspectRatioChange(e.target.value)}
             >
               {aspectRatios.map((ar) => (
@@ -329,11 +339,12 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
         )}
 
         {/* Quality Level */}
-        <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
+        <FormControl fullWidth margin="dense" sx={{ marginTop: 1 }}>
           <InputLabel>Quality Level</InputLabel>
           <Select
             value={selectedQuality}
             label="Quality Level"
+            size="small"
             onChange={(e) => handleQualityChange(e.target.value)}
           >
             {qualityLevels.map((quality) => (
@@ -345,11 +356,12 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
         </FormControl>
 
         {/* Video Format */}
-        <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
+        <FormControl fullWidth margin="dense" sx={{ marginTop: 1 }}>
           <InputLabel>Video Format</InputLabel>
           <Select
             value={selectedFormat}
             label="Video Format"
+            size="small"
             onChange={(e) => handleFormatChange(e.target.value)}
           >
             {videoFormats.map((fmt) => (
@@ -361,11 +373,12 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
         </FormControl>
 
         {/* FPS */}
-        <FormControl fullWidth margin="dense" sx={{ marginTop: 2 }}>
+        <FormControl fullWidth margin="dense" sx={{ marginTop: 1 }}>
           <InputLabel>FPS</InputLabel>
           <Select
             value={selectedFPS}
             label="FPS"
+            size="small"
             onChange={(e) => handleFPSChange(Number(e.target.value))}
           >
             {getFpsOptions().map((fps) => (
@@ -388,11 +401,12 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
 
 
           {/* Number of loops */}
-          <div style={{ marginTop: 2 }}>
+          <div style={{ marginTop: 1 }}>
             <TextField
               fullWidth
               label="Number of loops to record"
               value={loopsToRecord}
+              size="small"
               onChange={(e) => handleLoopsChange(e.target.value)}
               error={String(loopsToRecord) !== "" && !validateInteger(String(loopsToRecord))}
               margin="dense"
@@ -406,6 +420,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
                 checked={trimMotion}
                 onChange={(e) => handleIsTrimmingMotion(e.target.checked)}
                 name="trimMotion"
+                size="small"
               />
             }
             label="Trim Motion"
@@ -413,7 +428,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
 
           {/* Custom times section - only shown when not recording full animation */}
           {trimMotion && (
-            <div style={{ marginTop: 2 }}>
+            <div style={{ marginTop: 1 }}>
               {/* Display current animation duration */}
               <div style={{
                 fontSize: '0.875rem',
@@ -424,16 +439,16 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
               </div>
 
               {/* Dual-handle slider */}
-              <div style={{ marginBottom: "16px" }}>
+              <div>
                 <Slider
                   value={timeRange}
                   onChange={handleTimeRangeChange}
                   valueLabelDisplay="auto"
+                  size="small"
                   min={0}
                   max={maxTime}
                   step={0.1}
                   marks={getSliderMarks()}
-                  sx={{ mt: 1 }}
                 />
               </div>
 
@@ -445,6 +460,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
                   value={startTime}
                   onChange={(e) => handleStartTimeChange(e.target.value)}
                   placeholder="e.g., 0.5"
+                  size="small"
                   error={startTime !== "" && !validateTimeFormat(startTime)}
                   margin="dense"
                 />
@@ -454,6 +470,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
                   value={endTime}
                   onChange={(e) => handleEndTimeChange(e.target.value)}
                   placeholder="e.g., 5.0"
+                  size="small"
                   error={endTime !== "" && !validateTimeFormat(endTime)}
                   helperText={`Max: ${maxTime.toFixed(2)}s`}
                   margin="dense"
