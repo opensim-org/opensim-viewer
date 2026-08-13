@@ -87,12 +87,13 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         // // Compute the bounding box of the scene if models are already loaded
         boundingBox.setFromObject(modelsRef.current!);
         const modelbbox = new THREE.Box3().setFromObject(modelGroup!)
-
+        console.log("Model Grp bbox before positioning: ", modelbbox.min, modelbbox.max) 
         modelsRef.current.add(modelGroup as Group);
         curState.addModelToMap(modelGroup!.uuid, modelGroup!);
         mapObjectToLayer(modelGroup!)
         curState.viewerState.sceneVersion++; // tell the world to refresh rendering
         if (curState.getNumberOfOpenModels()>1 && Number.isFinite(boundingBox.max.z) ) {
+          console.log("Model Grp bbox after positioning: ", modelbbox.min, modelbbox.max)
           modelGroup!.position.z = boundingBox.max.z-modelbbox.min.z
           const scenebbox = new THREE.Box3().setFromObject(modelsRef.current!)
           curState.fitCameraTo(scenebbox);
@@ -104,33 +105,8 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         curState.viewerState.sceneVersion+=1;
         curState.sendModelOffsets();
       }
-      const cameras = scene.getObjectsByProperty( 'isPerspectiveCamera', true )
-      if (cameras.length > 0) {
-        // Get the canvas element from the gl
-        var canvas = gl.domElement;
-        // Calculate the aspect ratio
-        var aspectRatio = canvas.clientWidth / canvas.clientHeight;
-        // Set aspectRatio to cameras
-        cameras.forEach(function(camera) {
-            const cameraPers = camera as PerspectiveCamera
-            cameraPers.aspect = aspectRatio;
-            cameraPers.updateProjectionMatrix();
+    }, [curState, scene, set, modelGroup, camera]);
 
-            if (tripodsRef.current) {
-              tripodsRef.current.add(camera);
-            }
-        });
-        // Update cameras list.
-        curState.viewerState.setCamerasList(cameras.map(obj => obj as PerspectiveCamera))
-        // Set current camera and current index as 0
-        //setCurrentCamera(cameras.length > 0 ? cameras[0] as PerspectiveCamera : new PerspectiveCamera())
-        //curState.viewerState.setCurrentCameraIndex(0)
-      }
-      // lightRef.current!.color = viewerState.lightColor
-      // spotlightRef.current!.color = viewerState.lightColor
-    }, [curState, scene, gl.domElement.clientWidth, gl.domElement, set, modelGroup, viewerState.lightColor, camera]);
-
-    
 
     useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
