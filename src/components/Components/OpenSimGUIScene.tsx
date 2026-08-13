@@ -87,13 +87,11 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         // // Compute the bounding box of the scene if models are already loaded
         boundingBox.setFromObject(modelsRef.current!);
         const modelbbox = new THREE.Box3().setFromObject(modelGroup!)
-        console.log("Model Grp bbox before positioning: ", modelbbox.min, modelbbox.max) 
         modelsRef.current.add(modelGroup as Group);
         curState.addModelToMap(modelGroup!.uuid, modelGroup!);
         mapObjectToLayer(modelGroup!)
         curState.viewerState.sceneVersion++; // tell the world to refresh rendering
         if (curState.getNumberOfOpenModels()>1 && Number.isFinite(boundingBox.max.z) ) {
-          console.log("Model Grp bbox after positioning: ", modelbbox.min, modelbbox.max)
           modelGroup!.position.z = boundingBox.max.z-modelbbox.min.z
           const scenebbox = new THREE.Box3().setFromObject(modelsRef.current!)
           curState.fitCameraTo(scenebbox);
