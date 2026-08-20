@@ -71,6 +71,7 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
   const handleClose = () => {
     setOpen(false);
     curState.takeSnapshot = false
+    curState.viewerState.setShowAspectRatioGuides?.(false);
   };
   const handleCapture = () => {
     setFormData(formData);
@@ -104,6 +105,7 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
     setChanged(!changed)
   };
   const handleAspectRatioSelectChange = (event: any) => {
+    curState.viewerState.setRecorderAspectRatio(event.target.value);
     setFormData({ ...formData, aspect_ratio: event.target.value });
     setChanged(!changed)
   };
@@ -111,7 +113,8 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
       <>
       <Tooltip title={t('bottomBar.snapshot')} placement="right">
         <IconButton color="primary" onClick={() => {
-          setOpen(true);}}>
+          setOpen(true);
+          curState.viewerState.setShowAspectRatioGuides?.(true)}}>
             <PhotoCameraTwoToneIcon />
         </IconButton>
       </Tooltip>
