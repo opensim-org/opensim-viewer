@@ -482,7 +482,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose}>Close</Button>
+        <Button onClick={onClose}>Submit</Button>
       </DialogActions>
     </Dialog>
   );

@@ -351,7 +351,7 @@ useEffect(() => {
                   position: 'absolute' as const,
                   backgroundColor: 'rgba(0,0,0,0.4)',
                   pointerEvents: 'none' as const,
-                  zIndex: 1001,
+                  zIndex: 500,
                 };
 
                 return (
