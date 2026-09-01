@@ -682,8 +682,11 @@ function VideoRecorder(props: VideoRecorderViewProps) {
           return;
         }
 
-        if (endTime - startTime < 0.5) {
-          enqueueSnackbar('Recording duration must be at least 0.5 seconds', {
+        // Rounding to avoid floating point issues
+        const recordingDuration = Math.round((endTime - startTime) * 10) / 10;
+
+        if (recordingDuration < 0.1) {
+          enqueueSnackbar('Recording duration must be at least 0.1 seconds', {
             variant: 'warning',
             autoHideDuration: 5000
           });
