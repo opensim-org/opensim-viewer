@@ -11,7 +11,8 @@ import {
   Select,
   MenuItem,
   InputLabel,
-  TextField
+  TextField,
+  InputAdornment
 } from '@mui/material';
 import React from 'react';
 import PhotoCameraTwoToneIcon from '@mui/icons-material/PhotoCameraTwoTone';
@@ -93,11 +94,45 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
     formData.transparent_background = event.currentTarget.checked?'true':'false';
     setChanged(!changed)
   };
-    const handleImageNameChange = (event:any) => {
-    curState.viewerState.setSnapshotName(event.target.value)
+  const getImageNameWithoutExtension = () => {
+    const currentName = curState.viewerState.snapshotName || "";
+    const extension = `.${formData.image_format}`;
+
+    if (currentName.toLowerCase().endsWith(extension.toLowerCase())) {
+      return currentName.slice(0, -extension.length);
+    }
+
+    const knownExtensions = imageFormats.map((format) => `.${format.value}`);
+    const existingExtension = knownExtensions.find((ext) =>
+      currentName.toLowerCase().endsWith(ext.toLowerCase())
+    );
+
+    if (existingExtension) {
+      return currentName.slice(0, -existingExtension.length);
+    }
+
+    return currentName;
   };
+
+  const handleImageNameChange = (event:any) => {
+    const nameWithoutExtension = event.target.value;
+    curState.viewerState.setSnapshotName(`${nameWithoutExtension}.${formData.image_format}`)
+  };
+
   const handleImageFormatChange = (event: any) => {
-    setFormData({ ...formData, image_format: event.target.value });
+    const newFormat = event.target.value;
+    const currentName = curState.viewerState.snapshotName || "";
+    const knownExtensions = imageFormats.map((format) => `.${format.value}`);
+    const existingExtension = knownExtensions.find((ext) =>
+      currentName.toLowerCase().endsWith(ext.toLowerCase())
+    );
+
+    const nameWithoutExtension = existingExtension
+      ? currentName.slice(0, -existingExtension.length)
+      : currentName;
+
+    setFormData({ ...formData, image_format: newFormat });
+    curState.viewerState.setSnapshotName(`${nameWithoutExtension}.${newFormat}`);
     setChanged(!changed)
   };
   const handleQualityLevelChange = (event: any) => {
@@ -181,9 +216,16 @@ const SnapShotModal: React.FC<{open:boolean}> = () => {
                   <TextField
                     size="small"
                     label={t('recordView.image_name_label')}
-                    value={curState.viewerState.snapshotName}
+                    value={getImageNameWithoutExtension()}
                     onChange={handleImageNameChange}
                     fullWidth
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          .{formData.image_format}
+                        </InputAdornment>
+                      ),
+                    }}
                   />
                 </FormControl>
 
