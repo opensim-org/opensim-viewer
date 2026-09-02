@@ -13,6 +13,7 @@ import {
   FormControlLabel,
   TextField,
   Slider,
+  InputAdornment,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useModelContext } from "../../state/ModelUIStateContext";
@@ -33,7 +34,7 @@ const qualityLevels = [
 const videoFormats = [
   { label: "MP4", value: "mp4" },
   { label: "MOV", value: "mov" },
-  { label: "JPEG (Zip)", value: "jpeg-zip" },
+  { label: "JPEG (Zip)", value: "zip" },
   { label: "GIF", value: "gif" },
 ];
 
@@ -173,13 +174,45 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
     }
   }, [selectedFormat]);
 
+ const getVideoNameWithoutExtension = () => {
+    const currentName = viewerState.recordedVideoName || "";
+    const extension = `.${selectedFormat}`;
+
+    if (currentName.toLowerCase().endsWith(extension.toLowerCase())) {
+      return currentName.slice(0, -extension.length);
+    }
+
+    const knownExtensions = videoFormats.map((format) => `.${format.value}`);
+    const existingExtension = knownExtensions.find((ext) =>
+      currentName.toLowerCase().endsWith(ext.toLowerCase())
+    );
+
+    if (existingExtension) {
+      return currentName.slice(0, -existingExtension.length);
+    }
+
+    return currentName;
+  };
+
   const handleVideoNameChange = (event:any) => {
-    viewerState.setRecordedVideoName(event.target.value)
+    const nameWithoutExtension = event.target.value;
+    viewerState.setRecordedVideoName(`${nameWithoutExtension}.${selectedFormat}`)
   };
 
   const handleFormatChange = (value: string) => {
+    const currentName = viewerState.recordedVideoName || "";
+    const knownExtensions = videoFormats.map((format) => `.${format.value}`);
+    const existingExtension = knownExtensions.find((ext) =>
+      currentName.toLowerCase().endsWith(ext.toLowerCase())
+    );
+
+    const nameWithoutExtension = existingExtension
+      ? currentName.slice(0, -existingExtension.length)
+      : currentName;
+
     setSelectedFormat(value);
     viewerState.setRecordedVideoFormat(value);
+    viewerState.setRecordedVideoName(`${nameWithoutExtension}.${value}`);
   };
 
   const handleFPSChange = (value: number) => {
@@ -325,15 +358,22 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
 
       <DialogContent sx={{ minWidth: 300 }}>
 
-        {/* Video Name */}
-        <FormControl fullWidth margin="dense">
-           <TextField
-            size="small"
-            label={t('recordView.video_name_label')}
-            value={viewerState.recordedVideoName}
-            onChange={handleVideoNameChange}
+         {/* Video Name */}
+         <FormControl fullWidth margin="dense">
+            <TextField
+             size="small"
+             label={t('recordView.video_name_label')}
+             value={getVideoNameWithoutExtension()}
+             onChange={handleVideoNameChange}
+             InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    .{selectedFormat}
+                  </InputAdornment>
+                ),
+              }}
           />
-        </FormControl>
+         </FormControl>
 
         {/* Aspect Ratio */}
         {curState.showAspectRatioFunctionality && (
