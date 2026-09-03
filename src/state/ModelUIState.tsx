@@ -8,7 +8,7 @@ import { saveAs } from 'file-saver';
 import { SkinnedMuscle } from './SkinnedMuscle'
 import ViewerState from './ViewerState'
 import SceneTreeModel from '../helpers/SceneTreeModel';
-
+import { OpenSimLoader } from './OpenSimLoader';
 export class ModelInfo {
     model_name: string | null
     desc: string | null
@@ -436,7 +436,7 @@ export class ModelUIState {
                 break;
             case "ReplaceGeometry":
                 // Placeholder since this doesn't appear in GUI
-                //editor.replaceGeometry(msg.geometries, msg.uuid);
+                this.replaceGeometry(parsedMessage.geometries, parsedMessage.uuid);
                 if (this.debug)
                     console.log(data);
                 break;
@@ -648,5 +648,12 @@ export class ModelUIState {
                 break;
             // TODO add more path edit operations here
         }
+    }
+    replaceGeometry(geometryJson: string, uuid: any) {
+        const geometryLoader = new OpenSimLoader();
+        const sceneObject = this.objectByUuid(uuid) as THREE.Mesh;
+        const newgeometries = geometryLoader.parseGeometries(geometryJson);
+        sceneObject.geometry.dispose();
+        sceneObject.geometry = newgeometries[uuid];
     }
 }
