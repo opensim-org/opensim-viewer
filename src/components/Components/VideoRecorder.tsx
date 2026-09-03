@@ -8,7 +8,7 @@ import { useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { getTimestamp } from "../../helpers/timeHelpers";
-import {Color, WebGLRenderer} from 'three';
+import {WebGLRenderer} from 'three';
 import JSZip from 'jszip';
 import { SceneTreeSortableHandle } from "../Components/SceneTree/SceneTreeSortable"
 
@@ -682,8 +682,11 @@ function VideoRecorder(props: VideoRecorderViewProps) {
           return;
         }
 
-        if (endTime - startTime < 0.5) {
-          enqueueSnackbar('Recording duration must be at least 0.5 seconds', {
+        // Rounding to avoid floating point issues
+        const recordingDuration = Math.round((endTime - startTime) * 10) / 10;
+
+        if (recordingDuration < 0.1) {
+          enqueueSnackbar('Recording duration must be at least 0.1 seconds', {
             variant: 'warning',
             autoHideDuration: 5000
           });
@@ -925,7 +928,13 @@ function VideoRecorder(props: VideoRecorderViewProps) {
         }
 
         if (url) {
-          downloadFile(url, `${viewerState.recordedVideoName}_${timestamp}.${format}`);
+          // Format comes from video_name from the modal. So we have to insert the timestamp.
+          const fileExtension = `.${format}`;
+          const baseName = viewerState.recordedVideoName.endsWith(fileExtension)
+            ? viewerState.recordedVideoName.slice(0, -fileExtension.length)
+            : viewerState.recordedVideoName;
+
+          downloadFile(url, `${baseName}_${timestamp}${fileExtension}`);
           enqueueSnackbar(`Export successful: ${capturedFrames.current.length} frames`, {
             variant: 'success',
             autoHideDuration: 10000

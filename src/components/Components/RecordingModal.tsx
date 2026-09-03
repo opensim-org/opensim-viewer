@@ -13,13 +13,13 @@ import {
   FormControlLabel,
   TextField,
   Slider,
+  InputAdornment,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { observer } from "mobx-react";
 
 interface RecordingModalProps {
-  videoRecorderRef: React.MutableRefObject<any>;
   open: boolean;
   onClose: () => void;
 }
@@ -34,7 +34,7 @@ const qualityLevels = [
 const videoFormats = [
   { label: "MP4", value: "mp4" },
   { label: "MOV", value: "mov" },
-  { label: "JPEG (Zip)", value: "jpeg-zip" },
+  { label: "JPEG (Zip)", value: "zip" },
   { label: "GIF", value: "gif" },
 ];
 
@@ -51,7 +51,6 @@ const aspectRatios = [
 ];
 
 const RecordingModal: React.FC<RecordingModalProps> = ({
-  videoRecorderRef,
   open,
   onClose,
 }) => {
@@ -64,60 +63,113 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
   const [selectedFPS, setSelectedFPS] = useState(30);
   const [selectedAspectRatio, setSelectedAspectRatio] = useState("16:9");
 
+  const [videoName, setVideoName] = useState("");
+
   const [trimMotion, setTrimMotion] = useState(false);
   const [loopsToRecord, setLoopsToRecord] = useState<string>("1");
   const [startTime, setStartTime] = useState<string>("0.0");
   const [endTime, setEndTime] = useState<string>("1.0");
-  const [maxLoops] = useState<number>(10); // Limited to 10 to avoid long waiting times.
+  const maxLoops = 10; // Limited to 10 to avoid long waiting times.
 
   // Slider range state
   const [timeRange, setTimeRange] = useState<number[]>([0, 1]);
   const [maxTime, setMaxTime] = useState<number>(10);
+  const [animationStartOffset, setAnimationStartOffset] = useState<number>(0);
 
-  // Get the current animation duration
-  const getCurrentAnimationDuration = (): number => {
+  // Get the current animation absolute end time and start offset
+  const getCurrentAnimationInfo = (): { duration: number; startOffset: number } => {
     const currentIndex = viewerState.currentAnimationIndices[0];
     if (currentIndex !== undefined && currentIndex >= 0 && currentIndex < viewerState.animations.length) {
       const animation = viewerState.animations[currentIndex];
-      // Subtract the start time offset to get the effective duration
-      const startTimeOffset = viewerState.animationStartTimes[currentIndex] || 0;
-      return Math.max(0, animation.duration - startTimeOffset);
+      const startOffset = viewerState.animationStartTimes[currentIndex] ?? 0;
+      // animation.duration is the absolute end time of the animation.
+      // startOffset is the absolute start time of the animation.
+      return {
+        duration: animation.duration,
+        startOffset
+      };
     }
-    return 10; // Default fallback
+    return { duration: 10, startOffset: 0 };
   };
 
   // Update max time and slider range when animation changes or modal opens
   useEffect(() => {
-    if (open) {
-      const duration = getCurrentAnimationDuration();
-      setMaxTime(Math.max(1, duration)); // Ensure at least 1 second
+    if (!open) return;
 
-      // Update end time to match animation duration
-      const newEndTime = Math.max(1, duration);
-      setEndTime(String(newEndTime));
-      viewerState.setVideoRecorderEndTime(newEndTime);
+    // Quality
+    const baseDimension = viewerState.videoRecorderBaseDimension;
+    const matchingQuality = qualityLevels.find(
+      (q) => q.baseDimension === baseDimension
+    );
 
-      // Update slider range
-      setTimeRange([0, newEndTime]);
+    if (matchingQuality) {
+      setSelectedQuality(matchingQuality.label);
+    } else {
+      setSelectedQuality("1080p HD");
     }
-  }, [open, viewerState.currentAnimationIndices, viewerState.animations]);
 
-  // Watch for animation changes while modal is open
-  useEffect(() => {
-    if (open) {
-      const duration = getCurrentAnimationDuration();
-      setMaxTime(Math.max(1, duration));
+    // Format
+    const format = viewerState.recordedVideoFormat || "mp4";
+    setSelectedFormat(format);
 
-      // Only update if the current end time exceeds the new duration
-      const currentEndTime = parseFloat(endTime);
-      if (currentEndTime > duration || isNaN(currentEndTime)) {
-        const newEndTime = Math.max(1, duration);
-        setEndTime(String(newEndTime));
-        viewerState.setVideoRecorderEndTime(newEndTime);
-        setTimeRange([timeRange[0], newEndTime]);
-      }
-    }
-  }, [viewerState.animations, viewerState.currentAnimationIndices]);
+    // FPS
+    const fps = viewerState.recordedVideoFPS || 30;
+    setSelectedFPS(fps);
+
+    // Aspect ratio
+    setSelectedAspectRatio(
+      viewerState.recordedVideoAspectRatio || "16:9"
+    );
+
+    // Trimming
+    setTrimMotion(viewerState.isTrimmingMotion || false);
+
+    // Loops
+    setLoopsToRecord(
+      String(viewerState.videoRecorderNumLoops || 1)
+    );
+
+    // Video name
+    const currentName = viewerState.recordedVideoName || "";
+
+    const knownExtensions = videoFormats.map(
+      (format) => `.${format.value}`
+    );
+
+    const existingExtension = knownExtensions.find((ext) =>
+      currentName.toLowerCase().endsWith(ext.toLowerCase())
+    );
+
+    const nameWithoutExtension = existingExtension
+      ? currentName.slice(0, -existingExtension.length)
+      : currentName;
+
+    setVideoName(nameWithoutExtension);
+
+    // Animation time information
+    const { duration, startOffset } = getCurrentAnimationInfo();
+
+    setMaxTime(duration);
+    setAnimationStartOffset(startOffset);
+
+    const savedStartTime = viewerState.videoRecorderStartTime;
+    const savedEndTime = viewerState.videoRecorderEndTime;
+
+    const startTime =
+      savedStartTime >= startOffset && savedStartTime < duration
+        ? savedStartTime
+        : startOffset;
+
+    const endTime =
+      savedEndTime > startTime && savedEndTime <= duration
+        ? savedEndTime
+        : duration;
+
+    setStartTime(startTime.toFixed(1));
+    setEndTime(endTime.toFixed(1));
+    setTimeRange([startTime, endTime]);
+
+  }, [open]);
 
   const getFpsOptions = () => {
     return selectedFormat === "gif" ? fpsValuesGif : fpsValues;
@@ -162,115 +214,156 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
       if(viewerState.videoRecorderNumLoops) {
         setLoopsToRecord(String(viewerState.videoRecorderNumLoops))
       }
-
-      // Set start time
-      if(viewerState.videoRecorderStartTime) {
-        setStartTime(String(viewerState.videoRecorderStartTime))
-        // Initialize slider start value
-        setTimeRange(prev => [viewerState.videoRecorderStartTime, prev[1]]);
-      }
-
-      // Set end time
-      const duration = getCurrentAnimationDuration();
-      const currentEndTime = viewerState.videoRecorderEndTime || duration;
-      setEndTime(String(Math.min(currentEndTime, duration)));
-      setTimeRange(prev => [prev[0], Math.min(currentEndTime, duration)]);
-      setMaxTime(Math.max(1, duration));
     }
   }, [open, viewerState]);
 
   useEffect(() => {
     const validFpsOptions = getFpsOptions();
+
     if (!validFpsOptions.includes(selectedFPS)) {
       setSelectedFPS(validFpsOptions[0]);
-      viewerState.setRecorderFPS(validFpsOptions[0]);
     }
   }, [selectedFormat]);
 
-  const handleVideoNameChange = (event:any) => {
-    viewerState.setRecordedVideoName(event.target.value)
+  const getVideoNameWithoutExtension = () => {
+    return videoName;
+  };
+
+  const handleVideoNameChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setVideoName(event.target.value);
   };
 
   const handleFormatChange = (value: string) => {
     setSelectedFormat(value);
-    viewerState.setRecordedVideoFormat(value);
   };
 
   const handleFPSChange = (value: number) => {
-    setSelectedFPS(Number(value));
-    viewerState.setRecorderFPS(Number(value));
+    setSelectedFPS(value);
   };
 
   const handleAspectRatioChange = (value: string) => {
     setSelectedAspectRatio(value);
-    viewerState.setRecorderAspectRatio(value);
   };
 
   const handleQualityChange = (value: string) => {
     setSelectedQuality(value);
-    const chosen = qualityLevels.find((q) => q.label === value);
-    if (chosen) {
-      // Only set the base dimension, let the aspect ratio calculation determine final dimensions
-      viewerState.setVideoRecorderBaseDimension(chosen.baseDimension);
-    }
   };
 
   const handleIsTrimmingMotion = (value: boolean) => {
-    setTrimMotion(value)
-    viewerState.setIsTrimmingMotion(value)
+    setTrimMotion(value);
+
+    // If trimming is disabled, reset local times to full animation
+    if (!value) {
+      const { duration, startOffset } = getCurrentAnimationInfo();
+
+      setStartTime(startOffset.toFixed(1));
+      setEndTime(duration.toFixed(1));
+      setTimeRange([startOffset, duration]);
+    }
   };
 
   const handleLoopsChange = (value: string) => {
     if (value === "" || validateInteger(value)) {
-        setLoopsToRecord(value);
-
-        // Only update viewer state if we have a valid number
-        if (value !== "") {
-            const numValue = parseInt(value, 10);
-            // Clamp the value for the viewer state
-            const clampedValue = Math.min(Math.max(1, numValue), maxLoops);
-            viewerState.setVideoRecorderNumLoops(clampedValue);
-        }
+      setLoopsToRecord(value);
     }
   };
 
   // Handle slider change with two handlers
-  const handleTimeRangeChange = (event: Event, newValue: number | number[]) => {
+  const handleTimeRangeChange = (
+    event: Event,
+    newValue: number | number[]
+  ) => {
     const range = newValue as number[];
-    setTimeRange(range);
 
-    // Update start time
-    const startValue = range[0];
-    setStartTime(String(startValue));
-    viewerState.setVideoRecorderStartTime(startValue);
+    const start = range[0];
+    const end = range[1];
 
-    // Update end time
-    const endValue = range[1];
-    setEndTime(String(endValue));
-    viewerState.setVideoRecorderEndTime(endValue);
+    setTimeRange([start, end]);
+    setStartTime(start.toFixed(1));
+    setEndTime(end.toFixed(1));
   };
 
   const handleStartTimeChange = (value: string) => {
     setStartTime(value);
-    // Only update the viewer state if it's a valid number
+
     const numValue = parseFloat(value);
-    if (!isNaN(numValue) && numValue >= 0 && numValue < timeRange[1]) {
-      viewerState.setVideoRecorderStartTime(numValue);
-      // Update slider
+
+    if (
+      !isNaN(numValue) &&
+      numValue >= animationStartOffset &&
+      numValue < timeRange[1]
+    ) {
       setTimeRange([numValue, timeRange[1]]);
     }
-  }
+  };
 
   const handleEndTimeChange = (value: string) => {
     setEndTime(value);
-    // Only update the viewer state if it's a valid number
+
     const numValue = parseFloat(value);
-    if (!isNaN(numValue) && numValue >= 0 && numValue > timeRange[0] && numValue <= maxTime) {
-      viewerState.setVideoRecorderEndTime(numValue);
-      // Update slider
+
+    if (
+      !isNaN(numValue) &&
+      numValue > timeRange[0] &&
+      numValue <= maxTime
+    ) {
       setTimeRange([timeRange[0], numValue]);
     }
-  }
+  };
+
+  const handleSave = () => {
+    // Video name
+    viewerState.setRecordedVideoName(
+      `${videoName}.${selectedFormat}`
+    );
+
+    // Format
+    viewerState.setRecordedVideoFormat(selectedFormat);
+
+    // FPS
+    viewerState.setRecorderFPS(selectedFPS);
+
+    // Aspect ratio
+    viewerState.setRecorderAspectRatio(selectedAspectRatio);
+
+    // Quality
+    const chosenQuality = qualityLevels.find(
+      (q) => q.label === selectedQuality
+    );
+
+    if (chosenQuality) {
+      viewerState.setVideoRecorderBaseDimension(
+        chosenQuality.baseDimension
+      );
+    }
+
+    // Trimming
+    viewerState.setIsTrimmingMotion(trimMotion);
+
+    // Loops
+    if (loopsToRecord !== "") {
+      const numLoops = parseInt(loopsToRecord, 10);
+      const clampedLoops = Math.min(
+        Math.max(1, numLoops),
+        maxLoops
+      );
+
+      viewerState.setVideoRecorderNumLoops(clampedLoops);
+    }
+
+    // Times
+    const start = parseFloat(startTime);
+    const end = parseFloat(endTime);
+
+    if (!isNaN(start) && !isNaN(end)) {
+      viewerState.setVideoRecorderStartTime(start);
+      viewerState.setVideoRecorderEndTime(end);
+    }
+
+    onClose();
+  };
 
  const validateTimeFormat = (time: string): boolean => {
     // Allow empty string or valid number format
@@ -290,16 +383,23 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
 
   // Calculate slider marks based on maxTime
   const getSliderMarks = () => {
-    if (maxTime <= 5) {
+    const start = animationStartOffset;
+    const end = maxTime;
+    const range = end - start;
+
+    if (range <= 5) {
       return [
-        { value: 0, label: '0' },
-        { value: maxTime, label: `${maxTime.toFixed(1)}s` }
+        { value: start, label: `${start.toFixed(1)}s` },
+        { value: end, label: `${end.toFixed(1)}s` }
       ];
     }
+
+    const middle = start + range / 2;
+
     return [
-      { value: 0, label: '0' },
-      { value: Math.floor(maxTime / 2), label: `${Math.floor(maxTime / 2)}s` },
-      { value: maxTime, label: `${maxTime.toFixed(1)}s` }
+      { value: start, label: `${start.toFixed(1)}s` },
+      { value: middle, label: `${middle.toFixed(1)}s` },
+      { value: end, label: `${end.toFixed(1)}s` }
     ];
   };
 
@@ -309,15 +409,22 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
 
       <DialogContent sx={{ minWidth: 300 }}>
 
-        {/* Video Name */}
-        <FormControl fullWidth margin="dense">
-           <TextField
-            size="small"
-            label={t('recordView.video_name_label')}
-            value={viewerState.recordedVideoName}
-            onChange={handleVideoNameChange}
+         {/* Video Name */}
+         <FormControl fullWidth margin="dense">
+            <TextField
+             size="small"
+             label={t('recordView.video_name_label')}
+             value={getVideoNameWithoutExtension()}
+             onChange={handleVideoNameChange}
+             InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    .{selectedFormat}
+                  </InputAdornment>
+                ),
+              }}
           />
-        </FormControl>
+         </FormControl>
 
         {/* Aspect Ratio */}
         {curState.showAspectRatioFunctionality && (
@@ -408,7 +515,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
               value={loopsToRecord}
               size="small"
               onChange={(e) => handleLoopsChange(e.target.value)}
-              error={String(loopsToRecord) !== "" && !validateInteger(String(loopsToRecord))}
+              error={loopsToRecord !== "" && !validateInteger(loopsToRecord)}
               margin="dense"
             />
           </div>
@@ -435,7 +542,12 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
                 color: 'text.secondary',
                 marginBottom: '8px'
               }}>
-                Motion duration: {maxTime.toFixed(2)}s
+                Motion duration: {(maxTime - animationStartOffset).toFixed(1)}s
+                {animationStartOffset > 0 && (
+                  <div>
+                    Animation timeline: {animationStartOffset.toFixed(1)}s – {maxTime.toFixed(1)}s
+                  </div>
+                )}
               </div>
 
               {/* Dual-handle slider */}
@@ -445,10 +557,11 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
                   onChange={handleTimeRangeChange}
                   valueLabelDisplay="auto"
                   size="small"
-                  min={0}
+                  min={animationStartOffset}
                   max={maxTime}
                   step={0.1}
                   marks={getSliderMarks()}
+                  valueLabelFormat={(value) => `${value.toFixed(1)}s`}
                 />
               </div>
 
@@ -472,7 +585,6 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
                   placeholder="e.g., 5.0"
                   size="small"
                   error={endTime !== "" && !validateTimeFormat(endTime)}
-                  helperText={`Max: ${maxTime.toFixed(2)}s`}
                   margin="dense"
                 />
               </div>
@@ -482,7 +594,16 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose}>Submit</Button>
+        <Button onClick={onClose}>
+          Cancel
+        </Button>
+
+        <Button
+          onClick={handleSave}
+          variant="contained"
+        >
+          Save
+        </Button>
       </DialogActions>
     </Dialog>
   );

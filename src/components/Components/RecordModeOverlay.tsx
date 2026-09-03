@@ -219,7 +219,6 @@ const RecordModeOverlay: React.FC<RecordModeOverlayProps> = ({
       </OverlayContainer>
 
       <RecordingModal
-        videoRecorderRef={videoRecorderRef}
         open={isModalOpen}
         onClose={handleModalClose}
       />
