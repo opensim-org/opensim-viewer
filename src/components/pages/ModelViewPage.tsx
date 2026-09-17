@@ -259,7 +259,12 @@ useEffect(() => {
     // Create fresh WebSocket
     if (uiState.isGuiMode && uiState.socket === null) {
       const socket = new WebSocket('ws://127.0.0.1:8002/visEndpoint');
-      socket.onopen = () => { uiState.setSocketHandle(socket); console.log("socket opened");}
+      socket.onopen = () => { uiState.setSocketHandle(socket); 
+        console.log("socket opened");
+        var json = JSON.stringify({
+               "type": "ViewerReady"});
+        uiState.sendText(json);
+      }
       socket.onmessage = function(evt) {
       //   //console.log(evt.data)
         uiState.handleSocketMessage(evt.data);
