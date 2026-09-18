@@ -362,6 +362,8 @@ export class ModelUIState {
         var msgOp = parsedMessage.Op
         if (parsedMessage.message_uuid === this.last_message_uuid)
             return;
+        if (this.socket === null) // socket not yet initialized
+            return;
         this.last_message_uuid = parsedMessage.message_uuid;
         switch(msgOp){
             case "OpenModel":
