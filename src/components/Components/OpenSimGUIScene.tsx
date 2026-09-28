@@ -15,9 +15,10 @@ import OpenSimSkySphere from './OpenSimSkySphere';
 interface OpenSimSceneProps {
     currentModelPath: string,
     supportControls:boolean
+    onLoaded?: () => void
 }
 
-const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportControls }) => {
+const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, supportControls, onLoaded }) => {
 
     // useGLTF suspends the component, it literally stops processing
     const { set, gl} = useThree();
@@ -40,7 +41,13 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     let curState = useModelContext();
     const modelGroup = useLoader(OpenSimLoader, currentModelPath)
-
+    useEffect(() => {
+        if (scene !== undefined)
+          curState.setScene(scene!);
+        else
+          console.log("Scene is not defined"); 
+        onLoaded?.()
+      }, [currentModelPath]);
     //computeNormals(modelGroup as Group);
     //const animations = modelGroup!.animations;
     const allAnimations = curState.viewerState.animations;

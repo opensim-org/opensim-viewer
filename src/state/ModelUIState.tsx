@@ -9,6 +9,7 @@ import { SkinnedMuscle } from './SkinnedMuscle'
 import ViewerState from './ViewerState'
 import SceneTreeModel from '../helpers/SceneTreeModel';
 import { OpenSimLoader } from './OpenSimLoader';
+import { json } from 'stream/consumers';
 export class ModelInfo {
     model_name: string | null
     desc: string | null
@@ -92,6 +93,7 @@ export class ModelUIState {
     isInRecordMode: boolean = false;
     visibleHelpers: boolean = true;
     isInDollyEditMode: boolean = false;
+    isViewerReady: boolean = false;
     constructor(
         currentModelPathState: string
     ) {
@@ -167,15 +169,27 @@ export class ModelUIState {
             return;
         this.modelDictionary[model_uuid] = modelGroup
         modelGroup.traverse((o) => {
-            this.nodeDictionary[o.uuid] =  o;
+            this.addObjectToMap(o);
         });
-        //this.sceneTree!.addModel(modelGroup);
+        //console.log("Current lookup with UUID:", this.objectByUuid(model_uuid).toJSON());
     }
+    sendViewerReadyNotification() {
+        if (this.isViewerReady)  return;
+        var json = JSON.stringify({
+            "type": "ViewerReady"
+        });
+        this.sendText(json);
+        this.isViewerReady = true;
+    }
+
     addObjectToMap(object:Object3D) {
+        if (object.uuid in this.nodeDictionary)
+            return;
         this.nodeDictionary[object.uuid] =  object
+        //console.log("Added object to map with UUID:", object.uuid, object.type);
         object.traverse((o) => {
-            this.nodeDictionary[o.uuid] =  o;
-        })
+            this.addObjectToMap(o);
+         })
     }
 
     getNumberOfOpenModels() {
@@ -298,6 +312,9 @@ export class ModelUIState {
     restore(): void {
 
     }
+    setScene(scene: THREE.Scene) {
+        this.scene = scene;
+    }
     objectByUuid(uuid: string) {
         return this.nodeDictionary[uuid]
     }
@@ -368,8 +385,37 @@ export class ModelUIState {
         switch(msgOp){
             case "OpenModel":
                 var modeluuid = parsedMessage.UUID;
+                if (this.modelDictionary[modeluuid] !== undefined) {
+                    console.log("Model with UUID already exists:", modeluuid);
+                    return;
+                }
                 var filejson = modeluuid.substring(0,8)+'.json';
-                this.addModelFromPath(filejson)
+                if (parsedMessage.json!==undefined){
+                    var modelJson = parsedMessage.json;
+                    const syncLoader = new OpenSimLoader();
+                    const modelObject3D = syncLoader.parse(modelJson);
+                    if (!modelObject3D) {
+                        console.log("Failed to parse model JSON");
+                        return;
+                    }
+                    const expModeluuid = modelObject3D.uuid;
+                    this.modelDictionary[expModeluuid] = modelObject3D;
+                    if (this.nodeDictionary[expModeluuid] === undefined)
+                        this.nodeDictionary[expModeluuid] = modelObject3D;
+                    // Add the model to the scene if needed
+                    if (this.scene===null){
+                        console.log("Scene is null, cannot add model");
+                    }
+                    this.scene!.traverse((child) => {
+                        if (child.name === "Models") {
+                            child.add(modelObject3D);
+                            return;
+                        }
+                    });
+                    this.sendViewerReadyNotification();
+                }
+                else
+                    this.addModelFromPath(filejson)
                 break;
             case "CloseModel":
                 var modeltoClose = parsedMessage.UUID;
@@ -392,14 +438,27 @@ export class ModelUIState {
                 this.executeCommandJson(data);
                 break; 
             case "SetCurrentModel":
+                if (!this.isViewerReady)  return;
                 this.setSelected(parsedMessage.UUID, false);
                 break;
             case "addModelObject":
+                if (!this.isViewerReady)  return;
                 this.executeCommandJson(data);
                 let parentUuid = parsedMessage.command.object.object.parent;
                 let cmd = parsedMessage.command;
                 let newUuid = cmd.objectUuid;
+                console.log("Adding model object with new UUID:", newUuid, "under parent UUID:", parentUuid);
+                //console.log("Object is:", this.objectByUuid(newUuid), "under parent UUID:", this.objectByUuid(parentUuid));
+                if (this.objectByUuid(newUuid) === undefined) {
+                    console.log ("Failed to find object with UUID:", newUuid);
+                    return;
+                }
+                if (this.objectByUuid(parentUuid) === undefined) {
+                    console.log ("Failed to find parent object with UUID:", parentUuid);
+                    return;
+                }
                 this.moveObject(this.objectByUuid(newUuid), this.objectByUuid(parentUuid));
+                console.log("Moved object with UUID:", newUuid, "under parent UUID:", parentUuid);
                 this.scene?.updateMatrixWorld(true);
                 break;
             case "Frame":
@@ -409,6 +468,7 @@ export class ModelUIState {
                     // If we are animating, ignore frame updates from server
                     return;
                 }
+                if (!this.isViewerReady)  return;
                 this.processingSocketMessage = true;
                 this.setSelected("", false)
                 var transforms = parsedMessage.Transforms;
@@ -462,6 +522,7 @@ export class ModelUIState {
                 console.log("Receive ClearCurrentAnimation");
                 break;
             case "AddAnimationClip":
+                if (!this.isViewerReady)  return;
                 this.guiHasAnimation = true;
                 // check for existing clip with same uuid?
                 for (let existingClip of this.viewerState.animations) {
@@ -474,6 +535,7 @@ export class ModelUIState {
                 this.createAnimationClipFromMessage(parsedMessage);
                 break;
             case "SetCurrentAnimations":
+                if (!this.isViewerReady)  return;
                 this.viewerState.animating = false; 
                 const animationIDs = parsedMessage.clip_list;
                 this.viewerState.clearCurrentAnimationIndices();
