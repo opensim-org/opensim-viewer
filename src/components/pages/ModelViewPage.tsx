@@ -416,7 +416,7 @@ useEffect(() => {
                       currentModelPath={uiState.viewerState.currentModelPath}
                       supportControls={true}
                       onLoaded={() => {
-                        console.log('Model loaded'); 
+                        console.log('Model loaded notification'); 
                         if (uiState.viewerState.currentModelPath !== "mt.json")
                             uiState.sendViewerReadyNotification();
                       }}
@@ -424,6 +424,7 @@ useEffect(() => {
                   : <OpenSimGUIScene
                     currentModelPath={uiState.viewerState.currentModelPath}
                     supportControls={true}
+                    onLoaded={() => {console.log('Model loaded in non-GUI mode');}}
                   />}
                   <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
                     <GizmoViewport labelColor="white" />
