@@ -179,6 +179,7 @@ export class ModelUIState {
             "type": "ViewerReady"
         });
         this.sendText(json);
+        console.log("Sending viewer ready notification");
         this.isViewerReady = true;
     }
 
@@ -390,6 +391,7 @@ export class ModelUIState {
                     return;
                 }
                 var filejson = modeluuid.substring(0,8)+'.json';
+                /*
                 if (parsedMessage.json!==undefined){
                     var modelJson = parsedMessage.json;
                     const syncLoader = new OpenSimLoader();
@@ -412,9 +414,10 @@ export class ModelUIState {
                             return;
                         }
                     });
+                    console.log("Model added to scene, sending viewer ready notification, line 416");
                     this.sendViewerReadyNotification();
                 }
-                else
+                else */
                     this.addModelFromPath(filejson)
                 break;
             case "CloseModel":

@@ -41,13 +41,15 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
 
     let curState = useModelContext();
     const modelGroup = useLoader(OpenSimLoader, currentModelPath)
+    console.log("render, loaded:", currentModelPath, modelGroup);
     useEffect(() => {
+        console.log("effect ran", { scene, hasOnLoaded: !!onLoaded });
         if (scene !== undefined)
           curState.setScene(scene!);
         else
           console.log("Scene is not defined"); 
         onLoaded?.()
-      }, [currentModelPath]);
+      }, [currentModelPath, modelGroup]);
     //computeNormals(modelGroup as Group);
     //const animations = modelGroup!.animations;
     const allAnimations = curState.viewerState.animations;
