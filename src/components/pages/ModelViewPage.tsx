@@ -261,9 +261,10 @@ useEffect(() => {
       const socket = new WebSocket('ws://127.0.0.1:8002/visEndpoint');
       socket.onopen = () => { uiState.setSocketHandle(socket); 
         console.log("socket opened");
-        var json = JSON.stringify({
-               "type": "ViewerReady"});
-        uiState.sendText(json);
+        if (scene !== undefined)
+          uiState.setScene(scene!);
+        else
+          console.log("Scene is not defined");
       }
       socket.onmessage = function(evt) {
       //   //console.log(evt.data)
@@ -414,10 +415,16 @@ useEffect(() => {
                     <OpenSimGUIScene
                       currentModelPath={uiState.viewerState.currentModelPath}
                       supportControls={true}
+                      onLoaded={() => {
+                        console.log('Model loaded notification'); 
+                        if (uiState.viewerState.currentModelPath !== "mt.json")
+                            uiState.sendViewerReadyNotification();
+                      }}
                     />
                   : <OpenSimGUIScene
                     currentModelPath={uiState.viewerState.currentModelPath}
                     supportControls={true}
+                    onLoaded={() => {console.log('Model loaded in non-GUI mode');}}
                   />}
                   <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
                     <GizmoViewport labelColor="white" />
