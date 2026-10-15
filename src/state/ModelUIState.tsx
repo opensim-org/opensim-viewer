@@ -486,6 +486,10 @@ export class ModelUIState {
                         }
                     }
                 }
+                console.log("Receive SetCurrentAnimations with "+animationIDs.length+" clips");
+                console.log("start, end times="+parsedMessage.anim_start+", "+parsedMessage.anim_end);
+                this.guiAnimationStartTime = parsedMessage.anim_start;
+                this.guiAnimationEndTime = parsedMessage.anim_end;
                 break;
             case "PlayAnimation":
                 //console.log("Receive PlayAnimation from time "+parsedMessage.start_time);
