@@ -490,6 +490,11 @@ export class ModelUIState {
                 console.log("start, end times="+parsedMessage.anim_start+", "+parsedMessage.anim_end);
                 this.guiAnimationStartTime = parsedMessage.anim_start;
                 this.guiAnimationEndTime = parsedMessage.anim_end;
+                this.viewerState.animationChange = {index:0, 
+                    operation:"animationsChanged", 
+                    startTime: this.guiAnimationStartTime, 
+                    endTime: this.guiAnimationEndTime};
+                this.viewerState.setAnimationsNeedUpdate(true)
                 break;
             case "PlayAnimation":
                 //console.log("Receive PlayAnimation from time "+parsedMessage.start_time);
@@ -512,8 +517,7 @@ export class ModelUIState {
                 // }
                 this.guiAnimationLoop = parsedMessage.loop;
                 this.guiAnimationSpeed = parsedMessage.speed;
-                this.guiAnimationStartTime = parsedMessage.start_time;
-                this.guiAnimationEndTime = parsedMessage.end_time;
+                this.viewerState.currentAnimationTime = parsedMessage.start_time;
                 this.guiAnimationLoop = parsedMessage.loop;
                 this.guiAnimationReverse = parsedMessage.reverse;
                 this.viewerState.animating = true; 
@@ -522,7 +526,7 @@ export class ModelUIState {
                 break;
             case "AnimationTime":
                 //console.log("Receive AnimationTimeUpdate time="+parsedMessage.time);
-                this.viewerState.animationChange = {index:0, operation:"timeChange"};
+                this.viewerState.animationChange = {index:0, operation:"timeChange", time: parsedMessage.time};
                 this.viewerState.currentAnimationTime = parsedMessage.time;
                 this.viewerState.setAnimationsNeedUpdate(true)
                 break;
