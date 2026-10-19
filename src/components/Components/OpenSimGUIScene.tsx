@@ -40,6 +40,7 @@ class MultiMixerTimeline {
 
   seek(time: number): void {
     this.time = THREE.MathUtils.clamp(time, this.start, this.end);
+    //console.log("Seeking to time:", this.time, "within range [", this.start, ",", this.end, "]");
     const curState = this.guiState!;
     const indices = curState.viewerState.currentAnimationIndices;
     this.mixers.forEach((mixer, idx) => {
@@ -345,6 +346,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         const indices = viewerState.currentAnimationIndices;
 
         // Handle animation playback
+        let first = true;
         for (const idx in indices) {
           const animIndex = indices[idx];
           const mixer = mixers[animIndex];
@@ -379,8 +381,12 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           // If we're animating (playing), update the mixer with delta time
           if (viewerState.animating) {
             const direction = curState.guiAnimationReverse ? -1 : 1;
-            if (curState.isGuiMode)
-              timeline.update(delta);
+            if (curState.isGuiMode){
+              if (first){ // use the timeline to update the time, not the mixer, avoid duplicate time updates
+                first = false;
+                timeline.update(delta);
+              }
+            }
             else
               mixer.update(delta * viewerState.animationSpeed);
 
