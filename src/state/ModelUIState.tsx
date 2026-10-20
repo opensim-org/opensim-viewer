@@ -336,6 +336,7 @@ export class ModelUIState {
             //parent = this.scene;
         }
         parent.add(object)
+        console.log('Moved object '+object.name+' to parent '+parent.name);
     }
     getModelOffsetsJson() {
         var offsets: any = {
@@ -360,6 +361,7 @@ export class ModelUIState {
     handleSocketMessage(data: string) {
         var parsedMessage = JSON.parse(data);
         var msgOp = parsedMessage.Op
+        console.log("Received socket message with Op="+msgOp);
         if (parsedMessage.message_uuid === this.last_message_uuid)
             return;
         if (this.socket === null) // socket not yet initialized
@@ -472,6 +474,7 @@ export class ModelUIState {
                 }
                 // Create AnimationClips for the clip in the message,
                 this.createAnimationClipFromMessage(parsedMessage);
+                console.log("Finished AddAnimationClip with name "+parsedMessage.Clip.name);
                 break;
             case "SetCurrentAnimations":
                 this.viewerState.animating = false; 
@@ -490,14 +493,14 @@ export class ModelUIState {
                 console.log("start, end times="+parsedMessage.anim_start+", "+parsedMessage.anim_end);
                 this.guiAnimationStartTime = parsedMessage.anim_start;
                 this.guiAnimationEndTime = parsedMessage.anim_end;
-                this.viewerState.animationChange = {index:0, 
+                this.viewerState.animationChange = {index:-1, 
                     operation:"animationsChanged", 
                     startTime: this.guiAnimationStartTime, 
                     endTime: this.guiAnimationEndTime};
                 this.viewerState.setAnimationsNeedUpdate(true)
                 break;
             case "PlayAnimation":
-                //console.log("Receive PlayAnimation from time "+parsedMessage.start_time);
+                console.log("Receive PlayAnimation from time "+parsedMessage.start_time);
                 if (this.viewerState.animating){
                     // If we are animating, ignore play command, likely a redundant message
                     console.log(" Already animating, ignoring PlayAnimation command");
@@ -521,12 +524,13 @@ export class ModelUIState {
                 this.guiAnimationLoop = parsedMessage.loop;
                 this.guiAnimationReverse = parsedMessage.reverse;
                 this.viewerState.animating = true; 
-                this.viewerState.animationChange = {index:0, operation:"start"};
+                this.viewerState.animationChange = {index:-1, operation:"start"};
                 this.viewerState.setAnimationsNeedUpdate(true)
                 break;
             case "AnimationTime":
                 //console.log("Receive AnimationTimeUpdate time="+parsedMessage.time);
-                this.viewerState.animationChange = {index:0, operation:"timeChange", time: parsedMessage.time};
+                console.log("Receive AnimationTimeUpdate time="+parsedMessage.time);
+                this.viewerState.animationChange = {index:-1, operation:"timeChange", time: parsedMessage.time};
                 this.viewerState.currentAnimationTime = parsedMessage.time;
                 this.viewerState.setAnimationsNeedUpdate(true)
                 break;
@@ -576,6 +580,7 @@ export class ModelUIState {
         // Creating AnimationClip from clipMessage
         // We probably should check to avoid duplicates here
         const clip = AnimationClip.parse(clipMessage.Clip); // This creates an AnimationClip instance
+        console.log(`Adding Animation Clip: Name=${clip.name}, Duration=${clip.duration}`);
         const startTime = this.getClipStartTime(clip);
         this.viewerState.animations.push(clip);
         this.viewerState.isDollyAnimation.push(false)
@@ -584,6 +589,7 @@ export class ModelUIState {
         console.log(`Creating Animation Clip: Name=${clip.name}, Duration=${clip.duration}`);
         const clipRoot = clipMessage.Root;
         console.log(`  Root Object UUID: ${clipRoot}`);
+        console.log(`  Root Object Name: ${this.nodeDictionary[clipRoot]?.name}`);
         this.viewerState.animationRoots.push(this.nodeDictionary[clipRoot]);
         this.viewerState.animationChange = {index:index, operation:"add"};
         this.viewerState.setAnimationsNeedUpdate(true)
