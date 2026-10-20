@@ -3,7 +3,7 @@ import { ThreeEvent, useFrame, useLoader, useThree } from '@react-three/fiber'
 import * as THREE from 'three';
 
 import { useEffect, useRef, useState } from 'react'
-import { AnimationMixer, Color, Group, Mesh, Object3D} from 'three'
+import { AnimationClip, AnimationMixer, Color, Group, Mesh, Object3D} from 'three'
 import { observer } from 'mobx-react'
 
 import { useModelContext } from '../../state/ModelUIStateContext'
@@ -63,11 +63,15 @@ class MultiMixerTimeline {
     this.time = curState.viewerState.currentAnimationTime;
     const indices = curState.viewerState.currentAnimationIndices;
     this.mixers.forEach((mixer, idx) => {
+      console.log(`Processing mixer ${idx}`);
       if (mixer === undefined) return;
+      console.log(`Mixer ${idx} is defined, checking if it's in current indices...`);
       if (indices!.indexOf(idx) === -1) return; // only start if in current indices
+      console.log(`Mixer ${idx} is in current indices, applying time ${this.time}`);
       const action = mixer.clipAction(curState.viewerState.animations[idx]);
       action.reset();
       action.time = this.time;
+      console.log(`Applying time ${this.time} to mixer for animation ${curState.viewerState.animations[idx].name}`);
       action.paused = false;
     });
     this.apply();
@@ -239,7 +243,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
   
     // This useEffect sets the current selected camera.
     useEffect(() => {
-      //console.log("Change effect", curState.viewerState.animationsNeedUpdate)
+      console.log("Change effect called OpenSimGuiScene line 287")
       if (curState.viewerState.cameras.length > 0 && currentCamera && curState.viewerState.currentCameraIndex !== -1) {
         const selectedCamera = curState.viewerState.cameras[curState.viewerState.currentCameraIndex] as PerspectiveCamera;
         setCurrentCamera(selectedCamera);
@@ -247,6 +251,8 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
       }
       if (curState.viewerState.animationsNeedUpdate && curState.viewerState.animationChange !== null) {
         const change = curState.viewerState.animationChange as {index:number, operation:string, time: number, startTime: number, endTime: number};
+        console.log("Animation change detected:", change, "change index:", change.index, "operation:", change.operation);
+        console.log("*************************************************************************************************");
         if (change.operation === "add") {
           const clipIndex = change.index;
           if (clipIndex !== -1) {
@@ -263,7 +269,7 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
                 viewerState.setAnimating(false);
               });
             }
-            mixers[clipIndex] = nextMixer
+            mixers.splice(clipIndex, 0, nextMixer);
           }
         }
         else if (change.operation === "update") {
