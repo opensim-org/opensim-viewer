@@ -139,7 +139,7 @@ const BottomBar = React.forwardRef(function CustomContent(
           // If starting animation, reset time to 0
           curState.viewerState.setCurrentAnimationTime(0);
           setCurrentTimeDisplay(formatTime(0));
-          curState.viewerState.animationChange = {index:dollyIndexInAnimations, operation:"start"};
+          curState.viewerState.animationChange.push({index:dollyIndexInAnimations, operation:"start"});
           curState.viewerState.setAnimationsNeedUpdate(true)
 
         }

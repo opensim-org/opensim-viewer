@@ -249,10 +249,14 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         setCurrentCamera(selectedCamera);
         set({ camera: selectedCamera });
       }
-      if (curState.viewerState.animationsNeedUpdate && curState.viewerState.animationChange !== null) {
-        const change = curState.viewerState.animationChange as {index:number, operation:string, time: number, startTime: number, endTime: number};
+      if (curState.viewerState.animationsNeedUpdate && curState.viewerState.animationChange.length > 0) {
+        //console.log("changes length:", curState.viewerState.animationChange.length, "animationsNeedUpdate:", curState.viewerState.animationsNeedUpdate);
+        const change = curState.viewerState.animationChange[0] as {index:number, operation:string, time: number, startTime: number, endTime: number};
         console.log("Animation change detected:", change, "change index:", change.index, "operation:", change.operation);
         console.log("*************************************************************************************************");
+        if (curState.viewerState.animationChange.length > 1) {
+          console.warn("Multiple animation changes detected, processing only the first one. Remaining changes will be processed in subsequent renders.");
+        }
         if (change.operation === "add") {
           const clipIndex = change.index;
           if (clipIndex !== -1) {
@@ -308,6 +312,8 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         else if (change.operation === "animationsChanged") {
           timeline.setRange(change.startTime, change.endTime);
         }
+        curState.viewerState.animationChange.splice(0, 1); // Remove the processed change
+
     }
       curState.viewerState.setAnimationsNeedUpdate(false);
   }, [currentCamera, set, curState.viewerState.currentCameraIndex, 

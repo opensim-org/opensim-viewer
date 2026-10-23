@@ -1,5 +1,5 @@
 import { makeObservable, observable, action } from 'mobx'
-import { AnimationClip, Group, PerspectiveCamera } from 'three'
+import { AnimationClip, Group, KeyframeTrack, PerspectiveCamera } from 'three'
 import { Light } from 'three'
 import { Box3, Object3D, Scene, Vector3, Matrix4 } from 'three'
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
@@ -51,6 +51,13 @@ export class KeyFrameProps {
         this.target = target
     }
 }
+type TrackConstructor = new (
+  name: string,
+  times: ArrayLike<number>,
+  values: ArrayLike<number>,
+  interpolation?: number
+) => KeyframeTrack;
+
 export class ModelUIState {
     scene: Scene | Group |null
     isGuiMode: boolean
@@ -473,6 +480,7 @@ export class ModelUIState {
                     }
                 }
                 // Create AnimationClips for the clip in the message,
+                this.processingSocketMessage = true;
                 this.createAnimationClipFromMessage(parsedMessage);
                 console.log("Finished AddAnimationClip with name "+parsedMessage.Clip.name);
                 break;
@@ -493,10 +501,10 @@ export class ModelUIState {
                 console.log("start, end times="+parsedMessage.anim_start+", "+parsedMessage.anim_end);
                 this.guiAnimationStartTime = parsedMessage.anim_start;
                 this.guiAnimationEndTime = parsedMessage.anim_end;
-                this.viewerState.animationChange = {index:-1, 
+                this.viewerState.animationChange.push({index:-1, 
                     operation:"animationsChanged", 
                     startTime: this.guiAnimationStartTime, 
-                    endTime: this.guiAnimationEndTime};
+                    endTime: this.guiAnimationEndTime});
                 this.viewerState.setAnimationsNeedUpdate(true)
                 break;
             case "PlayAnimation":
@@ -524,13 +532,18 @@ export class ModelUIState {
                 this.guiAnimationLoop = parsedMessage.loop;
                 this.guiAnimationReverse = parsedMessage.reverse;
                 this.viewerState.animating = true; 
-                this.viewerState.animationChange = {index:-1, operation:"start"};
-                this.viewerState.setAnimationsNeedUpdate(true)
+                this.viewerState.animationChange.push({index:-1, operation:"start"});
+                this.viewerState.setAnimationsNeedUpdate(true);
                 break;
             case "AnimationTime":
                 //console.log("Receive AnimationTimeUpdate time="+parsedMessage.time);
                 console.log("Receive AnimationTimeUpdate time="+parsedMessage.time);
-                this.viewerState.animationChange = {index:-1, operation:"timeChange", time: parsedMessage.time};
+                if (this.viewerState.animating && this.viewerState.animationChange.length > 0){
+                    const change = this.viewerState.animationChange[0] as {index:number, operation:string}
+                    if (change.operation === "timeChange") 
+                        this.viewerState.animationChange.splice(0, 1); 
+                }
+                this.viewerState.animationChange.push({index:-1, operation:"timeChange", time: parsedMessage.time});
                 this.viewerState.currentAnimationTime = parsedMessage.time;
                 this.viewerState.setAnimationsNeedUpdate(true)
                 break;
@@ -540,7 +553,7 @@ export class ModelUIState {
             case "SetAnimationLoop":
                 this.guiAnimationLoop = parsedMessage.state;
                 // use index -1 to indicate all current animations
-                this.viewerState.animationChange = {index:-1, operation:"updateLooping"};
+                this.viewerState.animationChange.push({index:-1, operation:"updateLooping"});
                 this.viewerState.setAnimationsNeedUpdate(true);
                 break;
             case "HeartBeat":
@@ -576,24 +589,105 @@ export class ModelUIState {
         }, Infinity);
     }
 
-    createAnimationClipFromMessage(clipMessage: any) {
+    async loadAnimationClip(url:string): Promise<AnimationClip> {
+        const response = await fetch(url);
+        const json = await response.json();
+
+        return AnimationClip.parse(json);
+    }
+
+    appendKeyframes(
+        target: THREE.KeyframeTrack,
+        src: THREE.KeyframeTrack,
+        offset: number
+    ): void {
+        const tn = target.times.length;
+        const sn = src.times.length;
+
+        const times = new Float32Array(tn + sn);
+        times.set(target.times);
+        for (let i = 0; i < sn; i++) times[tn + i] = src.times[i] + offset;
+
+        const Values = target.values.constructor as new (n: number) => Float32Array;
+        const values = new Values(target.values.length + src.values.length);
+        values.set(target.values);
+        values.set(src.values, target.values.length);
+
+        target.times = times;
+        target.values = values;
+    }
+    // Function to stitch AnimationClips in place, preserving the base clip and appending new clips to it
+    async stitchInPlace(
+        base: THREE.AnimationClip,
+        urls: string[],
+        mixer?: THREE.AnimationMixer
+    ): Promise<THREE.AnimationClip> {
+
+        //console.log(`Stitching ${urls.length} animation clips into base clip ${base.name}`);
+        // Async part: load in parallel, order is preserved by Promise.all
+        const clips = await Promise.all(urls.map((u, index) => this.loadAnimationClip(u.substring(0, 8) + '.json')));
+
+        const byName = new Map(base.tracks.map((t) => [t.name, t]));
+        let offset = 0;
+
+        for (const clip of clips) {
+            for (const src of clip.tracks) {
+                const existing = byName.get(src.name);
+                if (existing) {
+                    this.appendKeyframes(existing, src, offset);
+                } else {
+                    // Track not in the base clip: add a shifted copy (a track, not a clip)
+                    const t = src.clone();
+                    //for (let i = 0; i < t.times.length; i++) t.times[i] += offset;
+                    base.tracks.push(t);
+                    byName.set(t.name, t);
+                }
+            }
+        }
+
+        base.duration = base.tracks[0].times[base.tracks[0].times.length-1]-base.tracks[0].times[0];
+
+        // The mixer caches bindings and interpolants per clip, so drop them
+        mixer?.uncacheClip(base);
+
+        return base;
+    }
+
+    createAnimationClipFromMessage(clipMessage: any) : AnimationClip {
         // Creating AnimationClip from clipMessage
         // We probably should check to avoid duplicates here
-        const clip = AnimationClip.parse(clipMessage.Clip); // This creates an AnimationClip instance
-        console.log(`Adding Animation Clip: Name=${clip.name}, Duration=${clip.duration}`);
+        let clip = AnimationClip.parse(clipMessage.Clip);
+        //console.log(`Adding Animation Clip: Name=${clip.name}, Duration=${clip.duration}`);
         const startTime = this.getClipStartTime(clip);
         this.viewerState.animations.push(clip);
         this.viewerState.isDollyAnimation.push(false)
         this.viewerState.animationStartTimes.push(startTime);
         const index = this.viewerState.animations.length - 1;
-        console.log(`Creating Animation Clip: Name=${clip.name}, Duration=${clip.duration}`);
+        //console.log(`Creating Animation Clip: Name=${clip.name}, Duration=${clip.duration}`);
         const clipRoot = clipMessage.Root;
-        console.log(`  Root Object UUID: ${clipRoot}`);
-        console.log(`  Root Object Name: ${this.nodeDictionary[clipRoot]?.name}`);
+        //console.log(`  Root Object UUID: ${clipRoot}`);
+        //console.log(`  Root Object Name: ${this.nodeDictionary[clipRoot]?.name}`);
         this.viewerState.animationRoots.push(this.nodeDictionary[clipRoot]);
-        this.viewerState.animationChange = {index:index, operation:"add"};
+        this.viewerState.animationChange.push({index:index, operation:"add"});
         this.viewerState.setAnimationsNeedUpdate(true)
+        this.processingSocketMessage = false;
+        if (clipMessage.Clip.composite !== undefined && clipMessage.Clip.composite === true) {
+            //console.log(`Clip ${clip.name} is composite. Loading sub-clips...`);
+            this.stitchInPlace(clip, clipMessage.Clip.clip_uuids).then(() => {
+                console.log(`All sub-clips for ${clip.name} have been loaded and merged.`);
+                //console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+                //console.log(`Finished loading sub-clips for ${clip.name}`);
+                //console.log(`Clip ${clip.name} now has ${clip.tracks.length} tracks and duration ${clip.duration}`);
+                //console.log(clip.tracks[0].name, clip.tracks[0].times.length, clip.tracks[0].values.length);
+                this.viewerState.animationChange.push({index:index, operation:"update"});
+                this.viewerState.setAnimationsNeedUpdate(true)
+            }).catch((error: any) => {
+                console.error(`Error loading sub-clips for ${clip.name}:`, error);
+            });
+        }
+        return clip;
     }
+    
     stopGUIAnimation() {
         const json = JSON.stringify({
         type: "Animation",

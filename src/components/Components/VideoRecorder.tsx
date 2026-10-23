@@ -772,7 +772,7 @@ function VideoRecorder(props: VideoRecorderViewProps) {
 
       viewerState.setIsRecordingVideo(true);
       curState.guiAnimationLoop = false; // Stop any existing loops
-      curState.viewerState.animationChange = { index: 0, operation: "start" };
+      curState.viewerState.animationChange = [{ index: 0, operation: "start" }];
 
       // Enable external time control
       viewerState.isTimeControlledExternally = true;

@@ -120,7 +120,7 @@ export class ViewerState {
     animationRoots: Object3D[] // roots for each animation clip
     currentAnimationIndices: number[]
     animationsNeedUpdate: boolean
-    animationChange: null | Object
+    animationChange: Object[]
     camerasNeedUpdate: boolean
     currentAnimationTime: number
     forceAnimationUpdate: boolean;
@@ -220,7 +220,7 @@ export class ViewerState {
         this.animationStartTimes = []
         this.currentAnimationIndices = []; // support multiple selection
         this.animationsNeedUpdate = false
-        this.animationChange = null
+        this.animationChange = []
         this.currentAnimationTime = 0
         this.camerasNeedUpdate = false
         this.forceAnimationUpdate = false
@@ -462,7 +462,7 @@ export class ViewerState {
         this.animationRoots.push(this.defaultCamera!); // Should be default camera
         this.setCurrentDollyIndex(this.cameraDollies.length - 1);
         const dollyAnimationIndex = this.animations.length - 1;
-        this.animationChange = {index:dollyAnimationIndex, operation:"add"};
+        this.animationChange.push({index:dollyAnimationIndex, operation:"add"});
         // remove from currentAnimationIndices any dolly animations
         this.currentAnimationIndices = this.currentAnimationIndices.filter(index => !this.isDollyAnimation[index]);
         // if we are adding a new dolly animation, we want to make sure it is included in the current animation indices
@@ -480,7 +480,7 @@ export class ViewerState {
         const oldClipIndex = this.animations.findIndex(clip => clip.name === oldName);
         this.animations.splice(oldClipIndex, 1, theClip);
         this.animationStartTimes.splice(oldClipIndex, 1, this.getClipStartTime(theClip)); // reset start time for updated clip
-        this.animationChange = {index:oldClipIndex, operation:"update"};
+        this.animationChange.push({index:oldClipIndex, operation:"update"});
         this.setAnimationsNeedUpdate(true);
     }
     setAnimationList(animations: AnimationClip[]) {
@@ -649,7 +649,7 @@ export class ViewerState {
         this.animations.splice(idx, 1);
         this.animationRoots.splice(idx, 1);
         this.removeCurrentAnimationIndex(idx);
-        this.animationChange = {index:idx, operation:"delete"};
+        this.animationChange.push({index:idx, operation:"delete"});
         this.setAnimationsNeedUpdate(true);
     }
     addDollyAndCameras(newSequenceJson:CameraDolly, camerasJson: any[], targetsJson: any[]) {
