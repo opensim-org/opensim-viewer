@@ -26,7 +26,7 @@ import { useParams } from 'react-router-dom';
 import { CircularProgress, Slider } from "@mui/material";
 import OpenSimHtmlLogo from '../Components/OpenSimLogo';
 import RecordModeOverlay from '../Components/RecordModeOverlay'
-
+import AnimationTimeline from './AnimationTimeline';
 import { Stats } from '@react-three/drei'
 
 import { createTempHelper, removeTempHelper, updateTempHelperVisibility } from '../Components/SceneTree/SceneTreeSortable'
@@ -473,25 +473,9 @@ useEffect(() => {
                 animationList={uiState.viewerState.animations}
                 controlsRef={openSimControlsRef.current}
               />)}
-              {!uiState.isGuiMode 
-                && uiState.viewerState.animations.length > 0 
-                && <Box component="div"
-                sx={{
-                  position: 'absolute',
-                  bottom: 16, // sits above BottomBar if it's showing
-                  left: 24,
-                  right: treeWidth + 24, // avoid overlapping the scene tree panel on the right
-                  zIndex: 1001,
-                }}
-              >
-                <Slider
-                  value={timelineValue}
-                  onChange={(_, v) => setTimelineValue(v as number)}
-                  min={0}
-                  max={100}
-                  valueLabelDisplay="auto"
-                />
-              </Box>}
+              {!uiState.isGuiMode && uiState.viewerState.animations.length > 0 && (
+                <AnimationTimeline uiState={uiState} rightOffset={treeWidth} />
+              )}
               {scene && camera && (
                 <div
                   style={{
