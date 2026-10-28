@@ -58,6 +58,10 @@ function App({ signOut, user }: WithAuthenticatorProps) {
       // Parameter to set if the browser being used is modern or not.
       const cssParamModern = urlParams.get('modern')
 
+      const viewParam = urlParams.get('view') || urlParams.get('View');
+
+      const captureParam = urlParams.get('capture');
+
       // Set gui mode if parameter is present unless we already know in gui mode.
       if (cssParamGui === 'gui') {
         curState.setIsGuiMode(true);
@@ -68,6 +72,13 @@ function App({ signOut, user }: WithAuthenticatorProps) {
         curState.setIsModernBrowser(false);
       } else {
         curState.setIsModernBrowser(true);
+      }
+
+      if (captureParam!==null){
+        curState.takeSnapshot = true;
+      }
+      if (viewParam){
+        curState.viewerState.pending_key = viewParam;
       }
 
     React.useEffect(() => {
