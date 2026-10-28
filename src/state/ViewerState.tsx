@@ -575,27 +575,7 @@ export class ViewerState {
             console.error("Error loading user preferences:", error);
         }
     }
-    
-    async loadTripodPresets() {
-        try {
-            const response = await fetch(this.tripodPresetsPath);
 
-            if (!response.ok) {
-                throw new Error(
-                    `Failed to load tripods from ${this.tripodPresetsPath}`
-                );
-            }
-
-            const data = await response.json();
-            console.log(data);
-
-            runInAction(() => {
-                this.loadCamerasFromJson(data);
-            });
-        } catch (error) {
-            console.error("Error loading user tripods:", error);
-        }
-    }
     addCamera(camera: PerspectiveCamera, target: Vector3,
                 suggestedName: string | undefined,
                 setCurrent: boolean | undefined = false,
