@@ -575,6 +575,7 @@ export class ViewerState {
             console.error("Error loading user preferences:", error);
         }
     }
+
     addCamera(camera: PerspectiveCamera, target: Vector3,
                 suggestedName: string | undefined,
                 setCurrent: boolean | undefined = false,

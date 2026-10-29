@@ -177,6 +177,27 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
                         fitToModels(true);
                     }
                     break;
+                // Following are builtin directions for viewing from script/urlParams
+                case "X":
+                case "x":
+                    camera.position.set(5, 0.1, 0);
+                    updateProjectionAndControl();
+                    break;
+                case "Y":
+                case "y":
+                    camera.position.set(0, 5, 0);
+                    updateProjectionAndControl();
+                    break;
+                case "Z":
+                case "z":
+                    camera.position.set(0, 0.1, 5);
+                    updateProjectionAndControl();
+                    break;
+                case "xz":
+                case "XZ":
+                    camera.position.set(3, 0.1, 3);
+                    updateProjectionAndControl();
+
             }
             viewerState.pending_key = "";
         }
@@ -199,7 +220,7 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
             curState.viewerState.saveCameraAndTarget = false
             curState.viewerState.saveCameraName = undefined
         }
-        else if (curState.takeSnapshot){
+        if (curState.takeSnapshot){
             const timestamp = getTimestamp();
             const snapshot_filename = viewerState.snapshotName + "_" + timestamp + "." + curState.snapshotProps.image_format;
 
@@ -446,6 +467,13 @@ const OpenSimControl = forwardRef<OpenSimControlHandle, GroupProps>((props, ref)
             }
             curState.viewerState.setCurrentCameraIndex(-1);
         }
+
+       function updateProjectionAndControl() {
+           camera.up.set(0, 1, 0);
+           camera.lookAt(controlsRef.current!.target);
+           camera.updateProjectionMatrix();
+           controlsRef.current!.update();
+       }
 
        function fitToModels(transition: boolean) {
            const useScene = curState.scene;
