@@ -24,6 +24,7 @@ import AboutPage from './components/pages/AboutPage';
 import ModelListPage from './components/pages/ModelListPage/ModelListPage';
 import { useModelContext } from './state/ModelUIStateContext';
 import DisableZoom from './disableZoom';
+import { Color } from 'three';
 // import awsconfig from './aws-exports';
 // Amplify.configure(awsconfig);
 
@@ -58,6 +59,9 @@ function App({ signOut, user }: WithAuthenticatorProps) {
       // Parameter to set if the browser being used is modern or not.
       const cssParamModern = urlParams.get('modern')
 
+      const floorParam = urlParams.get('floor');
+
+      const bkgndParam = urlParams.get('bkgnd');
       // Set gui mode if parameter is present unless we already know in gui mode.
       if (cssParamGui === 'gui') {
         curState.setIsGuiMode(true);
@@ -68,6 +72,13 @@ function App({ signOut, user }: WithAuthenticatorProps) {
         curState.setIsModernBrowser(false);
       } else {
         curState.setIsModernBrowser(true);
+      }
+      if (floorParam === 'wood') {
+        curState.viewerState.textureIndex = 1;
+      }
+
+      if (bkgndParam === 'black') {
+        curState.viewerState.backgroundColor = new Color(0., 0., 0.);
       }
 
     React.useEffect(() => {

@@ -280,7 +280,11 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           if (viewerState.isTimeControlledExternally) {
             // Use the external time set by the recorder
             const externalTime = viewerState.externalAnimationTime;
-
+            if (!action.isRunning()) {
+              action.clampWhenFinished = true;
+              action.paused = false;
+              action.play();
+            }
             // Update the mixer time without advancing
             action.time = externalTime;
             mixer.update(0); // Apply the time change without advancing

@@ -28,7 +28,7 @@ import OpenSimHtmlLogo from '../Components/OpenSimLogo';
 import RecordModeOverlay from '../Components/RecordModeOverlay'
 import AnimationTimeline from './AnimationTimeline';
 import { Stats } from '@react-three/drei'
-
+import CaptureBridge from '../../view/Components/CaptureBridge'
 import { createTempHelper, removeTempHelper, updateTempHelperVisibility } from '../Components/SceneTree/SceneTreeSortable'
 
 import * as THREE from 'three';
@@ -409,6 +409,7 @@ useEffect(() => {
                 >
                 <Environment files="/assets/potsdamer_platz_1k.hdr"/>
                 <SceneTreeBridge onSceneReady={setScene} onCameraReady={setCamera} />
+                <CaptureBridge />
                 <fog attach="fog" color="lightgray" near={1} far={10000} />
                   {curState.isGuiMode ?
                     <OpenSimGUIScene
