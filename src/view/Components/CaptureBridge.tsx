@@ -14,7 +14,7 @@ import * as THREE from 'three';
 import { useModelContext } from '../../state/ModelUIStateContext';
 
 // Extra camera distance for the 'frontal' preset, in scene units/meters
-const FRONTAL_EXTRA_DISTANCE = 1.5;
+const FRONTAL_EXTRA_DISTANCE = 2;
 
 declare global {
   interface Window {
@@ -89,8 +89,11 @@ export default function CaptureBridge() {
         } else if (preset === 'frontal') {
           pos = c.clone().add(new THREE.Vector3(r + FRONTAL_EXTRA_DISTANCE, 0, 0));
         } else if (preset === 'iso') {
-          pos = c.clone().add(new THREE.Vector3(r * 0.7, r * 0.4, r * 0.7));
-        } else {
+          pos = c.clone().add(new THREE.Vector3(r * 0.9, r * 0.2, r * 0.9));
+        } else if (preset === 'rc') {
+          pos = c.clone().add(new THREE.Vector3(r * 0.7, r * 0.2, -r));
+        }
+        else {
           pos = c.clone().add(new THREE.Vector3(0, 0, r)); // sagittal
         }
         camera.position.copy(pos);
