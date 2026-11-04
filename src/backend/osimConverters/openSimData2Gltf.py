@@ -20,7 +20,7 @@ def getMarkerMeshScale():
   return .01
 
 def getForceMeshScale():
-  return 0.1
+  return 0.2
 
 def getForceNormalizationScale():
   return .001
@@ -31,7 +31,9 @@ def mapShapeStringToMeshNumber(shape):
 def initGltf():
     "Initialize Gltf json structure, seed it with basicShapes"
     cwd = os.getcwd();
-    gltf = GLTF2().load('basicShapes.gltf')
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    # print ("Current working directory ", dir_path)
+    gltf = GLTF2().load(os.path.join(dir_path,'basicShapes.gltf'))
     gltf.nodes.clear()
     default_scene = gltf.scenes[0]
     # clear children of scene
@@ -43,9 +45,9 @@ def createForceDictionary(labels, forcesDictionary):
     for idx in range(len(labels)-1):   # len(labels)-1 first force only for now
       force_point_label_candidate = [labels[idx], labels[idx+1]]
       forceNameCandidate = pathmethods.commonprefix(force_point_label_candidate)
-      if (len(forceNameCandidate)==len(labels[idx])-1) and (len(forceNameCandidate)!=0):
+      if (labels[idx].endswith("_v") and labels[idx+1].endswith("_p") and (len(forceNameCandidate)!=0)):
          forcesDictionary[forceNameCandidate[:-1]] = idx # Avoid trailing _ in most cases
-         idx += 1
+         idx += 2
       else: # could be fx, px format
         k = labels[idx].rfind("f")
         if (k==-1):
@@ -53,7 +55,7 @@ def createForceDictionary(labels, forcesDictionary):
         poslabelCandidate = labels[idx][:k] + "p" + labels[idx][k+1:]
         if (labels[idx+1]==poslabelCandidate):
           forcesDictionary[labels[idx]] = idx
-          idx += 1
+          idx += 2
         
 def createForceNodes(shape, forcesDictionary, unitConversionToMeters, scaleData, forceScale, firstDataFrame, gltf, topNode):
     firstForceNodeIndex = len(gltf.nodes)
@@ -69,6 +71,7 @@ def createForceNodes(shape, forcesDictionary, unitConversionToMeters, scaleData,
       else:
         nextForceNode.mesh = desiredShape
 
+      nextForceNode.material=4
       # extras are place holder for application specific properties
       # for now we'll pass opensimType, may add layers, as needs arise....
       opensim_extras = {"opensimType": "ExtForce", 
@@ -137,13 +140,13 @@ def createAccessor(gltf, data_nparray, mode):
   myDataAccessor.byteOffset = 0
   myDataAccessor.componentType = FLOAT
   myDataAccessor.count = len(data_nparray)
-  myDataAccessor.type = VEC3 if (mode == 't') else VEC4
+  myDataAccessor.type = VEC4 if (mode == 'r') else VEC3
   gltf.accessors.append(myDataAccessor)
   accessorIndex =  len(gltf.accessors)-1
   gltf.buffers.append(myDataBuffer)
   gltf.bufferViews.append(myDataBufferView)
   myDataBuffer.byteOffset = 0
-  elementSize = 3 if (mode == 't') else 4
+  elementSize = 4 if (mode == 'r') else 3
   myDataBuffer.byteLength = 4 * elementSize * myDataAccessor.count
   encoded = base64.b64encode(data_nparray).decode("ascii")
   myDataBuffer.uri = f"data:application/octet-stream;base64,{encoded}"
@@ -356,18 +359,19 @@ def convertMarkersTimeSeries2Gltf(gltfJson, shape, timeSeriesTableMarkers):
       shape = 'cube'
 
     firstMarkerNodeIndex = len(gltfJson.nodes)
+      # 0 cube, 1 sphere, 2 brick
+    desiredShape = mapShapeStringToMeshNumber(shape)
+      
     # Create nodes for the experimental markers, 1 node per marker
     for markerIndex in range(numMarkers):
       # Create node for the marker
       nextMarkerNode = Node()
       nextMarkerNode.name = timeSeriesTableMarkers.getColumnLabel(markerIndex)
-      # 0 cube, 1 sphere, 2 brick
-      desiredShape = mapShapeStringToMeshNumber(shape)
       # Use cube if no shape is specified
       if (desiredShape==None):
         nextMarkerNode.mesh =  0
       else:
-        nextMarkerNode.mesh = desiredShape
+        nextMarkerNode.mesh = desiredShape 
 
       # extras are place holder for application specific properties
       # for now we'll pass opensimType, may add layers, as needs arise....
@@ -492,4 +496,33 @@ def convertForcesTableToGltfAnimation(gltfTop, timeSeriesTableVec3, conversionTo
     addRSAccessors(gltfTop, timeSeriesTableVec3, dict[force], conversionToMeters)
     #
     forceIndex = forceIndex+1
+
+def attachCameraToBody(gltfTop, osimBodyIndex, pos=[0., 0., 0.], rotq=[0., 0., 0., 1.0], name=""):
+  addCamera(gltfTop, name, osimBodyIndex, pos, rotq)
+
+def addCamera(gltfTop, cname="", parentNodeIndex=None, pos=[0., 0., 0.], rotq=[0., 0., 0., 1.0], yfov=1.0, znear=0.1, zfar = 1000.0):
+  n = Node()
+  n.rotation = rotq
+  n.translation = pos
+  if (cname==""):
+    n.name = "Camera"+str(len(gltfTop.cameras)+1)
+  else:
+    n.name = cname
+  n.camera = len(gltfTop.cameras)
+  gltfTop.nodes.append(n)
+
+  camera = Camera()
+  camera.type = "perspective"  # or "orthographic"
+  camera.perspective = Perspective()
+  camera.perspective.yfov = yfov  # Field of view in degrees
+  camera.perspective.znear = 0.1  # Near clipping plane
+  camera.perspective.zfar = zfar  # Far clipping plane
+
+  gltfTop.cameras.append(camera)
+  if parentNodeIndex is None:
+    gltfTop.scenes[0].nodes.append(len(gltfTop.nodes)-1)
+  else:
+    gltfTop.nodes[parentNodeIndex].children.append(len(gltfTop.nodes)-1)
+  return len(gltfTop.nodes)-1
+
 

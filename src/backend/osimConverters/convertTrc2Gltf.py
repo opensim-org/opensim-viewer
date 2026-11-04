@@ -20,14 +20,14 @@ from .openSimData2Gltf import *
 # "animations refer to channels and samplers"
 
 
-def convertTrc2Gltf(trcFilePath, shape) :
+def convertTrc2Gltf(trcFilePath, options) :
     path = Path(trcFilePath)
     if not path.exists():
         raise NotADirectoryError("Unable to find file ", path.absolute())
 
     gltfJson = initGltf()
     timeSeriesTableMarkers = osim.TimeSeriesTableVec3(trcFilePath)
-    convertMarkersTimeSeries2Gltf(gltfJson, shape, timeSeriesTableMarkers)
+    convertMarkersTimeSeries2Gltf(gltfJson, options.getExperimentalMarkerShape(), timeSeriesTableMarkers)
     return gltfJson
 
 # def main():

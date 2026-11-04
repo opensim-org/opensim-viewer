@@ -18,13 +18,14 @@ from .openSimData2Gltf import *
 # "animations" : [...],
 
 
-def convertC3D2Gltf(c3dFilePath, shape) :
+def convertC3D2Gltf(c3dFilePath, options) :
 
     path = Path(c3dFilePath)
     if not path.exists():
         raise NotADirectoryError("Unable to find file ", path.absolute())
 
     adapter = osim.C3DFileAdapter()
+    adapter.setLocationForForceExpression(osim.C3DFileAdapter.ForceLocation_CenterOfPressure)
     tables = adapter.read(c3dFilePath)
     markerDataTable = adapter.getMarkersTable(tables)
     hasMarkerData = markerDataTable.getNumRows()>0
@@ -44,7 +45,7 @@ def convertC3D2Gltf(c3dFilePath, shape) :
     gltf = initGltf()
 
     # create node for the marker mesh, refer to it from all marker nodes
-    convertMarkersTimeSeries2Gltf(gltf, shape, markerDataTable)
+    convertMarkersTimeSeries2Gltf(gltf, options.getExperimentalMarkerShape(), markerDataTable)
 
     # now the forces
     if (hasForceData):
@@ -58,7 +59,7 @@ def convertC3D2Gltf(c3dFilePath, shape) :
           topForcesNode.name = 'ForceData'
           gltf.nodes.append(topForcesNode)
           gltf.scenes[0].nodes.append(len(gltf.nodes)-1)
-          shape = 'arrow'
+          shape = options.getForceShape()
           unitConversionToMeters = .001
           scaleData = True
           if (forcesDataTable.hasTableMetaDataKey("Units")) :

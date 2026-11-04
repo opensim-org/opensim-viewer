@@ -18,7 +18,7 @@ from .openSimData2Gltf import *
 # "animations" : [...],
 
 
-def convertMotForce2Gltf(motFilePath, shape) :
+def convertMotForce2Gltf(motFilePath, shape, options, startingGltf) :
     path = Path(motFilePath)
     if not path.exists():
         raise NotADirectoryError("Unable to find file ", path.absolute())
@@ -50,16 +50,22 @@ def convertMotForce2Gltf(motFilePath, shape) :
 
     forceScale = getForceMeshScale()
     firstDataFrame = timeSeriesTableVec3.getRowAtIndex(0)
-    gltf = initGltf()
+    if (startingGltf == None):
+        gltf = initGltf()
+    else:
+        gltf = startingGltf;
 
     # create node for the force mesh, refer to it from all force nodes
     topNode = Node()
     topNode.name = 'ForceData'
     gltf.nodes.append(topNode)
+    topNodeIndex = len(gltf.nodes)-1
     # make children exclusively be node 0
-    sceneNodes = gltf.scenes[0].nodes
-    sceneNodes.append(0) # ForceData topNode
-    sceneNodeIndex = len(sceneNodes)
+    # find model node and make topNode a child of it
+    gltf.nodes[0].children.append(topNodeIndex)
+    # sceneNodes = gltf.scenes[0].nodes
+    # sceneNodes.append(topNodeIndex) # ForceData topNode
+    # sceneNodeIndex = len(sceneNodes)
     if (shape == None): #if  unspecified forces default to arrow
        shape = 'arrow'
 
