@@ -91,7 +91,9 @@ export default function CaptureBridge() {
         } else if (preset === 'iso') {
           pos = c.clone().add(new THREE.Vector3(r * 0.9, r * 0.2, r * 0.9));
         } else if (preset === 'rc') {
-          pos = c.clone().add(new THREE.Vector3(r * 0.7, r * 0.2, -r));
+          pos = c.clone().add(new THREE.Vector3(r * 0.7 * 0.5, r * 0.2 * 0.5, -r * 0.5));
+        } else if (preset === 'lc') {
+          pos = c.clone().add(new THREE.Vector3(r * 0.7 * 0.5, r * 0.2 * 0.5, r * 0.5));
         }
         else {
           pos = c.clone().add(new THREE.Vector3(0, 0, r)); // sagittal
