@@ -91,14 +91,15 @@ export default function CaptureBridge() {
         } else if (preset === 'iso') {
           pos = c.clone().add(new THREE.Vector3(r * 0.9, r * 0.2, r * 0.9));
         } else if (preset === 'rc') {
-          pos = c.clone().add(new THREE.Vector3(r * 0.7 * 0.5, r * 0.2 * 0.5, -r * 0.5));
+          pos = c.clone().add(new THREE.Vector3(r * 0.7 * 0.6, r * 0.2 * 0.4, -r * 0.2));
         } else if (preset === 'lc') {
-          pos = c.clone().add(new THREE.Vector3(r * 0.7 * 0.5, r * 0.2 * 0.5, r * 0.5));
+          pos = c.clone().add(new THREE.Vector3(r * 0.7 * 0.6, r * 0.2 * 0.4, r * 0.2));
         }
         else {
           pos = c.clone().add(new THREE.Vector3(0, 0, r)); // sagittal
         }
         camera.position.copy(pos);
+        camera.zoom = 0.5
         camera.lookAt(target);
         const ctl: any = controls;
         ctl?.target?.copy(target);
