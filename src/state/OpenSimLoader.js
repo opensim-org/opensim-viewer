@@ -117,12 +117,22 @@ class OpenSimLoader extends ObjectLoader {
 
     loadGLTF(url, onLoad, onProgress, onError) {
         this.gltfLoader.load(url, function(gltf) {
-            if (onLoad) onLoad(gltf.scene);
+            if (onLoad) {
+                onLoad(gltf.scene);
+                const animations = gltf.animations;
+                if (animations && animations.length > 0) {
+                    gltf.scene.animations = animations;
+                }
+            }
         }, onProgress, onError);
     }
 
     async loadGLTFAsync(url, onProgress) {
         const gltf = await this.gltfLoader.loadAsync(url, onProgress);
+        const animations = gltf.animations;
+        if (animations && animations.length > 0) {
+            gltf.scene.animations = animations;
+        }
         return gltf.scene;
     }
 

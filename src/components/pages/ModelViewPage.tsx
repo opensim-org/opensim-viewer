@@ -23,12 +23,12 @@ import { observer } from "mobx-react";
 import { MyModelContext } from "../../state/ModelUIStateContext";
 import { useModelContext } from "../../state/ModelUIStateContext";
 import { useParams } from 'react-router-dom';
-import { CircularProgress } from "@mui/material";
+import { CircularProgress, Slider } from "@mui/material";
 import OpenSimHtmlLogo from '../Components/OpenSimLogo';
 import RecordModeOverlay from '../Components/RecordModeOverlay'
-
+import AnimationTimeline from './AnimationTimeline';
 import { Stats } from '@react-three/drei'
-
+import CaptureBridge from '../../view/Components/CaptureBridge'
 import { createTempHelper, removeTempHelper, updateTempHelperVisibility } from '../Components/SceneTree/SceneTreeSortable'
 
 import * as THREE from 'three';
@@ -176,7 +176,7 @@ export function ModelViewPage({url, embedded, noFloor}:ViewerProps) {
   const canvasHeight = uiState.isGuiMode ? "100vh" : "calc(100vh - 68px)";
   const floatingButtonsContainerTop = uiState.isGuiMode ? "12px" : "80px";
   const guiModeMarginTop = uiState.isGuiMode ? 0 : 68;
-
+  const [timelineValue, setTimelineValue] = useState(0);
   const [, setBgndColor] = useState<Color>(new Color(0.7, 0.7, 0.7));
 
   const [scene, setScene] = useState<THREE.Scene | null>(null);
@@ -409,6 +409,7 @@ useEffect(() => {
                 >
                 <Environment files="/assets/potsdamer_platz_1k.hdr"/>
                 <SceneTreeBridge onSceneReady={setScene} onCameraReady={setCamera} />
+                <CaptureBridge />
                 <fog attach="fog" color="lightgray" near={1} far={10000} />
                   {curState.isGuiMode ?
                     <OpenSimGUIScene
@@ -478,7 +479,9 @@ useEffect(() => {
                 animationList={uiState.viewerState.animations}
                 controlsRef={openSimControlsRef.current}
               />)}
-
+              {!uiState.isGuiMode && uiState.viewerState.animations.length > 0 && (
+                <AnimationTimeline uiState={uiState} rightOffset={treeWidth} />
+              )}
               {scene && camera && (
                 <div
                   style={{

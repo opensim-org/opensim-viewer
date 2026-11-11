@@ -39,10 +39,17 @@ class MultiMixerTimeline {
   }
 
   seek(time: number): void {
-    this.time = THREE.MathUtils.clamp(time, this.start, this.end);
-    //console.log("Seeking to time:", this.time, "within range [", this.start, ",", this.end, "]");
     const curState = this.guiState!;
     const indices = curState.viewerState.currentAnimationIndices;
+    if (this.start==0 && this.end==0 && this.mixers.length > 0){
+      // set start and end to the duration of the first mixer's clip
+      const firstClip = curState.viewerState.animations[indices[0]]
+      this.start = curState.getClipStartTime(firstClip);
+      this.end = firstClip.duration;
+    }
+    this.time = THREE.MathUtils.clamp(time, this.start, this.end);
+    //console.log("Seeking to time:", this.time, "within range [", this.start, ",", this.end, "]");
+
     this.mixers.forEach((mixer, idx) => {
       if (mixer === undefined) return;
       if (indices!.indexOf(idx) === -1) return; // only start if in current indices
@@ -135,7 +142,8 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     const sceneRef = useRef<THREE.Scene>(scene);
     const [sceneObjectMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
     const [useEffectRunning, setUseEffectRunning] = useState<boolean>(false)
-    const [mixers, ] = useState<AnimationMixer[]>([])
+    const mixersRef = useRef<AnimationMixer[]>([]);
+    const mixers = mixersRef.current;
     const [timeline] = useState<MultiMixerTimeline>(new MultiMixerTimeline(uiState, mixers));
     const [colorNodeMap] = useState<Map<string, Object3D>>(new Map<string, Object3D>());
     const lightRef = useRef<THREE.DirectionalLight | null>(null)
@@ -150,6 +158,19 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     let curState = useModelContext();
     const modelGroup = useLoader(OpenSimLoader, currentModelPath)
 
+    const createMixer = (clipIndex: number): AnimationMixer | undefined => {
+      const vs = curState.viewerState;
+      const clip = vs.animations[clipIndex];
+      const root = vs.animationRoots[clipIndex];
+      if (!clip || !root) return undefined;
+
+      const mixer = new AnimationMixer(root);
+      const action = mixer.clipAction(clip);
+      const startTime = vs.animationStartTimes[clipIndex];
+
+      mixers[clipIndex] = mixer;
+      return mixer;
+    };
     //computeNormals(modelGroup as Group);
     //const animations = modelGroup!.animations;
     const allAnimations = curState.viewerState.animations;
@@ -157,10 +178,22 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
     const collectAnimations = (group: Group)=>{
       group.traverse((o) => {
           const anims = o.animations
-          for (let i=0; i<anims.length; i++)
-            allAnimations.push(o.animations[i])
+          for (let i=0; i<anims.length; i++){
+            if (allAnimations.findIndex((a)=>{return a.name===anims[i].name})===-1){
+              allAnimations.push(o.animations[i])
+              const clipIndex = curState.viewerState.animationRoots.push(o.children[0])
+              const startTime = curState.getClipStartTime(o.animations[i]);
+              curState.viewerState.animationStartTimes.push(startTime)
+              curState.viewerState.isDollyAnimation.push(false);
+              curState.viewerState.currentAnimationIndices.push(clipIndex-1);
+            }
+          }
+      });
+
+      // Ensure every clip has a mixer, even if the store already knew about it
+      for (let i = 0; i < allAnimations.length; i++) {
+        if (!mixers[i]) createMixer(i);
       }
-    )
     };
     collectAnimations(modelGroup as Group)
 
@@ -257,42 +290,9 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
         if (curState.viewerState.animationChange.length > 1) {
           console.warn("Multiple animation changes detected, processing only the first one. Remaining changes will be processed in subsequent renders.");
         }
-        if (change.operation === "add") {
-          const clipIndex = change.index;
-          if (clipIndex !== -1) {
-            const nextMixer = new AnimationMixer(curState.viewerState.animationRoots[clipIndex])
-            const clip = curState.viewerState.animations[clipIndex]
-            const action = nextMixer.clipAction(clip)
-            const startTime = curState.viewerState.animationStartTimes[clipIndex]
-            action.setLoop(THREE.LoopOnce, 1);
-            
-            if (curState.viewerState.isDollyAnimation[clipIndex] && curState.viewerState.currentAnimationIndices.length === 1) {
-              nextMixer.addEventListener('finished', (e) => {
-                // Handle dolly animation finished event
-                console.log(`Dolly animation ${clip.name} finished.`);
-                viewerState.setAnimating(false);
-              });
-            }
-            mixers.splice(clipIndex, 0, nextMixer);
-          }
-        }
-        else if (change.operation === "update") {
-          const clipIndex = curState.viewerState.animations[change.index]?change.index:-1
-          if (clipIndex !== -1) {
-            const nextMixer = new AnimationMixer(curState.viewerState.animationRoots[clipIndex])
-            const clip = curState.viewerState.animations[clipIndex]
-            const action = nextMixer.clipAction(clip)
-            const startTime = curState.viewerState.animationStartTimes[clipIndex]
-            action.setLoop(THREE.LoopOnce, 1);
-            if (curState.viewerState.isDollyAnimation[clipIndex] && curState.viewerState.currentAnimationIndices.length === 1) {
-              nextMixer.addEventListener('finished', (e) => {
-                // Handle dolly animation finished event
-                console.log(`Dolly animation ${clip.name} finished.`);
-                viewerState.setAnimating(false);
-              });
-            }
-            mixers[clipIndex] = nextMixer
-          }
+        if (change.operation === "add" || change.operation === "update") {
+          if (curState.viewerState.animations[change.index]) 
+            createMixer(change.index);
         }
         else if (change.operation === "updateLooping") { // if updateLooping we don't create new mixers, reuse existing
           // nothing to do here, the looping state is handled in the animation playback logic
@@ -370,7 +370,11 @@ const OpenSimGUIScene: React.FC<OpenSimSceneProps> = ({ currentModelPath, suppor
           if (viewerState.isTimeControlledExternally) {
             // Use the external time set by the recorder
             const externalTime = viewerState.externalAnimationTime;
-
+            if (!action.isRunning()) {
+              action.clampWhenFinished = true;
+              action.paused = false;
+              action.play();
+            }
             // Update the mixer time without advancing
             action.time = externalTime;
             mixer.update(0); // Apply the time change without advancing
